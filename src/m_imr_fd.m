@@ -95,6 +95,7 @@ function varargout = m_imr_fd(varargin)
     v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iDRe            = sigma_opts(13);
+    dGdhsnd         = sigma_opts(14);
     iWe             = 1/We;
     
     % viscosity parameters
@@ -446,7 +447,7 @@ function varargout = m_imr_fd(varargin)
             % stress dissipation
             [taudivu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                 Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
-                ivisco2,fnu,DRe);
+                ivisco2,fnu,DRe,dGdhsnd);
             Tmdot = advection + diffusion + taudivu;
             % sets boundary condition on temperature
             Tmdot(1) = 0;
@@ -458,7 +459,7 @@ function varargout = m_imr_fd(varargin)
         
         % stress equation evolution
         [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
-            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe,dGdhsnd);
         
         % bubble wall acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...

@@ -95,6 +95,7 @@ function varargout = m_imr_spectral(varargin)
     v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iDRe            = sigma_opts(13);
+    dGdhsnd         = sigma_opts(14);
     iWe             = 1/We;
     
     % viscosity parameters
@@ -341,8 +342,8 @@ function varargout = m_imr_spectral(varargin)
                     Rdot/2*(1./yT2 - yT)).*(mAPd*TL);
                 diffusion = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*TL);
                 [taudivu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
-                    Ca,Br,Re8,alphax,yT2,yT3,iyT2,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
-                    ivisco2,fnu,DRe);
+                    Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
+                    ivisco2,fnu,DRe,dGdhsnd);
                 TLdot = advection + diffusion + taudivu;
                 
                 % enforce boundary condition and solve
@@ -367,7 +368,7 @@ function varargout = m_imr_spectral(varargin)
         
         % stress equation evolution
         [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
-            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe,dGdhsnd);
         
         % bubble wall acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...

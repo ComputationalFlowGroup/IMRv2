@@ -6,7 +6,7 @@
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
 function [taudivu] = f_stress_dissipation(stress,spectral,Req,R,Rdot,Ca,Br, ...
-    Re8,alphax,dGdRnd,yT2,yT3,iyT2,iyT3,iyT4,iyT6,X,ZZT,ivisco1,ivisco2,fnu,DRe)
+    Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1,ivisco2,fnu,DRe,dGdhsnd)
 
 % current ammplification factor
 Rst = Req/R;
@@ -14,6 +14,10 @@ Rst = Req/R;
 x2 = (yT3-1+Rst.^3).^(2/3);
 % inversion square of the reference coordinate
 ix2 = x2.^-1;
+% third power of the reference coordinate
+x3 = (yT3-1+Rst.^3);
+% inversion square of the reference coordinate
+ix3 = x3.^-1;
 % fourth power of the reference coordinate
 x4 = x2.^2;
 
@@ -52,8 +56,7 @@ elseif stress == 5
 elseif stress == 8
     taudivu = 12*(Br/(Re8+DRe*fnu))*(Rdot/R)^2*iyT6 + ...
         2*Br/Ca*iyT3.*(Rdot/R).*(yT2.*ix2 - iyT4.*x4) + ...
-        2*Br/Ca*dGdRnd/R0*iyT2.*(Rdot/R)*(yT2.*ix2 - iyT4.*x4);
-    %Br?
+        2*Br*Ca*dGdhsnd*iyT3.*(Rdot/R).*(yT3.*ix3 - iyT3.*x3);
 end
 
 % spectral solution approach to compute the mechanical dissipation

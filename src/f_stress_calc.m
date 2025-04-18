@@ -6,7 +6,7 @@
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
 function [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8,...
-    Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe)
+    Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe,dGdhsnd)
 
 Z1dot = [];
 Z2dot = [];
@@ -80,12 +80,11 @@ elseif stress == -1
     % Kelvin-Voigt, neo-Hookean elasticity for linear profile of graded material
 elseif stress == 8
     S = -(5 - 4*Rst - Rst^4)/(2*Ca) - 4/Re8*Rdot/R - 6*intfnu*iDRe + ... 
-         (dGdRnd/R0)*(1/Ca)^2*((2/3)*Rst^3 - (2/3) + log(Rst));
-    %what is term 3? define dGdRnd - nondim correctly? 1/Ca?
-    Sdot = -2*Rdot/R*(Rst^4 - Rst)/Ca + 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe - ...
-            - (dGdRnd/R0)*(1/Ca)^2*(2*Rst^3*(Rdot/R) + Rdot/R);
-    %missing chain rule product for viscous term? Also neg sign in 1st
-    %term, check last term - nondim correctly?
+         - 2*dGdhsnd*Ca*(-(1/3) + (1/3)*Rst^3 - log(1/Rst));
+    Sdot = -2*Rdot/R*(Rst^4 + Rst)/Ca + 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe - ...
+            -2*dGdhsnd*Ca*Rdot/R*(Rst^2 + 1);
+    %missing chain rule product for viscous term?
+    % can use the same Ca to nondim dGdhs?
 else
     error('stress setting is not available');
 end

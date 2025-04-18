@@ -8,7 +8,7 @@ bubtherm        = 0;
 medtherm        = 0;
 % 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4:
 % PTT, 5: Giesekus, 8: gm NHKV
-stress          = 0;
+stress          = 8;
 % this value must be (0, 0.5]
 eps3            = 0;
 % 0 : ignore vapor pressure, 1 : vapor pressure
@@ -99,7 +99,7 @@ lambda2         = 1e-8;
 % qKV term
 alphax          = 0.25;
 %gm, rate of change of spatially varying G
-dGdR = 1; 
+dGdhs = 1; 
 
 
 % thermal options

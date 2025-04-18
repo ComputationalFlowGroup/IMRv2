@@ -114,7 +114,7 @@ for n = 1:2:nargin
         case 'lambda2',     lambda2 = varargin{n+1};
         case 'alphax',      alphax = varargin{n+1};
         case 'surft',       S = varargin{n+1};
-        case 'dgdr',        dGdR = varargin{n+1};
+        case 'dgdhs',       dGdhs = varargin{n+1};
         % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         
         % non-Newtonian viscosity options
@@ -284,6 +284,7 @@ L_heat_star = L_heat/(Uc)^2;
 Ca      = Pref/G;
 % Reynolds number
 Re8     = Pref*R0/(mu8*Uc);
+
 if Dmu ~= 0
     DRe = Pref*R0/(Dmu*Uc);
 else
@@ -308,7 +309,7 @@ De      = lambda1*Uc/R0;
 Rzero   = 1;
 Uzero   = U0/Uc;
 %graded material stiffness spatial variation
-dGdRnd  = dGdR*R0/G;
+dGdhsnd  = dGdhs/G;
 
 % overwrite defaults with nondimensional inputs
 if isempty(varargin) == 0
@@ -491,7 +492,7 @@ acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe dGdRnd];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe dGdhsnd];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer

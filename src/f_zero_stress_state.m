@@ -28,14 +28,15 @@ end
 
 function hs = newton_solver(dGdhs, tol, max_iter)
 % neo-Hookean Kelvin-Voigt gm with linear profile definitions
-f = @(hs) -2.5 - (1/3)*dGdhs - 0.5*hs^4 + 4*hs + (1/3)*dGdhs*hs^3 + dGdhs*log(hs);
+f = @(hs) -2.5 - (1/3)*dGdhs + 0.5*hs^4 + 2*hs + (1/3)*dGdhs*hs^3 + dGdhs*log(hs);
 f_prime = @(hs) -2*hs^3 + 4 + dGdhs*hs^2 + hs/dGdhs;
 
 % Initial guess for hs
-hs = 1;
+hs = 0.01;
 
 % Newton's method iterations
 for iter = 1:max_iter
+   
     % Compute the function value and its derivative at the current hs
     f_val = f(hs);
     f_prime_val = f_prime(hs);
