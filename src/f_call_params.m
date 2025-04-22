@@ -198,8 +198,8 @@ if check || medtherm ~= 0 && medtherm ~= 1
     error('INPUT ERROR: medtherm must be 0 or 1');
 end
 check = 1-isnumeric(stress);
-if check || stress > 8 || stress < 0
-    error('INPUT ERROR: stress must be between 0 to 5');
+if check || stress > 9 || stress < 0
+    error('INPUT ERROR: stress must be between 0 to 5 or 8 to 9');
 end
 check = 1-isnumeric(vapor);
 if check || vapor ~= 0 && vapor ~= 1
@@ -363,8 +363,8 @@ if medtherm == 1
 end
 
 % 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB, 6: PTT, 7: Giesekus, 
-% 8:  gm N-H 
-if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8
+% 8:  gm N-H, 9: gm qN-H
+if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8 || stress == 9
     spectral = 0;
     if stress == 3 || stress == 4
         Nv = 1;
@@ -388,7 +388,7 @@ if Ca == -1
     Ca = Inf;
 end
 
-if stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8
+if stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8 || stress == 9
     JdotA = 4/Re8;
 elseif stress == 5 || stress == 6
     JdotA = 4*LAM/Re8;
@@ -412,7 +412,7 @@ end
 %     end
 % end
 
-if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8
+if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4 || stress == 8 || stress == 9
     zeNO = 0;
 else
     zeNO = 1;
@@ -455,7 +455,7 @@ Pv_star = Pv;
 Req_zero = Req;
 
 % initial stress field for bubble collapse
-if stress < 3 || stress == 8
+if stress < 3 || stress == 8 || stress == 9
     Szero = [];
 elseif stress == 3 || stress == 4
     if collapse

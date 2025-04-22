@@ -7,8 +7,8 @@ bubtherm        = 0;
 % 0 : cold fluid, 1: warm fluid assumption
 medtherm        = 0;
 % 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4:
-% PTT, 5: Giesekus, 8: gm NHKV
-stress          = 8;
+% PTT, 5: Giesekus, 8: gm NHKV, 9: gm NHqKV
+stress          = 9;
 % this value must be (0, 0.5]
 eps3            = 0;
 % 0 : ignore vapor pressure, 1 : vapor pressure

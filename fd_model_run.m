@@ -18,7 +18,7 @@ vapor = 1;
 bubtherm = 1;
 medtherm = 1;
 masstrans = 1;
-stress = [8,1];
+stress = [9,2];
 for i = 1:length(stress)
 varin = {'progdisplay',0,...
     'radial',radial,...
@@ -41,18 +41,18 @@ varin = {'progdisplay',0,...
          't8',T8,...
          'rho8',rho8};
 
-%[t1,R1,~] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
-[t1,R1,~] = m_imr_fd(varin{:},'Nt',150,'Mt',150);
+[t1,R1,~] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
+%[t1,R1,~] = m_imr_fd(varin{:},'Nt',50,'Mt',300);
 
 figure(1)
 hold on;
 plot(t1,R1,'x')
 ylim([0 1.2])
-legend('nHKV-gmlin-fd','nHKV-fd')
+legend('nHqKV-gmlin-fd','nHqKV-fd')
 
-figure(2)
+figure(1)
 hold on;
 [t2,R2,~] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
 plot(t2,R2,'^')
-legend('nHKV-gmlin-sp','nHKV-sp')
+legend('nHqKV-gmlin-sp','nHqKV-sp')
 end
