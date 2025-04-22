@@ -1,5 +1,5 @@
 tend = 15;
-tickrange= [0:3:tend];
+tickrange= 0:3:tend;
 lR = length(R);
 lr_max = 100;
 lr_N = 200;
@@ -13,8 +13,8 @@ ycon = log10(ycon);
 clevels = 50;
 feps_r = f_f_filter(f_r,lR,lr_N);
 tau_r = 2*(feps_r./DRe+1./Re8).*varsigmadot_r;
-min_tau_r = min(min(tau_r))
-max_tau_r = max(max(tau_r))
+min_tau_r = min(min(tau_r));
+max_tau_r = max(max(tau_r));
 ntau_r = tau_r/max_tau_r;
 
 % f contour figure
@@ -30,7 +30,7 @@ pos = get(cbar,'Position');
 cbar.Label.Position = [pos(1) -0.04]; 
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
-caxis([0 1]);
+clim([0 1]);
 xlim([0 tend]);
 xticks(tickrange)
 set(gcf,'color','w');
@@ -57,7 +57,7 @@ pos = get(cbar,'Position');
 cbar.Label.Position = [1.5*pos(1) -1.2];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
-caxis([-1 1])
+clim([-1 1])
 xlim([0 tend]);
 xticks(tickrange)
 set(gcf,'color','w');

@@ -1,5 +1,5 @@
 tend = 15;
-tickrange= [0:3:tend];
+tickrange= 0:3:tend;
 lR = length(R);
 lr_max = 100;
 lr_N = 200;
@@ -30,7 +30,7 @@ pos = get(cbar,'Position');
 cbar.Label.Position = [pos(1) -0.04]; 
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
-caxis([0 1]);
+clim([0 1]);
 xlim([0 tend]);
 xticks(tickrange)
 set(gcf,'color','w');
@@ -57,7 +57,7 @@ pos = get(cbar,'Position');
 cbar.Label.Position = [1.5*pos(1) -1.08];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
-caxis([-1 1])
+clim([-1 1])
 xlim([0 tend]);
 xticks(tickrange)
 set(gcf,'color','w');

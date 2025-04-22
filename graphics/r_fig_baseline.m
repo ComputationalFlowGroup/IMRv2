@@ -1,5 +1,5 @@
 fig_tend = 30;
-tickrange= [0:5:fig_tend];
+tickrange= 0:5:fig_tend;
 lma = 'r';
 % SETTING UP THE FIGURES
 figure(1)  
