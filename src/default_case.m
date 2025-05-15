@@ -7,7 +7,7 @@ bubtherm        = 0;
 % 0 : cold fluid, 1: warm fluid assumption
 medtherm        = 0;
 % 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4:
-% PTT, 5: Giesekus, 8: gm NHKV, 9: gm NHqKV
+% PTT, 5: Giesekus, 8: radial powerlaw gm NHKV, 9: radial powerlaw gm NHqKV
 stress          = 9;
 % this value must be (0, 0.5]
 eps3            = 0;
@@ -97,9 +97,9 @@ lambda1         = 1e-7;
 % retardation time (s)
 lambda2         = 1e-8;
 % qKV term
-alphax          = 0.25;
-%gm, rate of change of spatially varying G
-dGdhs = 1; 
+alphax          = 0;
+%gm, powerlaw index for rate of change of radially varying G
+a = 1; 
 
 
 % thermal options

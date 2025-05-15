@@ -83,6 +83,8 @@ for n = 1:2:nargin
         P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'u0',          U0 = varargin{n+1};
         case 'req',         Req = varargin{n+1};
+        case 'r1',          R1 = varargin{n+1};
+        case 'r2',          R2 = varargin{n+1};
         P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         case 'stress0',     Szero = varargin{n+1};
         
@@ -110,11 +112,13 @@ for n = 1:2:nargin
         case 'mu',          mu8 = varargin{n+1};
         visflag = visflag + 1;
         case 'g',           G = varargin{n+1};
+        case 'g1',          G1 = varargin{n+1};
         case 'lambda1',     lambda1 = varargin{n+1};
         case 'lambda2',     lambda2 = varargin{n+1};
         case 'alphax',      alphax = varargin{n+1};
         case 'surft',       S = varargin{n+1};
-        case 'dgdhs',       dGdhs = varargin{n+1};
+        case 'a',           a = varargin{n+1};
+        case 'nexp',        nexp = varargin{n+1};
         % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         
         % non-Newtonian viscosity options
@@ -282,6 +286,8 @@ L_heat_star = L_heat/(Uc)^2;
 
 % Cauchy number
 Ca      = Pref/G;
+%gm Ca number for spatially terminal G
+Ca1 = Pref/G1;
 % Reynolds number
 Re8     = Pref*R0/(mu8*Uc);
 
@@ -308,8 +314,11 @@ De      = lambda1*Uc/R0;
 % dimensionless initial conditions
 Rzero   = 1;
 Uzero   = U0/Uc;
-%graded material stiffness spatial variation
-dGdhsnd  = dGdhs/G;
+%gm power law parameter a
+%gm R1 and R2
+R1zero = R1/Req;
+R2zero = R2/Req;
+
 
 % overwrite defaults with nondimensional inputs
 if isempty(varargin) == 0
@@ -328,6 +337,7 @@ if isempty(varargin) == 0
             case 're',      Re8 = varargin{n+1};
             case 'dre',     DRe = varargin{n+1};
             case 'ca',      Ca = varargin{n+1};
+            case 'ca1',     Ca1 = varargin{n+1};
             case 'lam',     LAM = varargin{n+1};
             case 'de',      De = varargin{n+1};
             case 'foh',     Foh = varargin{n+1};
@@ -422,6 +432,11 @@ if (stress == 3 || stress == 4) && De == 0
     error('INPUT ERROR: De can not equal zero for stress = 3 or 4');
 end
 
+if stress == 8 || stress == 9
+    %graded is on, load hypergeometric mex file
+    run('src/hyp2f1mex/make_hyp2f1')
+end
+
 % inertial Rayleigh collapse out of equilibrium initial conditions
 opts = optimset('display','off');
 if collapse && vapor
@@ -477,7 +492,7 @@ eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Uzero Pb_star P8 T8 Pv_star Req_zero alphax];
+init_opts = [Rzero Uzero Pb_star P8 T8 Pv_star Req_zero alphax R1zero R2zero];
 % dimensionaless initial stress
 init_stress = Szero;
 % time span options
@@ -492,7 +507,7 @@ acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe dGdhsnd];
+sigma_opts = [We Re8 DRe v_a v_nc Ca Ca1 LAM De JdotA nu_model v_lambda_star zeNO iDRe a nexp];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer

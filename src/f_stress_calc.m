@@ -5,14 +5,17 @@
 % solver. The solver accounts for the Kelvin-Voigt with neo-Hookean
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
-function [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8,...
-    Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe,dGdhsnd)
+function [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,R1,R2,Ca,Ca1,De,Re8,...
+    Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe,a,nexp)
 
 Z1dot = [];
 Z2dot = [];
 
 % radial stretch
 Rst = Req/R;
+Rnd1 = R1/Req;
+Rnd2 = R2/Req;
+Lambda = 1/Rst;
 
 % no stress
 if stress == 0
@@ -79,23 +82,29 @@ elseif stress == -1
 
     % Kelvin-Voigt, neo-Hookean elasticity for linear profile of graded material
 elseif stress == 8
-    S = -(5 - 4*Rst - Rst^4)/(2*Ca) - 4/Re8*Rdot/R - 6*intfnu*iDRe + ... 
-         - 2*dGdhsnd*Ca*(-(1/3) + (1/3)*Rst^3 - log(1/Rst));
-    Sdot = -2*Rdot/R*(Rst^4 + Rst)/Ca + 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe - ...
-            -2*dGdhsnd/Ca*Rdot/R*(Rst^2 + 1);
-    %missing chain rule product for viscous term?
-    % can use the same Ca to nondim dGdhs?
+    % power law with exponent a and n
+    Lambda1 = (1 + (R^3-Req^3)/R1^3)^(1/3); Lambda2 = (1 + (R^3-Req^3)/R2^3)^(1/3);
+    integrand8 = @(x) ...
+        (1 + log((((Lambda^3 - 1)./(x.^3 -1)) - (1+Rnd1)) ./ ...
+        ((1+Rnd2) - ((Lambda^3 - 1)./(x.^3 -1)))).^a).^((nexp-1)/a) .* (x.^(-5) + x.^(-2));
+    integral8 = integral(integrand8,Lambda1,Lambda2);
+    S = - 4/Re8*Rdot/R - 6*intfnu*iDRe + ... 
+         (0.5/Ca)*(1/Rst^4 + 4/Rst - 1/Lambda1^4 - 4/Lambda1) + ...
+         (0.5/Ca1)*(1/Lambda2^4 + 4/Lambda2 - 5) + ...
+         integral8;
+    Sdot = -2*Rdot/R*(Rst^4 + Rst)/Ca + 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
+    %have not calculated or adjusted Sdot for stress=8
 
     % quadratic Kelvin-Voigt, neo-Hookean elasticity for linear profile gm
 elseif stress == 9
     S = (3*alphax-1)*(5 - Rst^4 - 4*Rst)/(2*Ca) - 4/Re8*Rdot/R - 6*intfnu*iDRe + ...
         (2*alphax/Ca)*(27/40 + (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst) + ...
-        + dGdhsnd/Ca*((-1/3) + (1/3)*Rst^3 - log(1/Rst) + ...
-        alphax*((-11/28) + (1/7)*Rst^7 + 0.25*Rst^4 - Rst^3 + 2*Rst + 3*log(1/Rst) - (1/Rst)^2));
+        + 2*dGdr0nd/Ca*((-1/3) + (1/3)*Rst^3 - log(1/Rst) + ...
+        2*alphax*((-11/28) + (1/7)*Rst^7 + 0.25*Rst^4 - Rst^3 + 2*Rst + 3*log(1/Rst) - (1/Rst)^2));
     Sdot = (Rdot/R)*((3*alphax - 1)/(2*Ca))*(4*Rst^4+4*Rst) + ...
         4*(Rdot/R)^2/Re8 - 6*dintfnu*iDRe -...
         2*alphax/Ca*Rdot/R*(Rst^8 + Rst^5 + 2*Rst^2 + 2*Rst^(-1)) + ...
-        (dGdhsnd/Ca)*(Rdot/R)*(-Rst^3 - 1 + alphax*(-Rst^7- Rst^4+ 3*Rst^3 - 2*Rst + 3 - 2/Rst^2));
+        (dGdr0nd/Ca)*(Rdot/R)*(-Rst^3 - 1 + alphax*(-Rst^7- Rst^4+ 3*Rst^3 - 2*Rst + 3 - 2/Rst^2));
 else    
     error('stress setting is not available');
 end

@@ -74,9 +74,9 @@ elseif stress == 6
 elseif stress == 7
     const = 'Phan-Thien-Tanner';
 elseif stress == 8
-        const = 'neo-Hookean Kelvin-Voigt for linear gm';
+        const = 'neo-Hookean Kelvin-Voigt for radial gm powerlaw';
 elseif stress == 9
-        const = 'neo-Hookean quadratic Kelvin-Voigt for linear gm';
+        const = 'neo-Hookean quadratic Kelvin-Voigt for radial gm powerlaw';
 else 
     const = ['Giesekus(' num2str(eps3) ')'];
 end
