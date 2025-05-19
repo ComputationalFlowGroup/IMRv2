@@ -11,6 +11,14 @@ function varargout = m_imr_fd(varargin)
         acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
         = f_call_params(varargin{:});
     
+    % defaults
+    
+    % non-Newtonian viscosity parameters
+    fnu             = 0;
+    intfnu          = 0;
+    dintfnu         = 0;
+    ddintfnu        = 0;
+    
     % equations settings
     radial          = eqns_opts(1);
     bubtherm        = eqns_opts(2);
@@ -95,13 +103,11 @@ function varargout = m_imr_fd(varargin)
     v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iDRe            = sigma_opts(13);
+    graded          = sigma_opts(14);
+    Ca1             = sigma_opts(15);
+    l1              = sigma_opts(16);
+    l2              = sigma_opts(17);
     iWe             = 1/We;
-    
-    % viscosity parameters
-    fnu             = 0;
-    intfnu          = 0;
-    dintfnu         = 0;
-    ddintfnu        = 0;
     
     % dimensionless thermal
     Foh             = thermal_opts(1);
@@ -457,8 +463,13 @@ function varargout = m_imr_fd(varargin)
         [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
         
         % stress equation evolution
-        [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
-            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+        if graded
+            [S,Sdot,Z1dot,Z2dot] = f_stress_calc_graded(stress,Req,R,Ca,Ca1,...
+                Re8,Rdot,alphax,intfnu,dintfnu,iDRe,l1,l2,v_a,v_nc);
+        else
+            [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
+                Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+        end
         
         % bubble wall acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...

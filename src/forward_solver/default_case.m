@@ -152,6 +152,12 @@ v_lambda        = 0;
 % viscosity model
 nu_model        = 0;
 
+% graded materials
+graded = 0;
+G1 = 0;
+l1 = 0;
+l2 = 0;
+
 % pressure variables
 
 % vapor pressure

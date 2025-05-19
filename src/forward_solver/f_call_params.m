@@ -99,21 +99,21 @@ for n = 1:2:nargin
         case 'hugoniot_s',  hugoniot_s = varargin{n+1};
         
         % pressure waveform options
-        case 'pa',          pA = varargin{n+1};
-        case 'omega',       omega = varargin{n+1};
-        case 'tw',          TW = varargin{n+1};
-        case 'dt',          DT = varargin{n+1};
-        case 'mn',          mn = varargin{n+1};
-        case 'wave_type',   wave_type = varargin{n+1};
+        case 'pa',          pA          = varargin{n+1};
+        case 'omega',       omega       = varargin{n+1};
+        case 'tw',          TW          = varargin{n+1};
+        case 'dt',          DT          = varargin{n+1};
+        case 'mn',          mn          = varargin{n+1};
+        case 'wave_type',   wave_type   = varargin{n+1};
         
         % stress options
-        case 'mu',          mu8 = varargin{n+1};
+        case 'mu',          mu8         = varargin{n+1};
         visflag = visflag + 1;
-        case 'g',           G = varargin{n+1};
-        case 'lambda1',     lambda1 = varargin{n+1};
-        case 'lambda2',     lambda2 = varargin{n+1};
-        case 'alphax',      alphax = varargin{n+1};
-        case 'surft',       S = varargin{n+1};
+        case 'g',           G           = varargin{n+1};
+        case 'lambda1',     lambda1     = varargin{n+1};
+        case 'lambda2',     lambda2     = varargin{n+1};
+        case 'alphax',      alphax      = varargin{n+1};
+        case 'surft',       S           = varargin{n+1};
         % P0 = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
         
         % non-Newtonian viscosity options
@@ -123,7 +123,13 @@ for n = 1:2:nargin
         case 'v_a',         v_a         = varargin{n+1};
         case 'v_nc',        v_nc        = varargin{n+1};
         case 'v_lambda',    v_lambda    = varargin{n+1};
-        case 'nu_model',    nu_model     = varargin{n+1};
+        case 'nu_model',    nu_model    = varargin{n+1};
+        
+        % graded material options
+        case 'graded',      graded      = varargin{n+1};
+        case 'g1',          G1          = varargin{n+1};
+        case 'l1',          l1          = varargin{n+1};
+        case 'l2',          l2          = varargin{n+1};
         
         % thermal options
         case 't8',          T8 = varargin{n+1};
@@ -281,6 +287,10 @@ L_heat_star = L_heat/(Uc)^2;
 
 % Cauchy number
 Ca      = Pref/G;
+Ca1     = Pref/G1;
+l1      = l1/R0;
+l2      = l2/R0;
+
 % Reynolds number
 Re8     = Pref*R0/(mu8*Uc);
 if Dmu ~= 0
@@ -324,6 +334,7 @@ if isempty(varargin) == 0
             case 're',      Re8 = varargin{n+1};
             case 'dre',     DRe = varargin{n+1};
             case 'ca',      Ca = varargin{n+1};
+            case 'ca1',     Ca1 = varargin{n+1};
             case 'lam',     LAM = varargin{n+1};
             case 'de',      De = varargin{n+1};
             case 'foh',     Foh = varargin{n+1};
@@ -483,7 +494,7 @@ acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe graded Ca1 l1 l2];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer
