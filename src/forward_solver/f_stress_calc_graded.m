@@ -1,5 +1,5 @@
-% file f_stress_calc.m
-% brief contains function f_stress_calc
+% file f_stress_calc_graded.m
+% brief contains function f_stress_calc_graded
 
 % brief This function features the stress integral and its time derivative
 % solver. The solver accounts for the Kelvin-Voigt with neo-Hookean
@@ -12,12 +12,12 @@ Z1dot = [];
 Z2dot = [];
 
 % radial stretch
-Rst = Req/R;
+Rst = R/Req;
 reltol = 1e-8;
 abstol = 1e-8;
-x1 = (1+(Rst.^-3-1)./(1+l1).^3).^(1/3);
-x2 = (1+(Rst.^-3-1)./(1+l2).^3).^(1/3);
-ycy = @(x) (1/Ca1+(1/Ca-1/Ca1)*(1+((x-x1)./(x2-x)).^v_a).^((v_nc-1)/v_a)).*(1./x.^5+1./x.^2);
+x1 = 1 + ((Rst^3 -1)/((1+l1)^3))^(1/3);
+x2 = 1 + ((Rst^3 -1)/((1+l2)^3))^(1/3);
+ycy = @(x) (1/Ca+(1/Ca-1/Ca1)*(1+( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst^3-1)^(1/3)) ).^v_a).^((v_nc-1)/v_a)).*(1./x.^5+1./x.^2);
 
 % other models
 % ype = @(x,Rst) (1/Ca1+(1/Ca-1/Ca1)*asinh((x-x1(Rst))./(x2(Rst)-x))).*(1./x.^5+1./x.^2);
@@ -35,7 +35,7 @@ if stress == 0
 elseif stress == 1
     Sv = - 4/Re8*Rdot/R - 6*intfnu*iDRe;
     
-    Se1 = (1/(2*Ca))*(Rst.^4 + Rst - (1./x1.^4 + 1./x1));
+    Se1 = (1/(2*Ca))*(Rst.^4 + 4*Rst - (1./x1.^4 + 4./x1));
     Se2 = 2*integral(@(x) ycy(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
     Se3 = -(1/(2*Ca1))*(5 - 4./x2 - 1./x2.^4);
     
