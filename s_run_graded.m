@@ -46,10 +46,8 @@ varin = {'progdisplay',0,...
          'rho8',rho8};
 
 [t1,R1,~] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
-% [t2,R2,~] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
 
 figure(1)
 hold on;
 plot(t1,R1,'bx')
-% plot(t2,R2,'g^')
 ylim([0 1.2])

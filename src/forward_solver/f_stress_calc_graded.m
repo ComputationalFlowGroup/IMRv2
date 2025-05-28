@@ -18,13 +18,21 @@ abstol = 1e-8;
 Rst = R/Req;
 Rstdot = Rdot/Req;
 
-x1 = (1 + (Rst^3 - 1)/((1+l1)^3))^(1/3);
-x2 = (1 + (Rst^3 - 1)/((1+l2)^3))^(1/3);
-x1dot = Rstdot*Rst^2 / ((1+l1)*(x1^3 - 1))^(2/3);
-x2dot = Rstdot*Rst^2 / ((1+l2)*(x1^3 - 1))^(2/3);
+x1 = (1 + (Rst^3 - 1)/(l1^3))^(1/3);
+x2 = (1 + (Rst^3 - 1)/(l2^3))^(1/3);
+x1dot = Rstdot*Rst^2 / (l1*(x1^3 - 1))^(2/3);
+x2dot = Rstdot*Rst^2 / (l2*(x1^3 - 1))^(2/3);
 
-ycy = @(x) (1/Ca+(1/Ca-1/Ca1)*(1+( 1 - l1.*((x.^3 - 1)./(Rst.^3-1)).^(1/3) ./ (l2.*((x.^3 - 1)./(Rst.^3-1)).^(1/3) - 1) ).^v_a).^((v_nc-1)/v_a)).*(1./x.^5+1./x.^2);
-dtycy = @(x) (1/Ca1 - 1/Ca).*(1./x.^5+1./x.^2).*(v_nc-1).*(1+( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst^3-1)^(1/3)) ).^v_a).^((v_nc-1-v_a)/v_a).*( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst^3-1)^(1/3)) ).^(v_a - 1).*((Rstdot.*Rst.^2).*(l2-l1).*(x.^3 - 1).^(1/3)) ./ ( ((Rst.^3 - 1).^(2/3)).*(l2.*(x.^3 -1).^(1/3) - (Rst.^3 -1).^(1/3)).^2);
+ycy = @(x) (1/Ca+(1/Ca-1/Ca1)*(1+( 1 - l1.*((x.^3 - 1)./(Rst.^3-1)).^(1/3)...
+    ./ (l2.*((x.^3 - 1)./(Rst.^3-1)).^(1/3) - 1) ).^v_a).^((v_nc-1)/v_a))...
+    .*(1./x.^5+1./x.^2);
+
+dtycy = @(x) (1/Ca1 - 1/Ca).*(1./x.^5+1./x.^2).*(v_nc-1).* ...
+    (1+( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - ...
+    (Rst^3-1)^(1/3)) ).^v_a).^((v_nc-1-v_a)/v_a).*...
+    ( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) -...
+    (Rst^3-1)^(1/3)) ).^(v_a - 1).*((Rstdot.*Rst.^2).*(l2-l1).*(x.^3 - 1).^(1/3)) ...
+    ./ ( ((Rst.^3 - 1).^(2/3)).*(l2.*(x.^3 -1).^(1/3) - (Rst.^3 -1).^(1/3)).^2);
 
 % no stress
 if stress == 0
@@ -50,14 +58,6 @@ elseif stress == 1
     % Sdot = Sedot + Svdot;
     Sdot = Svdot;
     
-    % quadratic Kelvin-Voigt with neo-Hookean elasticity
-elseif stress == 2
-    S = (3*alphax-1)*(5 - Rst^4 - 4*Rst)/(2*Ca) - 4/Re8*Rdot/R - 6*intfnu*iDRe + ...
-        (2*alphax/Ca)*(27/40 + (1/8)*Rst^8 + (1/5)*Rst^5 + ...
-        Rst^2 - 2/Rst);
-    Sdot = (Rdot/R)*((3*alphax - 1)/(2*Ca))*(4*Rst^4+4*Rst) + ...
-        4*(Rdot/R)^2/Re8 - 6*dintfnu*iDRe -...
-        2*alphax/Ca*Rdot/R*(Rst^8 + Rst^5 + 2*Rst^2 + 2*Rst^(-1));
 else
     error('stress setting is not available');
 end
