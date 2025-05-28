@@ -20,11 +20,14 @@ x2 = 1 + ((Rst^3 -1)/((1+l2)^3))^(1/3);
 %f = (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst^3-1)^(1/3));
 ycy = @(x) (1/Ca+(1/Ca-1/Ca1)*(1+( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst^3-1)^(1/3)) ).^v_a).^((v_nc-1)/v_a)).*(1./x.^5+1./x.^2);
 
+reltoldtycy = 1e-4;
+abstoldtycy = 1e-7;
 Rstdot = Rdot/Req;
 x1dot = Rstdot*Rst^2 / ((1+l1)*(x1^3 - 1))^(2/3);
 x2dot = Rstdot*Rst^2 / ((1+l2)*(x1^3 - 1))^(2/3);
 %fdot =  ((Rstdot.*Rst.^2).*(l2-l1).*(x.^3 - 1).^(1/3)) ./ ( ((Rst.^3 - 1).^(2/3)).*(l2.*(x.^3 -1).^(1/3) - (Rst.^3 -1).^(1/3)).^2);
-dtycy = @(x) (1/Ca1 - 1/Ca).*(1./x.^5+1./x.^2).*(v_nc-1).*(1+( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst^3-1)^(1/3)) ).^v_a).^((v_nc-1-v_a)/v_a).*( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst^3-1)^(1/3)) ).^(v_a - 1).*((Rstdot.*Rst.^2).*(l2-l1).*(x.^3 - 1).^(1/3)) ./ ( ((Rst.^3 - 1).^(2/3)).*(l2.*(x.^3 -1).^(1/3) - (Rst.^3 -1).^(1/3)).^2);
+dtycyconst = (1/Ca1 - 1/Ca).*(v_nc-1); Rst3 = Rst^3;
+dtycy = @(x) dtycyconst*(1./x.^5+1./x.^2).*(1+( (Rst3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst3-1)^(1/3)) ).^v_a).^((v_nc-1-v_a)/v_a).*( (Rst3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - (Rst3-1)^(1/3)) ).^(v_a - 1).*((Rstdot.*Rst.^2).*(l2-l1).*(x.^3 - 1).^(1/3)) ./ ( ((Rst3-1)^(2/3)).*(l2.*(x.^3 -1).^(1/3) - (Rst3-1).^(1/3)).^2);
 
 % other models
 % ype = @(x,Rst) (1/Ca1+(1/Ca-1/Ca1)*asinh((x-x1(Rst))./(x2(Rst)-x))).*(1./x.^5+1./x.^2);
@@ -49,9 +52,17 @@ elseif stress == 1
     S = Sv + Se1 + Se2 + Se3;
     
     Svdot = 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
-
+    
     Se1dot = (2/Ca)*(x1dot./x1.^2 + x1dot./x1.^5 - Rstdot./Rst.^2 - Rstdot./Rst^.5);
-    Se2dot = 2*integral(@(x) dtycy(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
+    %Se2dot = 2*integral(@(x) dtycy(x),x1,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
+    Se2dot = 2*quadgk(dtycy,x1,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
+    % eps = 1e-6;
+    % if x1 < 1 && x2 > 1
+    %     Se2dot = 2*integral(@(x) dtycy(x),x1,1-eps,'RelTol',reltoldtycy,'AbsTol',abstoldtycy) + ...
+    %              + 2*integral(@(x) dtycy(x),1+eps,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
+    % else
+    %     Se2dot = 2*integral(@(x) dtycy(x),x1,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
+    % end
     Se3dot = -(2/Ca1)*(x2dot./x2.^5 + x2dot./x2.^2);
     Sedot = Se1dot + Se2dot + Se3dot;
     Sdot = Sedot + Svdot;
