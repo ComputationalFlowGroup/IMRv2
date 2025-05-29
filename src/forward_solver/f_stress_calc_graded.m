@@ -21,16 +21,16 @@ abstoldtycy = 1e-7;
 Rst = R/Req;
 Rstdot = Rdot/Req;
 
-x1 = (1 + (Rst^3 - 1)/(l1^3))^(1/3);
-x2 = (1 + (Rst^3 - 1)/(l2^3))^(1/3);
-x1dot = Rstdot*Rst^2 / (l1*x1^2);
-x2dot = Rstdot*Rst^2 / (l2*x2^2);
+x1 = (1 + (Rst.^3 - 1)/(l1^3))^(1/3);
+x2 = (1 + (Rst.^3 - 1)/(l2^3))^(1/3);
+x1dot = Rstdot*Rst.^2 / (l1*x1^2);
+x2dot = Rstdot*Rst.^2 / (l2*x2^2);
 
 %f_cy = @(x) (l2*((x.^3 - 1)/(Rst^3 - 1)).^(1/3) - 1)/(1-l1*((x.^3 - 1)/(Rst^3 - 1)).^(1/3));
-fnum_cy = @(x) l2*((x.^3 - 1)/(Rst^3 - 1)).^(1/3) - 1;
-fden_cy = @(x) 1-l1*((x.^3 - 1)/(Rst^3 - 1)).^(1/3);
+fnum_cy = @(x) l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1;
+fden_cy = @(x) 1-l1*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3);
 f_cy = @(x) fnum_cy(x)./fden_cy(x);
-fdot_cy = @(x) ((x.^3-1).^(1/3))/(Rst^3-1)^(4/3) *Rstdot*Rst^2*(l1-l2)/(fden_cy(x).^2);
+fdot_cy = @(x) (((x.^3-1).^(1/3))./(Rst.^3-1)^(4/3)).*Rstdot.*(Rst.^2).*(l1-l2)./(fden_cy(x).^2);
 
 g = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1+f_cy(x).^v_a).^((v_nc-1)/v_a)).*((1./x.^5) + (1./x.^2));
 gdot = @(x) (1/Ca1 - 1/Ca).*((1./x.^5) + (1./x.^2)).*(v_nc-1).*...
