@@ -23,19 +23,18 @@ Rstdot = Rdot/Req;
 
 x1 = (1 + (Rst^3 - 1)/(l1^3))^(1/3);
 x2 = (1 + (Rst^3 - 1)/(l2^3))^(1/3);
-x1dot = Rstdot*Rst^2 / (l1*(x1^3 - 1))^(2/3);
-x2dot = Rstdot*Rst^2 / (l2*(x1^3 - 1))^(2/3);
+x1dot = Rstdot*Rst^2 / (l1*x1^2);
+x2dot = Rstdot*Rst^2 / (l2*x2^2);
 
-ycy = @(x) (1/Ca+(1/Ca-1/Ca1)*(1+( 1 - l1.*((x.^3 - 1)./(Rst.^3-1)).^(1/3)...
-    ./ (l2.*((x.^3 - 1)./(Rst.^3-1)).^(1/3) - 1) ).^v_a).^((v_nc-1)/v_a))...
-    .*(1./x.^5+1./x.^2);
+%f_cy = @(x) (l2*((x.^3 - 1)/(Rst^3 - 1)).^(1/3) - 1)/(1-l1*((x.^3 - 1)/(Rst^3 - 1)).^(1/3));
+fnum_cy = @(x) l2*((x.^3 - 1)/(Rst^3 - 1)).^(1/3) - 1;
+fden_cy = @(x) 1-l1*((x.^3 - 1)/(Rst^3 - 1)).^(1/3);
+f_cy = @(x) fnum_cy(x)./fden_cy(x);
+fdot_cy = @(x) ((x.^3-1).^(1/3))/(Rst^3-1)^(4/3) *Rstdot*Rst^2*(l1-l2)/(fden_cy(x).^2);
 
-dtycy = @(x) (1/Ca1 - 1/Ca).*(1./x.^5+1./x.^2).*(v_nc-1).* ...
-    (1+( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) - ...
-    (Rst^3-1)^(1/3)) ).^v_a).^((v_nc-1-v_a)/v_a).*...
-    ( (Rst^3-1 - l1.*(x.^3 - 1).^(1/3)) ./ (l2.*(x.^3 - 1).^(1/3) -...
-    (Rst^3-1)^(1/3)) ).^(v_a - 1).*((Rstdot.*Rst.^2).*(l2-l1).*(x.^3 - 1).^(1/3)) ...
-    ./ ( ((Rst.^3 - 1).^(2/3)).*(l2.*(x.^3 -1).^(1/3) - (Rst.^3 -1).^(1/3)).^2);
+g = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1+f_cy(x).^v_a).^((v_nc-1)/v_a)).*((1./x.^5) + (1./x.^2));
+gdot = @(x) (1/Ca1 - 1/Ca).*((1./x.^5) + (1./x.^2)).*(v_nc-1).*...
+       ((1+f_cy(x).^v_a).^((v_nc-1-v_a)/v_a)).*f_cy(x).^(v_a-1).*fdot_cy(x);
 
 % no stress
 if stress == 0
@@ -47,7 +46,7 @@ elseif stress == 1
     Sv = - 4/Re8*Rdot/R - 6*intfnu*iDRe;
     
     Se1 = (1/(2*Ca))*(1/(Rst.^4) + 4/Rst - (1./x1.^4 + 4./x1));
-    Se2 = 2*integral(@(x) ycy(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
+    Se2 = 2*integral(@(x) g(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
     Se3 = -(1/(2*Ca1))*(5 - 4./x2 - 1./x2.^4);
     
     S = Sv + Se1 + Se2 + Se3;
@@ -55,8 +54,8 @@ elseif stress == 1
     Svdot = 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
     
     Se1dot = (2/Ca)*(x1dot./x1.^2 + x1dot./x1.^5 - Rstdot./Rst.^2 - Rstdot./Rst^.5);
-    %Se2dot = 2*integral(@(x) dtycy(x),x1,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
-    Se2dot = 2*quadgk(dtycy,x1,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
+    Se2dot = 2*(g(x2)*x2dot - g(x1)*x1dot + integral(@(x) gdot(x),x1,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy));
+    %Se2dot = 2*quadgk(dtycy,x1,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
     % eps = 1e-6;
     % if x1 < 1 && x2 > 1
     %     Se2dot = 2*integral(@(x) dtycy(x),x1,1-eps,'RelTol',reltoldtycy,'AbsTol',abstoldtycy) + ...
