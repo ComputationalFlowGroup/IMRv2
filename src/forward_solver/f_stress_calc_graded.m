@@ -34,7 +34,7 @@ fdot_cy = @(x) (((x.^3-1).^(1/3))./(Rst.^3-1)^(4/3)).*Rstdot.*(Rst.^2).*(l1-l2).
 
 g = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1+f_cy(x).^v_a).^((v_nc-1)/v_a)).*((1./x.^5) + (1./x.^2));
 gdot = @(x) (1/Ca1 - 1/Ca).*((1./x.^5) + (1./x.^2)).*(v_nc-1).*...
-       ((1+f_cy(x).^v_a).^((v_nc-1-v_a)/v_a)).*f_cy(x).^(v_a-1).*fdot_cy(x);
+    ((1+f_cy(x).^v_a).^((v_nc-1-v_a)/v_a)).*f_cy(x).^(v_a-1).*fdot_cy(x);
 
 % no stress
 if stress == 0
@@ -59,7 +59,7 @@ elseif stress == 1
     % eps = 1e-6;
     % if x1 < 1 && x2 > 1
     %     Se2dot = 2*integral(@(x) dtycy(x),x1,1-eps,'RelTol',reltoldtycy,'AbsTol',abstoldtycy) + ...
-    %              + 2*integral(@(x) dtycy(x),1+eps,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
+        %              + 2*integral(@(x) dtycy(x),1+eps,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
     % else
     %     Se2dot = 2*integral(@(x) dtycy(x),x1,x2,'RelTol',reltoldtycy,'AbsTol',abstoldtycy);
     % end
