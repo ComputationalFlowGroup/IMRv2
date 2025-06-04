@@ -45,10 +45,25 @@ varin = {'progdisplay',0,...
          't8',T8,...
          'rho8',rho8};
 
-[t1,R1,~] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
+[t,R,~] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
 
 figure(1)
 hold on;
-plot(t1,R1,'bx')
+plot(t,R,'bx')
 ylim([0 1.2])
 
+addpath('./examples')
+Pref = 101325; G = 1500; G1 = 3000; 
+Ca = Pref/G;
+Ca1 = Pref/G1;
+mu8 = 8.3283e-4; % infinite strain rate viscosity
+Uc = sqrt(Pref/rho8);
+Re8 = Pref*R0/(mu8*Uc);
+l1 = 1.5*R0; 
+l2 = 2.5*R0;
+v_nc = 0.3; 
+v_a = 2;
+%iDRe = 0; intfnu = 0;
+figure(2)
+hold on;
+f_stress_field
