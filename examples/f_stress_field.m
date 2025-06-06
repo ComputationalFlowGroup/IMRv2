@@ -7,8 +7,9 @@ lR = length(R);
 lr_N = 500;
 lr_length = 1;
 nt = length(t);
-r_coord = ones(lR,lr_N).*logspace(-0.5,lr_length,lr_N);
-R_coord = (ones(lR,lr_N).*R);
+r_coord = ones(lR,lr_N).*logspace(-0.5,1.5,lr_N);
+%r_coord = ones(lR,lr_N).*linspace(0.1,3, lr_N);
+%R_coord = (ones(lR,lr_N).*R);
 
 % calculating the shear
 %varsigmadot_r = f_gammadot_r(r_coord,R,U,lR,lr_N);
@@ -18,7 +19,7 @@ clevels = 1000;
 % feps_r = f_f_filter(f_r,lR,lr_N);
 % tau_r = 2*(feps_r./DRe+1./Re8).*varsigmadot_r;
 %ntau_r = tau_r/max_tau_r;
-[taurr,r1,r2] = gradedstress(r_coord',R_coord',Req,Ca,Ca1,l1,l2,v_nc,v_a);
+[taurr,r1,r2] = gradedstress(r_coord',R',Req,R0,Ca,Ca1,l1,l2,v_nc,v_a);
 maxtaurr = 1; %max(abs(taurr(:))); %1; %max(max(abs(taurr)));
 ntaurr = taurr/maxtaurr;
 % N = length(taurr);
@@ -44,7 +45,7 @@ cbar.Label.Position = [pos(1) -0.9];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 %clim([min(ntaurr(:)) max(ntaurr(:))]);
-clim([-0.75 .25])
+%clim([-0.75 .25])
 %clim([0.1 0]);
 xlim([0 fig_tend]);
 xticks(tickrange)
@@ -54,24 +55,27 @@ set(gca,'TickLabelInterpreter','latex')
 xa = gca;
 xa.TickLength = [.015 .015];
 xa.LineWidth = 1.5;
-ytickrange = round(linspace(log10(min(r_coord(:))),log10(max(r_coord(:))),3),2);
-yticks(ytickrange)
+%ytickrange = round(linspace(log10(min(r_coord(:))),log10(max(r_coord(:))),3),2);
+%yticks(ytickrange)
 ya = gca;
 ya.TickLength = [.015 .015];
 ya.LineWidth = 1.5;
 box on;
 plot(t, log10(R),'LineWidth',3,'Color','k');
 %plot(t, R,'LineWidth',3,'Color','k');
-contourf(xcon,ycon,ntaurr,clevels,'edgecolor','none')
+%plot(t, R,'LineWidth',3,'Color','k');
+contourf(xcon,ycon,log(abs(ntaurr)),clevels,'edgecolor','none')
 hold on;
 plot(t,log10(r1'),'b--','LineWidth',2,'DisplayName','l1')
 plot(t,log10(r2'),'r--','LineWidth',2,'DisplayName','l2')
+%plot(t,r1','b--','LineWidth',2,'DisplayName','l1')
+%plot(t,r2','r--','LineWidth',2,'DisplayName','l2')
 %saveas(gcf,'./figs/baseline/fcon_T','png')
 %ylim([0 1])
-ylim([log10(min(r_coord(:))), log10(max(r_coord(:)))])
+%ylim([log10(min(r_coord(:))), log10(max(r_coord(:)))])
 
-function [taurr,r1,r2] = gradedstress(r_coord,R_coord,Req,Ca,Ca1,l1,l2,v_nc,v_a)
-   aa = r_coord.^3 - R_coord.^3 + Req^3;
+function [taurr,r1,r2] = gradedstress(r_coord,R,Req,R0,Ca,Ca1,l1,l2,v_nc,v_a)
+   aa = r_coord.^3 - R.^3 + Req^3;
    aa = (1./(1-(aa<0))).*aa;
    r0_coord = real((aa).^(1/3));
     
@@ -83,8 +87,8 @@ function [taurr,r1,r2] = gradedstress(r_coord,R_coord,Req,Ca,Ca1,l1,l2,v_nc,v_a)
 
    taurr = taurr1 + taurr2 + taurr3;
 
-   r1 = (l1^3 + R_coord.^3 - Req^3).^(1/3);
-   r2 = (l2^3 + R_coord.^3 - Req^3).^(1/3);
+   r1 = ((l1/R0)^3 + R.^3 - Req^3).^(1/3);
+   r2 = ((l2/R0)^3 + R.^3 - Req^3).^(1/3);
 end
 
 % shear as a function of r (radial coordinate) calculation
