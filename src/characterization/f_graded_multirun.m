@@ -1,8 +1,9 @@
 function [] = f_graded_multirun()
- 
+    
     % Clear everything
-    close; clear; clc;
-
+    close;
+    clear; clc;
+    
     N = 8^4;
     addpath('../')
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -15,7 +16,7 @@ function [] = f_graded_multirun()
     %     [t,R] = f_imrv2('neohook',1,'g',G_range1(i))
     %     neohook{i} = [t,R];
     % end
-
+    
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Four parameter case (G1, G2 l1, l2)
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
