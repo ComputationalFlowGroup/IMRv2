@@ -3,28 +3,89 @@ clear;
 close;
 
 addpath('src/forward_solver/');
-%%
+
 % equation options
-R0 = 350e-6;
+R0 = 300e-5;
 Req = R0/5;
-tfin = 175E-6;
-kappa = 1.4;
+tfin = 175E-5;
+kappa = 1; %1.4;
 Lheat = 2.378193575129533e+04;
 T8 = 298.15;
 rho8 = 1064;
 tvector = linspace(0,tfin,1000);
 radial = 1;
-vapor = 1;
-bubtherm = 1;
-medtherm = 1;
-masstrans = 1;
+vapor = 0;
+bubtherm = 0;
+medtherm = 0;
+masstrans = 0;
 stress = 1;
 v_nc = 0.3; 
 v_a = 2;
 l1 = 1.5*R0; 
-l2 = 5.5*R0;
-G0 = [100 10000];
-G1 = [10000 100000];
+l2 = 2.5*R0;
+G0 = 1000;
+G1 = 5000;
+Pref = 101325;
+
+Ca = Pref/G0;
+Ca1 = Pref/G1;
+varin = {'progdisplay',0,...
+    'radial',radial,...
+    'bubtherm',bubtherm,...
+    'tvector',tvector,...
+    'vapor',vapor,...
+    'medtherm',medtherm,...
+    'method',23,...
+    'stress',stress,...
+    'collapse',1,...
+    'mu',1E0,...
+    'g',G0,...
+    'graded',1,...
+    'g1',G1,...
+    'l1',l1,...
+    'l2',l2,...
+    'v_a',v_a,...
+    'v_nc',v_nc,...
+    'lambda1',1e-7,...
+    'lambda2',0,...
+    'alphax',1e-3,...
+    'r0',R0,...
+    'req',Req,...
+    'kappa',kappa,...
+    't8',T8,...
+    'rho8',rho8};
+
+[t,R,~] = m_imr_fd(varin{:},'Nt',150,'Mt',150);
+
+figure
+hold on;
+plot(t,R,'bx')
+ylim([0 1.2])
+
+%%
+addpath('src/forward_solver/');
+
+% equation options
+R0 = 350e-5;
+Req = R0/5;
+tfin = 175E-5;
+kappa = 1;
+Lheat = 2.378193575129533e+04;
+T8 = 298.15;
+rho8 = 1064;
+tvector = linspace(0,tfin,1000);
+radial = 1;
+vapor = 0;%1;
+bubtherm = 0;%1;
+medtherm = 0;%1;
+masstrans = 0;%1;
+stress = 1;
+v_nc = 0.3; 
+v_a = 2;
+l1 = 1.5*R0; 
+l2 = 2.5*R0;
+G0 = [1000];
+G1 = [5000];
 Pref = 101325;
 for i = 1:length(G0)
     for j = 1:length(G1)
@@ -39,7 +100,7 @@ for i = 1:length(G0)
                  'method',23,...
                  'stress',stress,...
                  'collapse',1,...
-                 'mu',1E-2,...
+                 'mu',1E0,...%1E-2,...
                  'g',G0(i),...
                  'graded',1,...
                  'g1',G1(j),...
@@ -62,10 +123,8 @@ for i = 1:length(G0)
         hold on;
         plot(t,R,'bx')
         ylim([0 1.2])
-       
+
         addpath('./examples')
-        figure
-        hold on;
         f_stress_field
     end
 end
@@ -75,13 +134,13 @@ clear; close all; clc;
 G0 = [1000 1000 5000]; 
 G1 = [0 5000 0];
 graded = [0 1 0];
-legendName = {'G0 = 1000', 'graded: G0 = 1000, G1 = 5000', 'G1 = 5000'};
+legendName = {'G0 = 1000', 'G0 = 1000, G1 = 5000', 'G1 = 5000'};
 
-R0 = 350e-6; Req = R0/5;
-tfin = 175E-6;
+R0 = 350e-5; Req = R0/5;
+tfin = 175E-5;
 tvector = linspace(0,tfin,1000);
 
-kappa = 1.4;
+kappa = 1;
 Lheat = 2.378193575129533e+04;
 T8 = 298.15;
 rho8 = 1064;
@@ -100,7 +159,7 @@ l2 = 5.5*R0;
 Pref = 101325;
 
 for i = 1:length(graded)
-    doing = [graded(i) G0(i) G1(i)]
+    doing = [graded(i) G0(i) G1(i)];
     Ca = Pref/G0(i);
     Ca1 = Pref/G1(i);
     varin = {'progdisplay',0,...
@@ -132,10 +191,21 @@ for i = 1:length(graded)
     [t,R,~] = m_imr_fd(varin{:},'Nt',70,'Mt',70);
     figure(1)
     hold on;
+    set(gcf,'color','w');
+    set(gca,'FontName','Times','FontSize',14);
+    set(gca,'TickLabelInterpreter','latex')
     plot(t,R,'DisplayName',legendName{i})
     ylim([0 1.2])
+    legend show;
+    xlabel('t/t_c')
+    ylabel('R/R_0')
+
+    addpath('./examples')
+    figure(i+1)
+    clf;
+    f_stress_field
+    % filename = sprintf('./stress_%s.png', legendName{i});
+    % saveas(gcf,filename)
+
 end
-legend show;
-xlabel('t/t_c')
-ylabel('R/R_0')
 hold off;
