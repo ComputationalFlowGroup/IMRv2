@@ -5,7 +5,7 @@ tickrange = ceil(min(t)) : floor(max(t));
 lR = length(R);
 %lr_max = 100;
 lr_N = 500;
-lr_length = 2;
+lr_length = 5;
 nt = length(t);
 r_coord = ones(lR,lr_N).*logspace(-1,lr_length,lr_N);
 %r_coord = ones(lR,lr_N).*linspace(0.1,3, lr_N);
@@ -47,8 +47,8 @@ ya.TickLength = [.015 .015];
 ya.LineWidth = 1.5;
 box on;
 plot(t, log10(R),'LineWidth',3,'Color','k');
-%plot(t, R,'LineWidth',3,'Color','k');
-%plot(t, R,'LineWidth',3,'Color','k');
+plot(t, R,'LineWidth',3,'Color','k');
+plot(t, R,'LineWidth',3,'Color','k');
 contourf(xcon,ycon,log(abs(ntaurr)),clevels,'edgecolor','none')
 %contourf(xcon,ycon,ntaurr,clevels,'edgecolor','none')
 hold on;
