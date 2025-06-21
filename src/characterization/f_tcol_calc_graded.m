@@ -6,6 +6,7 @@
 % elasticity.
 function [tg] = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8)
 dtg_vals = zeros(1,length(R));
+el1 = l1/R0; el2 = l2/R0; %I think these both should be ()/Req
 for i = 1:length(R)
     Rnow = R(i);
     % radial stretch
@@ -14,14 +15,14 @@ for i = 1:length(R)
     Rst = 1./Rs; %Lambda
     Rmt = R0/Req; %Lambda_m
 
-    x1 = 1 + ((Rst.^3 -1)./((1+l1)^3)).^(1/3); %Lambda_1
-    x2 = 1 + ((Rst.^3 -1)./((1+l2)^3)).^(1/3); %Lambda_2
-    xm1 = 1 + ((Rmt^3 -1)/((1+l1)^3))^(1/3); %Lambda_m1
-    xm2 = 1 + ((Rmt^3 -1)/((1+l2)^3))^(1/3); %Lambda_m2
+    x1 = 1 + ((Rst.^3 -1)./((1+el1)^3)).^(1/3); %Lambda_1
+    x2 = 1 + ((Rst.^3 -1)./((1+el2)^3)).^(1/3); %Lambda_2
+    xm1 = 1 + ((Rmt^3 -1)/((1+el1)^3))^(1/3); %Lambda_m1
+    xm2 = 1 + ((Rmt^3 -1)/((1+el2)^3))^(1/3); %Lambda_m2
 
-    f_cy = @(x) ( l2.*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1 ) ./ ( 1-l1.*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) );
+    f_cy = @(x) ( el2.*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1 ) ./ ( 1-el1.*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) );
     m = @(x) (1 + f_cy(x).^v_a).^((v_nc-1)/v_a);
-    ee2integ = @(x) (1/Ca + (1/Ca1 - 1/Ca).* m(x)) .* ((1./x.^2) + 2 - 3.*x.^2)./((x.^3 - 1).^2);
+    ee2integ = @(x) (1/Ca + (1/Ca1 - 1/Ca).* m(x)) .* ((1./x.^2) + 2.*x.^4 - 3.*x.^2)./((x.^3 - 1).^2);
 
     reltol = 1e-8;
     abstol = 1e-8;
@@ -40,15 +41,18 @@ for i = 1:length(R)
         %dtg = @(R) -1./sqrt( (2/3)*(Pref/rho)*(Rm.^3 -1) + 2*(Rm.^3 - Rs.^3).*Eem - 2*(1 - Rs.^3).*Ee );
         %dtg_vals = -1./sqrt( (2/3)*(Pref/rho8)*(Rm.^3 -1) + 2*(Rm.^3 - Rs.^3).*Eem - 2*(1 - Rs.^3).*Ee );
         %tg = integral(@(R) dtg(R),0,R0,'Reltol',reltol,'AbsTol',abstol);
-        dtg_sq = 2/3.*(Pref/rho8).*(Rm.^3 -1) + 2.*(Rm.^3 - Rs.^3).*Eem - 2.*(1 - Rs.^3).*Ee;
+        dtg_sq = 2/3.*(Pref/rho8).*(Rm.^3 -1) + (Rm.^3 - Rs.^3).*Eem./rho8 - (1 - Rs.^3).*Ee./rho8;
         % if isreal(dtg_sq) && dtg_sq > 0
         %     dtg_vals(i) = -1/sqrt(dtg_sq);
         % else
         %     dtg_vals(i) = NaN;
         % end
-        dtg_vals(i) = -1/sqrt(abs(dtg_sq));
+  
+        % dtg_vals(i) = -1/sqrt(abs(dtg_sq));
+        dtg_vals(i) = -1/sqrt(dtg_sq);
     end
 end
-%dtg_vals
+dtg_sq;
+dtg_vals
 tg = trapz(R,dtg_vals);
 end
