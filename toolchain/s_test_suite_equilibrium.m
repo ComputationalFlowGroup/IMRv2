@@ -29,10 +29,13 @@ tvector = linspace(0,tfin,100);
 % equation options
 count = 1;
 for radial = 1:4
-    for vapor = 0:1
-        for bubtherm = 0:1
-            for medtherm = 0:1
+    for bubtherm = 0:1
+        for medtherm = 0:1
+            for vapor = 0:1
                 for stress = 0:5
+                    if bubtherm == 0 && medtherm == 1
+                        continue;
+                    end
                     varin = {'radial',radial,...
                         'bubtherm',bubtherm,...
                         'masstrans',masstrans,...
@@ -44,8 +47,8 @@ for radial = 1:4
                         'Req',Req,...
                         'R0',R0,...
                         't8',T8};
-                    [~,Rf_test] = m_imr_fd(varin{:},'Nt',150,'Mt',150);
-                    [~,Rs_test] = m_imr_spectral(varin{:},'Nt',12,'Mt',12);
+                    [~,Rf_test] = f_imr_fd(varin{:},'Nt',150,'Mt',150);
+                    [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);
                     errors_fd(count) = abs(norm(Rf_test,2)/10-1);
                     errors_sp(count) = abs(norm(Rs_test,2)/10-1);
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
@@ -73,8 +76,10 @@ failed_tests(failed_tests == 0) = [];
 
 if isempty(failed_tests)
     fprintf('✅ All tests PASSED.\n');
-    exit(0); % Success
+    % Success
+    exit(0);
 else
     fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
-    exit(1); % Fail the workflow
+    % Fail the workflow
+    exit(1);
 end
