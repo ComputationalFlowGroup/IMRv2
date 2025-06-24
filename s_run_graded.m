@@ -5,8 +5,8 @@ close;
 addpath('src/forward_solver/');
 
 % equation options
-R0 = 300e-5;
-Req = R0/5;
+R0 = 300e-5; %Rmax
+Req = R0/3; %R_0
 tfin = 175E-5;
 kappa = 1; %1.4;
 Lheat = 2.378193575129533e+04;
@@ -22,11 +22,14 @@ stress = 1;
 v_nc = 0.3; 
 v_a = 2;
 l1 = 1.5*R0; 
-l2 = 2.5*R0;
-G0 = 1000;
-G1 = 5000;
+l2 = 2.0*R0;
+G0 = 100;
+G1 = 500;
+%Pref_vals = linspace(1e5,1e6,10);
+%tg_vals = zeros(1,length(Pref_vals));
+%for i = 1:length(Pref_vals)
 Pref = 101325;
-
+%Pref = Pref_vals(i);
 Ca = Pref/G0;
 Ca1 = Pref/G1;
 varin = {'progdisplay',0,...
@@ -61,6 +64,15 @@ figure
 hold on;
 plot(t,R,'bx')
 ylim([0 1.2])
+
+addpath('./src/characterization/')
+tg = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8);
+plot(tg,R,'r--')
+% tg_vals(i) = tg;
+% end
+% plot(Pref_vals,tg_vals,'o-')
+% xlabel('Pref [Pa]')
+% ylabel('Collapse time [s]')
 
 %%
 addpath('src/forward_solver/');
