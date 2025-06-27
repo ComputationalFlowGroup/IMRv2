@@ -14,22 +14,18 @@ T8 = 298.15;
 rho8 = 1064;
 tvector = linspace(0,tfin,1000);
 radial = 1;
-vapor = 0;
-bubtherm = 0;
-medtherm = 0;
-masstrans = 0;
+vapor = 1;
+bubtherm = 1;
+medtherm = 1;
+masstrans = 1;
 stress = 1;
 v_nc = 0.3; 
 v_a = 2;
-l1 = 1.5*R0; 
-l2 = 2.0*R0;
-G0 = 100;
-G1 = 500;
-%Pref_vals = linspace(1e5,1e6,10);
-%tg_vals = zeros(1,length(Pref_vals));
-%for i = 1:length(Pref_vals)
+l1 = 1.2*R0; 
+l2 = 1.8*R0;
+G0 = 1000;
+G1 = 5000;
 Pref = 101325;
-%Pref = Pref_vals(i);
 Ca = Pref/G0;
 Ca1 = Pref/G1;
 varin = {'progdisplay',0,...
@@ -38,6 +34,7 @@ varin = {'progdisplay',0,...
     'tvector',tvector,...
     'vapor',vapor,...
     'medtherm',medtherm,...
+    'masstrans',masstrans,...
     'method',23,...
     'stress',stress,...
     'collapse',1,...
@@ -58,21 +55,17 @@ varin = {'progdisplay',0,...
     't8',T8,...
     'rho8',rho8};
 
-[t,R,~] = m_imr_fd(varin{:},'Nt',150,'Mt',150);
+[t,R,~] = f_imr_fd(varin{:},'Nt',150,'Mt',150);
 
 figure
 hold on;
 plot(t,R,'bx')
 ylim([0 1.2])
 
-addpath('./src/characterization/')
-tg = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8);
-plot(tg,R,'r--')
-% tg_vals(i) = tg;
-% end
-% plot(Pref_vals,tg_vals,'o-')
-% xlabel('Pref [Pa]')
-% ylabel('Collapse time [s]')
+% addpath('./src/characterization/')
+% tg = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8);
+% plot(tg,R,'r--')
+% hold off;
 
 %%
 addpath('src/forward_solver/');

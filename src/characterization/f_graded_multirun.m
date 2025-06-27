@@ -2,7 +2,8 @@ function [] = f_graded_multirun()
     
     % Clear everything
     close;
-    clear; clc;
+    clear;
+    clc;
     
     N = 8^4;
     addpath('../')

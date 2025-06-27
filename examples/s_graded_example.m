@@ -101,3 +101,47 @@ tickrange= -5:2:5;
 yticks(tickrange)
 box on;
 %saveas(gcf,'./fig_graded_stress_Rst','png')
+
+%% stress as a function of ratio l1/l2
+% at an instant, how does graded material's stress in graded region change with ratio
+G0 = 1000; G1 = 5000;
+v_nc = 0.3; v_a = 2;
+R0 = 300e-5; %Rmax
+Req = R0/3; %R_0
+
+l1_l2 = linspace(0.1,1,100);
+r_coord = 1; %linspace(0.1,3,500); %fixed Eulerian grid
+Rnow = R0;
+r0coord = (r_coord.^3 - Rnow.^3 + Req^3);
+% valid = r0coord > 0; %where r0_coord values are negative (inside bubble)
+% r0_coord = (r0coord.*valid).^(1/3);
+comp = zeros(size(l1_l2));
+for i = 1:length(l1_l2)
+    % r0_l2 = r0_coord / l2; %this still relies on a FIXED value of l2
+    % fcy = (1 - r0_l2) ./ (r0_l2 - l1_l2);
+    % mcy = @(fcy) (1 + fcy.^v_a).^((v_nc-1)/v_a);
+
+    % at a fixed location - midpoint of graded region
+    gamma = l1_l2(i);
+    beta = 0.5*(gamma + 1);
+    fcy_mid = ((1 - beta) ./ (beta - gamma));
+    %mcy_mid = mcy(fcy_mid);
+    mcy_mid = (1 + fcy_mid.^v_a).^((v_nc-1)/v_a);
+
+   tau = 2/3 * ((r0_coord.^4 ./ r_coord.^4) - (r_coord.^2 ./ r0_coord.^2));
+   taurr1 = G0*tau;
+   taurr2 = (G0 + (G1 - G0)*mcy_mid).*tau;
+  % taurr3 = G1*tau;
+
+  % taurr = taurr1 + taurr2 + taurr3;
+
+   %still have to fix l_2 to use l_1 or vice versa
+   l2 = 1;
+   l1 = gamma*l2;
+   comp(i) = 1./ ((r0_coord./l1).* (((1/(G1-G0)).*((3/2).*(taurr2./taurr1) -1)).^(v_a/(v_nc-1)) -1).^(1/v_a) + (r0_coord/l1) - 1);
+end
+figure;
+plot(l1_l2,comp,'k','LineWidth',3)
+xlabel('$l_1 / l_2$', 'Interpreter', 'Latex', 'FontSize', 20);
+%ylabel('$\tau_{rr} / \mathrm{max}(\tau_{rr})$','Interpreter','Latex','FontSize',20);
+ylabel('$\tau_{rr}$','Interpreter','Latex','FontSize',20);

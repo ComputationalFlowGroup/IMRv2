@@ -2,7 +2,9 @@ function [taurr1,taurr,r1,r2] = f_gradedstress(r_coord,R,Req,R0,Ca,Ca1,l1,l2,v_n
    aa = r_coord.^3 - R.^3 + Req^3;
    aa = (1./(1-(aa<0))).*aa;
    r0_coord = real((aa).^(1/3));
-   % r0_coord = r_coord.^3 - R.^3 + Req^3;
+ % r0_coord = (r_coord.^3 - R.^3 + Req^3).^(1/3);
+   % valid = r0_coord > 0 & isreal(r0_coord); %where r0_coord values are negative (inside bubble)
+   % r0coord = r0_coord.*valid;
     
    f_cy = (l2 - r0_coord) ./ (r0_coord - l1);
         
