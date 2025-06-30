@@ -3,6 +3,7 @@ clear;
 close;
 
 addpath('src/forward_solver/');
+%addpath('./common/')
 
 % equation options
 R0 = 300e-5; %Rmax
@@ -20,11 +21,11 @@ medtherm = 1;
 masstrans = 1;
 stress = 1;
 v_nc = 0.3; 
-v_a = 2;
-l1 = 1.2*R0; 
-l2 = 1.8*R0;
-G0 = 1000;
-G1 = 5000;
+v_a = 3;
+l1 = 1.5*R0; 
+l2 = 10*R0;
+G0 = 100;
+G1 = 10000;
 Pref = 101325;
 Ca = Pref/G0;
 Ca1 = Pref/G1;
