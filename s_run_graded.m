@@ -5,28 +5,30 @@ close;
 addpath('src/forward_solver/');
 %addpath('./common/')
 
-% equation options
-R0 = 300e-5; %Rmax
-Req = R0/3; %R_0
-tfin = 175E-5;
-kappa = 1; %1.4;
-Lheat = 2.378193575129533e+04;
+% options
+Pref = 101325;
+R0 = 100e-6;
+Req = R0/8; 
+tfin = 50E-6;
+kappa = 1.4;
 T8 = 298.15;
 rho8 = 1064;
 tvector = linspace(0,tfin,1000);
+collapse = 0;
 radial = 1;
 vapor = 1;
 bubtherm = 1;
-medtherm = 1;
-masstrans = 1;
+medtherm = 0;
+masstrans = 0;
 stress = 1;
+graded = 1;
 v_nc = 0.3; 
-v_a = 3;
-l1 = 1.5*R0; 
-l2 = 10*R0;
-G0 = 100;
-G1 = 10000;
-Pref = 101325;
+v_a = 2;
+l1 = 1.2*R0; 
+l2 = 2.2*R0;
+G0 = 5E3;
+G1 = 1E3;
+mu = 5E-2;
 Ca = Pref/G0;
 Ca1 = Pref/G1;
 varin = {'progdisplay',0,...
@@ -38,10 +40,10 @@ varin = {'progdisplay',0,...
     'masstrans',masstrans,...
     'method',23,...
     'stress',stress,...
-    'collapse',1,...
-    'mu',1E0,...
+    'collapse',collapse,...
+    'mu',mu,...
     'g',G0,...
-    'graded',1,...
+    'graded',graded,...
     'g1',G1,...
     'l1',l1,...
     'l2',l2,...
@@ -56,7 +58,7 @@ varin = {'progdisplay',0,...
     't8',T8,...
     'rho8',rho8};
 
-[t,R,~] = f_imr_fd(varin{:},'Nt',150,'Mt',150);
+[t,R,~] = f_imr_fd(varin{:},'Nt',16,'Mt',64);
 
 figure
 hold on;

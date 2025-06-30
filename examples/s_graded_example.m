@@ -1,5 +1,5 @@
 clc; clear; close all;
-%% figure 1 JMPS
+% figure 1 JMPS
 
 Rst = linspace(0.2,10,200); %R_max/R_0
 
@@ -23,7 +23,7 @@ ycy = @(x,Rst) (G3+(G1-G3)*(1+( (l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1)./...
 % yscr = @(x,Rst) (G3+(G1-G3)*1./(1+(x-x1(Rst))./(x2(Rst)-x))).*(1./x.^5+1./x.^2);
 % ymcr = @(x,Rst) (G3+(G1-G3)*(1./(1+(x-x1(Rst))./(x2(Rst)-x)).^n).^a).*(1./x.^5+1./x.^2);
 
-%%
+%
 reltol = 1e-8;
 abstol = 1e-8;
 S2 = zeros(1,length(Rst));
@@ -62,7 +62,7 @@ yticks(tickrange)
 box on;
 %saveas(gcf,'./fig_graded_stress_integral','png')
 
-%% figure 2 JMPS
+% figure 2 JMPS
 Pref = 101325;
 p8=1;
 
