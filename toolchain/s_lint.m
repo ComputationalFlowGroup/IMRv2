@@ -7,7 +7,7 @@ clc;
 clear;
 
 repoRoot = fileparts(mfilename('fullpath')); % Get script location
-% repoRoot = '';
+%repoRoot = '';
 toolchainPath = fullfile(repoRoot, '..', 'toolchain');
 srcPath = fullfile(repoRoot, '..', 'src');
 

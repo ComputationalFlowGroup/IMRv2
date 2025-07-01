@@ -35,19 +35,19 @@ gdot = @(x) (1/Ca1 - 1/Ca).*((1./x.^5) + (1./x.^2)).*(v_nc-1).*...
 % no stress
 if stress == 0
     S = 0;
-    Sdot = 0;
-
-% Kelvin-Voigt with neo-Hookean elasticity
+    Sdot = 0*alphax;
+    
+    % Kelvin-Voigt with neo-Hookean elasticity
 elseif stress == 1
     Sv = - 4/Re8*Rdot/R - 6*intfnu*iDRe;
-
+    
     Se1 = (1/(2*Ca))*(1/(Rst.^4) + 4/Rst - (1./x1.^4 + 4./x1));
     Se2 = 2*integral(@(x) g(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
     Se3 = -(1/(2*Ca1))*(5 - 4./x2 - 1./x2.^4);
-
+    
     S = Sv + Se1 + Se2 + Se3;
     Sdot = 0;
-
+    
     if radial > 1
         Svdot = 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
         Se1dot = (2/Ca)*(x1dot./x1.^2 + x1dot./x1.^5 - ...
@@ -58,7 +58,7 @@ elseif stress == 1
         Sedot = Se1dot + Se2dot + Se3dot;
         Sdot = Sedot + Svdot;
     end
-
+    
 else
     error('stress setting is not available');
 end

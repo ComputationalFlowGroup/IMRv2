@@ -53,7 +53,7 @@ function [tg] = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rh
             dtg_vals(i) = -1/sqrt(dtg_sq);
         end
     end
-    dtg_sq;
-    dtg_vals
+    % dtg_sq;
+    % dtg_vals
     tg = trapz(R,dtg_vals);
 end

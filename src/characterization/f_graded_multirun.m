@@ -1,4 +1,4 @@
-function [] = f_graded_multirun()
+function [graded_nH] = f_graded_multirun()
     
     % Clear everything
     close;

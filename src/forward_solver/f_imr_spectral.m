@@ -105,6 +105,10 @@ function varargout = f_imr_spectral(varargin)
     v_lambda_star   = sigma_opts(11);
     zeNO            = sigma_opts(12);
     iDRe            = sigma_opts(13);
+    graded          = sigma_opts(14);
+    Ca1             = sigma_opts(15);
+    l1              = sigma_opts(16);
+    l2              = sigma_opts(17);
     iWe             = 1/We;
     
     % dimensionless thermal
@@ -387,8 +391,8 @@ function varargout = f_imr_spectral(varargin)
         
         % stress equation evolution
         if graded
-            [S,Sdot,Z1dot,Z2dot] = f_stress_calc_graded(radial,stress,Req,R,Ca,Ca1,...
-                Re8,Rdot,alphax,intfnu,dintfnu,iDRe,l1,l2,v_a,v_nc);
+            [S,Sdot,Z1dot,Z2dot] = f_stress_calc_graded(radial,stress,Req,...
+                R,Ca,Ca1,Re8,Rdot,alphax,intfnu,dintfnu,iDRe,l1,l2,v_a,v_nc);
         else
             [S,Sdot,Z1dot,Z2dot] = f_stress_calc(stress,X,Req,R,Ca,De,Re8, ...
                 Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
