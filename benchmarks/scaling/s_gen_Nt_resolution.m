@@ -10,22 +10,22 @@ format long;
     addpath('../../src/forward_solver/');
     
     % material parameter test cases
-    tvector = linspace(0,100E-6,500);
+    tvector = linspace(0,350E-6,500);
     collapse = 1;
-    masstrans = 1;
     vapor = 1;
     bubtherm = 1;
     medtherm = 1;
+    masstrans = 1;
     R0 = 200e-6;
-    Req = R0/8;
-    mu = 1E-1;
+    Req = R0/10;
+    mu = 1E-3;
     G = 1E3;
     alphax = 0.5;
     lambda1 = 1E-3;
     lambda2 = 0;
     radial = 3;
-    stress = 3;
-    
+    stress = 2;
+    maxNumCompThreads(16);
     % define parameter vectors and limits
     Mt = 1024;
     Nt_vec = 2.^(2:9);
@@ -34,15 +34,6 @@ format long;
     % setup output containers
     tvec = cell(total_comb,1);
     Rvec = cell(total_comb,1);
-    
-    % start the parallel pool
-    pool = gcp('nocreate');
-    if isempty(pool)
-        pool = parpool('local',8);
-    end
-    
-    % futures to track jobs
-    futures = parallel.FevalFuture.empty(total_comb,0);
     
     % launch asynchronous jobs
     for idx = 1:total_comb
@@ -65,16 +56,7 @@ format long;
             'stress',stress,...
             'Nt',Nt,...
             'Mt',Mt};
-        futures(idx) = parfeval(pool, @f_imr_fd, 2, varin{:});
+        [tvec, Rvec] = f_imr_fd(varin{:});
+        filename = strcat('fd_Nt_',num2str(Nt),'_Mt_',num2str(Mt));
+        save(filename,"tvec","Rvec");
     end
-    
-    % collect results as they finish
-    for idx = 1:total_comb
-        [completedIdx, tf, Rf] = fetchNext(futures);
-        tvec{completedIdx} = tf;
-        Rvec{completedIdx} = Rf;
-        fprintf('Completed %d of %d\n', idx, total_comb);
-    end
-    
-    save("fdres_Nt.mat","tvec","Rvec");
-    delete(gcp('nocreate'));

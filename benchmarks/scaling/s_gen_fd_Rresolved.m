@@ -11,22 +11,22 @@ format long;
     addpath('../../src/forward_solver/');
     
     % material parameter test cases
-    tvector = linspace(0,100E-6,1000);
+    tvector = linspace(0,350E-6,500);
     collapse = 1;
-    masstrans = 1;
     vapor = 1;
-    count = 1;
     bubtherm = 1;
     medtherm = 1;
+    masstrans = 1;
     R0 = 200e-6;
-    Req = R0/8;
-    mu = 1E-1;
+    Req = R0/10;
+    mu = 1E-3;
     G = 1E3;
     alphax = 0.5;
     lambda1 = 1E-3;
     lambda2 = 0;
     radial = 3;
-    stress = 3;
+    stress = 2;
+    maxNumCompThreads(16);
     
     Nresolved = 1024;
     
@@ -50,5 +50,5 @@ format long;
         'Nt',Nresolved,...
         'Mt',Nresolved};
     
-    [tfd1024,Rfd1024] = f_imr_fd(varin{:});
-    save("fd1024.mat","tfd1024","Rfd1024");
+    [tvec,Rvec] = f_imr_fd(varin{:});
+    save("fd_Nt_1024_Mt_1024.mat","tvec","Rvec");
