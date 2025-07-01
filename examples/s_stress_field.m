@@ -8,7 +8,7 @@ nt = length(t);
 r_coord = ones(lR,lr_N).*linspace(0,lr_length,lr_N);
 [xcon,ycon] = meshgrid(t,r_coord(1,:));
 %addpath('./common/')
-[taurr,r1,r2] = f_gradedstress(r_coord,R,Req/R0,Ca,Ca1,l1/R0,l2/R0,v_nc,v_a);
+[taurr,r1,r2] = f_graded_stress(r_coord,R,Req/R0,Ca,Ca1,l1/R0,l2/R0,v_nc,v_a);
 maxtaurr = -max(max(abs(taurr))); 
 ntaurr = taurr/maxtaurr;
 
@@ -37,21 +37,18 @@ colormap(rgb200);
 cbar = colorbar;
 clevels = n_col;
 
-
-% f contour figure
+% contour figure
 figure(1);
 hold on;
-xlabel('$t / t_c$', 'Interpreter', 'Latex', 'FontSize', 20);
-ylabel('$\it{r}/R_o$','Interpreter','Latex','FontSize',24);
+xlabel('$t / t_{\mathrm{c}}$', 'Interpreter', 'Latex', 'FontSize', 20);
+ylabel('$r/R_{\mathrm{max}}$','Interpreter','Latex','FontSize',24);
 
-cbar.Label.String = '$\tau_{rr}$';
+cbar.Label.String = '$\tau_{rr}/\mathrm{max}(\tau_{rr})$';
 set(cbar,'TickLabelInterpreter','Latex','FontSize',18);
 pos = get(cbar,'Position');
-cbar.Label.Position = [pos(1) -1];
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
 clim([0 1]);
-%xlim([0 fig_tend]);
 xticks(tickrange)
 set(gcf,'color','w');
 set(gca,'FontName','Times','FontSize',20);
@@ -66,7 +63,7 @@ box on;
 plot(t,R,'LineWidth',3,'Color','k');
 contourf(xcon,ycon,ntaurr',clevels,'edgecolor','none')
 hold on;
-plot(t,r1','b--','LineWidth',2,'DisplayName','l1')
-plot(t,r2','r--','LineWidth',2,'DisplayName','l2')
+plot(t,r1','c--','LineWidth',3,'DisplayName','l1')
+plot(t,r2','g--','LineWidth',3,'DisplayName','l2')
 ylim([0 lr_length])
 hold off;
