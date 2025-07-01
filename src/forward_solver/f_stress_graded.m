@@ -1,11 +1,11 @@
-% file f_stress_calc_graded.m
-% brief contains function f_stress_calc_graded
+% file f_stress_graded.m
+% brief contains function f_stress_graded
 
 % brief This function features the stress integral and its time derivative
 % solver. The solver accounts for the Kelvin-Voigt with neo-Hookean
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
-function [S,Sdot,Z1dot,Z2dot] = f_stress_calc_graded(radial,stress,Req,R,...
+function [S,Sdot,Z1dot,Z2dot] = f_stress_graded(radial,stress,Req,R,...
     Ca,Ca1,Re8,Rdot,alphax,intfnu,dintfnu,iDRe,l1,l2,v_a,v_nc)
 
 Z1dot = [];
