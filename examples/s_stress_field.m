@@ -1,6 +1,7 @@
 % function f_stress_field(R,t)
 clc;
-tickrange = ceil(min(t)) : floor(max(t));
+%tickrange = ceil(min(t)) : floor(max(t));
+tickrange = linspace(ceil(min(t)),floor(max(t)),8);
 lR = length(R);
 lr_N = lR;
 lr_length = 3;
@@ -42,12 +43,13 @@ figure(1);
 hold on;
 xlabel('$t / t_{\mathrm{c}}$', 'Interpreter', 'Latex', 'FontSize', 20);
 ylabel('$r/R_{\mathrm{max}}$','Interpreter','Latex','FontSize',24);
-
-cbar.Label.String = '$\tau_{rr}/\mathrm{max}(\tau_{rr})$';
+%cbar.Label.String = '$\tau_{rr}/\max(\tau_{rr})$';
+cbar.Label.String = '$\frac{\tau_{rr}}{\mathrm{max}(\tau_{rr})}$';
 set(cbar,'TickLabelInterpreter','Latex','FontSize',18);
-pos = get(cbar,'Position');
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
+cbar.Label.Position = [pos(1) + pos(3), pos(2) - 0.15,0];
+pos = get(cbar,'Position');
 clim([0 1]);
 xticks(tickrange)
 set(gcf,'color','w');
@@ -63,7 +65,7 @@ box on;
 plot(t,R,'LineWidth',3,'Color','k');
 contourf(xcon,ycon,ntaurr',clevels,'edgecolor','none')
 hold on;
-plot(t,r1','c--','LineWidth',3,'DisplayName','l1')
-plot(t,r2','g--','LineWidth',3,'DisplayName','l2')
+plot(t,r1','c--','LineWidth',2,'DisplayName','l1')
+plot(t,r2','m--','LineWidth',2,'DisplayName','l2')
 ylim([0 lr_length])
 hold off;
