@@ -48,6 +48,7 @@ cbar.Label.String = '$\frac{\tau_{rr}}{\mathrm{max}(\tau_{rr})}$';
 set(cbar,'TickLabelInterpreter','Latex','FontSize',18);
 cbar.Label.Rotation = 0;
 cbar.Label.Interpreter = 'latex';
+pos = get(cbar, 'Position');
 cbar.Label.Position = [pos(1) + pos(3), pos(2) - 0.15,0];
 pos = get(cbar,'Position');
 clim([0 1]);

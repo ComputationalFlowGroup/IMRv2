@@ -10,7 +10,7 @@ r2 = (l2^3 + R.^3 - Req^3).^(1/3);
 
 % reference coordinate calculation
 r0coord = (rcoord.^3 - R.^3 + Req.^3).^(1/3);
-r0shift = (rcoord.^3 + Req^3 - (R+0.4).^3).^(1/3);
+r0shift = (rcoord.^3 + Req^3 - (R+0.2).^3).^(1/3);
 % removing the data within the bubble and slightly away from the bubble wall
 r0coord(r0coord < r0shift) = NaN;
 
