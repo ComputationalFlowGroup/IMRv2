@@ -22,8 +22,8 @@ stress = 1;
 graded = 1;
 v_nc = 0.3; 
 v_a = 2;
-l1 = 1.2*R0; 
-l2 = 2.2*R0;
+l1 = 1.2*Req; 
+l2 = 2.2*Req;
 G0 = 1E3;
 G1 = 10E3;
 
@@ -89,7 +89,7 @@ Ca_G1 = Pref./G1;
 
 % % parameters
 nt = length(tvector);
-lr_N = nt;
+lr_N = 100000;
 lr_length = 6;
 r_coord = linspace(0,lr_length,lr_N); %fixed Eulerian grid
 % last location to evaluate stress
@@ -139,18 +139,27 @@ for i = 1:nmat
     't8',T8,...
     'rho8',rho8};
     [t,R,~] = f_imr_fd(varin{:},'Nt',150,'Mt',150);
+    % DO l1 and l2 NEED TO BE DIVIDED BY REQ???
 
     % store all R data for each material
     R_all(:,i) = R;
     % compute stresses
-    stress_all(:,:,i) = f_stress_v_time(isgraded(i),nt,nloc,r_coord,R,R0/R0,Req,r_far,Ca,Ca1,l1,l2,v_nc,v_a);
-    stress_all(:,:,i) = stress_all(:,:,i) / -max(max(abs(stress_all(:,:,i))),[],'all');
-    % normalized R0?
+    stress_all(:,:,i) = f_stress_v_time(isgraded(i),nt,nloc,R,R0/R0,Req/R0,r_far,Ca,Ca1,l1/R0,l2/R0,v_nc,v_a);
+    %stress_all(:,:,i) = stress_all(:,:,i) / max(abs(stress_all(:,:,i)),[],'all');
+    % l1 and l2 DIVIDED BY R0?
 end
+
+% close all
+% for i = 1:length(isgraded)
+%     Ca = Ca_G0(i);
+%     Ca1 = Ca_G1(i);
+%     stress_all(:,:,i) = f_stress_v_time(isgraded(i),nt,nloc,R_all(:,1),R0/R0,Req/R0,r_far,Ca,Ca1,l1/R0,l2/R0,v_nc,v_a);
+% end
 
 % preparing plots
 labels = {'Soft','Graded','Stiff'};
 colors = {'r','c--','k--'};
+
 
 figure
 hold on;
