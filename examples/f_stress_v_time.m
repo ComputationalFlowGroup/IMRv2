@@ -10,8 +10,8 @@ for time_idx = 1:nt
     % current time
     Rnow = R(time_idx);
     %rcoord_now = r_coord(time_idx);
-    r1_now = (l1^3 + Rnow.^3 - Req^3).^(1/3);
-    r2_now = (l2^3 + Rnow.^3 - Req^3).^(1/3);
+    r1_now = (l1^3 + Rnow.^3 - Req^3).^(1/3) + 1e-4;
+    r2_now = (l2^3 + Rnow.^3 - Req^3).^(1/3) - 1e-4;
     % location of each tracer (at each time)
     r_eval = [R0,r1_now,r2_now,r_far];
     
@@ -19,6 +19,9 @@ for time_idx = 1:nt
         r_current = r_eval(loc);
         %r0coord = (r_coord.^3 - R.^3 + Req.^3).^(1/3);
         r0_eval = (r_current.^3 - Rnow.^3 + Req.^3).^(1/3);
+        % if imag(r_current.^3 - Rnow.^3 + Req.^3)
+        %     r0_eval = real((r_current.^3 + Req^3 - (Rnow+0.001).^3).^(1/3));
+        % end
         % if not graded, compute homogeneous stress
         if isgraded
             % get stress profile at current time for graded material
