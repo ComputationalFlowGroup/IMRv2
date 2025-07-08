@@ -1,8 +1,7 @@
 % file f_stress_v_time.m
 % brief contains function f_stress_v_time
 
-% brief This function interpolates stress of a graded or nongraded material
-% at dynamic tracer(s) position(s)
+% brief This function computes stress of a graded or nongraded material at tracer(s) position(s)
 function [stress_all] = f_stress_v_time(isgraded,nt,nloc,R,R0,Req,r_far,Ca,Ca1,l1,l2,v_nc,v_a)
 
 stress_all = zeros(nt,nloc);
@@ -12,7 +11,9 @@ for time_idx = 1:nt
     % location of each tracer (at each time)
     r1_now = (l1^3 + Rnow.^3 - Req^3).^(1/3) + 1e-4;
     r2_now = (l2^3 + Rnow.^3 - Req^3).^(1/3) - 1e-4;
-    r_eval = [R0,r1_now,r2_now,r_far];
+    mid_g_region = (l1+l2)/2;
+    mid_r = (mid_g_region^3 + Rnow.^3 - Req^3).^(1/3);
+    r_eval = [R0,r1_now,mid_r,r2_now,r_far];
     
     for loc = 1:nloc
         r_current = r_eval(loc);
