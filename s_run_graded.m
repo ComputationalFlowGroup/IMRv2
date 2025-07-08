@@ -74,9 +74,6 @@ ylim([0 1.2])
 %% graded and ungraded stress vs time
 
 addpath('examples/');
-% G0 = [1000 1000 0];
-% G1 = [0 10000 10000];
-legendName = {'G0 = 1000', 'G0 = 1000, G1 = 10000', 'G1 = 10000'};
 
 isgraded = [0 1 0];
 % positive gradient: soft-to-stiff
@@ -106,6 +103,7 @@ location_labels = {sprintf('At R_0 = %.3f',R0/R0),...
 nmat = length(isgraded); %number of materials
 stress_all = zeros(nt, nloc, nmat); %[time, location, material]
 R_all = zeros(nt,nmat);
+max_stress_each = zeros([1,nmat]);
 
 % for each material
 for i = 1:nmat
@@ -145,16 +143,11 @@ for i = 1:nmat
     R_all(:,i) = R;
     % compute stresses
     stress_all(:,:,i) = f_stress_v_time(isgraded(i),nt,nloc,R,R0/R0,Req/R0,r_far,Ca,Ca1,l1/R0,l2/R0,v_nc,v_a);
-    %stress_all(:,:,i) = stress_all(:,:,i) / max(abs(stress_all(:,:,i)),[],'all');
-    % l1 and l2 DIVIDED BY R0?
+    % per material normalization of stress (temporal features)
+    % max_stress_each(i) = max(max(abs(stress_all(:,:,i)))); % across each location and each time
+    % stress_all(:,:,i) = stress_all(:,:,i) / max_stress_each(i);
+    % alternatively: global normalization of stress (relative strength)
 end
-
-% close all
-% for i = 1:length(isgraded)
-%     Ca = Ca_G0(i);
-%     Ca1 = Ca_G1(i);
-%     stress_all(:,:,i) = f_stress_v_time(isgraded(i),nt,nloc,R_all(:,1),R0/R0,Req/R0,r_far,Ca,Ca1,l1/R0,l2/R0,v_nc,v_a);
-% end
 
 % preparing plots
 labels = {'Soft','Graded','Stiff'};

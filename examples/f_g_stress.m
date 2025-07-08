@@ -5,17 +5,6 @@
 % at the desired r_eval location as a function of time
 function [taurr] = f_g_stress(r_eval,r0_eval,Ca,Ca1,l1,l2,v_nc,v_a)
 
-% % choose subdomain that r_eval lives in
-% mask = rcoord <= r_eval;
-% % truncate rcoord to appropriate region
-% r_subset = rcoord(mask);
-% compute r0coord for the subdomain
-%r0_eval = (r_eval.^3 - R.^3 + Req.^3).^(1/3);
-% slight offset near bubble wall
-% r0shift = (rcoord.^3 + Req^3 - (R+0.001).^3).^(1/3);
-% removing the data within the bubble and slightly away from the bubble wall
-% r0_eval(r0_eval < r0shift) = NaN;
-
 % function for graded region
 f_cy = @(x) (l2 - x) ./ (x - l1);
 
