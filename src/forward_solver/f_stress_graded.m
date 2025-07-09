@@ -24,6 +24,10 @@ x1dot = Rstdot*Rst.^2 ./ (l1*x1^2);
 x2dot = Rstdot*Rst.^2 ./ (l2*x2^2);
 
 try
+    % if mex file exist, compile it
+    if exist('f_g_mex','file') ~= 3 
+        mex('f_g_mex.c');
+    end
     g_handle = @(x) f_g_mex(x,Ca,Ca1,Rst,l1,l2,v_a,v_nc,Rstdot,1); % mode 1 = g
     gdot_handle = @(x) f_g_mex(x,Ca,Ca1,Rst,l1,l2,v_a,v_nc,Rstdot,2); % mode 2 = gdot
 catch 
