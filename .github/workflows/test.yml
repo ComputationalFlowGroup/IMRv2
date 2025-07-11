@@ -60,3 +60,9 @@ jobs:
             cd toolchain;
             s_test_suite_masstrans;
 
+      - name: Compile all MEX files across project
+        uses: matlab-actions/run-command@v1
+        with: 
+          command: |
+            cd toolchain;
+            s_compile_c_files;
