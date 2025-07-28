@@ -16,10 +16,18 @@ function [tg] = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rh
         Rst = 1./Rs; %Lambda
         Rmt = R0/Req; %Lambda_m
         
-        x1 = 1 + ((Rst.^3 -1)./(l1^3)).^(1/3); %Lambda_1
-        x2 = 1 + ((Rst.^3 -1)./(l2)^3).^(1/3); %Lambda_2
-        xm1 = 1 + ((Rmt^3 -1)/(l1)^3)^(1/3); %Lambda_m1
-        xm2 = 1 + ((Rmt^3 -1)/(l2)^3)^(1/3); %Lambda_m2
+        x1 = (1 + ((Rst.^3 -1)./l1^3)).^(1/3); %Lambda_1
+        x2 = (1 + ((Rst.^3 -1)./l2^3)).^(1/3); %Lambda_2
+        xm1 = (1 + ((Rmt^3 -1)/l1^3))^(1/3); %Lambda_m1
+        xm2 = (1 + ((Rmt^3 -1)/l2^3))^(1/3); %Lambda_m2
+
+        % el1 = l1*R0;
+        % el2 = l2*R0;
+        % x1 = (1 + (Rnow^3 - Req^3)/el1^3)^(1/3); 
+        % x2 = (1 + (Rnow^3 - Req^3)/el2^3)^(1/3);
+        % xm1 = (1 + (R0^3 - Req^3)/el1^3)^(1/3);
+        % xm2 = (1 + (R0^3 - Req^3)/el2^3)^(1/3);
+
 
         f_cy = @(x) ( l2.*(((x.^3 - 1)./(Rst.^3 - 1)).^(1/3)) - 1 ) ./ ( 1 - l1.*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3));
         m = @(x) (1 + f_cy(x).^v_a).^((v_nc-1)/v_a);
@@ -45,26 +53,45 @@ function [tg] = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rh
             %dtg = @(R) -1./sqrt( (2/3)*(Pref/rho)*(Rm.^3 -1) + 2*(Rm.^3 - Rs.^3).*Eem - 2*(1 - Rs.^3).*Ee );
             %dtg_vals = -1./sqrt( (2/3)*(Pref/rho8)*(Rm.^3 -1) + 2*(Rm.^3 - Rs.^3).*Eem - 2*(1 - Rs.^3).*Ee );
             %tg = integral(@(R) dtg(R),0,R0,'Reltol',reltol,'AbsTol',abstol);
-            dtg_sq = 2/3.*(Pref/rho8).*(Rm.^3 -1) + (Rm.^3 - Rs.^3).*Eem./rho8 - (1 - Rs.^3).*Ee./rho8;
+            first = 2/3.*(Pref/rho8).*(Rm.^3 -1);
+            second = 2*(Rm.^3 - Rs.^3).*Eem./rho8;
+            third = 2*(1 - Rs.^3).*Ee./rho8;
+            dtg_sq = first + second - third;
             % if isreal(dtg_sq) && dtg_sq > 0
             %     dtg_vals(i) = -1/sqrt(dtg_sq);
             % else
             %     dtg_vals(i) = NaN;
             % end
+            if (first+second < third)
+                warning('Ee is too strong')
+            end
+            if dtg_sq < 0
+                warning('Imaginary collapse time at R = %.3e', Rnow);
+                break;
+            end
+            %fprintf('i=%d, R =%.5e, dtg_sq=%.5e\n', i , Rnow, dtg_sq);
             
             % dtg_vals(i) = -1/sqrt(abs(dtg_sq));
             dtg_vals(i) = -1/sqrt(dtg_sq);
-            fprintf('i=%d, R =%.5e, dtg_sq=%.5e\n', i , Rnow, dtg_sq);
-            if dtg_sq < 0
-                warning('Imaginary collapse time at R = %.3e', Rnow);
-            end
         end
     end
-    figure
-    hold on
-    plot(R, Eem_vals, 'k')
-    plot(R,Ee_vals,'b--')
-    % dtg_sq;
-    % dtg_vals
-    tg = trapz(R,dtg_vals);
+    % figure
+    % hold on
+    % plot(R, Eem_vals, 'k')
+    % plot(R,Ee_vals,'b--')
+   % tg = trapz(R,dtg_vals);
+
+   % remove the initial time step where Rnow = Rmax leading to Inf at dtg_vals
+   % identify where this happens
+   inf_idx = isinf(dtg_vals);
+   % remove from R and dtg_vals
+   R_clean = R(~inf_idx);
+   dtg_clean = dtg_vals(~inf_idx);
+   % perform integration
+   %tgc = trapz(R_clean,dtg_clean);
+
+   % at min R (first collapse), dtg_val has small imag value
+   dtg_cleaner = real(dtg_clean);
+   % perform integration
+   tg = trapz(R_clean,dtg_cleaner);
 end
