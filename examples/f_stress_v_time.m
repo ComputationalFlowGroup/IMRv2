@@ -9,8 +9,8 @@ for time_idx = 1:nt
     % current time
     Rnow = R(time_idx);
     % location of each tracer (at each time)
-    r1_now = (l1^3 + Rnow.^3 - Req^3).^(1/3) + 1e-4;
-    r2_now = (l2^3 + Rnow.^3 - Req^3).^(1/3) - 1e-4;
+    r1_now = (l1^3 + Rnow.^3 - Req^3).^(1/3) + 1e-6;
+    r2_now = (l2^3 + Rnow.^3 - Req^3).^(1/3) - 1e-6;
     mid_g_region = (l1+l2)/2;
     mid_r = (mid_g_region^3 + Rnow.^3 - Req^3).^(1/3);
     r_eval = [R0,r1_now,mid_r,r2_now,r_far];

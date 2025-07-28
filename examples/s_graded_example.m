@@ -63,11 +63,9 @@ box on;
 %saveas(gcf,'./fig_graded_stress_integral','png')
 
 % figure 2 JMPS
-Pref = 101325;
-p8=1;
-
+% dimensional, in terms of lambda
 tau = @(x) (2/3)*(1./x.^4 - x.^2);
-gtau = @(x,Rst) (G3+(G1-G3)*(1+( (l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1)./...
+gtau = @(x,Rst) G3+((G1-G3)*(1+( (l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1)./...
         (1-l1*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3)) ).^a).^((n-1)/a));
 
 gtau1 = zeros(size(Rst));

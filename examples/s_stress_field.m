@@ -9,12 +9,19 @@ nt = length(t);
 r_coord = ones(lR,lr_N).*linspace(0,lr_length,lr_N);
 [xcon,ycon] = meshgrid(t,r_coord(1,:));
 %addpath('./common/')
-[taurr,r1,r2] = f_graded_stress(r_coord,R,Req/R0,Ca,Ca1,l1/R0,l2/R0,v_nc,v_a);
-maxtaurr = -max(max(abs(taurr))); 
+%[taurr,r1,r2] = f_graded_stress(r_coord,R,Req/R0,Ca,Ca1,l1/R0,l2/R0,v_nc,v_a);
+[taurr_near,taurr_mid,taurr_far,mask_near,mask_grad,mask_far,r1,r2] = f_graded_stress(r_coord,R,Req/R0,Ca,Ca1,l1,l2,v_nc,v_a);
+
+taurr = NaN(size(r_coord));
+taurr(mask_near) = taurr_near;
+taurr(mask_grad) = taurr_mid;
+taurr(mask_far) = taurr_far;
+
+maxtaurr = max(max(abs(taurr))); 
 ntaurr = taurr/maxtaurr;
 
 % diverging color map
-rgb = [ ...
+rgb = [ ...0
     94    79   162
     50   136   189
    102   194   165
@@ -65,6 +72,9 @@ ya.LineWidth = 1.5;
 box on;
 plot(t,R,'LineWidth',3,'Color','k');
 contourf(xcon,ycon,ntaurr',clevels,'edgecolor','none')
+% contourf(xcon,ycon,taurr_near,clevels,'edgecolor','none')
+% contourf(xcon,ycon,taurr_mid,clevels,'edgecolor','none')
+% contourf(xcon,ycon,taurr_far,clevels,'edgecolor','none')
 hold on;
 plot(t,r1','c--','LineWidth',2,'DisplayName','l1')
 plot(t,r2','m--','LineWidth',2,'DisplayName','l2')

@@ -4,6 +4,7 @@ G = 0.1; G1 = 0.1;
 Pref = 101325;
 Ca = Pref/G; Ca1 = Pref/G1;
 %%[Ca,Ca1] = shearmod(G,G1);
+addpath('../src/characterization/')
 %graded stress should approach classical
 tg = f_tcol_calc_graded(1,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8);
 %classical Rayleigh collapse time
