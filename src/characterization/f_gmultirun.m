@@ -22,8 +22,8 @@ Lambdamax_vals = Lambda_min + (Lambda_max - Lambda_min) * lhs(:, 2);
 % Plot
 figure;
 scatter(Rmax_vals.*1e6, Lambdamax_vals, 50, 'k', 'filled');
-xlabel('$R_{\mathrm{max}}$ [$\mu$m]', 'Interpreter', 'latex');
-ylabel('$\Lambda_{\mathrm{max}}$', 'Interpreter', 'latex');
+xlabel('$R_{\mathrm{max}}$ [$\mu$m]', 'FontName','TimesNewRoman','FontSize',20,'Interpreter', 'latex');
+ylabel('$\Lambda_{\mathrm{max}}$', 'FontName','TimesNewRoman','FontSize',20,'Interpreter', 'latex');
 %titlestr = sprintf('Latin Hypercube Sampling of $R_{\mathrm{max}}$, $\Lambda_{\mathrm{max}}$ $(n = %d)$',n);
 %title(titlestr, 'Interpreter', 'latex');
 %title(sprintf('Latin Hypercube Sampling of \\R_{\\mathrm{max}}, \\Lambda_{\\mathrm{max}} (n = %d)',n),'Interpreter', 'latex');
@@ -31,9 +31,11 @@ xlim([R_min.*1e6 - 10, R_max.*1e6 + 10]);
 ylim([Lambda_min - 0.5, Lambda_max + 0.5]);
 grid on;
 axis square;
-% fname = sprintf('syn_dat_dist_n%d.png',n);
-% saveas(gcf, fname);
+fname = sprintf('syn_dat_dist_n%d.png',n);
+saveas(gcf, fname);
+fprintf('Figure saved as %s\n',fname);
 
+counter = 0;
 % call IMR, with KM, keep vapor on but turn off medtherm and masstherm
 % turn off mu, lambda1, lambda2, alphax
 addpath('../forward_solver/');
@@ -58,7 +60,7 @@ for i = 1:length(Rmax_vals)
     collapse = 0;
     radial = 1;
     vapor = 1;
-    bubtherm = 1;
+    bubtherm = 0; %1; can't directly compare bubble pressure/temp in energy balance
     medtherm = 0;
     masstrans = 0;
     stress = 1;
@@ -97,11 +99,11 @@ for i = 1:length(Rmax_vals)
     [t,R,~] = f_imr_fd(varin{:},'Nt',16,'Mt',64);
 
     % for debugging
-    figure
-    hold on;
-    plot(t,R,'bx')
-    ylim([0 1.2])
-    hold off;
+    % figure
+    % hold on;
+    % plot(t,R,'bx')
+    % ylim([0 1.2])
+    % hold off;
     
     [~,idx_minR] = min(R);
     Rdata{i} = R;
@@ -111,6 +113,7 @@ for i = 1:length(Rmax_vals)
     format long;
     % populate data
     data(i,:) = [Rmax_vals(i), Lambdamax_vals(i), tc];
+    counter = counter + 1
 end
 % save the output
 save('data.mat','data');
