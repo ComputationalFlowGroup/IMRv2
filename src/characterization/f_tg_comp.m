@@ -1,6 +1,7 @@
 % call f_tcol_calc_graded given each Rmax, Lambdamax val
 close all;
-clear all; clc;
+clear;
+clc;
 
 % input synthetic experiments
 infile = 'data.mat';   % Name of file to read
@@ -16,7 +17,12 @@ T1X = data(:,3);     % All collapse time tc [approx tg]
 
 % EXAMPLE DATA - TO MATCH SYNTHETIC DATA
 stress = 1;
-G0 = 1E3; G1 = 1E4; l1 = 1.2e-4; l2 = 1.8e-4; v_a = 2; v_nc = 0.3;
+G0 = 1E3;
+G1 = 1E4;
+l1 = 1.2e-4;
+l2 = 1.8e-4;
+v_a = 2;
+v_nc = 0.3;
 rho8 = 1064;
 Pref = 101325;
 format long;
@@ -73,7 +79,7 @@ format long;
     fprintf('R^2: %.4f\n', R2);
     
     
-    function tg_all = f_tg_generate(nX,RX,LX,Rdata,stress,G0,G1,l1,l2,v_a,v_nc,rho8,Pref)
+    function tg_all = f_tg_generate(nX,RX,LX,stress,G0,G1,l1,l2,v_a,v_nc,rho8,Pref)
         % for each {Rmax, Lambdamax} call f_tcol_calc_graded
         tg_all = zeros(1,nX);
         for i = 1:nX
@@ -81,7 +87,7 @@ format long;
             % Req_dim_i = RX(i) / LX(i); %dim
             % Req_i = Req_dim_i / RX(i);
             Req_i = 1/LX(i); %Req/R0
-            R_i = Rdata{i}; %nondim already
+            %R_i = Rdata{i}; %nondim already
             % nondim RX
             nd_R0 = RX(i) / RX(i);
             % dim Req
@@ -89,7 +95,7 @@ format long;
             Ca = Pref/G0;
             Ca1 = Pref/G1;
             % el1 = l1/Req_i;
-            el2 = l2/Req_i;
+            %el2 = l2/Req_i;
             el1 = l1/d_Req;
             el2 = l2/d_Req;
             %tg_all(i) = f_tcol_calc_graded(stress,Req_i,R_i,nd_R0,Ca,Ca1,Pref,el1,el2,v_a,v_nc,rho8);
