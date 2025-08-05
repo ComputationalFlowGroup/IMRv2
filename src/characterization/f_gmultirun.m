@@ -115,14 +115,14 @@ function [data,Rdata] = f_gmultirun(n,R_min,R_max,Lambda_min,Lambda_max,G0,G1,l1
             % populate data
             data(i,:) = [Rmax_vals(i), Lambdamax_vals(i), tc];
             counter = counter + 1;
+        end
+        % save the output
+        save('data.mat','data');
+        save('Rdata.mat','Rdata');
+        % Outputs
+        % nX = size(data,1);   % # of experiments
+        % RX = data(:,1);      % All Rmax
+        % LX = data(:,2);      % All amplification Lmax
+        % T1X = data(:,3);     % All collapse time t1
+        % Ri = Rdata{i};       % spatial info of bubble wall
     end
-    % save the output
-    save('data.mat','data');
-    save('Rdata.mat','Rdata');
-    % Outputs
-    % nX = size(data,1);   % # of experiments
-    % RX = data(:,1);      % All Rmax
-    % LX = data(:,2);      % All amplification Lmax
-    % T1X = data(:,3);     % All collapse time t1
-    % Ri = Rdata{i};       % spatial info of bubble wall
-end
