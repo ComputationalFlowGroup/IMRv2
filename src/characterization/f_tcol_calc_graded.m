@@ -20,7 +20,7 @@ function [tg] = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rh
         x2 = (1 + ((Rst.^3 -1)./l2^3)).^(1/3); %Lambda_2
         xm1 = (1 + ((Rmt^3 -1)/l1^3))^(1/3); %Lambda_m1
         xm2 = (1 + ((Rmt^3 -1)/l2^3))^(1/3); %Lambda_m2
-
+        
         f_cy = @(x) ( l2.*(((x.^3 - 1)./(Rst.^3 - 1)).^(1/3)) - 1 ) ./ ( 1 - l1.*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3));
         m = @(x) (1 + f_cy(x).^v_a).^((v_nc-1)/v_a);
         ee2integ = @(x) (1/Ca + (1/Ca1 - 1/Ca).* m(x)) .* ((1./x.^2) + 2.*x.^4 - 3.*x.^2)./((x.^3 - 1).^2);
@@ -37,24 +37,24 @@ function [tg] = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rh
             Eem3 = (1/Ca1)*((5/3)- (1/xm2) -((1+xm2)/(1+ xm2 +xm2^2)));
             Ee = Ee1 + Ee2 + Ee3;
             Eem = Eem1 + Eem2 + Eem3;
-
+            
             Eem_vals(i) = Eem;
             Ee_vals(i) = Ee;
-          
+            
             dtg_sq = 2/3.*(Pref/rho8).*(Rm.^3 -1) + 2*(Rm.^3 - Rs.^3).*Eem./rho8 - 2*(1 - Rs.^3).*Ee./rho8;
             %fprintf('i=%d, R =%.5e, dtg_sq=%.5e\n', i , Rnow, dtg_sq);
             dtg_vals(i) = -1/sqrt(dtg_sq);
         end
     end
-
-   % remove initial R when Rnow = Rmax leading to Inf at dtg_vals
-   % identify where this happens (in case not at initial R)
-   inf_idx = isinf(dtg_vals);
-   % remove from R and dtg_vals
-   R_clean = R(~inf_idx);
-   dtg_clean = dtg_vals(~inf_idx);
-   % at min R (first collapse), dtg_val has small imag value
-   dtg_cleaner = real(dtg_clean);
-   % perform integration
-   tg = trapz(R_clean,dtg_cleaner);
+    
+    % remove initial R when Rnow = Rmax leading to Inf at dtg_vals
+    % identify where this happens (in case not at initial R)
+    inf_idx = isinf(dtg_vals);
+    % remove from R and dtg_vals
+    R_clean = R(~inf_idx);
+    dtg_clean = dtg_vals(~inf_idx);
+    % at min R (first collapse), dtg_val has small imag value
+    dtg_cleaner = real(dtg_clean);
+    % perform integration
+    tg = trapz(R_clean,dtg_cleaner);
 end

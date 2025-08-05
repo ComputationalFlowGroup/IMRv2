@@ -8,11 +8,11 @@ rootDir = fileparts(pwd);
 % recursively search through project for any c files
 cfiles = dir(fullfile(rootDir, '**', '*.c'));
 for k = 1:numel(cfiles)
-	mexPath = fullfile(cfiles(k).folder, cfiles(k).name);
-	try
-		mex(mexPath);
-		fprintf('Compiled: %s\n', mexPath);
-	catch ME
-		warning('Failed to compile %s: %s\n', mexPath, ME.message);
-	end
+    mexPath = fullfile(cfiles(k).folder, cfiles(k).name);
+    try
+        mex(mexPath);
+        fprintf('Compiled: %s\n', mexPath);
+    catch ME
+        warning('Failed to compile %s: %s\n', mexPath, ME.message);
+    end
 end

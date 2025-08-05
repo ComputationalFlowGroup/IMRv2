@@ -1,7 +1,7 @@
 % file f_stress_dissipation_graded.m
 % brief contains function f_stress_dissipation_graded
 
-% brief This function computes the stress dissipation term for a graded material, 
+% brief This function computes the stress dissipation term for a graded material,
 % \tau : \nabla u. The solver accounts for the Kelvin-Voigt with neo-Hookean
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
@@ -45,10 +45,10 @@ elseif stress == 1
     r0mid = x - r0far - r0near;
     % graded stress
     taurr2 = ((1/Ca) + (1/Ca1 - 1/Ca)*(1+f_cy.^v_a).^((v_nc-1)/v_a)).* ...
-    ((r0mid.^4 ./ yT.^4) - (yT.^2 ./ r0mid.^2));
+        ((r0mid.^4 ./ yT.^4) - (yT.^2 ./ r0mid.^2));
     % removing the negative infinities
     taurr2(isinf(taurr2) | isnan(taurr2)) = 0;
-
+    
     % debugging
     if any(imag(taurr1)) || any(isnan(taurr1)) || any(isinf(taurr1))
         error('taurr1 imaginary')
@@ -61,7 +61,7 @@ elseif stress == 1
     taugradu = taugradu_viscous + taugradu_elastic.*(taurr1+taurr2+taurr3);
     
 else
-    error('stress setting is not available'); 
+    error('stress setting is not available');
 end
 
 % spectral solution approach to compute the mechanical dissipation

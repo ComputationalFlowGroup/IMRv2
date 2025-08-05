@@ -6,7 +6,7 @@
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
 function [S,Sdot,Z1dot,Z2dot] = f_stress_graded(radial,stress,Req,R,...
-   Ca,Ca1,Re8,Rdot,alphax,intfnu,dintfnu,iDRe,l1,l2,v_a,v_nc)
+    Ca,Ca1,Re8,Rdot,alphax,intfnu,dintfnu,iDRe,l1,l2,v_a,v_nc)
 
 Z1dot = [];
 Z2dot = [];
@@ -25,17 +25,17 @@ x2dot = Rstdot*Rst.^2 ./ (l2*x2^2);
 
 try
     % if mex file exist, compile it
-    if exist('f_g_mex','file') ~= 3 
+    if exist('f_g_mex','file') ~= 3
         mex('f_g_mex.c');
     end
     g_handle = @(x) f_g_mex(x,Ca,Ca1,Rst,l1,l2,v_a,v_nc,Rstdot,1); % mode 1 = g
     gdot_handle = @(x) f_g_mex(x,Ca,Ca1,Rst,l1,l2,v_a,v_nc,Rstdot,2); % mode 2 = gdot
-catch 
+catch
     fnum_cy = @(x) l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1;
     fden_cy = @(x) 1-l1*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3);
     f_cy = @(x) fnum_cy(x)./fden_cy(x);
     fdot_cy = @(x) (((x.^3-1).^(1/3))./(Rst.^3-1)^(4/3)).*Rstdot.*(Rst.^2).*(l1-l2)./(fden_cy(x).^2);
-
+    
     g_handle = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1+f_cy(x).^v_a).^((v_nc-1)/v_a)).*((1./x.^5) + (1./x.^2));
     gdot_handle = @(x) (1/Ca1 - 1/Ca).*((1./x.^5) + (1./x.^2)).*(v_nc-1).*...
         ((1+f_cy(x).^v_a).^((v_nc-1-v_a)/v_a)).*f_cy(x).^(v_a-1).*fdot_cy(x);

@@ -20,14 +20,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
     // Outputs: g(x), gdot(x)
     plhs[0] = mxCreateDoubleMatrix(1, n, mxREAL);
-   // plhs[1] = mxCreateDoubleMatrix(1, n, mxREAL);
-   // double *gout = mxGetPr(plhs[0]);
-   // double *gdotout = mxGetPr(plhs[1]);
     double *out = mxGetPr(plhs[0]);
 
     double Rst3m1 = pow(Rst, 3) - 1.0;
-//    if (fabs(Rst3m1) < 1e-12)
-//        Rst3m1 = (Rst3m1 < 0) ? -1e-12 : 1e-12;
     double Rst2 = Rst * Rst;
 
     for (size_t i = 0; i < n; ++i) {
