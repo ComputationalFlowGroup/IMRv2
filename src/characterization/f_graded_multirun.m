@@ -1,15 +1,12 @@
 function [graded_nH] = f_graded_multirun()
     
-    % Clear everything
     close;
     clear;
     clc;
     
     N = 8^4;
     addpath('../')
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % % One parameter case
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % % Neo-Hookean model
     % G_range1 = logspace(-6,-1,N);
     % parfor i = 1:N
@@ -18,9 +15,7 @@ function [graded_nH] = f_graded_multirun()
     %     neohook{i} = [t,R];
     % end
     
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Four parameter case (G1, G2 l1, l2)
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     l1_range4 = logspace(-6,-1,N^(1/4));
     l2_range4 = logspace(-6,-1,N^(1/4));
     G_range4 = logspace(-6,-1,N^(1/4));
