@@ -95,7 +95,7 @@ X_log = [];
 opts = optimset('Display','iter','TolX',1e-1,'TolFun',1e-1,'MaxIter',50,'MaxFunEvals',120,'OutputFcn', @output_log);
 
 % optimizing based on search ranges
-opt_fit_gNH = fminsearchbnd(err_fn_gNH,...
+opt_fit_gNH = f_minsearchbnd(err_fn_gNH,...
     [G0_start,G1_start,l1_start,l2_start,va_start,vnc_start],...
     [G0_min,G1_min,l1_min,l2_min,va_min,vnc_min],...
     [G0_max,G1_max,l1_max,l2_max,va_max,vnc_max],...
@@ -117,19 +117,19 @@ for i = 1:size(X_log)
     format long;
     t1_approx_all(i, :) = T1_ND ./ sqrt(err_vec + 1);  % exact inverse
 end
-    %%
-    % Also find single-parameter fits:
-    opt_fit_NHG0 = fminsearchbnd(err_fn_gNH,[G0_start,0,0,0,0,0],[G0_min,0,0,0,0,0],[G0_max,0,0,0,0,0]);
-    opt_fit_NHG1 = fminsearchbnd(err_fn_gNH,[0,G1_start,0,0,0,0],[0,G1_min,0,0,0,0],[0,G1_max,0,0,0,0]);
-    opt_fit_NHl1 = fminsearchbnd(err_fn_gNH,[0,0,l1_start,0,0,0],[0,0,l1_min,0,0,0],[0,0,l1_max,0,0,0]);
-    opt_fit_NHl2 = fminsearchbnd(err_fn_gNH,[0,0,0,l2_start,0,0],[0,0,0,l2_min,0,0],[0,0,0,l2_max,0,0]);
-    opt_fit_NHva = fminsearchbnd(err_fn_gNH,[0,0,0,0,va_start,0],[0,0,0,0,va_min,0],[0,0,0,0,va_max,0]);
-    opt_fit_NHvnc = fminsearchbnd(err_fn_gNH,[0,0,0,0,0,vnc_start],[0,0,0,0,0,vnc_min],[0,0,0,0,0,vnc_max]);
-    
-    disp("NH Best Fit for near field: G = " + opt_fit_NHG0(1) + " Pa.")
-    disp("NH Best Fit for far field: G1 = " + opt_fit_NHG1(1) + " Pa.")
-    disp("NH Best Fit for near field region: l1 = " + opt_fit_NHl1(1) + "m")
-    disp("NH Best Fit for far field region: l2 = " + opt_fit_NHl2(1) + "m")
-    disp("Best Fit for C-Y parameter: v_a = " + opt_fit_NHva(1))
-    disp("Best Fit for C-Y parameter: v_nc = " + opt_fit_NHvnc(1))
-    disp("Overall Best Fit: G0 = " + G0_opt_NH + " Pa, G1 = " + G1_opt_NH + " Pa, l1 = " + l1_opt_NH + "m, l2 = " + l2_opt_NH + "m, v_a = " + va_opt_NH + ", v_nc = " + vnc_opt_NH)
+%%
+% Also find single-parameter fits:
+opt_fit_NHG0 = fminsearchbnd(err_fn_gNH,[G0_start,0,0,0,0,0],[G0_min,0,0,0,0,0],[G0_max,0,0,0,0,0]);
+opt_fit_NHG1 = fminsearchbnd(err_fn_gNH,[0,G1_start,0,0,0,0],[0,G1_min,0,0,0,0],[0,G1_max,0,0,0,0]);
+opt_fit_NHl1 = fminsearchbnd(err_fn_gNH,[0,0,l1_start,0,0,0],[0,0,l1_min,0,0,0],[0,0,l1_max,0,0,0]);
+opt_fit_NHl2 = fminsearchbnd(err_fn_gNH,[0,0,0,l2_start,0,0],[0,0,0,l2_min,0,0],[0,0,0,l2_max,0,0]);
+opt_fit_NHva = fminsearchbnd(err_fn_gNH,[0,0,0,0,va_start,0],[0,0,0,0,va_min,0],[0,0,0,0,va_max,0]);
+opt_fit_NHvnc = fminsearchbnd(err_fn_gNH,[0,0,0,0,0,vnc_start],[0,0,0,0,0,vnc_min],[0,0,0,0,0,vnc_max]);
+
+disp("NH Best Fit for near field: G = " + opt_fit_NHG0(1) + " Pa.")
+disp("NH Best Fit for far field: G1 = " + opt_fit_NHG1(1) + " Pa.")
+disp("NH Best Fit for near field region: l1 = " + opt_fit_NHl1(1) + "m")
+disp("NH Best Fit for far field region: l2 = " + opt_fit_NHl2(1) + "m")
+disp("Best Fit for C-Y parameter: v_a = " + opt_fit_NHva(1))
+disp("Best Fit for C-Y parameter: v_nc = " + opt_fit_NHvnc(1))
+disp("Overall Best Fit: G0 = " + G0_opt_NH + " Pa, G1 = " + G1_opt_NH + " Pa, l1 = " + l1_opt_NH + "m, l2 = " + l2_opt_NH + "m, v_a = " + va_opt_NH + ", v_nc = " + vnc_opt_NH)
