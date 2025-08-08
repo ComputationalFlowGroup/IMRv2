@@ -60,11 +60,11 @@ function [x,fval,exitflag,output] = f_minsearchbnd(fun,x0,LB,UB,options,varargin
     % rosen = @(x) (1-x(1)).^2 + 105*(x(2)-x(1).^2).^2;
     %
     % fminsearch(rosen,[3 3])     % unconstrained
-    % ans =
+    % answer =
     %    1.0000    1.0000
     %
     % fminsearchbnd(rosen,[3 3],[2 2],[])     % constrained
-    % ans =
+    % answer =
     %    2.0000    4.0000
     %
     % See test_main.m for other examples of use.
