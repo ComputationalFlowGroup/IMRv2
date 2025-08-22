@@ -1,4 +1,4 @@
-%% graded geometry images
+%% 2d graded geometry image
 % Parameters
 l1 = 1.5;
 l2 = 3.0;
@@ -6,7 +6,7 @@ a = 2.0;
 n = 0.3;
 maxr0 = 3.5;
 res = 1000;
-%%
+
 % Polar grid
 r = linspace(0, maxr0, res);
 theta = linspace(0, 2*pi, res);
@@ -25,75 +25,63 @@ G(mask2) = 1;
 
 % Plot
 figure;
-
-% Step 1: Plot rectangle background with max color
-colormap(sky(1000)); %turbo, jet, parula, sky
+colormap(sky(750)); %turbo, jet, parula, sky
 cmap = colormap;
 maxRGB = cmap(end,:); % The maximum value of the gradient
 hold on;
-fill([-maxr0 maxr0 maxr0 -maxr0], [-maxr0 -maxr0 maxr0 maxr0], maxRGB, ...
-    'EdgeColor', 'none'); 
-% Rest of your overlays...
 axis equal off;
 
 % Step 2: Overlay the gradient
 p = pcolor(X, Y, G);
 shading interp;
-%uistack(p,'top');
 cb = colorbar;
 cb.FontSize = 14;
-%title('2D Radial Gradient Cross-Section','FontSize',10);
+set(cb,'FontName','Times New Roman','FontSize',12);
+%cb.Location = 'southoutside';
+%cb.Label.Interpreter = 'latex';
+%cb.Label.String = '$\frac{G - G_0}{G_1 - G_0}$';
+pos = cb.Position;
+%x = pos(1)-pos(3)/2;
+%y = pos(2) - 4.5;
+%text(x,y,'$\frac{G-G_0}{G_1-G_0}$',...
+%    'Interpreter','latex','FontSize',16)
+  %  'HorizontalAlignment','center','VerticalAlignment','bottom');
+x = pos(1) + pos(3)/2;
+y = pos(2) -0.05;
+annotation('textbox',[x-0.05, y , 0.1, 0.03],...
+    'String','$\frac{G-G_0}{G_1-G_0}$',...
+    'Interpreter','latex','FontSize',20,...
+    'EdgeColor','none','HorizontalAlignment','center', ...
+    'VerticalAlignment','top');
 
 % opacity for colors
-alpha(0.8);
-
-% Draw polar grid manually
-hold on;
-% for rt = 0.5:0.3:maxr0
-%     theta_grid = linspace(0, 2*pi, res/2);
-%     plot(rt*cos(theta_grid), rt*sin(theta_grid), '-', 'Color', [0.6 0.6 0.6]);
-% end
-% dtheta = pi/8;
-% for th = 0:dtheta:2*pi
-%     plot([0 maxr0*cos(th)], [0 maxr0*sin(th)], '-', 'Color', [0.6 0.6 0.6]);
-% end
+%alpha(0.8);
 
 % Radial dashed lines for l1 and l2
 l_theta = linspace(0, 2*pi, res);
 plot(l1*cos(l_theta), l1*sin(l_theta), '--k', 'LineWidth', 1.2);
 plot(l2*cos(l_theta), l2*sin(l_theta), '--k', 'LineWidth', 1.2);
-%plot(maxr0*cos(l_theta), maxr0 *sin(l_theta), '-k', 'LineWidth', 1.5);
 
-% Overlay boundary rings
-%hold on;
-%viscircles([0, 0], l1, 'LineStyle', '--', 'Color', 'k');
-%viscircles([0, 0], l2, 'LineStyle', '--', 'Color', 'k');
+% Adding bubble 
+r_circle = 0.5;
+%plot(r_circle*cos(l_theta),r_circle*sin(l_theta),'k','LineWidth',1.2)
+fill(r_circle*cos(l_theta),r_circle*sin(l_theta), [r_circle r_circle r_circle],'EdgeColor','k','LineWidth',1.2)
 
 % Add arrows and labels
-%quiver(0, 0, 0.8, 0.1, 0, 'k', 'LineWidth', 1.5, 'MaxHeadSize', 0.5);
-%text(1, 0.2, 'Near Field', 'FontSize', 12);
+% axis equal
+% quiver(0, 0, l1, 0, 0, 'k', 'LineWidth', 1.2,'ShowArrowHead','on','AutoScale','on');
+% text(0.75, 0.1, 'Near', 'FontSize', 15);
+% 
+% quiver(0, 0, l2, 1.23, 0.92, 'k', 'LineWidth', 1.2, 'ShowArrowHead','on','AutoScale','on');
+% text(2, 1.15, 'Graded', 'FontSize', 15);
+% 
+% quiver(0, 0, maxr0, 2.75, 0, 'k', 'LineWidth', 1.2, 'ShowArrowHead','on','AutoScale','on');
+% text(3.15, 2.5, 'Far', 'FontSize', 12);
+% quiver(0, 0, maxr0, 2.75, 1.0, 'k', 'LineWidth', 1.2, 'ShowArrowHead','on','AutoScale','on');
+% text(3.15, 2.0, 'Far', 'FontSize', 15);
 
-%quiver(0, 0, 1.5, 0.5, 0, 'k', 'LineWidth', 1.5, 'MaxHeadSize', 0.5);
-%text(1.8, 0.6, 'Graded Region', 'FontSize', 12);
-
-%quiver(0, 0, 2.5, 0.8, 0, 'k', 'LineWidth', 1.5, 'MaxHeadSize', 0.5);
-%text(2.8, 0.9, 'Far Field', 'FontSize', 12);
-
-% Arrows + Labels
-axis equal
-%quiver(0, 0, l1, 0, 0, 'k', 'LineWidth', 1.2,'ShowArrowHead','on','AutoScale','on');
-%text(0.75, 0.1, 'Near', 'FontSize', 15);
-
-%quiver(0, 0, l2, 1.23, 0.92, 'k', 'LineWidth', 1.2, 'ShowArrowHead','on','AutoScale','on');
-%text(2, 1.15, 'Graded', 'FontSize', 15);
-
-%quiver(0, 0, maxr0, 2.75, 0, 'k', 'LineWidth', 1.2, 'ShowArrowHead','on','AutoScale','on');
-%text(3.15, 2.5, 'Far', 'FontSize', 12);
-%quiver(0, 0, maxr0, 2.75, 1.0, 'k', 'LineWidth', 1.2, 'ShowArrowHead','on','AutoScale','on');
-%text(3.15, 2.0, 'Far', 'FontSize', 15);
-
-% rectangle boundary
-%rectangle('Position',[-maxr0,-maxr0,maxr0*2,maxr0*2], 'EdgeColor','k','LineWidth',1.5);
+%exportgraphics(gcf,'2D_geometry.pdf','ContentType','vector')
+%print(gcf,'-dpdf','-vector','2D_geometry.pdf')
 
 print('-dpng','-r600','2D_geo')
 print('-depsc','-r600','2D_geo')
