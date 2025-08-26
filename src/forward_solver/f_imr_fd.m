@@ -214,8 +214,8 @@ function varargout = f_imr_fd(varargin)
     ivisco2 = (4+Nt+Mt+Nc+Nv):(3+Nt+Mt+Nc+2*Nv);
     
     % perturbation index management
-    ipertepnm   = (4+Nt+Mt+Nc+2*Nv):2:(3+Nt+Mt+Nc+2*Nv+2*Np-1);
-    ipertepdnm  = (5+Nt+Mt+Nc+2*Nv):2:(4+Nt+Mt+Nc+2*Nv+2*Np);
+    ipertepnm   = (4+Nt+Mt+Nc+2*Nv):2:(4+Nt+Mt+Nc+2*Nv+2*Np-1);
+    ipertepdnm  = (5+Nt+Mt+Nc+2*Nv):2:(5+Nt+Mt+Nc+2*Nv+2*Np-1);
 
     % initial condition assembly
     
@@ -251,7 +251,6 @@ function varargout = f_imr_fd(varargin)
     kv0vec;
     Szero];
 
-    
     if perturbed
         init(ipertepnm) = epnm0;
         init(ipertepdnm) = epnmd0;

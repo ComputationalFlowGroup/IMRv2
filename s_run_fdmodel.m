@@ -53,7 +53,7 @@ varin = {'progdisplay',0,...
          'rho8',rho8, 'modes', modes, 'orders', orders, 'epnm0', epnm0, ...
          'epnmd0', epnmd0};
 
-[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd, epnm, epnmd] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
+[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd, epnm, epnmd] = f_imr_fd(varin{:},'Nt',100,'Mt',100);
 %%
 figure(1)
 hold on;
