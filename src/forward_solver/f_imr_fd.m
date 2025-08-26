@@ -5,10 +5,10 @@
 % difference solver of the PDEs involving thermal transport and
 % viscoelasticity to solve Rayleigh-Plesset equations
 function varargout = f_imr_fd(varargin)
-    
+    addpath ../common/
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
-        acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
+        acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts, pert_opts] ...
         = f_call_params(varargin{:});
     
     % defaults
@@ -26,6 +26,7 @@ function varargout = f_imr_fd(varargin)
     stress          = eqns_opts(4);
     eps3            = eqns_opts(5);
     masstrans       = eqns_opts(6);
+    perturbed       = eqns_opts(7);
     % if (stress == 4)
     %     ptt = 1;
     % else
@@ -50,8 +51,15 @@ function varargout = f_imr_fd(varargin)
     T8              = init_opts(5);
     Pv_star         = init_opts(6);
     Req             = init_opts(7);
-    alphax          = init_opts(8);
     
+    % perturbation equation options
+    if perturbed
+        epnm0       = pert_opts.epnm0;
+        epnmd0      = pert_opts.epnmd0;
+        n           = pert_opts.n;
+        chinm           = pert_opts.chinm;
+    end
+
     % dimensionaless initial stress
     Szero           = init_stress;
     
@@ -98,17 +106,18 @@ function varargout = f_imr_fd(varargin)
     v_a             = sigma_opts(4);
     v_nc            = sigma_opts(5);
     Ca              = sigma_opts(6);
-    LAM             = sigma_opts(7);
-    De              = sigma_opts(8);
-    JdotA           = sigma_opts(9);
-    nu_model        = sigma_opts(10);
-    v_lambda_star   = sigma_opts(11);
-    zeNO            = sigma_opts(12);
-    iDRe            = sigma_opts(13);
-    graded          = sigma_opts(14);
-    Ca1             = sigma_opts(15);
-    l1              = sigma_opts(16);
-    l2              = sigma_opts(17);
+    alphax          = sigma_opts(7);
+    LAM             = sigma_opts(8);
+    De              = sigma_opts(9);
+    JdotA           = sigma_opts(10);
+    nu_model        = sigma_opts(11);
+    v_lambda_star   = sigma_opts(12);
+    zeNO            = sigma_opts(13);
+    iDRe            = sigma_opts(14);
+    graded          = sigma_opts(15);
+    Ca1             = sigma_opts(16);
+    l1              = sigma_opts(17);
+    l2              = sigma_opts(18);
     iWe             = 1/We;
     
     % dimensionless thermal
@@ -187,6 +196,11 @@ function varargout = f_imr_fd(varargin)
     if medtherm == 0
         Mt = 0;
     end
+    if perturbed
+        Np = length(n);
+    else
+        Np = 0;
+    end
     ibubtherm   = 4:(3+Nt);
     imedtherm   = (4+Nt):(3+Nt+Mt);
     imass       = (4+Nt+Mt):(3+Nt+Mt+Nc);
@@ -199,6 +213,10 @@ function varargout = f_imr_fd(varargin)
     ivisco1 = (4+Nt+Mt+Nc):(3+Nt+Mt+Nc+Nv);
     ivisco2 = (4+Nt+Mt+Nc+Nv):(3+Nt+Mt+Nc+2*Nv);
     
+    % perturbation index management
+    ipertepnm   = (4+Nt+Mt+Nc+2*Nv):2:(3+Nt+Mt+Nc+2*Nv+2*Np-1);
+    ipertepdnm  = (5+Nt+Mt+Nc+2*Nv):2:(4+Nt+Mt+Nc+2*Nv+2*Np);
+
     % initial condition assembly
     
     % bubble temperature initial condition
@@ -232,7 +250,13 @@ function varargout = f_imr_fd(varargin)
     Tm0;
     kv0vec;
     Szero];
+
     
+    if perturbed
+        init(ipertepnm) = epnm0;
+        init(ipertepdnm) = epnmd0;
+    end
+
     theta_bw_guess = -0.0001;
     foptions = optimset('TolFun',1e-12);
     
@@ -257,6 +281,10 @@ function varargout = f_imr_fd(varargin)
         kv = X(:,imass);
         kv(:,end) = f_kv_of_T(T(:,end),P);
         T = f_theta_of_T(theta,kv);
+    end
+    if perturbed
+        epnm = X(:,ipertepnm);
+        epnmd = X(:,ipertepdnm);
     end
     
     % transform variables back into their dimensional form
@@ -293,6 +321,10 @@ function varargout = f_imr_fd(varargin)
     else
         varargout{7} = [];
     end
+    if perturbed
+        varargout{8} = epnm;
+        varargout{9} = epnmd;
+    end
     
     % solver function
     function [dXdt] = SVBDODE(t,X)
@@ -316,6 +348,11 @@ function varargout = f_imr_fd(varargin)
         end
         if masstrans
             kv = X(imass);
+        end
+
+        if perturbed
+            epnm = X(ipertepnm);
+            epnmd = X(ipertepdnm);
         end
         
         % empty output variables
@@ -472,13 +509,23 @@ function varargout = f_imr_fd(varargin)
         
         % output assembly
         dXdt = [Rdot;
-        Rddot;
-        Pdot;
-        thetadot;
-        Tmdot;
-        kvdot;
-        Z1dot;
-        Z2dot];
+            Rddot;
+            Pdot;
+            thetadot;
+            Tmdot;
+            kvdot;
+            Z1dot;
+            Z2dot];
+
+        if perturbed
+            % \ddot{\epsilon} + c1 \dot{\epsion} + c2 \epsilon = 0;
+            Ca2 = Inf;
+            [c1, c2] = f_compute_perturb_coeffs(R, Rdot, Rddot, n, chinm, ...
+                Req, We, Re8, Ca, Ca2, alphax);
+            epddot = -c1.*epnmd - c2.*epnm;
+            dXdt(ipertepnm) = epnmd;
+            dXdt(ipertepdnm) = epddot;
+        end
         
     end
     % end of solver

@@ -1,30 +1,38 @@
 clc;
 clear;
-close;
+%close;
 
 addpath(genpath('src'));
 
 % equation options
-R0 = 100e-6;
-Req = R0/10;
-tfin = 1.5*R0; %160E-6;
+R0 = 250e-6;
+Req = 0.25*R0;
+tfin = 3*R0*sqrt(1048/101325); %160E-6;
 kappa = 1.4;
 Lheat = 2.378193575129533e+04;
 T8 = 298.15;
-rho8 = 998.2;
+rho8 = 1048;
+ST = 0.032;
+alphax = 1.5;
 mu = 1e-2;
-Gelastic = 0;
+Gelastic = 2.77e3;
 tvector = linspace(0,tfin,256);
 radial = 2;
 vapor = 1;
 collapse = 0;
-bubtherm = 0;
-medtherm = 0;
-masstrans = 0;
-stress = 1;
+bubtherm = 1;
+medtherm = 1;
+masstrans = 1;
+perturbed = 1;
+stress = 2;
+modes = 2:10;
+orders = 2:10;
+epnm0 = 1e-4*ones(length(modes), 1);
+epnmd0 = zeros(length(modes), 1);
 varin = {'progdisplay',0,...
          'radial',radial,...
          'bubtherm',bubtherm,...
+         'perturbed', perturbed, ...
          'tvector',tvector,...
          'vapor',vapor,...
          'medtherm',medtherm,...
@@ -33,21 +41,28 @@ varin = {'progdisplay',0,...
          'stress',stress,...
          'collapse',collapse,...
          'mu',mu,...
+         'alphax', alphax, ...
          'g',Gelastic,...
-         'lambda1',1e-7,...
+         'lambda1',0,...
          'lambda2',0,...
-         'alphax',1e-3,...
+         'surft', ST, ...
          'r0',R0,...
          'req',Req,...
          'kappa',kappa,...
          't8',T8,...
-         'rho8',rho8};
+         'rho8',rho8, 'modes', modes, 'orders', orders, 'epnm0', epnm0, ...
+         'epnmd0', epnmd0};
 
-[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
-% [tsp,Rsp,Rspdot,Psp,Tsp,Tmsp,kvsp] = f_imr_spectral(varin{:},'Nt',10,'Mt',10);
-
+[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd, epnm, epnmd] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
+%%
 figure(1)
 hold on;
 plot(tfd,Rfd,'b-');
 % plot(tsp,Rsp,'r^');
 ylim([0 1]);
+hold on
+figure(2)
+plot(tfd, epnm,'-.')
+ylim([-.1 .1])
+box on
+grid on

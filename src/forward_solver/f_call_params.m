@@ -8,8 +8,9 @@
 % on the input arguments when invoking either the finite difference or
 % spectral module.
 function [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
-    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = ...
+    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts, pert_opts] = ...
     f_call_params(varargin)
+addpath ../common/
 
 disp('--- Inertial Microcavitation Rheometry forward solver ---');
 % check that all inputs are matched
@@ -61,6 +62,7 @@ for n = 1:2:nargin
         case 'eps3',        eps3 = varargin{n+1};
         case 'vapor',       vapor = varargin{n+1};
         case 'masstrans',   masstrans = varargin{n+1};
+        case 'perturbed',   perturbed = varargin{n+1};
         
         % solver options
         case 'method',      method = varargin{n+1};
@@ -149,7 +151,13 @@ for n = 1:2:nargin
         % pressure options
         case 'pv',          Pv = varargin{n+1};
         case 'p0',          P0 = varargin{n+1};
-        
+
+        % perturbation initial conditions
+        case 'epnm0',       epnm0 = varargin{n+1};
+        case 'epnmd0',      epnmd0 = varargin{n+1};
+        case 'modes',       modes = varargin{n+1};
+        case 'orders',      orders = varargin{n+1}        ;
+
         otherwise,          misscount = misscount + 1;
         
     end
@@ -473,11 +481,11 @@ end
 % out parameters
 
 % equation settings
-eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
+eqns_opts = [radial bubtherm medtherm stress eps3 masstrans perturbed];
 % solver options
 solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
-init_opts = [Rzero Rdotzero Pb_star P8 T8 Pv_star Req_zero alphax];
+init_opts = [Rzero Rdotzero Pb_star P8 T8 Pv_star Req_zero];
 % dimensionaless initial stress
 init_stress = Szero;
 % time span options
@@ -492,10 +500,21 @@ acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe graded Ca1 l1 l2];
+sigma_opts = [We Re8 DRe v_a v_nc Ca alphax LAM De JdotA nu_model v_lambda_star zeNO iDRe graded Ca1 l1 l2];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer
 mass_opts = [Fom kv0 Rv_star Ra_star L_heat_star mv0 ma0];
+% Perturbation information
+if perturbed
+    chinm = zeros(length(modes),1);
+    for i = 1:length(modes)
+        chinm(i) = compute_chi(modes(i), orders(i));
+    end
+    pert_opts = struct('n', modes, 'chinm', chinm, ...
+        'epnm0', epnm0, 'epnmd0', epnmd0);
+else 
+    pert_opts = [];
+end
 
 end
