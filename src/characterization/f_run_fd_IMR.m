@@ -1,0 +1,73 @@
+% file f_run_fd_IMR.m
+% brief contains function f_run_fd_IMR.m
+
+% brief This module unpacks the input variables and data from x_data and
+% runs a simulation corresponding to these variables and data. This is
+% primarily used for the inverse characterization and is included in the
+% objective function in s_LIC_inverse_char.m
+function y_out = f_run_fd_IMR(params, x_data)
+
+    % extract x_data
+    tvec = x_data.time;
+    R0 = x_data.R0;
+    Req = x_data.Req;
+    modes = x_data.n; chinm = x_data.chi;
+    ST = x_data.ST;
+    rho = x_data.rho;
+    Gqs = x_data.Gqs;
+    epnm0 = x_data.epnm0;
+    epnmd0 = x_data.epnmd0;
+    idx_col = x_data.idx_col;
+    aR = x_data.aR; aEP = x_data.aEP;
+
+    % equation options
+    kappa = 1.4;
+    T8 = 298.15;
+
+    % parameters to be optimized for
+    alphax = params(1);
+    mu = params(2);
+
+    % simulation equation options
+    radial = 2;
+    vapor = 1;
+    collapse = 0;
+    bubtherm = 0;
+    medtherm = 0;
+    masstrans = 0;
+    perturbed = x_data.perturbed;
+    stress = 2;
+
+    % combine all inputs into varin
+    varin = {'progdisplay',0,...
+        'radial',radial,...
+        'bubtherm',bubtherm,...
+        'perturbed', perturbed, ...
+        'tvector',tvec,...
+        'vapor',vapor,...
+        'medtherm',medtherm,...
+        'masstrans',masstrans,...
+        'method',45,...
+        'stress',stress,...
+        'collapse',collapse,...
+        'mu',mu,...
+        'alphax', alphax, ...
+        'g',Gqs,...
+        'lambda1',0,...
+        'lambda2',0,...
+        'surft', ST, ...
+        'r0',R0,...
+        'req',Req,...
+        'kappa',kappa,...
+        't8',T8,...
+        'rho8', rho, 'modes', modes, 'chinm', chinm, 'epnm0', epnm0, ...
+        'epnmd0', epnmd0, 'reltol', 1e-5, 'abstol', 1e-7};
+
+    % run the forward solver
+    [~,R,~,~,~,~,~,epnm, ~] = f_imr_fd(varin{:});
+
+    R_out_nondim = aR.*R;
+    epnm_out = aEP.*epnm(1:idx_col,:);
+
+    y_out = [R_out_nondim; reshape(epnm_out, [], 1)];
+end

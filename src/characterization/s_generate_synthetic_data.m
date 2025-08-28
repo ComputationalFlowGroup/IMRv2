@@ -10,8 +10,8 @@ addpath ../forward_solver/
 
 ndata = 10;
 space0 = [275e-6 0.25];
-lb = [150e-6 1/7];
-ub = [375e-6 1/3];
+lb = [200e-6 1/8];
+ub = [375e-6 1/2.5];
 dim = numel(space0);
 array = repmat(lb, ndata, 1) + lhsdesign(ndata, dim) .* repmat(ub-lb, ndata, 1);
 
@@ -23,7 +23,6 @@ for i = 1:ndata
     % equation options
     R0 = array(i,1);
     Req = R0*array(i,2);
-    %tfin = 5*R0*sqrt(1048/101325); 
     tfin = 192/fps;
     tc = R0*sqrt(1048/101325);
     kappa = 1.4;
@@ -31,16 +30,18 @@ for i = 1:ndata
     T8 = 298.15;
     rho8 = 1048;
     ST = 0.032;
-    alphax = 1;
-    mu = 5e-2;
+    alphaxs = 1;
+    alphax = alphaxs*(1-0.1+0.2*rand(1,1));
+    mus = 5e-2;
+    mu = mus*(1-0.1+0.2*rand(1,1));
     G = 1e3;
     tvector = linspace(0,tfin,192);
     radial = 2;
     vapor = 1;
     collapse = 0;
-    bubtherm = 1;
-    medtherm = 1;
-    masstrans = 1;
+    bubtherm = 0;
+    medtherm = 0;
+    masstrans = 0;
     perturbed = 1;
     stress = 2;
     modes = 2:9;
@@ -69,19 +70,32 @@ for i = 1:ndata
         'kappa',kappa,...
         't8',T8,...
         'rho8',rho8, 'modes', modes, 'orders', orders, 'epnm0', epnm0, ...
-        'epnmd0', epnmd0};
-    [tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd, epnm, epnmd] = f_imr_fd(varin{:},'Nt',64,'Mt',64);
-    kindata{i} = struct('time', tfd.*tc, 'R', Rfd.*R0, 'Req', Req, 'epnm', epnm,...
-        'epnmd0', epnmd0, 'G', G, 'alpha', alphax, 'mu', mu, 'ST', ST, 'fps', fps, 'rho', rho8);
+        'epnmd0', epnmd0, 'abstol', 1e-7, 'reltol', 1e-5};
+    [tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd, epnm, epnmd] = f_imr_fd(varin{:},'Nt',100);
+    Rout = zeros(length(tfd), 1);
+    epnmout = 0.*epnm;
+    for s = 1:length(tfd)
+        Rout(s) = Rfd(s).*R0.*(1-0.05+0.1*rand(1,1));
+        for j = 1:length(modes)
+            epnmout(s,j) = epnm(s,j).*(1-0.05+0.1*rand(1,1));
+        end
+    end
+    kindata{i} = struct('time', tfd.*tc, 'R', Rout, 'Req', Req, 'epnm', epnmout,...
+        'epnmd0', epnmd0, 'n', modes, 'm', orders, 'G', G, 'alpha', alphax, ...
+        'mu', mu, 'ST', ST, 'fps', fps,'rho', rho8);
+    figure
+    plot(tfd, Rout)
+    hold on
+    yline(Req/R0)
 end
 toc
 
 %%
 
 figure(1)
-plot(tfd, Rfd, '--')
+plot(tfd, Rout, '--')
 hold on
 
 figure(2)
-plot(tfd, epnm, '--')
+plot(tfd, epnmout, '--')
 hold on

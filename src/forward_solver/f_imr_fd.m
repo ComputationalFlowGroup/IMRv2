@@ -37,11 +37,13 @@ function varargout = f_imr_fd(varargin)
     method          = solve_opts(1);
     spectral        = solve_opts(2);
     divisions       = solve_opts(3);
-    Nv              = solve_opts(4);
-    Nt              = solve_opts(5);
-    Mt              = solve_opts(6);
-    Lv              = solve_opts(7);
-    Lt              = solve_opts(8);
+    reltol          = solve_opts(4);
+    abstol          = solve_opts(5);
+    Nv              = solve_opts(6);
+    Nt              = solve_opts(7);
+    Mt              = solve_opts(8);
+    Lv              = solve_opts(9);
+    Lt              = solve_opts(10);
     
     % dimensionless initial conditions
     Rzero           = init_opts(1);
@@ -57,7 +59,7 @@ function varargout = f_imr_fd(varargin)
         epnm0       = pert_opts.epnm0;
         epnmd0      = pert_opts.epnmd0;
         n           = pert_opts.n;
-        chinm           = pert_opts.chinm;
+        chinm       = pert_opts.chinm;
     end
 
     % dimensionaless initial stress
@@ -262,8 +264,9 @@ function varargout = f_imr_fd(varargin)
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
+    Tol = [reltol; abstol];
     bubble = @SVBDODE;
-    [t,X] = f_odesolve(bubble, init, method, divisions, tspan);
+    [t,X] = f_odesolve(bubble, init, method, divisions, Tol, tspan);
     
     % extract result
     R    = X(:,1);

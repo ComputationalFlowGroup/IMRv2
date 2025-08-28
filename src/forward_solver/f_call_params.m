@@ -78,6 +78,8 @@ for n = 1:2:nargin
         case 'tvector',     TVector = varargin{n+1};
         tflag = tflag + 1;
         TFin = 0;
+        case 'reltol',      reltol = varargin{n+1};
+        case 'abstol',      abstol = varargin{n+1};
         
         % initial options
         case 'collapse',    collapse = varargin{n+1};
@@ -156,11 +158,19 @@ for n = 1:2:nargin
         case 'epnm0',       epnm0 = varargin{n+1};
         case 'epnmd0',      epnmd0 = varargin{n+1};
         case 'modes',       modes = varargin{n+1};
-        case 'orders',      orders = varargin{n+1}        ;
+        case 'orders',      orders = varargin{n+1};
+        case 'chinm',       chinm = varargin{n+1};
 
         otherwise,          misscount = misscount + 1;
         
     end
+end
+
+if ~exist("reltol", 'var')
+    reltol = 1e-8;
+end
+if ~exist("abstol", 'var')
+    abstol = 1e-8;
 end
 
 if tempset == 1
@@ -483,7 +493,7 @@ end
 % equation settings
 eqns_opts = [radial bubtherm medtherm stress eps3 masstrans perturbed];
 % solver options
-solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
+solve_opts = [method spectral divisions reltol abstol Nv Nt Mt Lv Lt];
 % dimensionless initial conditions
 init_opts = [Rzero Rdotzero Pb_star P8 T8 Pv_star Req_zero];
 % dimensionaless initial stress
@@ -507,12 +517,14 @@ thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 mass_opts = [Fom kv0 Rv_star Ra_star L_heat_star mv0 ma0];
 % Perturbation information
 if perturbed
-    chinm = zeros(length(modes),1);
-    for i = 1:length(modes)
-        chinm(i) = compute_chi(modes(i), orders(i));
+    if ~exist('chinm', 'var')
+        chinm = zeros(length(modes),1);
+        for i = 1:length(modes)
+            chinm(i) = compute_chi(modes(i), orders(i));
+        end
     end
-    pert_opts = struct('n', modes, 'chinm', chinm, ...
-        'epnm0', epnm0, 'epnmd0', epnmd0);
+     pert_opts = struct('n', modes, 'chinm', chinm, ...
+                            'epnm0', epnm0, 'epnmd0', epnmd0);
 else 
     pert_opts = [];
 end
