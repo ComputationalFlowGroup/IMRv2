@@ -11,7 +11,7 @@ function y_out = f_run_fd_IMR(params, x_data)
     tvec = x_data.time;
     R0 = x_data.R0;
     Req = x_data.Req;
-    modes = x_data.n; chinm = x_data.chi;
+    modes = x_data.n;
     ST = x_data.ST;
     rho = x_data.rho;
     Gqs = x_data.Gqs;
@@ -32,9 +32,9 @@ function y_out = f_run_fd_IMR(params, x_data)
     radial = 2;
     vapor = 1;
     collapse = 0;
-    bubtherm = 0;
+    bubtherm = 1;
     medtherm = 0;
-    masstrans = 0;
+    masstrans = 1;
     perturbed = x_data.perturbed;
     stress = 2;
 
@@ -60,8 +60,8 @@ function y_out = f_run_fd_IMR(params, x_data)
         'req',Req,...
         'kappa',kappa,...
         't8',T8,...
-        'rho8', rho, 'modes', modes, 'chinm', chinm, 'epnm0', epnm0, ...
-        'epnmd0', epnmd0, 'reltol', 1e-5, 'abstol', 1e-7};
+        'rho8', rho, 'modes', modes,'epnm0', epnm0, ...
+        'epnmd0', epnmd0, 'reltol', 1e-4, 'abstol', 1e-6, 'Nt', 100};
 
     % run the forward solver
     [~,R,~,~,~,~,~,epnm, ~] = f_imr_fd(varin{:});

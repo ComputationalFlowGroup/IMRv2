@@ -29,25 +29,25 @@ for i = 1:ndata
     Lheat = 2.378193575129533e+04;
     T8 = 298.15;
     rho8 = 1048;
-    ST = 0.032;
-    alphaxs = 1;
+    ST = 0.056;
+    alphaxs = 2;
     alphax = alphaxs*(1-0.1+0.2*rand(1,1));
     mus = 5e-2;
     mu = mus*(1-0.1+0.2*rand(1,1));
-    G = 1e3;
+    G = 2e3;
     tvector = linspace(0,tfin,192);
     radial = 2;
     vapor = 1;
     collapse = 0;
-    bubtherm = 0;
+    bubtherm = 1;
     medtherm = 0;
-    masstrans = 0;
+    masstrans = 1;
     perturbed = 1;
     stress = 2;
-    modes = 2:9;
-    orders = 2:9;
-    epnm0 = -1e-4+2e-4*rand(length(modes), 1);
-    epnmd0 = -0.05+0.1*rand(length(modes), 1);
+    modes = 2:10;
+    orders = 2:10;
+    epnm0 = -1e-3+2e-3*rand(length(modes), 1);
+    epnmd0 = -0.1+0.2*rand(length(modes), 1);
     varin = {'progdisplay',0,...
         'radial',radial,...
         'bubtherm',bubtherm,...
@@ -75,7 +75,7 @@ for i = 1:ndata
     Rout = zeros(length(tfd), 1);
     epnmout = 0.*epnm;
     for s = 1:length(tfd)
-        Rout(s) = Rfd(s).*R0.*(1-0.05+0.1*rand(1,1));
+        Rout(s) = Rfd(s).*R0.*(1-0.01+0.02*rand(1,1));
         for j = 1:length(modes)
             epnmout(s,j) = epnm(s,j).*(1-0.05+0.1*rand(1,1));
         end
@@ -86,7 +86,7 @@ for i = 1:ndata
     figure
     plot(tfd, Rout)
     hold on
-    yline(Req/R0)
+    yline(Req)
 end
 toc
 

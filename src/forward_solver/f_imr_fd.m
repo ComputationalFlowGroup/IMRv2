@@ -59,7 +59,6 @@ function varargout = f_imr_fd(varargin)
         epnm0       = pert_opts.epnm0;
         epnmd0      = pert_opts.epnmd0;
         n           = pert_opts.n;
-        chinm       = pert_opts.chinm;
     end
 
     % dimensionaless initial stress
@@ -522,7 +521,7 @@ function varargout = f_imr_fd(varargin)
         if perturbed
             % \ddot{\epsilon} + c1 \dot{\epsion} + c2 \epsilon = 0;
             Ca2 = Inf;
-            [c1, c2] = f_compute_perturb_coeffs(R, Rdot, Rddot, n, chinm, ...
+            [c1, c2] = f_compute_perturb_coeffs(R, Rdot, Rddot, n, ...
                 Req, We, Re8, Ca, Ca2, alphax);
             epddot = -c1.*epnmd - c2.*epnm;
             dXdt(ipertepnm) = epnmd;
