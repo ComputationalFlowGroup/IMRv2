@@ -143,3 +143,148 @@ plot(l1_l2,comp,'k','LineWidth',3)
 xlabel('$l_1 / l_2$', 'Interpreter', 'Latex', 'FontSize', 20);
 %ylabel('$\tau_{rr} / \mathrm{max}(\tau_{rr})$','Interpreter','Latex','FontSize',20);
 ylabel('$\tau_{rr}$','Interpreter','Latex','FontSize',20);
+
+%% compare other non-Newtonian graded functions
+
+Rst = linspace(0.2,10,200); %R_max/R_0
+
+G0 = 0.5;
+G1 = 1;
+%should G1 and G0 be switched since G0 < G1 for positive gradient
+l1 = 1.5;
+l2 = 3;
+a = 2;
+n = 0.3;
+x1 = @(Rst) (1+(Rst.^3-1)./(l1).^3).^(1/3); %Lambda1
+x2 = @(Rst) (1+(Rst.^3-1)./(l2).^3).^(1/3); %Lambda2
+
+G = G1 + (G1 - G0);
+
+% ycy = @(x,Rst) (1+(G1-1)*(1+((x-x1(Rst))./(x2(Rst)-x)).^a).^((n-1)/a)).*(1./x.^5+1./x.^2);
+ycy = @(x,Rst) (G*(1+( (l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1)./...
+      (1-l1*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3)) ).^a).^((n-1)/a)).*(1./x.^5+1./x.^2);
+% NEED TO CONSIDER HOW THESE CHANGE FOR EACH GRADED FUNCTION WITH l1 AND l2
+ype = @(x,Rst) (G*asinh((x-x1(Rst))./(x2(Rst)-x))).*(1./x.^5+1./x.^2);
+ympe = @(x,Rst) (G*log((x-x1(Rst))./(x2(Rst)-x)+1)./((x-x1(Rst))./(x2(Rst)-x)).^a).*(1./x.^5+1./x.^2);
+ycr = @(x,Rst) (G*1./(1+(x-x1(Rst))./(x2(Rst)-x)).^n).*(1./x.^5+1./x.^2);
+yscr = @(x,Rst) (G*1./(1+(x-x1(Rst))./(x2(Rst)-x))).*(1./x.^5+1./x.^2);
+ymcr = @(x,Rst) (G*(1./(1+(x-x1(Rst))./(x2(Rst)-x)).^n).^a).*(1./x.^5+1./x.^2);
+functions = {@ycy, @ympe, @ycr, @yscr, @ymcr};
+
+
+reltol = 1e-8;
+abstol = 1e-8;
+%S2 = zeros(1,length(Rst));
+S2 = zeros(length(Rst),length(functions));
+for i = 1:length(Rst)
+    rst = Rst(i);
+    for f = 1:length(functions)
+        func = functions{f};
+        S2(i,f) = 2*integral(@(x) func(x,rst),x1(rst),x2(rst),...
+            'RelTol',reltol,'AbsTol',abstol);
+    end
+end
+
+%%
+S1 = (G1/2)*(1./Rst.^4 + 4./Rst - (1./x1(Rst).^4 + 4./x1(Rst)));
+S3 = -(G3/2)*(5 - 4./x2(Rst) - 1./x2(Rst).^4);
+SG1 = -(G1/2)*(5 - 4./Rst - 1./Rst.^4);
+SG3 = -(G3/2)*(5 - 4./Rst - 1./Rst.^4);
+figure(1)
+hold on;
+% plot(Rst,S1,'m')
+% plot(Rst,S2,'k')
+% plot(Rst,S3,'b')
+plot(f, ype, 'r', 'LineWidth', 2); hold on;
+plot(f, ympe, 'g', 'LineWidth', 2);
+plot(f, ycr, 'b', 'LineWidth', 2);
+plot(f, yscr, 'm', 'LineWidth', 2);
+plot(f, ymcr, 'c', 'LineWidth', 2);
+plot(Rst,SG1/G1,'r','LineWidth',3)
+plot(Rst,SG3/G1,'k--','LineWidth',3)
+plot(Rst,(S1+S2+S3)/G1,'-.g','LineWidth',3)
+
+% Plotting the results of different functions (S2)
+figure;
+hold on;
+for f = 1:length(functions)
+    plot(Rst, S2(:, f), 'DisplayName', func2str(functions{f}));
+end
+xlabel('Rst');
+ylabel('Integral Result');
+legend show;
+title('Integral Results for Different Functions');
+hold off;
+
+% Plotting the functions themselves for a specific rst value
+rst_example = Rst(1); % Example rst to plot for
+x_vals = linspace(x1(rst_example), x2(rst_example), 100); % x-values for plotting
+
+figure;
+hold on;
+for f = 1:length(functions)
+    y_vals = arrayfun(@(x) functions{f}(x, rst_example), x_vals);
+    plot(x_vals, y_vals, 'DisplayName', func2str(functions{f}));
+end
+xlabel('x');
+ylabel('Function Value');
+legend show;
+title('Functions for a Specific Rst');
+hold off;
+
+%% G(r_0) for different values of a and n
+
+% run ../s_run_graded once first with graded on and your choice of Req, G0,
+% G1 before running the script below
+lR = length(R);     % number of elements in R
+lr_N = lR;          % number of radial discretiation points
+lr_length = 3;      % radius of region being modeled?
+nt = length(t);     % number of time points
+
+% build matrices
+r_coord = linspace(0,lr_length,lr_N); %ones(lR,lr_N).*linspace(0,lr_length,lr_N); %matrix of radial coordinates
+r0_coord = (r_coord.^3 - R.^3 + Req.^3).^(1/3);
+
+% parameter of interest ranges
+n_vals = 0.2; %linspace(0.2,0.9,15);
+a_vals = 0.5; %linspace(0.5,5,10);
+
+% generate different colors for each n and a value
+color_n = lines(length(n_vals));
+color_a = lines(length(a_vals));
+
+% plot for different n
+figure;
+hold on;
+for i = 1:length(n_vals)
+    n = n_vals(i);
+    a = 2; % fixed a
+    f = (l2 - r0_coord) / (r0_coord - l1);
+    g_region = G0 + (G1 - G0)*(1+f.^a).^((n-1)/a);
+    plot(r0_coord(:),g_region(:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
+    %plot(r0_coord(1,:),g_region(1,:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
+end
+title('Effect of n with fixed a=2');
+xlabel('r_0 (m)'); 
+ylabel('G (Pa)');
+legend('Location','best');
+hold off;
+% should see how 'shear-thinning' strength changes
+
+% different a
+figure;
+hold on;
+for i = 1:length(a_vals)
+    a = a_vals(i);
+    n = 0.3;
+    f = (l2 - r0_coord) / (r0_coord - l1);
+    g_region = G0 + (G1 - G0)*(1+f.^a).^((n-1)/a);
+    plot(r0_coord(:),g_region(:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
+    %plot(r0_coord(1,:),g_region(1,:),'Color',color_a(i,:),'LineWidth',1.2,'DisplayName',sprintf('a=%.2f',a));
+end
+title('Effect of a with fixed n=0.3');
+xlabel('r_0 (m)'); 
+ylabel('G (Pa)');
+legend('Location','best');
+hold off;
+% should see how transition smoothness/sharpness changes
