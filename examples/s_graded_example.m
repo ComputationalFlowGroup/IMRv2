@@ -233,25 +233,23 @@ title('Functions for a Specific Rst');
 hold off;
 
 %% G(r_0) for different values of a and n
-
-% run ../s_run_graded once first with graded on and your choice of Req, G0,
-% G1 before running the script below
-lR = length(R);     % number of elements in R
-lr_N = lR;          % number of radial discretiation points
-lr_length = 3;      % radius of region being modeled?
-nt = length(t);     % number of time points
-
-% build matrices
-r_coord = linspace(0,lr_length,lr_N); %ones(lR,lr_N).*linspace(0,lr_length,lr_N); %matrix of radial coordinates
-r0_coord = (r_coord.^3 - R.^3 + Req.^3).^(1/3);
+% chosen graded parameters
+l1 = 1.2E-4;
+l2 = 1.8E-4;
+G0 = 100;
+G1 = 1000;
+r0 = linspace(l1 + 1e-5,l2 - 1e-5,300);
+f = (l2 - r0)./(r0-l1);
 
 % parameter of interest ranges
-n_vals = 0.2; %linspace(0.2,0.9,15);
-a_vals = 0.5; %linspace(0.5,5,10);
+n_vals = linspace(0.2,0.9,15);
+a_vals = linspace(0.5,5,10);
 
-% generate different colors for each n and a value
-color_n = lines(length(n_vals));
-color_a = lines(length(a_vals));
+% generate unique colors for each n and a value
+%color_n = lines(length(n_vals));
+%color_a = lines(length(a_vals)); hsv, jet, parula, turbo, copper, spring
+color_a = turbo(length(a_vals));
+color_n = turbo(length(n_vals));
 
 % plot for different n
 figure;
@@ -259,16 +257,17 @@ hold on;
 for i = 1:length(n_vals)
     n = n_vals(i);
     a = 2; % fixed a
-    f = (l2 - r0_coord) / (r0_coord - l1);
     g_region = G0 + (G1 - G0)*(1+f.^a).^((n-1)/a);
-    plot(r0_coord(:),g_region(:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
+    plot(r0(:),g_region(:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
     %plot(r0_coord(1,:),g_region(1,:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
 end
-title('Effect of n with fixed a=2');
+%title('Effect of n with fixed a=2');
 xlabel('r_0 (m)'); 
 ylabel('G (Pa)');
 legend('Location','best');
+%xlim([1.1E-4,1.9E-4])
 hold off;
+saveas(gcf,'./effect_n','eps')
 % should see how 'shear-thinning' strength changes
 
 % different a
@@ -277,14 +276,15 @@ hold on;
 for i = 1:length(a_vals)
     a = a_vals(i);
     n = 0.3;
-    f = (l2 - r0_coord) / (r0_coord - l1);
     g_region = G0 + (G1 - G0)*(1+f.^a).^((n-1)/a);
-    plot(r0_coord(:),g_region(:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
+    plot(r0(:),g_region(:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('a=%.2f',a));
     %plot(r0_coord(1,:),g_region(1,:),'Color',color_a(i,:),'LineWidth',1.2,'DisplayName',sprintf('a=%.2f',a));
 end
-title('Effect of a with fixed n=0.3');
+%title('Effect of a with fixed n=0.3');
 xlabel('r_0 (m)'); 
 ylabel('G (Pa)');
 legend('Location','best');
+%xlim([1.2E-4,1.8E-4])
 hold off;
 % should see how transition smoothness/sharpness changes
+saveas(gcf,'./effect_a','eps')
