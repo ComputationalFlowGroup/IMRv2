@@ -14,7 +14,7 @@ clc
 
 % parameter bounds
 lb = log10([1e-3, 1e-3]);
-ub = log10([1e1, 1e-1]);
+ub = log10([1e1, 1e0]);
 
 % optimization options
 lsqopts = optimoptions('lsqcurvefit', ...
@@ -38,7 +38,7 @@ addpath Synthetic_data\ ../forward_solver/ ../common/
 
 %load("Synthetic_data\synthetic_data_NSLIC.mat")
 % load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
-load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr.mat")
+load("../../ns_Jin_polyacr.mat")
 % datatype = 'synthetic';
 datatype = 'exp';
 
@@ -163,7 +163,7 @@ for s = 1:length(kindata)
     count = 0;
     idx = [];
     for i = 1:length(n)
-        if ((sEP(i)/size(epnm,1) >= 1e-3) && i < 15)
+        if ((sEP(i)/size(epnm,1) >= 1e-3) && i < 15 && n(i) > 1)
             count = count + 1;
             epnm(:,count) = epnm(:,i);
         else
@@ -190,6 +190,8 @@ for s = 1:length(kindata)
     % create y_data vector which contains the radial data then all of
     % the perturbation data, both are non-dimensional
     y_data = [aR.*R_nondim; reshape(epnm.*aEP, [], 1)];
+
+    idx_col = size(epnm,1);
 
     % create x_data struct needed for the optimization
     x_data = struct('time', texp, 'n', n, 'Req', Req, 'chi', chinm, 'ST', ST, ...
@@ -270,33 +272,36 @@ end
 toc
 
 %% Histograms for extracted material properties from multiple datasets
- clear all
- clc
+ %clear all
+ %clc
 % 
-load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
+%load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
 
 % load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized_newbds_fixedICs_new.mat")
+load("NSLIC_processed.mat")
+
+exps =[3 5 9 11];
 
 addpath ../../../cmap/
 
-cmap = viridis(4); 
+cmap = parula(4); 
 
-alph_e = xsole(R2>= 0.9 ,1);
-mu_e = xsole(R2>= 0.9 ,2);
+alph_e = xsole(exps ,1);
+mu_e = xsole(exps ,2);
 
 figure
 countnew = length(alph_e);
 % ===== Left subplot (alph) =====
 subplot(1,2,1)
-edgesalph = logspace(0.9*log10(min(alph_e)), 1.1*log10(max(alph_e)), ceil(sqrt(countnew))+1);
+edgesalph = logspace(1.1*log10(min(alph_e)), 0.9*log10(max(alph_e)), ceil(sqrt(countnew))+1);
 histogram(alph_e, edgesalph, 'FaceColor', cmap(1,:), 'EdgeColor', 'k')
 hold on
 xline(mean(alph_e), '--k', 'LineWidth', 2)
-xlabel('$\alpha$', 'Interpreter', 'latex', 'FontSize', 18)
-ylabel('Count', 'FontSize', 18, 'Interpreter', 'latex')
+xlabel('$\alpha$', 'Interpreter', 'latex', 'FontSize', 24)
+ylabel('Count', 'FontSize', 24, 'Interpreter', 'latex')
 set(gca, ...
     'TickLabelInterpreter', 'latex', ...
-    'FontSize', 13, ...
+    'FontSize', 16, ...
     'XScale', 'log', ...
     'XMinorTick', 'off', ...
     'YMinorTick', 'off')
@@ -306,7 +311,7 @@ xticksalph = logspace(log10(0.75*min(edgesalph)), log10(1.25*max(edgesalph)), 4)
 
 grid on
 xlim([10^(floor(log10(min(edgesalph)))) 10^(ceil(log10(max(edgesalph))))])
-ylim([0 10])
+ylim([0 4])
 
 % ===== Right subplot (mu) =====
 subplot(1,2,2)
@@ -314,33 +319,52 @@ edgesMu = logspace(0.9*log10(min(mu_e.*1e3)), 1.1*log10(max(mu_e.*1e3)), ceil(sq
 histogram(mu_e.*1e3, edgesMu, 'FaceColor', cmap(3,:), 'EdgeColor', 'k')
 hold on
 xline(mean(mu_e).*1e3, '--k', 'LineWidth', 2)
-xlabel('$\mu$ [mPa$\cdot$s]', 'Interpreter', 'latex', 'FontSize', 18)
+xlabel('$\mu$ [mPa$\cdot$s]', 'Interpreter', 'latex', 'FontSize', 24)
 set(gca, ...
     'TickLabelInterpreter', 'latex', ...
-    'FontSize', 13, ...
+    'FontSize', 16, ...
     'XScale', 'log', ...
     'XMinorTick', 'off', ...
     'YMinorTick', 'off')
 grid on
 xlim([10^(floor(log10(min(edgesMu)))) 10^(ceil(log10(max(edgesMu))))])
-ylim([0 10])
+ylim([0 4])
 
 
 %% Plot results
 clear all
 clc
 
-load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized.mat")
+%load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized.mat")
+load("NSLIC_processed.mat")
+
+addpath Synthetic_data\ ../forward_solver/ ../common/
+
+
+%%
+addpath ../../../cmap/
+
+%exps_extracted_whole = [2 3 4 5 6 7 8 9 10 11];
+exps_extracted_whole = [2 3 4 5 8 11];
+exps_extracted = [4, 11];
+exps_modes{1} = [3 4 6 7 9 10];
+exps_modes{2} = [2 3];
+% exps_extracted = [2 5 9 11];
+% exps_modes{1} = [3 4 6 7 9 10];
+% exps_modes{2} = [3 4 6 7 9];
+% exps_modes{3} = [3 4 6 7 10 9 12];
+% exps_modes{4} = [2 3];
 
 % preallocate space for goodness of fit and extracted material properties
 %xsole = zeros(length(kindata), length(lb));
 %R2 = zeros(length(kindata),1);
-
+%close all
 tic
-for s = 1:length(kindata)
-    if R2(s) < 0.8
-        continue
-    end
+for s = 3;%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
+    % if R2(s) < 0.96
+    %     continue
+    % end
+    s
  clear y_data x_data
     %extract experiment data
     exp = kindata{s};
@@ -446,8 +470,11 @@ for s = 1:length(kindata)
     
     count = 0;
     idx = [];
+
+    count = 0;
+    idx = [];
     for i = 1:length(n)
-        if ((sEP(i)/size(epnm,1) >= 1e-3 || mean(abs(epnm(:,i))) >= 0.005) && i < 15)
+        if ((sEP(i)/size(epnm,1) >= 1e-6) && i < 15 && n(i) > 1)
             count = count + 1;
             epnm(:,count) = epnm(:,i);
         else
@@ -465,37 +492,156 @@ for s = 1:length(kindata)
     epnmd0(idx) = [];
     chinm(idx) = [];
     sEP(idx) = [];
+
     if isequal(datatype, 'exp')
         texp(R==0) = [];
         epnm(R(1:size(epnm,1))==0, :) = [];
         R_nondim(R==0) = [];
     end
+    idx_col = size(epnm,1);
+    
+    
+
+    % 
+    % if count == 0
+    %     continue
+    % end
+    % epnm(:,count+1:end) = [];
+    % n(idx) = [];
+    % m(idx) = [];
+    % aEP(idx) = [];
+    % epnm0(idx) = [];
+    % epnmd0(idx) = [];
+    % chinm(idx) = [];
+    % sEP(idx) = [];
+
+%     [hasSpec, jSpec] = ismember(s, exps_extracted);
+% if hasSpec
+%     allowed_n = exps_modes{jSpec};
+% else
+%        for i = 1:length(n)
+%         if ((sEP(i)/size(epnm,1) >= 1e-3) && i < 15 && n(i) > 1)
+%             count = count + 1;
+%             epnm(:,count) = epnm(:,i);
+%         else
+%             idx = [idx, i];
+%         end
+%        end
+%     if count == 0
+%         continue
+%     end
+%     epnm(:,count+1:end) = [];
+%     n(idx) = [];
+%     m(idx) = [];
+%     aEP(idx) = [];
+%     epnm0(idx) = [];
+%     epnmd0(idx) = [];
+%     chinm(idx) = [];
+%     sEP(idx) = [];
+% end
+% 
+% % Build a single mask over columns of epnm / entries of n
+% keepMask = ismember(n, allowed_n);
+% 
+% % If nothing to keep, skip this experiment cleanly
+% if ~any(keepMask)
+%     fprintf('Experiment %d: no allowed modes -> skipping.\n', s);
+%     continue
+% end
+% 
+% % Apply mask to ALL per-mode quantities (columns)
+% n      = n(keepMask);
+% m      = m(keepMask);
+% epnm   = epnm(:, keepMask);
+% if exist('epnm0','var'),   epnm0   = epnm0(keepMask);   end
+% if exist('epnmd0','var'),  epnmd0  = epnmd0(keepMask);  end
+% if exist('chinm','var'),   chinm   = chinm(keepMask);   end
+% 
+% % Rows count for later reshapes (unchanged by column selection)
+% idx_col = size(epnm,1);
+% 
+% % === NOW compute norms/weights/scales using the filtered columns ===
+% sR  = norm(R_nondim);           % unchanged (radial series)
+% sEP = vecnorm(epnm);            % 1 x numModes
+% wR  = numel(n);
+% wEP = ones(1, numel(n));
+% aR  = wR / sR;
+% aEP = 1 ./ sEP;                 % per-column scale
+    n
+
 
     % create y_data vector which contains the radial data then all of
     % the perturbation data, both are non-dimensional
     y_data = [aR.*R_nondim; reshape(epnm.*aEP, [], 1)];
+
+    idxcol1 = size(epnm,1);
+    tcol = texp(idx_col);
+    texp1 = texp;
+    texp = linspace(0, texp(end), 1000);
+    [~, idx_col] = min(abs(texp-tcol));
 
     % create x_data struct needed for the optimization
     x_data = struct('time', texp, 'n', n, 'Req', Req, 'chi', chinm, 'ST', ST, ...
         'rho', rho, 'Gqs', Gqs, 'epnmd0', epnmd0, 'epnm0', epnm0, 'R0', Rmax, ...
         'idx_col', idx_col, 'perturbed', perturbed, 'aR', aR, 'aEP', aEP);
     xsol = log10(xsole(s, :));
+    xsol(1) = log10(0.1);
     sol = objfun(xsol, x_data);
-    Rsol = sol(1:length(R_nondim))./aR;
-    epnmsol = reshape(sol(length(R_nondim)+1:end), [size(epnm)])./aEP;
+    Rsol = sol(1:length(texp))./aR;
+    epnmsol = reshape(sol(length(texp)+1:end), [idx_col, length(n)])./aEP;
+%     % figure
+%     % plot(abs(y_data), 'o')
+%     % hold on 
+%     % plot(abs(sol), '-')
+% 
+    cmap = viridis(length(n)+4);
+
+
+    rows = 1 + ceil(length(n)/3);
+    columns = 3;
+    if length(n) < 3
+        columns = length(n);
+    end
+
     figure
-    plot((y_data), 'o')
-    hold on 
-    plot((sol), '-')
-    % figure
-    % plot(R_nondim, 'o')
-    % hold on
-    % plot(Rsol, '-')
-    % 
-    % figure
-    % plot(epnm, 'o')
-    % hold on
-    % plot(epnmsol, '-')
-    % yline(epnm0)
+    a = tiledlayout(rows,columns,'TileSpacing','compact','Padding','compact');
+
+    % --- Top row: first plot spans all columns ---
+    ax = nexttile([1 columns]);      % span 1 row by all columns
+    plot(ax, texp1(1:2:end)./tc, R_nondim(1:2:end), 'o', 'Color', cmap(1,:), 'MarkerFaceColor',cmap(1,:), 'MarkerSize',8)
+    hold on
+    plot(ax, texp./tc, Rsol, '-', 'LineWidth',3, 'Color', cmap(5,:))
+    set(gca, 'TickLabelInterpreter', 'latex', 'Fontsize', 18)
+    xlabel('$t/t_c$', 'Interpreter','latex', 'FontSize',20)
+    ylabel('$R/R_{\textrm{max}}$', 'Interpreter', 'latex','FontSize',20)
+
+for i = 1:length(n)
+    ax = nexttile;
+     plot(ax,texp1(1:2:size(epnm,1))./tc, epnm(1:2:end,i), 'o', 'Color', cmap(i+1,:), 'MarkerFaceColor',cmap(i+1,:), 'MarkerSize',8);
+     hold on
+     plot(ax, texp(1:idx_col)./tc, epnmsol(:,i), '-', 'LineWidth',3, 'Color', cmap(i+3,:))
+     set(gca, 'TickLabelInterpreter', 'latex', 'Fontsize', 18)
+     xlabel('$t/t_c$', 'Interpreter','latex', 'FontSize',20)
+     ylabel(['$\epsilon_{' num2str(n(i)) '}$'], 'Interpreter', 'latex','FontSize',20)
+end
+
+
+
+
+
+% 
+%      %figure
+%      %plot(R_nondim, 'o')
+%      %hold on
+%      %plot(Rsol, '-')
+%     % 
+%      %figure
+%      %plot(abs(epnm), 'o')
+%      %hold on
+%      %plot(abs(epnmsol), '-')
+%     % yline(epnm0)
 end
 toc
+%%
+
+    
