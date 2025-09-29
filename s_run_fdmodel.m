@@ -5,21 +5,21 @@ clear;
 addpath(genpath('src'));
 
 % equation options
-R0 = 250e-6;
-Req = 0.2*R0;
+R0 = 230e-6;
+Req = 34e-6;
 tc = R0*sqrt(1048/101325);
-tfin = 5*tc; %160E-6;
+tfin = 2.5*tc; %160E-6;
 kappa = 1.4;
 Lheat = 2.378193575129533e+04;
 T8 = 298.15;
 rho8 = 1048;
-ST = 0.056;
+ST = 0.072;
 alphax = 0;
-mu = 1e-2;
-Gqs = 2e3;
+mu = 1e-1;
+Gqs = 8.66e3;
 rho = 1048;
 modes = 7;
-epnm0 = 0.0001.*modes;
+epnm0 = 0.0000.*modes;
 epnmd0 = 0.*epnm0;
   % equation options
     kappa = 1.4;
@@ -33,7 +33,7 @@ epnmd0 = 0.*epnm0;
     bubtherm = 1;
     medtherm = 0;
     masstrans = 1;
-    perturbed = 1;
+    perturbed = 0;
     stress = 2;
 
     % combine all inputs into varin

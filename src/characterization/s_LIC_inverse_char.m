@@ -37,10 +37,10 @@ bayesoptVars = [
 addpath Synthetic_data\ ../forward_solver/ ../common/
 
 %load("Synthetic_data\synthetic_data_NSLIC.mat")
-% load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
-load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr.mat")
-% datatype = 'synthetic';
-datatype = 'exp';
+load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
+%load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr.mat")
+ datatype = 'synthetic';
+%datatype = 'exp';
 
 
 G = 2.77e3; sigma = 0.056; rho = 1048;
@@ -274,7 +274,7 @@ toc
  clc
 % 
 load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
-
+%%
 % load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized_newbds_fixedICs_new.mat")
 
 addpath ../../../cmap/
@@ -330,7 +330,8 @@ ylim([0 10])
 clear all
 clc
 
-load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized.mat")
+% load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized.mat")
+load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
 
 % preallocate space for goodness of fit and extracted material properties
 %xsole = zeros(length(kindata), length(lb));
