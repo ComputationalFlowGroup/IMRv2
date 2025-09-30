@@ -27,11 +27,6 @@ function varargout = f_imr_fd(varargin)
     eps3            = eqns_opts(5);
     masstrans       = eqns_opts(6);
     perturbed       = eqns_opts(7);
-    % if (stress == 4)
-    %     ptt = 1;
-    % else
-    %     ptt = 0;
-    % end
     
     % solver options
     method          = solve_opts(1);
