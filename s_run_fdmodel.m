@@ -19,7 +19,7 @@ mu = 1e-1;
 Gqs = 8.66e3;
 rho = 1048;
 modes = 7;
-epnm0 = 0.0000.*modes;
+epnm0 = 0.01.*modes;
 epnmd0 = 0.*epnm0;
   % equation options
     kappa = 1.4;
@@ -33,7 +33,7 @@ epnmd0 = 0.*epnm0;
     bubtherm = 1;
     medtherm = 0;
     masstrans = 1;
-    perturbed = 0;
+    perturbed = 1;
     stress = 2;
 
     % combine all inputs into varin
