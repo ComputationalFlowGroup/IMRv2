@@ -35,9 +35,9 @@ bayesoptVars = [
 %% Load In data
 
 addpath Synthetic_data\ ../forward_solver/ ../common/
-
+load("NSLIC_processed.mat")
 %load("Synthetic_data\synthetic_data_NSLIC.mat")
-load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
+%load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
 %load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr.mat")
  datatype = 'synthetic';
 %datatype = 'exp';
@@ -334,8 +334,9 @@ ylim([0 4])
 clear all
 clc
 
-% load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized.mat")
-load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
+ %load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized.mat")
+%load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
+load("NSLIC_processed.mat")
 
 addpath Synthetic_data\ ../forward_solver/ ../common/
 
@@ -353,14 +354,12 @@ exps_modes{2} = [2 3];
 % exps_modes{2} = [3 4 6 7 9];
 % exps_modes{3} = [3 4 6 7 10 9 12];
 % exps_modes{4} = [2 3];
->>>>>>> 2533294e8a204c1b0383ba9784f1e407195581d9
-
 % preallocate space for goodness of fit and extracted material properties
 %xsole = zeros(length(kindata), length(lb));
 %R2 = zeros(length(kindata),1);
 %close all
 tic
-for s = 3;%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
+for s = 1;%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
     % if R2(s) < 0.96
     %     continue
     % end
@@ -474,7 +473,7 @@ for s = 3;%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
     count = 0;
     idx = [];
     for i = 1:length(n)
-        if ((sEP(i)/size(epnm,1) >= 1e-6) && i < 15 && n(i) > 1)
+        if ((sEP(i)/size(epnm,1) >= 1e-4) && i < 15 && n(i) > 1)
             count = count + 1;
             epnm(:,count) = epnm(:,i);
         else
