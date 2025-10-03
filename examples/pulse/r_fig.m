@@ -1,4 +1,4 @@
-fig_tend = 55;
+fig_tend = 30;
 tickrange= 0:5:fig_tend;
 lma = 'r';
 lm ='k-';

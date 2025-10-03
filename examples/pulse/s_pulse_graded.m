@@ -1,4 +1,4 @@
-%close all; clear; clc;
+close all; clear; clc;
 % pulse
 addpath('~/IMRv2/src/forward_solver/');
 
@@ -10,30 +10,22 @@ rho8 = 1064;
 R0 = 0.5E-6;
 Req = R0;
 
-
 % computing nondim params for waveform
 P8 = Pref;
 Uc = sqrt(P8/rho8);
 t0 = R0/Uc;
 tw = 1;
 dt = 10;
-TW = tw*t0;
-DT = dt*t0;
-
+TW = tw*t0; % Gaussian width (s)
+DT = dt*t0; % delay (s)
 
 % nondimensional pressure amplitude (Pa) Hersey
-pA = 5E5; %500E3*Pref; %.5*Pref; %500E3*Pref;
+pA = 1.15E6;
 % f frequency (rad/s) Hersey
 omega = 2E6; 
-% Gaussian width (s)
-%TW = 3E-6; %1.01*R0*sqrt(rho8/Pref);
-% delay (s)
-%DT = 10*TW; %10*TW
 % power shift /exponent for waveform
 mn = 0;
-tstart = 8E-6;
-tend = 30 * TW; %1.5E-6;
-%tvector = linspace(tstart,tend,1000);
+tend = 30 * TW;
 tvector = linspace(0,tend,1000);
 
 % options
@@ -99,11 +91,11 @@ varin = {'progdisplay',0,...
 
 % % generate R v t data
 [t,R,U,P,~] = f_imr_fd(varin{:},'Nt',16,'Mt',64);
+
 % dimensional R
 Rdim = R.*R0;
 tchar = sqrt(rho8/Pref)*R0;
 tdim = t.*tchar;
-
 
 figure
 hold on;
@@ -131,6 +123,13 @@ plot(tplot,Pplot)
 xlabel('Time [\mu s]')
 ylabel('Pressure [Pa]')
 
+p_t = pA * exp(-((tvector - DT)/TW).^2);
+figure;
+plot(tvector, p_t);
+xlabel('Time [s]');
+ylabel('Pressure [Pa]');
+title('Gaussian Pressure Pulse');
+
 lambda = (Rdim.^3 - Req^3).^(1/3);
 Lambda = Rdim./Req;
 l = ((lambda.^3 - 1) ./ (Lambda.^3 - 1)).^(1/3);
@@ -138,28 +137,20 @@ f = (l2.*l - 1) ./ (1 - l1.*l);
 m = (1+f.^v_a).^((v_nc-1)/v_a);
 
 % post_processing
-%lm = 'k';
 r_fig;
 %r_ffield;
 
 
-%%
-% Baseline values
-A = 1E6; 
-f = 2E6;
-R0= 0.5E-6;
-
+%% sandbox
 % RUNNING FREQUENCY VARIATION
-p_range = A*2.^(-2.5:0.5:2.5);
+p_range = pA*2.^(-2.5:0.5:2.5);
 p_l_mu_max = zeros(length(p_range),1);
 p_l_mu_avg = zeros(length(p_range),1);
 R_max = zeros(length(p_range),1);
 R_ave = zeros(length(p_range),1);
 tfactor = p_range./p_range(1);
 
-t0 = tstart;
-Pinf = Pf8;
-xrange = (Pinf./p_range*f*t0)';
+xrange = (P8./p_range*f*t0)';
 % figure(2); hold on;
 for i=1:length(p_range)
     Pext_Amp_Freq = [p_range(i), f]; 
@@ -194,20 +185,3 @@ xa = gca;
 xa.TickLength = [.03 .03];
 xa.LineWidth = 1.5;
 box on;
-
-
-%% sandbox
-t = linspace(0, 30e-6, 1000);  % longer time
-TW = 3e-6;
-DT = 10e-6;
-pA = 500e3 / 101325 / 10; % normalized pressure amplitude
-
-p_t = pA * exp(-((t - DT)/TW).^2);
-
-figure;
-plot(t*1e6, p_t);
-xlabel('Time [\mus]');
-ylabel('Pressure');
-title('Gaussian Pressure Pulse');
-
-

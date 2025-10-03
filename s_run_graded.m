@@ -1,19 +1,29 @@
 clc; clear; close;
-
+%%
 % generate R v t curves
 addpath('src/forward_solver/');
 %addpath('./common/')
 
 % options
+kappa = 1.4;
+T8 = 298.15;
+rho8 = 1064;
+mu = 5E-2;
+lambda1 = 1e-7;
+lambda2 = 0;
+alphax = 1e-3;
+Pref = 101325;
+
 R0 = 100e-6;
 Req = R0/8; 
 tfin = 75E-6;
+%tfin = 1.25*R0*sqrt(rho8/Pref);
 tvector = linspace(0,tfin,1000);
 
 collapse = 0;
 radial = 1;
 vapor = 1;
-bubtherm = 1;
+bubtherm = 0;
 medtherm = 0;
 masstrans = 0;
 stress = 1;
@@ -26,14 +36,6 @@ l1 = 1.2;
 l2 = 2.2;
 G0 = 1E3;
 G1 = 10E3;
-
-kappa = 1.4;
-T8 = 298.15;
-rho8 = 1064;
-mu = 5E-2;
-lambda1 = 1e-7;
-lambda2 = 0;
-alphax = 1e-3;
 
 varin = {'progdisplay',0,...
     'radial',radial,...
@@ -76,7 +78,8 @@ Ca1 = Pref/G1;
 
 %%
 addpath('./src/characterization/')
-tg = f_tcol_calc_graded(stress,Req/R0,R,R0/R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8);
+tg_Rexplicit = f_tcol_calc_graded(stress,Req/R0,R,R0/R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8)
+tg = f_tg_calc(stress,Req/R0,R0/R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8)
 
 %% graded and ungraded stress vs time
 
@@ -188,52 +191,3 @@ for loc = 1:nloc
 end
 % filename = sprintf('./stress_%s.png', legendName{i});
 % saveas(gcf,filename)
-
-
-%% pulse
-wave_type = 1; %1 gaussian, 0 impulse
-% B pressure amplitude (Pa)
-pA = 500E3; %2.4E6; (baseline Hersey)
-% f frequency (rad/s) [nonlinear case]
-omega = 2E6; %3.5E6; (baseline Hersey)
-% Gaussian width (s)
-TW = 25-6; %I don't know this value! collapse time??
-% delay (s)
-DT = 10*TW;
-% power shift /exponent for waveform
-mn = 0;
-varin = {'progdisplay',0,...
-    'radial',radial,...
-    'bubtherm',bubtherm,...
-    'tvector',tvector,...
-    'vapor',vapor,...
-    'medtherm',medtherm,...
-    'masstrans',masstrans,...
-    'wave_type',wave_type,...
-    'method',23,...
-    'stress',0,...
-    'collapse',collapse,...
-    'mu',mu,...
-    'g',G0,...
-    'graded',0,...
-    'g1',G1,...
-    'l1',l1,...
-    'l2',l2,...
-    'v_a',v_a,...
-    'v_nc',v_nc,...
-    'lambda1',lambda1,...
-    'lambda2',lambda2,...
-    'alphax',alphax,...
-    'r0',R0,...
-    'req',Req,...
-    'kappa',kappa,...
-    't8',T8,...
-    'rho8',rho8};
-
-% generate R v t data
-[t,R,~] = f_imr_fd(varin{:},'Nt',16,'Mt',64);
-
-figure
-hold on;
-plot(t,R,'bx')
-ylim([0 1.2])
