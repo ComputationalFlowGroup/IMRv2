@@ -130,7 +130,7 @@ for n = 1:2:nargin
         
         % thermal options
         case 't8',          T8 = varargin{n+1};
-        tempset = 1;
+            tempset = 1;
         case 'kappa',       kappa = varargin{n+1};
         case 'atg',         ATg = varargin{n+1};
         case 'btg',         BTg = varargin{n+1};
@@ -264,7 +264,7 @@ tvector     = TVector./t0;
 % non-dimensional frequency
 om          = omega*t0;
 ee          = pA/Pref;
-tw          = TW*t0;
+tw          = TW/t0;
 dt          = DT/t0;
 % acoustic properties
 
@@ -469,8 +469,6 @@ elseif stress == 5
     % TODO initial max stress for UCM and Oldroyd-B
     Szero = zeros((Nv - 1)*(spectral == 1) + 2,1);
 end
-
-% out parameters
 
 % equation settings
 eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
