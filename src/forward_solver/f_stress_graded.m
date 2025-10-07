@@ -28,14 +28,14 @@ x2 = (1 + (Rst.^3 - 1)./(l2^3))^(1/3);
 x1dot = Rstdot*Rst.^2 ./ (l1*x1^2);
 x2dot = Rstdot*Rst.^2 ./ (l2*x2^2);
 
-try
-  %if mex file exist, compile it
-    if exist('f_g_mex','file') ~= 3
-        mex('f_g_mex.c');
-    end
-    g_handle = @(x) f_g_mex(x,Ca,Ca1,Rst,l1,l2,v_a,v_nc,Rstdot,1); % mode 1 = g
-    gdot_handle = @(x) f_g_mex(x,Ca,Ca1,Rst,l1,l2,v_a,v_nc,Rstdot,2); % mode 2 = gdot
-catch
+% try
+%   %if mex file exist, compile it
+%     if exist('f_g_mex','file') ~= 3
+%         mex('f_g_mex.c');
+%     end
+%     g_handle = @(x) f_g_mex(x,Ca,Ca1,Rst,l1,l2,v_a,v_nc,Rstdot,1); % mode 1 = g
+%     gdot_handle = @(x) f_g_mex(x,Ca,Ca1,Rst,l1,l2,v_a,v_nc,Rstdot,2); % mode 2 = gdot
+% catch
     fnum_cy = @(x) l2*(x.^3 -1).^(1/3) - (Rst.^3 - 1).^(1/3);
     fden_cy = @(x) (Rst.^3 - 1).^(1/3) - l1*(x.^3 -1).^(1/3);
     f_cy = @(x) fnum_cy(x)./fden_cy(x);
@@ -50,12 +50,12 @@ catch
     gdot_handle = @(x) (1/Ca1 - 1/Ca).*((1./x.^5) + (1./x.^2)).*(v_nc-1).*...
         ((1+f_cy(x).^v_a).^((v_nc-1-v_a)/v_a)).*f_cy(x).^(v_a-1).*fdot_cy(x);
 
-    f_tanh = @(x) ((Rst.^3 - 1)/(x.^3 - 1)).^(1/3);
-    g_tanh = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1/2)*(1+tanh(v_a*(2*f_tanh(x,Rst)-1)))).*(1./x.^5+1./x.^2);
+    f_tanh = @(x) ((Rst.^3 - 1)./(x.^3 - 1)).^(1/3); %r0/R0 = chi but needs to be wrt lambda
+    g_tanh = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1/2)*(1+tanh(v_a*(2*f_tanh(x)-1)))).*(1./x.^5+1./x.^2);
     %fdot_tanh = @(x) Rst.^2 .* Rstdot .* (dtf_1(x) - dtf_2(x));
-    %gdot_tanh = @(x) (1/Ca1 - 1/Ca).* .5 .* sech(a*(2*(f_tanh(x) -1)))^2; % did not account for ((1./x.^5) + (1./x.^2))
-    gdot_tanh = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1/2)*(1+tanh(v_a*(2*f_tanh(x,Rst)-1)))).*(-5./x.^4 - 2./x).*(Rst.^2 .* Rstdot .* 1./x.^2 .* chi.^3);
-end
+    %gdot_tanh = @(x) (1/Ca1 - 1/Ca).* .5 .* sech(a*(2*(f_tanh(x) -1))).^2; % did not account for ((1./x.^5) + (1./x.^2))
+    gdot_tanh = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1/2)*(1+tanh(v_a.*2.*f_tanh(x)-v_a))) .* (-5./x.^6 - 2./x.^3) .* (Rst.^2 .* Rstdot .* chi.^3);
+%end
 
 % no stress
 if stress == 0
@@ -67,10 +67,10 @@ elseif stress == 1
     Sv = - 4/Re8*Rdot/R - 6*intfnu*iDRe;
     
     Se1 = (1/(2*Ca))*(1/(Rst.^4) + 4/Rst - (1./x1.^4 + 4./x1));
-    if Rst == 1 % fix OR do not start at R=Req
+    if x1 == x2 % fix OR do not start at R=Req OR Rst == 1
         Se2 = 0;
     else
-         Se2 = 2*integral(@(x) g_handle(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
+         Se2 = 2*integral(@(x) g_tanh(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
     end
     Se3 = -(1/(2*Ca1))*(5 - 4./x2 - 1./x2.^4);
     
@@ -81,10 +81,14 @@ elseif stress == 1
         Svdot = 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
         Se1dot = (2/Ca)*(x1dot./x1.^2 + x1dot./x1.^5 - ...
             Rstdot./Rst.^2 - Rstdot./Rst^.5);
-        Se2dot =  (2/Ca1)*(x2dot./x2.^5 + x2dot./x2.^2) -...
-            (2/Ca)*(x1dot./x1.^5 + x1dot./x1.^2) + ...
-            2*(g_handle(x2)*x2dot - g_handle(x1)*x1dot + ...
-            integral(@(x) gdot_handle(x),x1,x2,'RelTol',reltol,'AbsTol',abstol));
+        if abs(x2 - x2) < 1e-10
+            Se2dot = 0;
+        else             
+            Se2dot = (2/Ca1)*(x2dot./x2.^5 + x2dot./x2.^2) -...
+                  (2/Ca)*(x1dot./x1.^5 + x1dot./x1.^2) + ...
+                  2*(g_tanh(x2)*x2dot - g_tanh(x1)*x1dot + ...
+                  integral(@(x) gdot_tanh(x),x1,x2,'RelTol',reltol,'AbsTol',abstol));
+        end
         Se3dot = -(2/Ca1)*(x2dot./x2.^5 + x2dot./x2.^2);
         Sedot = Se1dot + Se2dot + Se3dot;
         Sdot = Sedot + Svdot;
