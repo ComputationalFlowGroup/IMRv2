@@ -161,6 +161,7 @@ graded = 0;
 G1 = 0;
 l1 = 0;
 l2 = 0;
+gfun = 0;
 
 % pressure variables
 

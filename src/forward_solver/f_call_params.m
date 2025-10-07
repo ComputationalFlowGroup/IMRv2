@@ -127,6 +127,7 @@ for n = 1:2:nargin
         case 'g1',          G1          = varargin{n+1};
         case 'l1',          l1          = varargin{n+1};
         case 'l2',          l2          = varargin{n+1};
+        case 'gfun',        gfun        = varargin{n+1};
         
         % thermal options
         case 't8',          T8 = varargin{n+1};
@@ -490,7 +491,7 @@ acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe graded Ca1 l1 l2];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe graded Ca1 l1 l2 gfun];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer
