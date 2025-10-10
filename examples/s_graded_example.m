@@ -1,54 +1,61 @@
-clc; clear; close all;
+%clc; clear; close all;
 % figure 1 JMPS
 
 Rst = linspace(0.2,10,200); %R_max/R_0
 
-G1 = 0.5;
-G3 = 1;
-
-l1 = 1.5;
-l2 = 3;
+G0 = 500;
+G1 = 1000;
+l1 = 1.5; %nondim
+l2 = 3; %nondim
 a = 2.5;
 n = 0.3;
+b = 0.5;
+
+%%
 x1 = @(Rst) (1+(Rst.^3-1)./(l1).^3).^(1/3); %Lambda1
 x2 = @(Rst) (1+(Rst.^3-1)./(l2).^3).^(1/3); %Lambda2
 
 % ycy = @(x,Rst) (1+(G1-1)*(1+((x-x1(Rst))./(x2(Rst)-x)).^a).^((n-1)/a)).*(1./x.^5+1./x.^2);
-ycy = @(x,Rst) (G1+(G3-G1)*(1+( (l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1)./...
-      (1-l1*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3)) ).^a).^((n-1)/a)).*(1./x.^5+1./x.^2);
+fcy = @(x,Rst) (l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1)./...
+      (1-l1*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3));
+ycy = @(x,Rst) (G0+(G1-G0)*(1+( fcy(x,Rst) ).^a).^((n-1)/a)).*(1./x.^5+1./x.^2);
 % ype = @(x,Rst) (G3+(G1-G3)*asinh((x-x1(Rst))./(x2(Rst)-x))).*(1./x.^5+1./x.^2);
 % ympe = @(x,Rst) (G3+(G1-G3)*log((x-x1(Rst))./(x2(Rst)-x)+1)./((x-x1(Rst))./(x2(Rst)-x)).^a).*(1./x.^5+1./x.^2);
 % ycr = @(x,Rst) (G3+(G1-G3)*1./(1+(x-x1(Rst))./(x2(Rst)-x)).^n).*(1./x.^5+1./x.^2);
 % yscr = @(x,Rst) (G3+(G1-G3)*1./(1+(x-x1(Rst))./(x2(Rst)-x))).*(1./x.^5+1./x.^2);
 % ymcr = @(x,Rst) (G3+(G1-G3)*(1./(1+(x-x1(Rst))./(x2(Rst)-x)).^n).^a).*(1./x.^5+1./x.^2);
 
-f = @(x,Rst) (l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1)./...
-      (1-l1*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3));
-ytanh = @(x,Rst) (G1+(G3-G1)*(1/2)*(1+tanh(a*(2*f(x,Rst) -1)))).*(1./x.^5+1./x.^2);
+ftanh = @(x,Rst) ((l2 + l1)/(l2 - l1)) .* (((Rst.^3 - 1)./(x.^3 - 1)).^(1/3) + ((l1+l2)/2));
+ytanh = @(x,Rst) (G0+(G1-G0)*(1/2)*(1+tanh(b*(2*ftanh(x,Rst) -1)))).*(1./x.^5+1./x.^2);
 
-%
+ytanh_fcy = @(x,Rst) (G0+(G1-G0)*(1/2)*(1+tanh(b*(2*fcy(x,Rst) -1)))).*(1./x.^5+1./x.^2);
+ycy_ftanh= @(x,Rst) (G0+(G1-G0)*(1+( ftanh(x,Rst) ).^a).^((n-1)/a)).*(1./x.^5+1./x.^2);
+
+% linear can be checked by just using fcy and ftanh
+
 reltol = 1e-8;
 abstol = 1e-8;
 S2 = zeros(1,length(Rst));
 for i = 1:length(Rst)
     rst = Rst(i);
-    S2(i) = 2*integral(@(x) ytanh(x,rst),x1(rst),x2(rst),...
+    S2(i) = 2*integral(@(x) ftanh(x,rst),x1(rst),x2(rst),...
             'RelTol',reltol,'AbsTol',abstol);
 end
 
 
-S1 = (G1/2)*(1./Rst.^4 + 4./Rst - (1./x1(Rst).^4 + 4./x1(Rst)));
-S3 = -(G3/2)*(5 - 4./x2(Rst) - 1./x2(Rst).^4);
+S0 = (G0/2)*(1./Rst.^4 + 4./Rst - (1./x1(Rst).^4 + 4./x1(Rst)));
+S1 = -(G1/2)*(5 - 4./x2(Rst) - 1./x2(Rst).^4);
+SG0 = -(G0/2)*(5 - 4./Rst - 1./Rst.^4);
 SG1 = -(G1/2)*(5 - 4./Rst - 1./Rst.^4);
-SG3 = -(G3/2)*(5 - 4./Rst - 1./Rst.^4);
-figure(1)
+%figure(1)
+figure
 hold on;
-% plot(Rst,S1,'m')
-% plot(Rst,S2,'k')
-% plot(Rst,S3,'b')
-plot(Rst,SG1/G1,'r','LineWidth',3)
-plot(Rst,SG3/G1,'k--','LineWidth',3)
-plot(Rst,(S1+S2+S3)/G1,'-.g','LineWidth',3)
+% plot(Rst,S0,'m','LineWidth',3)
+% plot(Rst,S1,'c','LineWidth',3)
+% plot(Rst,S2,'b','LineWidth',3)
+plot(Rst,SG0/G0,'r','LineWidth',3)
+plot(Rst,SG1/G0,'k--','LineWidth',3)
+plot(Rst,(S0+S1+S2)/G0,'-.g','LineWidth',3)
 ylim([-5 5])
 xlabel('$R_{\mathrm{max}}/R_{0}$', 'Interpreter', 'Latex', 'FontSize', 20);
 ylabel('$S/G_0$','Interpreter','Latex','FontSize',24);
@@ -64,6 +71,79 @@ tickrange= -5:2:5;
 yticks(tickrange)
 box on;
 %saveas(gcf,'./fig_graded_stress_integral','png')
+
+% 3d plots: Se vs l1/l2 vs Rst
+% option A: graded width / extent of mat transition
+% option B: graded location and extent: where and how much grading occurs
+
+%%
+% explore A (l1,l2 dimless already)
+Lambda = linspace(0.2, 10, 100);
+ratios = linspace(1.1, 5, 50);  % l2/l1
+
+[LAM, RATIO] = meshgrid(Lambda, ratios);
+S_tanh = zeros(size(LAM));
+S_ycy = zeros(size(LAM));
+
+for i = 1:numel(LAM)
+    Rst = LAM(i);
+    l2 = RATIO(i) * l1;  % l2 = ratio * l1
+    
+    Lambda1 = (1 + (Rst^3 - 1) / l1^3)^(1/3);
+    Lambda2 = (1 + (Rst^3 - 1) / l2^3)^(1/3);
+
+    % tanh
+    f_tanh = @(x) (l2 + l1)/(l2 - l1) * ...
+             (( (Rst^3 - 1)./(x.^3 - 1) ).^(1/3) + (l1 + l2)/2);
+    y_tanh = @(x) (G0 + (G1 - G0) * 0.5*(1 + tanh(0.5 * f_tanh(x)))) .* (1./x.^5 + 1./x.^2);
+
+    % cy
+    fcy = @(x) (l2*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3) - 1)./...
+      (1-l1*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3));
+    ycy = @(x) (G0+(G1-G0)*(1+( fcy(x) ).^a).^((n-1)/a)).*(1./x.^5+1./x.^2);
+
+    try
+        % Stress integral
+        Sg_ycy = 2 * integral(ycy, Lambda1, Lambda2, 'AbsTol',1e-8,'RelTol',1e-8);
+        Sg_ytanh = 2 * integral(y_tanh, Lambda1, Lambda2, 'AbsTol',1e-8,'RelTol',1e-8);
+    catch
+        Sg_tanh = NaN; Sg_ycy = NaN;
+    end
+    S0 = G0/2 * (1/Rst^4 + 4/Rst - (1/Lambda1^4 + 4/Lambda1));
+    S1 = G1/2 * (1/Lambda2^4 + 4/Lambda2 - 5);
+
+    S_tanh(i) = (S0 + Sg_ytanh + S1) / G0;
+    S_ycy(i) = (S0 + Sg_ycy + S1) / G0;
+end
+figure;
+surf(LAM, RATIO, S_tanh, 'EdgeColor','none')
+xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
+ylabel('$\ell_2 / \ell_1$', 'Interpreter','latex','FontSize',20)
+zlabel('$S/G_0$', 'Interpreter','latex','FontSize',20)
+colorbar
+view(45,30)
+
+figure;
+surf(LAM, RATIO, S_ycy, 'EdgeColor','none')
+xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
+ylabel('$\ell_2 / \ell_1$', 'Interpreter','latex','FontSize',20)
+zlabel('$S/G_0$', 'Interpreter','latex','FontSize',20)
+colorbar
+view(45,30)
+
+%% option B
+l1_range = linspace(1.1,4,100);
+l2_range = linspace(1.1,7,100);
+l_ratio = l1_range ./ l2_range;
+[L1,L2] = meshgrid(l1_range,l2_range);
+valid = L2 > L1;
+
+L_ratio = L2 ./ L1;
+L_ratio(~valid) = NaN;
+
+
+
+
 %%
 % figure 2 JMPS
 % dimensional, in terms of lambda
