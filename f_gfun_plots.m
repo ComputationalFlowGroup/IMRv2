@@ -103,3 +103,99 @@ hold off;
 % hold on;
 % plot(t,m,lm,'LineWidth',2); 
 % hold off;
+
+%% G(r_0) for different values of a and n
+% chosen graded parameters
+% l1 = 1.2E-4;
+% l2 = 1.8E-4;
+% G0 = 1000;
+% G1 = 10000;
+% r0 = linspace(l1 + 1e-5,l2 - 1e-5,300);
+% f = (l2 - r0)./(r0-l1);
+
+graded = 1;
+v_nc = 0.3; 
+v_a = 2;
+R0 = 100e-6;
+l1 = 1.2*R0; %trying dim
+l2 = 2*R0;
+G0 = 1E3;
+G1 = 10E3;
+eps = 1E-8;
+r0 = linspace(l1+eps, l2-eps, 1000);
+%f = (l2 - r0) ./ (r0 - l1);
+x = r0./R0;
+f = (l2/R0 - x) ./ (x - l1/R0);
+
+% parameter of interest ranges
+n_vals = linspace(0.2,0.9,15);
+a_vals = linspace(0.5,5,10);
+
+% generate unique colors for each n and a value
+%color_n = lines(length(n_vals));
+%color_a = lines(length(a_vals)); hsv, jet, parula, turbo, copper, spring
+color_a = turbo(length(a_vals));
+color_n = turbo(length(n_vals));
+
+% plot for different n
+figure;
+hold on;
+for i = 1:length(n_vals)
+    n = n_vals(i);
+    a = 2; % fixed a
+    m = (1+f.^a).^((n-1)/a);
+    plot(x(:),m(:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
+    %plot(r0_coord(1,:),g_region(1,:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('n=%.2f',n));
+end
+%title('Effect of n with fixed a=2');
+% xlabel('r_0 (m)'); 
+% ylabel('G (Pa)');
+% legend('Location','best');
+% %xlim([1.1E-4,1.9E-4])
+% hold off;
+% saveas(gcf,'./effect_n','eps')
+% should see how 'shear-thinning' strength changes
+xlabel('$r_0$ / $R_0$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('$m$', 'Interpreter','Latex', 'FontSize', 20);
+set(gcf,'color','w');
+%set(gca,'YScale','log');
+set(gca, 'FontName', 'Times', 'FontSize',20); 
+set(gca,'TickLabelInterpreter','latex')
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
+box on;
+%legend show;
+hold off;
+
+
+% different a
+figure;
+hold on;
+for i = 1:length(a_vals)
+    a = a_vals(i);
+    n = 0.3;
+    m = (1+f.^a).^((n-1)/a);
+    plot(x(:),m(:),'Color',color_n(i,:),'LineWidth',1.2,'DisplayName',sprintf('a=%.2f',a));
+    %plot(r0_coord(1,:),g_region(1,:),'Color',color_a(i,:),'LineWidth',1.2,'DisplayName',sprintf('a=%.2f',a));
+end
+%title('Effect of a with fixed n=0.3');
+% xlabel('r_0 (m)'); 
+% ylabel('G (Pa)');
+% legend('Location','best');
+% %xlim([1.2E-4,1.8E-4])
+% hold off;
+% % should see how transition smoothness/sharpness changes
+% saveas(gcf,'./effect_a','eps')
+xlabel('$r_0$ / $R_0$', 'Interpreter', 'Latex', 'FontSize', 20); 
+ylabel('$m$', 'Interpreter','Latex', 'FontSize', 20);
+set(gcf,'color','w');
+%set(gca,'YScale','log');
+set(gca, 'FontName', 'Times', 'FontSize',20); 
+set(gca,'TickLabelInterpreter','latex')
+xa = gca;
+xa.TickLength = [.03 .03];
+xa.LineWidth = 1.5;
+box on;
+%legend show;
+hold off;
