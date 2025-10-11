@@ -72,22 +72,282 @@ yticks(tickrange)
 box on;
 %saveas(gcf,'./fig_graded_stress_integral','png')
 
-% 3d plots: Se vs l1/l2 vs Rst
+
+%% composite mat: 2 homogeneous domains
+% goal: what value of l1 are the total stress contributions from each region equal
+
+% Parameters
+Lambda = 10;                % Rmax / R0
+ell1 = linspace(1.01, 10, 500);  % Dimensionless inner boundary
+Lambda1 = nthroot(1 + (Lambda^3 - 1)./ell1.^3, 3);
+
+% Compute stress contributions
+S_near = (G0/2) * (1/Lambda^4 + 4/Lambda - (1./Lambda1.^4 + 4./Lambda1));
+S_far  = (G1/2) * (1./Lambda1.^4 + 4./Lambda1 - 5);
+S_total = S_near + S_far;
+
+% Fractional contributions
+S_frac_near = S_near ./ S_total;
+S_frac_far  = S_far  ./ S_total;
+
+% Find where they are approximately equal
+[~, idx_equal] = min(abs(S_frac_near - S_frac_far));
+ell1_equal = ell1(idx_equal);
+
+% Plot
+figure;
+plot(ell1, S_frac_near, 'b-', 'LineWidth', 2); hold on;
+plot(ell1, S_frac_far, 'r--', 'LineWidth', 2);
+xline(ell1_equal, 'k:', 'LineWidth', 2);
+legend({'Near-field', 'Far-field', 'Equal contribution'}, 'Location', 'best');
+xlabel('$\ell_1 = l_1 / R_0$', 'Interpreter','latex','FontSize',16);
+ylabel('Fraction of total stress', 'Interpreter','latex','FontSize',16);
+title(['Stress Contributions at $\Lambda = ', num2str(Lambda), '$'], 'Interpreter','latex');
+grid on; box on;
+set(gca, 'FontSize', 14, 'TickLabelInterpreter', 'latex');
+
+%% for different Lambda values
+% Parameters
+Lambda_vals = linspace(1.01, 10, 100);
+ell1_vals = linspace(1.01, 10, 200);
+
+% Initialize matrix to store crossover ell1 for each Lambda
+ell1_crossover = NaN(size(Lambda_vals));
+
+for i = 1:length(Lambda_vals)
+    Lambda = Lambda_vals(i);
+    
+    Lambda1 = nthroot(1 + (Lambda^3 - 1)./ell1_vals.^3, 3);
+    
+    % Stress contributions
+    S_near = (G0/2) * (1/Lambda^4 + 4/Lambda - (1./Lambda1.^4 + 4./Lambda1));
+    S_far  = (G1/2) * (1./Lambda1.^4 + 4./Lambda1 - 5);
+    S_total = S_near + S_far;
+    
+    % Fractional contributions
+    S_frac_near = S_near ./ S_total;
+    S_frac_far  = S_far  ./ S_total;
+    
+    % Find crossover by minimal difference
+    [~, idx_equal] = min(abs(S_frac_near - S_frac_far));
+    ell1_crossover(i) = ell1_vals(idx_equal);
+end
+
+figure;
+plot(Lambda_vals, ell1_crossover, 'LineWidth', 2)
+xlabel('$\Lambda$', 'Interpreter','latex','FontSize',16)
+ylabel('$\ell_1$ crossover', 'Interpreter','latex','FontSize',16)
+title('Crossover point where Near-field = Far-field stress', 'Interpreter','latex')
+grid on; box on;
+%%
+% 
+% % Numerical differentiation - finite difference approx of d(ell1)/d(Lambda)
+% dLambda = diff(Lambda_vals);
+% dell1 = diff(ell1_crossover);
+% 
+% slope = dell1 ./ dLambda;  % slope at midpoints between Lambda_vals
+% 
+% % To plot slope vs Lambda, assign slope to midpoints of Lambda_vals
+% Lambda_mid = (Lambda_vals(1:end-1) + Lambda_vals(2:end))/2;
+% 
+% % Plot slope
+% figure;
+% plot(Lambda_mid, slope, 'LineWidth', 2);
+% xlabel('$\Lambda$', 'Interpreter','latex', 'FontSize', 16);
+% ylabel('Slope $d\ell_1/d\Lambda$', 'Interpreter','latex', 'FontSize', 16);
+% title('Slope of crossover curve $\ell_1(\Lambda)$', 'Interpreter','latex');
+% grid on; box on;
+% Assuming Lambda_vals and ell1_crossover are vectors of the same length
+
+p = polyfit(Lambda_vals, ell1_crossover, 1);  % 1 = linear fit
+
+slope_reg = p(1);  % slope of the fitted line
+intercept_reg = p(2);
+
+% Plot the data and the regression line
+figure;
+plot(Lambda_vals, ell1_crossover, 'bo', 'MarkerSize', 6, 'DisplayName', 'Data'); hold on;
+plot(Lambda_vals, polyval(p, Lambda_vals), 'r-', 'LineWidth', 2, 'DisplayName', 'Linear fit');
+xlabel('$\Lambda$', 'Interpreter','latex', 'FontSize', 16);
+ylabel('$\ell_1$ crossover', 'Interpreter','latex', 'FontSize', 16);
+title('Linear regression of crossover length vs Lambda', 'Interpreter','latex');
+legend('Location', 'best');
+grid on; box on;
+
+fprintf('Regression slope = %.4f\n', slope_reg);
+
+%%
+% Parameters
+% G0 = 1;              % Shear modulus of near-field region
+% G1 = 2;              % Shear modulus of far-field region (could swap to G0 > G1 to test)
+
+Lambda_vals = linspace(1.2, 10, 200);   % Stretch range (Rmax/R0)
+l1_range = linspace(1.01, 10, 500);     % ℓ1 values to search for crossover
+crossover_l1 = NaN(size(Lambda_vals));  % Store result
+
+% Numerical integration tolerances
+AbsTol = 1e-8;
+RelTol = 1e-8;
+
+for i = 1:length(Lambda_vals)
+    Rst = Lambda_vals(i);
+    diffs = NaN(size(l1_range));
+    
+    for j = 1:length(l1_range)
+        l1 = l1_range(j);
+        
+        % Compute Lambda1 (stretch at l1)
+        Lambda1 = (1 + (Rst^3 - 1)/l1^3)^(1/3);
+
+        % Near-field stress integral (0 < r0 < l1)
+        S_near = (G0/2) * (1/Rst^4 + 4/Rst - (1/Lambda1^4 + 4/Lambda1));
+        
+        % Far-field stress integral (l1 < r0 < Rmax)
+        S_far = (G1/2) * (1/Lambda1^4 + 4/Lambda1 - 5);
+        
+        % Save absolute difference between them
+        diffs(j) = abs(S_near - S_far);
+    end
+    
+    % Find index where difference is minimized (i.e., crossover point)
+    [~, min_idx] = min(diffs);
+    crossover_l1(i) = l1_range(min_idx);  % ℓ1 where S_near ≈ S_far
+end
+
+% Plot
+figure;
+plot(Lambda_vals, crossover_l1, 'b-', 'LineWidth', 2)
+xlabel('$\Lambda$ (Stretch)', 'Interpreter','latex', 'FontSize', 18)
+ylabel('$\ell_1$ at crossover', 'Interpreter','latex', 'FontSize', 18)
+title('Crossover point: $S_{\mathrm{near}} = S_{\mathrm{far}}$', 'Interpreter','latex')
+grid on
+set(gca, 'FontSize', 14, 'TickLabelInterpreter','latex')
+
+%%
+
+% Precompute near/far field stress dominance
+S_near_dominates = false(length(l1_range), length(Lambda_vals));
+
+for i = 1:length(Lambda_vals)
+    Rst = Lambda_vals(i);
+    diffs = NaN(size(l1_range));
+    
+    for j = 1:length(l1_range)
+        l1 = l1_range(j);
+        Lambda1 = (1 + (Rst^3 - 1)/l1^3)^(1/3);
+        
+        % Skip nonphysical
+        if ~isreal(Lambda1) || Lambda1 < 1
+            continue
+        end
+
+        S_near = (G0/2) * (1/Rst^4 + 4/Rst - (1/Lambda1^4 + 4/Lambda1));
+        S_far = (G1/2) * (1/Lambda1^4 + 4/Lambda1 - 5);
+
+        diffs(j) = abs(S_near - S_far);
+
+        % For shading: track if near > far
+        S_near_dominates(j, i) = (S_near > S_far);
+    end
+
+    % Find crossover
+    [~, min_idx] = min(diffs);
+    crossover_l1(i) = l1_range(min_idx);
+end
+
+% Plot shaded dominance regions
+figure;
+hold on;
+
+% Create shaded image
+imagesc(Lambda_vals, l1_range, S_near_dominates);
+colormap([0.8 0.9 1; 1 0.9 0.9]); % blue = far field dominates, red = near field
+set(gca,'YDir','normal');
+
+% Overlay crossover curve
+plot(Lambda_vals, crossover_l1, 'k-', 'LineWidth', 2);
+
+% Labels and formatting
+xlabel('$\Lambda$ (Stretch)', 'Interpreter','latex', 'FontSize', 18);
+ylabel('$\ell_1$', 'Interpreter','latex', 'FontSize', 18);
+title('Stress Dominance Map (Near vs Far Field)', 'Interpreter','latex');
+
+legend({'$S_{\mathrm{near}} = S_{\mathrm{far}}$'}, 'Interpreter','latex', 'Location','northeast');
+
+% Custom colorbar
+cb = colorbar('Ticks',[0.25 0.75], 'TickLabels',{'Far Field','Near Field'});
+ylabel(cb, 'Dominant Stress Source', 'Interpreter','latex');
+set(gca, 'FontSize', 14, 'TickLabelInterpreter','latex');
+box on;
+
+%%
+% Parameters
+G0 = 1;       % Shear modulus near field
+G1 = 2;       % Shear modulus far field
+
+% Domain for stretch and near-field thickness
+Lambda = linspace(1.01, 10, 200);    % R_max / R0
+l1 = linspace(0.1, 6, 200);          % l1 / R0
+
+% Meshgrid
+[LambdaGrid, l1Grid] = meshgrid(Lambda, l1);
+
+% Compute Lambda1 from incompressibility
+Lambda1 = (1 + (LambdaGrid.^3 - 1) ./ l1Grid.^3).^(1/3);
+Lambda2 = LambdaGrid;
+
+% Compute stress contributions
+S_near = (G0/2) .* (1 ./ LambdaGrid.^4 + 4 ./ LambdaGrid - (1 ./ Lambda1.^4 + 4 ./ Lambda1));
+S_far = (G1/2) .* (1 ./ Lambda2.^4 + 4 ./ Lambda2 - 5);
+S_total = S_near + S_far;
+
+% Compute imbalance ratio
+imbalance_ratio = (S_near - S_far) ./ S_total;
+imbalance_ratio(~isfinite(imbalance_ratio)) = NaN;
+
+% Plotting the imbalance map
+figure;
+contourf(LambdaGrid, l1Grid, imbalance_ratio, 100, 'LineColor', 'none');
+hold on;
+contour(LambdaGrid, l1Grid, imbalance_ratio, [0 0], 'k', 'LineWidth', 2);  % Equal contribution curve
+colorbar;
+colormap('turbo');
+xlabel('$\Lambda$', 'Interpreter', 'latex', 'FontSize', 18);
+ylabel('$\ell_1$', 'Interpreter', 'latex', 'FontSize', 18);
+title('Stress Imbalance Map: $(S_{\mathrm{near}} - S_{\mathrm{far}})/S_{\mathrm{total}}$', ...
+    'Interpreter', 'latex', 'FontSize', 16);
+set(gca, 'FontSize', 14, 'TickLabelInterpreter', 'latex');
+
+
+%% 3d plots: Se vs l1/l2 vs Rst
 % option A: graded width / extent of mat transition
 % option B: graded location and extent: where and how much grading occurs
 
-%%
 % explore A (l1,l2 dimless already)
 Lambda = linspace(0.2, 10, 100);
 ratios = linspace(1.1, 5, 50);  % l2/l1
-
 [LAM, RATIO] = meshgrid(Lambda, ratios);
+
+% EXtent = 1;
+% L1 = linspace(1.05,5,100);
+% [LAM,L1GRID] = meshgrid(Lambda,L1);
+% L2GRID = L1GRID + EXtent;
+
 S_tanh = zeros(size(LAM));
 S_ycy = zeros(size(LAM));
+S_frac_gtanh = NaN(size(LAM));
+S_frac_ntanh = NaN(size(LAM));
+S_frac_ftanh = NaN(size(LAM));
+S_frac_gcy = NaN(size(LAM));
+S_frac_ncy = NaN(size(LAM));
+S_frac_fcy = NaN(size(LAM));
 
 for i = 1:numel(LAM)
     Rst = LAM(i);
     l2 = RATIO(i) * l1;  % l2 = ratio * l1
+
+    % l1 = L1GRID(i);
+    % l2 = L2GRID(i);
     
     Lambda1 = (1 + (Rst^3 - 1) / l1^3)^(1/3);
     Lambda2 = (1 + (Rst^3 - 1) / l2^3)^(1/3);
@@ -103,6 +363,7 @@ for i = 1:numel(LAM)
     ycy = @(x) (G0+(G1-G0)*(1+( fcy(x) ).^a).^((n-1)/a)).*(1./x.^5+1./x.^2);
 
     try
+        if Lambda1 < Lambda2 && isreal(Lambda1) && isreal(Lambda2); continue; end
         % Stress integral
         Sg_ycy = 2 * integral(ycy, Lambda1, Lambda2, 'AbsTol',1e-8,'RelTol',1e-8);
         Sg_ytanh = 2 * integral(y_tanh, Lambda1, Lambda2, 'AbsTol',1e-8,'RelTol',1e-8);
@@ -114,11 +375,20 @@ for i = 1:numel(LAM)
 
     S_tanh(i) = (S0 + Sg_ytanh + S1) / G0;
     S_ycy(i) = (S0 + Sg_ycy + S1) / G0;
+
+    % fractional contribution
+    S_frac_gtanh(i) = Sg_ytanh / S_tanh(i);
+    S_frac_ntanh(i) = S0 / S_tanh(i);
+    S_frac_ftanh(i) = S1 / S_tanh(i);
+    S_frac_gcy(i) = Sg_ycy / S_ycy(i);
+    S_frac_ncy(i) = S0 / S_ycy(i);
+    S_frac_fcy(i) = S1 / S_ycy(i);
 end
+
 figure;
 surf(LAM, RATIO, S_tanh, 'EdgeColor','none')
 xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
-ylabel('$\ell_2 / \ell_1$', 'Interpreter','latex','FontSize',20)
+ylabel('$\ell_1 / \ell_2$', 'Interpreter','latex','FontSize',20)
 zlabel('$S/G_0$', 'Interpreter','latex','FontSize',20)
 colorbar
 view(45,30)
@@ -126,10 +396,67 @@ view(45,30)
 figure;
 surf(LAM, RATIO, S_ycy, 'EdgeColor','none')
 xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
-ylabel('$\ell_2 / \ell_1$', 'Interpreter','latex','FontSize',20)
+ylabel('$\ell_1 / \ell_2$', 'Interpreter','latex','FontSize',20)
 zlabel('$S/G_0$', 'Interpreter','latex','FontSize',20)
 colorbar
 view(45,30)
+
+% fractional contributions - dominance map
+figure;
+contourf(LAM, RATIO, S_frac_gtanh,20,'LineColor','none')
+xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
+ylabel('$\ell_1 / \ell_2$', 'Interpreter','latex','FontSize',20)
+cb = colorbar;
+ylabel(cb,'$S_g/S_{tanh}$','Interpreter','latex')
+set(gca,'FontSize',16,'TickLabelInterpreter','latex')
+% Overlay regime transition contours
+% hold on;
+% [~, h1] = contour(LAM, RATIO, S_frac_gtanh, [0.5 0.5], 'r', 'LineWidth', 2);
+% [~, h2] = contour(LAM, RATIO, S_frac_ntanh, [0.5 0.5], 'b--', 'LineWidth', 2);
+% [~, h3] = contour(LAM, RATIO, S_frac_ftanh, [0.5 0.5], 'k-.', 'LineWidth', 2);
+% %legend([h1(1) h2(1) h3(1)], {'Graded = 50%', 'Near-field = 50%', 'Far-field = 50%'}, ...
+% %    'Interpreter','latex', 'FontSize',12, 'Location','southwest');
+% hold off;
+
+
+figure;
+contourf(LAM, RATIO, S_frac_gcy,20,'LineColor','none')
+% xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
+% ylabel('$\ell_1 / \ell_2$', 'Interpreter','latex','FontSize',20)
+% cb = colorbar;
+% ylabel(cb,'$S_g/S_{cy}$','Interpreter','latex')
+% set(gca,'FontSize',16,'TickLabelInterpreter','latex')
+
+% Overlay regime transition contours
+% hold on;
+% [~, h1] = contour(LAM, RATIO, S_frac_gcy, [0.25,0.5, 0.5], 'r', 'LineWidth', 2);
+% [~, h2] = contour(LAM, RATIO, S_frac_ncy, [0.5 0.5], 'b--', 'LineWidth', 2);
+% [~, h3] = contour(LAM, RATIO, S_frac_fcy, [0.5 0.5], 'k-.', 'LineWidth', 2);
+%legend([h1(1) h2(1) h3(1)], {'Graded = 50%', 'Near-field = 50%', 'Far-field = 50%'}, ...
+%    'Interpreter','latex', 'FontSize',12, 'Location','southwest');
+xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
+ylabel('$\ell_1 / \ell_2$', 'Interpreter','latex','FontSize',20)
+cb = colorbar;
+ylabel(cb,'$S_g/S_{cy}$','Interpreter','latex')
+set(gca,'FontSize',16,'TickLabelInterpreter','latex')
+hold off;
+
+% figure;
+% contourf(LAM, L1GRID, S_frac_gtanh,20,'LineColor','none');
+% xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
+% ylabel('$\ell_1$', 'Interpreter','latex','FontSize',20)
+% cb = colorbar;
+% ylabel(cb,'$S_g/S_{tanh}$','Interpreter','latex')
+% set(gca,'FontSize',16,'TickLabelInterpreter','latex')
+% 
+% figure;
+% contourf(LAM, L1GRID, S_frac_gcy,20,'LineColor','none');
+% xlabel('$\Lambda$', 'Interpreter','latex','FontSize',20)
+% ylabel('$\ell_1$', 'Interpreter','latex','FontSize',20)
+% cb = colorbar;
+% ylabel(cb,'$S_g/S_{cy}$','Interpreter','latex')
+% set(gca,'FontSize',16,'TickLabelInterpreter','latex')
+
 
 %% option B
 l1_range = linspace(1.1,4,100);
@@ -141,7 +468,12 @@ valid = L2 > L1;
 L_ratio = L2 ./ L1;
 L_ratio(~valid) = NaN;
 
-
+figure;
+contourf(LAM, L1_range, S_frac_gcy, 20, 'LineColor', 'none');
+colorbar;
+xlabel('\Lambda', 'Interpreter', 'latex', 'FontSize', 14);
+ylabel('\ell_1', 'Interpreter', 'latex', 'FontSize', 14);
+title('Influence of Graded Region Location ($\ell_1$)', 'Interpreter', 'latex');
 
 
 %%
