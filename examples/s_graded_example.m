@@ -177,53 +177,6 @@ grid on; box on;
 fprintf('Regression slope = %.4f\n', slope_reg);
 
 %%
-% Parameters
-% G0 = 1;              % Shear modulus of near-field region
-% G1 = 2;              % Shear modulus of far-field region (could swap to G0 > G1 to test)
-
-Lambda_vals = linspace(1.2, 10, 200);   % Stretch range (Rmax/R0)
-l1_range = linspace(1.01, 10, 500);     % ℓ1 values to search for crossover
-crossover_l1 = NaN(size(Lambda_vals));  % Store result
-
-% Numerical integration tolerances
-AbsTol = 1e-8;
-RelTol = 1e-8;
-
-for i = 1:length(Lambda_vals)
-    Rst = Lambda_vals(i);
-    diffs = NaN(size(l1_range));
-    
-    for j = 1:length(l1_range)
-        l1 = l1_range(j);
-        
-        % Compute Lambda1 (stretch at l1)
-        Lambda1 = (1 + (Rst^3 - 1)/l1^3)^(1/3);
-
-        % Near-field stress integral (0 < r0 < l1)
-        S_near = (G0/2) * (1/Rst^4 + 4/Rst - (1/Lambda1^4 + 4/Lambda1));
-        
-        % Far-field stress integral (l1 < r0 < Rmax)
-        S_far = (G1/2) * (1/Lambda1^4 + 4/Lambda1 - 5);
-        
-        % Save absolute difference between them
-        diffs(j) = abs(S_near - S_far);
-    end
-    
-    % Find index where difference is minimized (i.e., crossover point)
-    [~, min_idx] = min(diffs);
-    crossover_l1(i) = l1_range(min_idx);  % ℓ1 where S_near ≈ S_far
-end
-
-% Plot
-figure;
-plot(Lambda_vals, crossover_l1, 'b-', 'LineWidth', 2)
-xlabel('$\Lambda$ (Stretch)', 'Interpreter','latex', 'FontSize', 18)
-ylabel('$\ell_1$ at crossover', 'Interpreter','latex', 'FontSize', 18)
-title('Crossover point: $S_{\mathrm{near}} = S_{\mathrm{far}}$', 'Interpreter','latex')
-grid on
-set(gca, 'FontSize', 14, 'TickLabelInterpreter','latex')
-
-%%
 
 % Precompute near/far field stress dominance
 S_near_dominates = false(length(l1_range), length(Lambda_vals));
@@ -305,19 +258,132 @@ S_total = S_near + S_far;
 imbalance_ratio = (S_near - S_far) ./ S_total;
 imbalance_ratio(~isfinite(imbalance_ratio)) = NaN;
 
+
 % Plotting the imbalance map
 figure;
 contourf(LambdaGrid, l1Grid, imbalance_ratio, 100, 'LineColor', 'none');
 hold on;
 contour(LambdaGrid, l1Grid, imbalance_ratio, [0 0], 'k', 'LineWidth', 2);  % Equal contribution curve
+clim([-50 50]);
 colorbar;
-colormap('turbo');
+colormap(turbo(200));
 xlabel('$\Lambda$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$\ell_1$', 'Interpreter', 'latex', 'FontSize', 18);
 title('Stress Imbalance Map: $(S_{\mathrm{near}} - S_{\mathrm{far}})/S_{\mathrm{total}}$', ...
     'Interpreter', 'latex', 'FontSize', 16);
 set(gca, 'FontSize', 14, 'TickLabelInterpreter', 'latex');
 
+%% material contrast sensitivity map
+% Parameters
+Lambda_vals = linspace(1.1, 10, 100);    % Rmax/R0 (Λ)
+ell1_vals   = linspace(1.001, 10, 300);  % Dimensionless l1
+%G_ratios    = [0.01, 0.1, 0.5, 1, 2, 5, 10, 100];  % G1/G0 values
+G_ratios = 1;
+
+% Preallocate
+L1_crossover = NaN(size(G_ratios));
+all_crossovers = NaN(length(G_ratios), length(Lambda_vals));
+
+figure; hold on;
+colors = lines(length(G_ratios));
+
+for k = 1:length(G_ratios)
+    G0 = 1;
+    G1 = G_ratios(k) * G0;
+    
+    crossover_l1 = NaN(size(Lambda_vals));
+    
+    for j = 1:length(Lambda_vals)
+        Lambda = Lambda_vals(j);
+        ell1 = ell1_vals;
+        
+        %Lambda1 = nthroot(1 + (Lambda^3 - 1) ./ ell1.^3, 3);
+        Lambda1 = ell1 / Lambda; %linear approx
+        
+        S_near = (G0/2) * (1/Lambda^4 + 4/Lambda - (1./Lambda1.^4 + 4./Lambda1));
+        S_far  = (G1/2) * (1./Lambda1.^4 + 4./Lambda1 - 5);
+        S_total = S_near + S_far;
+        
+        % Fractional contributions
+        S_frac_near = S_near ./ S_total;
+        S_frac_far = S_far ./ S_total;
+        
+        % Find crossover point (where fractions ~ equal)
+        [~, idx_eq] = min(abs(S_frac_near - S_frac_far));
+        crossover_l1(j) = ell1(idx_eq);
+    end
+    
+    % Store and plot
+    all_crossovers(k, :) = crossover_l1;
+    plot(Lambda_vals, crossover_l1, 'LineWidth', 2, 'Color', colors(k,:), ...
+        'DisplayName', ['G_1/G_0 = ' num2str(G_ratios(k))]);
+    plot(Lambda_vals,Lambda_vals, 'r--','LineWidth',2)
+end
+
+xlabel('$\Lambda = R_{\mathrm{max}} / R_0$', 'Interpreter', 'latex', 'FontSize', 18);
+ylabel('$\ell_1^{\mathrm{crossover}}$', 'Interpreter', 'latex', 'FontSize', 18);
+title('Crossover $\ell_1$ vs $\Lambda$ for Varying Material Contrast', 'Interpreter', 'latex');
+legend('Location', 'northwestoutside');
+grid on; box on;
+set(gca, 'FontSize', 14, 'TickLabelInterpreter', 'latex');
+
+p = polyfit(Lambda_vals, crossover_l1, 1);  % 1 = linear fit
+slope_reg = p(1);  % slope of the fitted line
+intercept_reg = p(2);
+% Plot the data and the regression line
+figure;
+plot(Lambda_vals, crossover_l1, 'bo', 'MarkerSize', 6, 'DisplayName', 'Data'); hold on;
+plot(Lambda_vals, polyval(p, Lambda_vals), 'r-', 'LineWidth', 2, 'DisplayName', 'Linear fit');
+xlabel('$\Lambda$', 'Interpreter','latex', 'FontSize', 16);
+ylabel('$\ell_1$ crossover', 'Interpreter','latex', 'FontSize', 16);
+title('Linear regression of crossover length vs Lambda', 'Interpreter','latex');
+legend('Location', 'best');
+grid on; box on;
+fprintf('Regression slope = %.4f\n', slope_reg);
+
+%% stress field profile - 2composite
+% Parameters
+Lambda = 3;         % Outer boundary stretch (R_max/R_0)
+G0 = 1;             % Inner modulus
+G1 = 5;             % Outer modulus
+ell1 = 1.1;           % Interface location in real space (dimensionless l1)
+
+% Compute the switch point in stretch space
+Lambda1 = nthroot(1 + (Lambda^3 - 1)/ell1^3, 3);
+
+% Lambda grid
+lambda_vals = linspace(1, Lambda, 500);
+S_field = zeros(size(lambda_vals));
+
+% Compute the stress field with modulus jump at Lambda1 (where switch happens)
+for i = 1:length(lambda_vals)
+    lam = lambda_vals(i);
+    if lam <= Lambda1
+        G = G0;
+    else
+        G = G1;
+    end
+    S_field(i) = (G/2) * (lam^-4 + 4*lam^-1 - 5); % instantaneous value of stress at each point
+    S_near = (G0/2) * (1/Lambda^4 + 4/Lambda - (1/Lambda1.^4 + 4/Lambda1));
+    S_far = (G1/2) * (1/Lambda1.^4 + 4/Lambda1 -5);
+    S_total = S_near + S_far;
+    S_frac_near = S_near ./ S_total;
+    S_frac_far = S_far ./ S_total;
+end
+
+% Plot
+figure;
+plot(lambda_vals, S_field, 'k', 'LineWidth', 2); hold on;
+xline(Lambda1, 'r--', 'LineWidth', 2, 'DisplayName', '$\ell_1$ interface');
+
+xlabel('$\lambda = r/R_0$', 'Interpreter','latex', 'FontSize', 18);
+ylabel('$S^{e}(\lambda)$', 'Interpreter','latex', 'FontSize', 18);
+title('Radial Stress Field with Modulus Jump at $\ell_1$', 'Interpreter','latex');
+legend('Location', 'best', 'Interpreter', 'latex');
+grid on; box on;
+set(gca, 'FontSize', 14, 'TickLabelInterpreter', 'latex');
+
+%%
 
 %% 3d plots: Se vs l1/l2 vs Rst
 % option A: graded width / extent of mat transition
