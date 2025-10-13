@@ -60,8 +60,8 @@ elseif gfun == 2
     %gdot_tanh = @(x) (1/Ca1 - 1/Ca).* .5 .* sech(a*(2*(f_tanh(x) -1))).^2; % did not account for ((1./x.^5) + (1./x.^2))
     gdot_handle = @(x) (1/Ca + (1/Ca1 - 1/Ca)*(1/2)*(1+tanh(v_a.*2.*f_tanh(x)-v_a))) .* (-5./x.^6 - 2./x.^3) .* (Rst.^2 .* Rstdot .* chi.^3);
 % 1+ tanh(2b((x-l)/(l2-l1)))
-elseif gfun == 3
-    f_tanh = @(x) 1 + tanh((chi.* 0.5 .*(l1+l2).^2) ./ (l2-l1));
+% elseif gfun == 3
+%     f_tanh = @(x) 1 + tanh((chi.* 0.5 .*(l1+l2).^2) ./ (l2-l1));
 end
 
 % no stress
@@ -74,31 +74,44 @@ elseif stress == 1
     Sv = - 4/Re8*Rdot/R - 6*intfnu*iDRe;
     
     Se1 = (1/(2*Ca))*(1/(Rst.^4) + 4/Rst - (1./x1.^4 + 4./x1));
-    if x1 == x2 % fix OR do not start at R=Req OR Rst == 1
-        Se2 = 0;
+    if gfun == 4
+        % bicomposite material with G0 and G1 and jump transition at l1
+        Se3 = -(1/(2*Ca1))*(5 - 4./x1 - 1./x1.^4);
+        S = Sv + Se1 + Se3;
     else
-         Se2 = 2*integral(@(x) g_handle(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
+        if abs(x2 - x1) < 1e-10 % fix OR do not start at R=Req OR Rst == 1 OR x1 == x2
+            Se2 = 0;
+        else
+            Se2 = 2*integral(@(x) g_handle(x),x1,x2,'RelTol',reltol,'AbsTol',abstol);
+        end
+        Se3 = -(1/(2*Ca1))*(5 - 4./x2 - 1./x2.^4);
+
+        S = Sv + Se1 + Se2 + Se3;
     end
-    Se3 = -(1/(2*Ca1))*(5 - 4./x2 - 1./x2.^4);
-    
-    S = Sv + Se1 + Se2 + Se3;
     Sdot = 0;
     
     if radial > 1
         Svdot = 4/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
         Se1dot = (2/Ca)*(x1dot./x1.^2 + x1dot./x1.^5 - ...
             Rstdot./Rst.^2 - Rstdot./Rst^.5);
-        if abs(x2 - x2) < 1e-10
-            Se2dot = 0;
-        else             
-            Se2dot = (2/Ca1)*(x2dot./x2.^5 + x2dot./x2.^2) -...
-                  (2/Ca)*(x1dot./x1.^5 + x1dot./x1.^2) + ...
-                  2*(g_handle(x2)*x2dot - g_handle(x1)*x1dot + ...
-                  integral(@(x) gdot_handle(x),x1,x2,'RelTol',reltol,'AbsTol',abstol));
+        if gfun == 4
+            % bicomposite material with G0 and G1 and jump transition at l1
+            Se3dot = -(2/Ca1)*(x1dot./x1.^5 + x1dot./x1.^2);
+            Sdot = Se1dot + Se3dot + Svdot;
+        else
+            if abs(x1 - x2) < 1e-10
+                Se2dot = 0;
+            else
+                Se2dot = (2/Ca1)*(x2dot./x2.^5 + x2dot./x2.^2) -...
+                    (2/Ca)*(x1dot./x1.^5 + x1dot./x1.^2) + ...
+                    2*(g_handle(x2)*x2dot - g_handle(x1)*x1dot + ...
+                    integral(@(x) gdot_handle(x),x1,x2,'RelTol',reltol,'AbsTol',abstol));
+            end
+            Se3dot = -(2/Ca1)*(x2dot./x2.^5 + x2dot./x2.^2);
+            Sedot = Se1dot + Se2dot + Se3dot;
+            Sdot = Sedot + Svdot;
         end
-        Se3dot = -(2/Ca1)*(x2dot./x2.^5 + x2dot./x2.^2);
-        Sedot = Se1dot + Se2dot + Se3dot;
-        Sdot = Sedot + Svdot;
+
     end
     
 else
