@@ -8,21 +8,21 @@ addpath('src/forward_solver/');
 kappa = 1.4;
 T8 = 298.15;
 rho8 = 1064;
-mu = 5E-2;
-lambda1 = 1e-7;
+mu = 0; %5E-2;
+lambda1 = 0; %1e-7;
 lambda2 = 0;
-alphax = 1e-3;
+alphax = 0; %1e-3;
 Pref = 101325;
 
 R0 = 100e-6;
 Req = R0/8; 
 tfin = 75E-6;
 %tfin = 1.25*R0*sqrt(rho8/Pref);
-tvector = linspace(0,tfin,1000);
+tvector = linspace(0,tfin,2000);
 
 collapse = 0;
-radial = 1;
-vapor = 1;
+radial = 2;
+vapor = 0;
 bubtherm = 0;
 medtherm = 0;
 masstrans = 0;
@@ -33,9 +33,10 @@ graded = 1;
 v_nc = 0.3; 
 v_a = 2;
 l1 = 1.2; 
-l2 = 2.2;
+l2 = 10;
 G0 = 1E3;
 G1 = 10E3;
+gfun = 4;
 
 varin = {'progdisplay',0,...
     'radial',radial,...
@@ -55,6 +56,7 @@ varin = {'progdisplay',0,...
     'l2',l2,...
     'v_a',v_a,...
     'v_nc',v_nc,...
+    'gfun',gfun,...
     'lambda1',lambda1,...
     'lambda2',lambda2,...
     'alphax',alphax,...
@@ -77,7 +79,7 @@ Ca = Pref/G0;
 Ca1 = Pref/G1;
 
 %%
-addpath('./src/characterization/')
+addpath('../characterization/')
 tg_Rexplicit = f_tcol_calc_graded(stress,Req/R0,R,R0/R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8)
 tg = f_tg_calc(stress,Req/R0,R0/R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8)
 

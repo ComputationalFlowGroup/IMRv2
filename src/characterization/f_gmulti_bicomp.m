@@ -1,5 +1,5 @@
 %% bicomposite multirun
-function [data] = f_gmulti_bicomp(n,R_min,R_max,Lambda_min,Lambda_max,G0,G1,l1)
+function [data,Rdata] = f_gmulti_bicomp(n,R_min,R_max,Lambda_min,Lambda_max,G0,G1,l1)
 
 format long;
 % preallocate output
@@ -93,18 +93,20 @@ for i = 1:length(Rmax_vals)
     
     % generate R v t data
     [t,R,~] = f_imr_fd(varin{:},'Nt',16,'Mt',64);
-    [~,idx_minR] = min(R);
+    % [~,idx_minR] = min(R);
     Rdata{i} = R;
-    % need to dimensionalize time
-    tchar = sqrt(rho8/Pref)*R0;
-    tc = t(idx_minR)*tchar;
+    % % need to dimensionalize time
+    % tchar = sqrt(rho8/Pref)*R0;
+    % tc = t(idx_minR)*tchar;
+    [~,idx_minR] = min(R);
+    tc = t(idx_minR);
     data(i,:) = [Rmax_vals(i), Lambdamax_vals(i), tc];
     counter = counter + 1;
     
 end
 % save the output
 save('bicomp_sim_data.mat');
-%save('Rdata.mat','Rdata');
+save('R_bicomp_sim_data.mat');
 % Outputs
 % nX = size(data,1);   % # of experiments
 % RX = data(:,1);      % All Rmax

@@ -1,5 +1,6 @@
 %% modified collapse time for bicomposite 
 %function [tg] = f_bicomp_tc(Req,R,R0,G0,G1,l1,Pref)
+% purely model purposes: run s_run_graded or peescribe R = linspace(R0/R0,Req/R0,N)
 function [tg] = f_bicomp_tc(Req,R,G0,G1,l1,Pref,rho8)
     Ca = G0/Pref; Ca1 = G1/Pref;
     dtg_vals = zeros(1,length(R));
