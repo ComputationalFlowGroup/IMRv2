@@ -31,7 +31,7 @@ function t1approx_vals = f_fit_gNH(G0_guess,G1_guess,l1_guess,l2_guess,va_guess,
     
     reltol = 1e-1;
     abstol = 1e-1;
-    t1approx_vals = zeros(1:nX);
+    t1approx_vals = zeros(1,nX);
     for i = 1:nX
         Req_i = RX(i)./LX(i);
         el1 = l1_guess ./ Req_i;

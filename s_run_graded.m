@@ -21,7 +21,7 @@ tfin = 75E-6;
 tvector = linspace(0,tfin,2000);
 
 collapse = 0;
-radial = 2;
+radial = 1;
 vapor = 0;
 bubtherm = 0;
 medtherm = 0;
@@ -32,7 +32,7 @@ stress = 1;
 graded = 1;
 v_nc = 0.3; 
 v_a = 2;
-l1 = 1.2; 
+l1 = 1.1; 
 l2 = 10;
 G0 = 1E3;
 G1 = 10E3;
@@ -77,6 +77,38 @@ hold off;
 Pref=101325;
 Ca = Pref/G0;
 Ca1 = Pref/G1;
+
+%% stress field profile - 2composite
+% Parameters
+Lambda = R0/Req;         % Outer boundary stretch (R_max/R_0)
+
+% Compute the switch point in stretch space
+Lambda1 = nthroot(l1^3 + Lambda^3 - 1, 3);
+
+% Lambda grid
+lambda_vals = linspace(1, Lambda, 500);
+S_field = zeros(size(lambda_vals));
+
+% Compute the stress field with modulus jump at Lambda1 (where switch happens)
+S_near = (G0/2) .* (1./Lambda^4 + 4./Lambda - (1./Lambda1.^4 + 4./Lambda1));
+S_far = (G1/2) .* (1/Lambda1.^4 + 4./Lambda1 -5);
+S_field = S_near + S_far;
+S_G0 = (G0/2) .* (lam.^(-4) + 4*lam.^(-1) - 5);
+S_G1 = (G1/2) .* (lam.^(-4) + 4*lam.^(-1) - 5);
+
+% Plot
+figure;
+plot(lambda_vals, S_field, '--g', 'LineWidth', 2);
+%xline(Lambda1, 'r--', 'LineWidth', 2, 'DisplayName', '$\ell_1$ interface');
+hold on;
+plot(lambda_vals,S_G1,'r','LineWidth',2);
+plot(lambda_vals,S_G0,'k','LineWidth',2);
+xlabel('$\lambda = r/R_0$', 'Interpreter','latex', 'FontSize', 18);
+ylabel('$S^{e}(\lambda)$', 'Interpreter','latex', 'FontSize', 18);
+grid on; box on;
+set(gca, 'FontSize', 14, 'TickLabelInterpreter', 'latex');
+
+
 
 %%
 addpath('../characterization/')

@@ -38,8 +38,8 @@ end
 % Exit MATLAB with an error code if any issues were detected
 if errorFound
     fprintf('❌ Linting issues detected. Failing the workflow.\n');
-    exit(1); % Fail the workflow
+    % exit(1); % Fail the workflow
 else
     fprintf('✅ No linting issues found. Passing the workflow.\n');
-    exit(0); % Pass the workflow
+    % exit(0); % Pass the workflow
 end

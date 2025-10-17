@@ -16,10 +16,14 @@ function [tg] = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rh
         Rst = 1./Rs; %Lambda
         Rmt = R0/Req; %Lambda_m
         
-        x1 = (1 + ((Rst.^3 -1)./l1^3)).^(1/3); %Lambda_1
-        x2 = (1 + ((Rst.^3 -1)./l2^3)).^(1/3); %Lambda_2
-        xm1 = (1 + ((Rmt^3 -1)/l1^3))^(1/3); %Lambda_m1
-        xm2 = (1 + ((Rmt^3 -1)/l2^3))^(1/3); %Lambda_m2
+        % x1 = (1 + ((Rst.^3 -1)./l1^3)).^(1/3); %Lambda_1
+        % x2 = (1 + ((Rst.^3 -1)./l2^3)).^(1/3); %Lambda_2
+        % xm1 = (1 + ((Rmt^3 -1)/l1^3))^(1/3); %Lambda_m1
+        % xm2 = (1 + ((Rmt^3 -1)/l2^3))^(1/3); %Lambda_m2
+        x1 = nthroot(1 + ((Rst.^3 -1)./l1^3),3); %Lambda_1
+        x2 = nthroot(1 + ((Rst.^3 -1)./l2^3),3); %Lambda_2
+        xm1 = nthroot(1 + ((Rmt^3 -1)/l1^3),3); %Lambda_m1
+        xm2 = nthroot(1 + ((Rmt^3 -1)/l2^3),3); %Lambda_m2
         
         f_cy = @(x) ( l2.*(((x.^3 - 1)./(Rst.^3 - 1)).^(1/3)) - 1 ) ./ ( 1 - l1.*((x.^3 - 1)./(Rst.^3 - 1)).^(1/3));
         m = @(x) (1 + f_cy(x).^v_a).^((v_nc-1)/v_a);
@@ -41,8 +45,13 @@ function [tg] = f_tcol_calc_graded(stress,Req,R,R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rh
             Eem_vals(i) = Eem;
             Ee_vals(i) = Ee;
             
-            dtg_sq = 2/3.*(Pref/rho8).*(Rm.^3 -1) + 2*(Rm.^3 - Rs.^3).*Eem./rho8 - 2*(1 - Rs.^3).*Ee./rho8;
+            %dtg_sq = 2/3.*(Pref/rho8).*(Rm.^3 -1) + 2*(Rm.^3 - Rs.^3).*Eem./rho8 - 2*(1 - Rs.^3).*Ee./rho8;
             %fprintf('i=%d, R =%.5e, dtg_sq=%.5e\n', i , Rnow, dtg_sq);
+            term1 = 2/3.*(Pref/rho8).*(Rm.^3 -1);
+            term2 = 2*(Rm.^3 - Rs.^3).*Eem./rho8;
+            term3 = 2*(1 - Rs.^3).*Ee./rho8;
+            terms = term1 + term2;
+            dtg_sq = terms - term3;
             dtg_vals(i) = -1/sqrt(dtg_sq);
         end
     end

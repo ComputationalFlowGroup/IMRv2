@@ -23,10 +23,12 @@ chi = r0/Req;
 Rst = R/Req;
 Rstdot = Rdot/Req;
 
-x1 = (1 + (Rst.^3 - 1)./(l1^3))^(1/3);
-x2 = (1 + (Rst.^3 - 1)./(l2^3))^(1/3);
-x1dot = Rstdot*Rst.^2 ./ (l1*x1^2);
-x2dot = Rstdot*Rst.^2 ./ (l2*x2^2);
+x1 = (1 + (Rst.^3 - 1)./(l1^3))^(1/3);% .* l1;
+x2 = (1 + (Rst.^3 - 1)./(l2^3))^(1/3);% .* l2;
+x1dot = Rstdot*Rst.^2 ./ (x1^2);
+x2dot = Rstdot*Rst.^2 ./ (x2^2);
+%x1dot = x1.^(-2/3) .* Rst.^2 .* Rstdot;
+%x2dot = x2.^(-2/3) .* Rst.^2 .* Rstdot;
 
 % C-Y form
 if gfun == 1

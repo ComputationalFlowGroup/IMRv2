@@ -3,7 +3,7 @@
     function [tc_pimr] = f_pimr_bicomp(G0,G1,l1,Pref,data_fit)
     % Unwrap input
     nX = length(data_fit(:,1));
-    RX = data_fit(:,1);     % Not used, but let's keep for debugging
+    %RX = data_fit(:,1);     % Not used, but let's keep for debugging
     LX = data_fit(:,2);
     f_Ma = data_fit(:,3);
     f_We = data_fit(:,4);
@@ -12,25 +12,29 @@
 
     reltol = 1e-8;
     abstol = 1e-8;
-    Ca = G0/Pref;
-    Ca1 = G1/Pref;
+    Ca = Pref/G0;
+    Ca1 = Pref/G1;
     tc_pimr = zeros(1,nX);
     for i = 1:nX
-        Req_i = RX(i)./LX(i);
         %el1 = l1 ./ Req_i;
         el1 = l1;
         % let x be R
-        Rst = @(x) x./Req_i;
-        %Rst = @(x) x * LX(i); %./ (Req_i / RX(i));
-        x1 = @(x) (1 + (Rst(x).^3 - 1)./(el1.^3)).^(1/3);
+        %Rst = @(x) x./Req_i;
+        %Rst = @(x) (x * RX(i)) ./ Req_i; %LX(i); %./ (Req_i / RX(i));
+        %R = @(x) x.*RX(i); Rst = @(x) R(x)./Req_i;
+        lam = @(x) x.*LX(i);
+        x1 = @(x) (el1.^3+lam(x).^3-1).^(1/3);%(1 + (lam(x).^3 - 1)./(el1.^3)).^(1/3);
 
         %neo-Hookean elasticity
-        Se0 = @(x) (1/(2*Ca)).*(Req_i.^4 ./ x.^4  +  4.*Req_i ./ x  -  1./x1(x).^4  -  4./x1(x));
-        Se1 = @(x) -(1/(2*Ca1)).*(5 - 4./x1(x) - 1./x1(x).^4);
-        Se = @(x) Se0(x) + Se1(x);
+        Se0 = @(x) (1/(2*Ca)).*( 4./ lam(x) - 1./x1(x).^4 -  4./x1(x));
 
+        % Se0 = @(x) (1/(2*Ca)).*(1./ lam(x).^4  +  4./ lam(x)  -  1./x1(x).^4  -  4./x1(x));
+        %Se0 = @(x) (1/(2*Ca)).*(1 ./ x.^4  +  4./ x  -  1./x1(x).^4  -  4./x1(x));
+        Se1 = @(x) -(1/(2*Ca1)).*(5 - 4./x1(x)); % - 1./x1(x).^4);
+        Se = @(x) Se0(x) + Se1(x);
+        %Se  = @(x) -(1/(2*Ca)).*(5 - 4./lam(x));% -1./lam(x).^4);
         % compute \bar{f}_gradedelastic^*
-        feg_int = @(x) -1./((2/3)*(1./x.^3 - 1)).^0.5; % SINGULARITY AT X=1
+        feg_int = @(x) -1.*((2/3)*(1./x.^3 - 1)).^(-0.5); % SINGULARITY AT X=1
         eps = 1e-7;
         f_eg = -1/trc * integral(@(x) Se(x).*feg_int(x),eps,1-eps,'RelTol',reltol,'AbsTol',abstol);
         % f_eg = 1/trc * integral(@(x) Se(x).*feg_int(x),1,0,'RelTol',reltol,'AbsTol',abstol);

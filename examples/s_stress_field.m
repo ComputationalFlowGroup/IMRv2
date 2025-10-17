@@ -1,4 +1,5 @@
 % function f_stress_field(R,t)
+addpath('./examples/')
 clc;
 %tickrange = ceil(min(t)) : floor(max(t));
 tickrange = linspace(ceil(min(t)),floor(max(t)),8);

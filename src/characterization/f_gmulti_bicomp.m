@@ -53,7 +53,7 @@ for i = 1:length(Rmax_vals)
     
     collapse = 0;
     radial = 2;
-    vapor = 0;
+    vapor = 1;
     bubtherm = 0;
     medtherm = 0;
     masstrans = 0;

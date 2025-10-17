@@ -43,7 +43,7 @@ xline(l2/R0,'b--','LineWidth',2);
 %plot(l2/R0,m_l2,'b--')
 hold off;
 
-
+% effect of b in y_tanh
 r0_tanh = linspace(l1,l2,500);
 b = 0.5 *(l1+l2) / R0;
 %f_tanh = (r0 - (l1+l2)/2) / (l2-l1);
@@ -89,7 +89,7 @@ xa.LineWidth = 1.5;
 box on;
 hold off;
 
-%% G(r_0) for different values of a and n
+% effect of n and a in y_cy
 graded = 1;
 v_nc = 0.3; 
 v_a = 2;

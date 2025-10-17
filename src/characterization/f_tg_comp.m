@@ -1,7 +1,7 @@
 % call f_tcol_calc_graded given each Rmax, Lambdamax val
-close all;
-clear;
-clc;
+% close all;
+% clear;
+% clc;
 
 % input synthetic experiments
 infile = 'data.mat';   % Name of file to read
@@ -11,28 +11,49 @@ load(infile2);
 
 % read synthetic experiment data
 nX = size(data,1);   % # of experiments
-RX = data(:,1);      % All Rmax
-LX = data(:,2);      % All amplification Lmax
-T1X = data(:,3);     % All collapse time tc [approx tg]
+RX = data(:,1);      % All Rmax (dim)
+LX = data(:,2);      % All amplification Lmax - NONDIM??
+T1X = data(:,3);     % All collapse time tc [approx tg] (dim)
 
 % EXAMPLE DATA - TO MATCH SYNTHETIC DATA
-stress = 1;
-G0 = 1E3;
-G1 = 1E4;
-l1 = 1.2e-4;
-l2 = 1.8e-4;
-v_a = 2;
-v_nc = 0.3;
-rho8 = 1064;
-Pref = 101325;
+% stress = 1;
+% G0 = 1E3;
+% G1 = 1E4;
+% l1 = 1.2e-4;
+% l2 = 1.8e-4;
+% v_a = 2;
+% v_nc = 0.3;
+% rho8 = 1064;
+% Pref = 101325;
+%%
 format long;
 
 % nondimensionalize approx collapse time
 tc_all = f_tc_nondim(nX,RX,T1X,rho8,Pref);
-
+%%
 % generate tg from energy balance based on {Rmax, Lambdamax} [exact tg]
-tg_all = f_tg_generate(nX,RX,LX,Rdata,stress,G0,G1,l1,l2,v_a,v_nc,rho8,Pref);
-
+%tg_all = f_tg_generate(nX,RX,LX,stress,G0,G1,l1,l2,v_a,v_nc,rho8,Pref);
+ARC = 1/( sqrt(pi/6)*gamma(5/6)/gamma(4/3) ); % ~= 1/0.9147 = 1/trc
+p_inf = Pref;
+pbar = Pref;
+rho = 998.2;            % (kg/m^3) Density of characterized material
+uc = sqrt(pbar/rho);
+% tRC = (RX/uc)/ARC;
+% T1_ND = T1X./tRC; %nondim
+tRC = (RX/uc);
+T1_ND = T1X ./ tRC;
+tc_all = T1_ND;
+tg_all = zeros(size(tc_all));
+%nd_R0 = 1; %?
+%%
+nd_R0 = 1./LX;
+for i = 1:length(tc_all)
+    Req_i = 1/LX(i);
+    nd_R0_i = nd_R0(i);
+    tg_all(i) = f_tg_calc(stress,Req_i,nd_R0,Ca,Ca1,Pref,l1,l2,v_a,v_nc,rho8);
+end
+%tg_all = tg_all .* ARC;
+%%
 % compare approx and exact tg
 % 1. scatter plot of collapse time vs Rmax for
 figure;
@@ -83,9 +104,8 @@ function tg_all = f_tg_generate(nX,RX,LX,stress,G0,G1,l1,l2,v_a,v_nc,rho8,Pref)
     for i = 1:nX
         % WAIT IS THIS DIMENSIONAL? because f_tcol takes in and outputs NONDIM
         % Req_dim_i = RX(i) / LX(i); %dim
-        % Req_i = Req_dim_i / RX(i);
+        % Req_i = Req_dim_i / RX(i); % nondim
         Req_i = 1/LX(i); %Req/R0
-        %R_i = Rdata{i}; %nondim already
         % nondim RX
         nd_R0 = RX(i) / RX(i);
         % dim Req

@@ -38,6 +38,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
         double den = 1.0 - l1 * common;
         double f = num / den;
 
+        // Handle NaN in f
+        if (isnan(f)) {
+           f = 0.0;
+       }
+
         // Compute g(x)
         double term1 = 1.0/Ca;
         double term2a = (1.0/Ca1 - 1.0/Ca);
@@ -54,6 +59,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
         double fdnum = pow(xi3m1, 1.0/3.0);
         double fdden = pow(Rst3m1, 4.0/3.0) * den * den;
         double fd = fdnum * Rstdot * Rst2 * (l1 - l2) / fdden;
+
+        // Handle NaN in fd
+            if (isnan(fd)) {
+                fd = Rstdot * Rst2 * (l1-l2);
+            }
        
         // Compute gdot(x)
         double gdot = term2a * gx * v_ncm1 * pow(1 + pow(f, v_a), (v_ncm1 - v_a)/v_a) * pow(f,v_a-1) * fd;
