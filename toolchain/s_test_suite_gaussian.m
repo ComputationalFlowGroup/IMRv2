@@ -1,5 +1,6 @@
-% file s_test_suite_equilibrium.m
-% brief contains script to test for equilibrium conditions
+% file s_test_suite_gaussian.m
+% brief contains script to test for equilibrium conditions from a Gaussian
+% pressure impulse
 
 % brief This script runs both the finite difference and spectral codes to
 % test that initial equilibrium conditions are satisfied
