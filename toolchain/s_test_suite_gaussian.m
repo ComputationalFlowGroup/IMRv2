@@ -60,7 +60,6 @@ for radial = 1:4
                         'tw',tw,...
                         'pA',pA};
                     [ttest,Rf_test] = f_imr_fd(varin{:},'Nt',50,'Mt',50);
-                    plot(ttest,Rf_test)
                     errors_fd(count) = abs(1-Rf_test(end));
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                     [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);

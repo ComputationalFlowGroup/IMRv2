@@ -68,10 +68,4 @@ function [p8,p8dot] = f_pinfinity(t,vararg)
         pdot = 0;
     end
     
-    % gaussian waveform
-    function [p,pdot] = gaussian(t)
-        p = 1 - ee * exp(-((t-dt)^2) / tw^2);
-        pdot = ee * (2*(t-dt)/tw^2) * exp(-((t-dt)^2) / tw^2);
-    end
-    
 end
