@@ -86,85 +86,66 @@ for j = 1:length(G1G0_vals)
 end
 sgtitle('Critical Stretch: Where ∂S/∂Λ = 0');
 %saveas(gcf,'./crit1_stretch_Sbi','png')
-%%
-% critical stretch: where deriv with ell1=0
-G1G0_vals = [0.01, 0.1, 0.5, 1.0, 5, 10];
+%% dry version of code above for dS/dLambda, dS/dell1, and dS/dalpha
+G1G0_vals_sets = {
+    [0.01, 0.1, 0.5, 1.0, 5, 10], ... % for dS/dLambda
+    [0.01, 0.1, 0.5, 1.0, 5, 10], ...      % for dS/dell1
+    [0.01, 0.1, 0.5, 1.0, 5, 10]           % for dS/dalpha
+};
+ell1_vals = logspace(0, 1, 20); % 1 to 10
+Lambda_range = linspace(0.1, 10, 100);
 
-Lambda_crit_ell1 = zeros(length(ell1_vals),length(G1G0_vals));
-for j = 1:length(G1G0_vals)
-    subplot(3, 3, j);
-    hold on;
+% Function handles for derivatives
+deriv_funcs = {dS_dLambda_func, dS_dell1_func, dS_dG1G0_func};
+titles = {
+    'Critical Stretch: Where \partialS/\partial\Lambda = 0', ...
+    'Critical Stretch: Where \partialS/\partial\ell_1 = 0', ...
+    'Critical Stretch: Where \partialS/\partial\alpha = 0'
+};
+
+%%Plotting loop
+for k = 1:3
+    G1G0_vals = G1G0_vals_sets{k};
+    Lambda_crit = zeros(length(ell1_vals), length(G1G0_vals));
     
-    for i = 1:length(ell1_vals)
-        % Evaluate derivative across ell1 range
-        dS_vals = arrayfun(@(L) dS_dell1_func(G0, G1G0_vals(j), L, ell1_vals(i)), Lambda_range);
+    figure('Position', [100, 100, 1200, 800]);
+    
+    for j = 1:length(G1G0_vals)
+        subplot(3, 3, j); hold on;
         
-        % Find zero crossings
-        zero_crossings = find(diff(sign(dS_vals)));
-        
-        if ~isempty(zero_crossings)
-            for zc = zero_crossings'
-                % Refine with fzero
-                try
-                    L_crit_ell1 = fzero(@(L) dS_dell1_func(G0, G1G0_vals(j), L, ell1_vals(i)), ...
-                                   [Lambda_range(zc), Lambda_range(zc+1)]);
-                    Lambda_crit_ell1(i, j) = L_crit_ell1;
-                    plot(ell1_vals(i), L_crit_ell1, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
-                catch
-                    Lambda_crit_ell1(i, j) = NaN;
+        for i = 1:length(ell1_vals)
+            % Evaluate derivative across Lambda range
+            dS_vals = arrayfun(@(L) deriv_funcs{k}(G0, G1G0_vals(j), L, ell1_vals(i)), Lambda_range);
+            
+            % Find zero crossings
+            zero_crossings = find(diff(sign(dS_vals)));
+            
+            if ~isempty(zero_crossings)
+                for zc = zero_crossings'
+                    try
+                        L_crit = fzero(@(L) deriv_funcs{k}(G0, G1G0_vals(j), L, ell1_vals(i)), ...
+                                       [Lambda_range(zc), Lambda_range(zc+1)]);
+                        Lambda_crit(i, j) = L_crit;
+                        plot(ell1_vals(i), L_crit, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+                    catch
+                        Lambda_crit(i, j) = NaN;
+                    end
                 end
+            else
+                Lambda_crit(i, j) = NaN;
             end
-        else
-            Lambda_crit_ell1(i, j) = NaN;
         end
+        
+        xlabel('$\ell_1$', 'Interpreter', 'latex');
+        ylabel('\Lambda_{critical}');
+        title(sprintf('G_1/G_0 = %.2f', G1G0_vals(j)));
+        grid on;
+        set(gca, 'XScale', 'log');
     end
     
-    xlabel('$\ell_1$','Interpreter','latex');
-    ylabel('\Lambda_{critical}');
-    title(sprintf('G_1/G_0 = %.2f', G1G0_vals(j)));
-    grid on;
-    set(gca, 'XScale', 'log');
+    sgtitle(titles{k});
 end
-sgtitle('Critical Stretch: Where ∂S/∂ell_1 = 0');
-%% critical stretch: where deriv with alpha=0
-G1G0_vals = [0.01, 0.1, 0.5, 1.0, 5, 10];
 
-Lambda_crit_alpha = zeros(length(ell1_vals),length(G1G0_vals));
-for j = 1:length(G1G0_vals)
-    subplot(3, 3, j);
-    hold on;
-    
-    for i = 1:length(ell1_vals)
-        % Evaluate derivative across ell1 range
-        dS_vals = arrayfun(@(L) dS_dG1G0_func(G0, G1G0_vals(j), L, ell1_vals(i)), Lambda_range);
-        
-        % Find zero crossings
-        zero_crossings = find(diff(sign(dS_vals)));
-        
-        if ~isempty(zero_crossings)
-            for zc = zero_crossings'
-                % Refine with fzero
-                try
-                    L_crit_alpha = fzero(@(L) dS_dG1G0_func(G0, G1G0_vals(j), L, ell1_vals(i)), ...
-                                   [Lambda_range(zc), Lambda_range(zc+1)]);
-                    Lambda_crit_alpha(i, j) = L_crit_alpha;
-                    plot(ell1_vals(i), L_crit_alpha, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
-                catch
-                    Lambda_crit_alpha(i, j) = NaN;
-                end
-            end
-        else
-            Lambda_crit_alpha(i, j) = NaN;
-        end
-    end
-    
-    xlabel('$\ell_1$','Interpreter','latex');
-    ylabel('\Lambda_{critical}');
-    title(sprintf('G_1/G_0 = %.2f', G1G0_vals(j)));
-    grid on;
-    set(gca, 'XScale', 'log');
-end
-sgtitle('Critical Stretch: Where ∂S/∂alpha = 0');
 
 %% CRITERION 2: Where does the sensitivity change most? (∂²S/∂Λ² = 0)
 fprintf('\n=== CRITERION 2: Inflection Points (∂²S/∂Λ² = 0) ===\n');
