@@ -27,6 +27,7 @@ function varargout = f_imr_fd(varargin)
     eps3            = eqns_opts(5);
     masstrans       = eqns_opts(6);
     perturbed       = eqns_opts(7);
+    pertmod         = eqns_opts(8);
     
     % solver options
     method          = solve_opts(1);
@@ -517,7 +518,7 @@ function varargout = f_imr_fd(varargin)
             % \ddot{\epsilon} + c1 \dot{\epsion} + c2 \epsilon = 0;
             Ca2 = Inf;
             [c1, c2] = f_compute_perturb_coeffs(R, Rdot, Rddot, n, ...
-                Req, We, Re8, Ca, Ca2, alphax);
+                Req, We, Re8, Ca, Ca2, alphax, pertmod);
             epddot = -c1.*epnmd - c2.*epnm;
             dXdt(ipertepnm) = epnmd;
             dXdt(ipertepdnm) = epddot;

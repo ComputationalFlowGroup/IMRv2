@@ -277,7 +277,7 @@ toc
 load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
 %%
 % load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized_newbds_fixedICs_new.mat")
-load("NSLIC_processed.mat")
+%load("NSLIC_processed.mat")
 
 exps =[3 5 9 11];
 
@@ -285,14 +285,14 @@ addpath ../../../cmap/
 
 cmap = parula(4); 
 
-alph_e = xsole(exps ,1);
-mu_e = xsole(exps ,2);
+%alph_e = xsole(exps ,1);
+%mu_e = xsole(exps ,2);
 
 figure
 countnew = length(alph_e);
 % ===== Left subplot (alph) =====
 subplot(1,2,1)
-edgesalph = logspace(1.1*log10(min(alph_e)), 0.9*log10(max(alph_e)), ceil(sqrt(countnew))+1);
+edgesalph = logspace(0.9*log10(min(alph_e)), 1.1*log10(max(alph_e)), ceil(sqrt(countnew))+1);
 histogram(alph_e, edgesalph, 'FaceColor', cmap(1,:), 'EdgeColor', 'k')
 hold on
 xline(mean(alph_e), '--k', 'LineWidth', 2)
@@ -310,11 +310,28 @@ xticksalph = logspace(log10(0.75*min(edgesalph)), log10(1.25*max(edgesalph)), 4)
 
 grid on
 xlim([10^(floor(log10(min(edgesalph)))) 10^(ceil(log10(max(edgesalph))))])
-ylim([0 4])
+ylim([0 8])
+ax.XMinorGrid = 'on'; 
+ax = gca; ax.XScale='log';
+xl = xlim(ax);
+pmin = floor(log10(xl(1))); pmax = ceil(log10(xl(2)));
+xt = 10.^(pmin:0.1:pmax);
+ax.XTick = xt;
+
+% label only the decade ticks, blank the rest
+isDecade = abs(log10(xt) - round(log10(xt))) < 1e-12;
+lbl = strings(size(xt));
+lbl(isDecade) = string(xt(isDecade));
+ax.XTickLabel = lbl;
+
+ax.XMinorGrid='off';  % not needed now
+ax.XGrid='on';
+ax.GridAlpha = 0.15;
+
 
 % ===== Right subplot (mu) =====
 subplot(1,2,2)
-edgesMu = logspace(0.9*log10(min(mu_e.*1e3)), 1.1*log10(max(mu_e.*1e3)), ceil(sqrt(countnew))+1);
+edgesMu = logspace(0.975*log10(min(mu_e.*1e3)), 1.025*log10(max(mu_e.*1e3)), ceil(sqrt(countnew))+1);
 histogram(mu_e.*1e3, edgesMu, 'FaceColor', cmap(3,:), 'EdgeColor', 'k')
 hold on
 xline(mean(mu_e).*1e3, '--k', 'LineWidth', 2)
@@ -327,14 +344,34 @@ set(gca, ...
     'YMinorTick', 'off')
 grid on
 xlim([10^(floor(log10(min(edgesMu)))) 10^(ceil(log10(max(edgesMu))))])
-ylim([0 4])
+ylim([0 8])
+ax.XMinorGrid = 'on'; 
+ax = gca; ax.XScale='log';
+xl = xlim(ax);
+pmin = floor(log10(xl(1))); pmax = ceil(log10(xl(2)));
+xt = linspace(10.^pmin, pmax, 10);
+ax.XTick = xt;
+
+% label only the decade ticks, blank the rest
+isDecade = abs(log10(xt) - round(log10(xt))) < 1e-12;
+lbl = strings(size(xt));
+lbl(isDecade) = string(xt(isDecade));
+ax.XTickLabel = lbl;
+
+ax.XMinorGrid='off';  % not needed now
+ax.XGrid='on';
+ax.GridAlpha = 0.15;
+
+set(gcf,'Units','normalized','OuterPosition',[0 0 0.625 0.625],'Renderer','painters');
+drawnow;
+exportgraphics(gcf,'LICsynth_hist1.eps','ContentType','image','Resolution',700,'BackgroundColor','white');
 
 
 %% Plot results
 clear all
 clc
 
- %load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized.mat")
+load("../../../Experimental_data/Processed_data/LIC/ns_Jin_polyacr_optimized.mat")
 %load("Synthetic_data\synthetic_data_NSLIC_extracted_params.mat")
 load("NSLIC_processed.mat")
 load("../../JINDATA.mat")
@@ -351,17 +388,24 @@ exps_modes{1} = [3 4 6 7 9 10 12 13];
 exps_modes{2} = [3 4 6 7 9];
 exps_modes{3} = [3 4 6 7 9 10 12];
 exps_modes{4} = [2 3];
+%%
+
+exps_modes{1} = [3 4 6 7 9 10 12 13];
+% exps_modes{2} = [3 4 6 7];
+% exps_modes{3} = [3 4 6 7 9];
+% exps_modes{4} = [2];
+
 % preallocate space for goodness of fit and extracted material properties
 %xsole = zeros(length(kindata), length(lb));
 %R2 = zeros(length(kindata),1);
 %close all
 tic
-for s = exps_extracted(3);%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
+for s = exps_extracted(3)%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
     % if R2(s) < 0.96
     %     continue
     % end
     s
- clear y_data x_data
+    clear y_data x_data
     %extract experiment data
     exp = kindata{s};
 
@@ -388,7 +432,7 @@ for s = exps_extracted(3);%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
     texp(isnan(R)) = [];
     epnm(isnan(R), :) = [];
     R(isnan(R)) = [];
-    
+
     n = exp.n; m = exp.m;
 
     % characteristic values
@@ -403,7 +447,7 @@ for s = exps_extracted(3);%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
     if size(R,1) == 1
         R = R';
     end
-    
+
 
     % finite difference stencils for computing perturbation initial
     % velcoty
@@ -453,7 +497,7 @@ for s = exps_extracted(3);%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
     R_nondim = R./Lc;
     % Find idx at collapse, only fit perturbations to collapse
     % if isequal(datatype, 'synthetic')
-        [~, idx_col] = min(R(t_nondim < 1));
+    [~, idx_col] = min(R(t_nondim < 1));
     % end
     %epnm(idx_col+1:end, :) = [];
 
@@ -469,7 +513,7 @@ for s = exps_extracted(3);%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
     % scaling factors
     aR = wR/sR;
     aEP = 1./sEP;
-    
+
     count = 0;
     idx = [];
 
@@ -501,12 +545,12 @@ for s = exps_extracted(3);%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
         R_nondim(R==0) = [];
     end
 
-%    [~, idx_col] = min(R(texp./tc < 1.25));
-    idx_col = size(epnm,1);
-    
-    
+    [~, idx_col] = min(R(texp./tc < 1.25));
+    %    idx_col = size(epnm,1);
 
-    % 
+
+
+    %
     % if count == 0
     %     continue
     % end
@@ -520,63 +564,66 @@ for s = exps_extracted(3);%[2 5 9]% 9 11]%exps_extracted%1:length(kindata)
     % sEP(idx) = [];
 
     [hasSpec, jSpec] = ismember(s, exps_extracted);
-if hasSpec
-    allowed_n = exps_modes{jSpec};
-else
-       for i = 1:length(n)
-        if ((sEP(i)/size(epnm,1) >= 1e-3) && i < 15 && n(i) > 1)
-            count = count + 1;
-            epnm(:,count) = epnm(:,i);
-        else
-            idx = [idx, i];
+    if hasSpec
+        allowed_n = exps_modes{jSpec};
+    else
+        for i = 1:length(n)
+            if ((sEP(i)/size(epnm,1) >= 1e-3) && i < 15 && n(i) > 1)
+                count = count + 1;
+                epnm(:,count) = epnm(:,i);
+            else
+                idx = [idx, i];
+            end
         end
-       end
-    if count == 0
+        if count == 0
+            continue
+        end
+        epnm(:,count+1:end) = [];
+        n(idx) = [];
+        m(idx) = [];
+        aEP(idx) = [];
+        epnm0(idx) = [];
+        epnmd0(idx) = [];
+        chinm(idx) = [];
+        sEP(idx) = [];
+    end
+
+    % Build a single mask over columns of epnm / entries of n
+    keepMask = ismember(n, allowed_n);
+
+    % If nothing to keep, skip this experiment cleanly
+    if ~any(keepMask)
+        fprintf('Experiment %d: no allowed modes -> skipping.\n', s);
         continue
     end
-    epnm(:,count+1:end) = [];
-    n(idx) = [];
-    m(idx) = [];
-    aEP(idx) = [];
-    epnm0(idx) = [];
-    epnmd0(idx) = [];
-    chinm(idx) = [];
-    sEP(idx) = [];
-end
 
-% Build a single mask over columns of epnm / entries of n
-keepMask = ismember(n, allowed_n);
+    % Apply mask to ALL per-mode quantities (columns)
+    n      = n(keepMask);
+    m      = m(keepMask);
+    epnm   = epnm(:, keepMask);
+    if exist('epnm0','var'),   epnm0   = epnm0(keepMask);   end
+    if exist('epnmd0','var'),  epnmd0  = epnmd0(keepMask);  end
+    if exist('chinm','var'),   chinm   = chinm(keepMask);   end
 
-% If nothing to keep, skip this experiment cleanly
-if ~any(keepMask)
-    fprintf('Experiment %d: no allowed modes -> skipping.\n', s);
-    continue
-end
+    % Rows count for later reshapes (unchanged by column selection)
+    idx_col = size(epnm,1);
 
-% Apply mask to ALL per-mode quantities (columns)
-n      = n(keepMask);
-m      = m(keepMask);
-epnm   = epnm(:, keepMask);
-if exist('epnm0','var'),   epnm0   = epnm0(keepMask);   end
-if exist('epnmd0','var'),  epnmd0  = epnmd0(keepMask);  end
-if exist('chinm','var'),   chinm   = chinm(keepMask);   end
-
-% Rows count for later reshapes (unchanged by column selection)
-idx_col = size(epnm,1);
-
-% === NOW compute norms/weights/scales using the filtered columns ===
-sR  = norm(R_nondim);           % unchanged (radial series)
-sEP = vecnorm(epnm);            % 1 x numModes
-wR  = numel(n);
-wEP = ones(1, numel(n));
-aR  = wR / sR;
-aEP = 1 ./ sEP;                 % per-column scale
+    % === NOW compute norms/weights/scales using the filtered columns ===
+    sR  = norm(R_nondim);           % unchanged (radial series)
+    sEP = vecnorm(epnm);            % 1 x numModes
+    wR  = numel(n);
+    wEP = ones(1, numel(n));
+    aR  = wR / sR;
+    aEP = 1 ./ sEP;                 % per-column scale
     n
+
 
 
     % create y_data vector which contains the radial data then all of
     % the perturbation data, both are non-dimensional
     y_data = [aR.*R_nondim; reshape(epnm.*aEP, [], 1)];
+
+
 
     idxcol1 = size(epnm,1);
     tcol = texp(idx_col);
@@ -587,17 +634,42 @@ aEP = 1 ./ sEP;                 % per-column scale
     % create x_data struct needed for the optimization
     x_data = struct('time', texp, 'n', n, 'Req', Req, 'chi', chinm, 'ST', ST, ...
         'rho', rho, 'Gqs', Gqs, 'epnmd0', epnmd0, 'epnm0', epnm0, 'R0', Rmax, ...
-        'idx_col', idx_col, 'perturbed', perturbed, 'aR', aR, 'aEP', aEP);
+        'idx_col', idx_col, 'perturbed', perturbed, 'aR', aR, 'aEP', aEP, 'pertmod', 0);
+
     xsol = log10(xsole(s, :));
     xsol(1) = log10(0.1);
     sol = objfun(xsol, x_data);
     Rsol = sol(1:length(texp))./aR;
     epnmsol = reshape(sol(length(texp)+1:end), [idx_col, length(n)])./aEP;
-%     % figure
-%     % plot(abs(y_data), 'o')
-%     % hold on 
-%     % plot(abs(sol), '-')
-% 
+
+
+    x_data_y = struct('time', texp, 'n', n, 'Req', Req, 'chi', chinm, 'ST', ST, ...
+        'rho', rho, 'Gqs', Gqs, 'epnmd0', epnmd0, 'epnm0', epnm0, 'R0', Rmax, ...
+        'idx_col', idx_col, 'perturbed', perturbed, 'aR', aR, 'aEP', aEP, 'pertmod', 1);
+
+    xsol = log10(xsole(s, :));
+    xsol(1) = log10(0.1);
+    soly = objfun(xsol, x_data_y);
+    epnmsoly = reshape(soly(length(texp)+1:end), [idx_col, length(n)])./aEP;
+
+    [~, idx_col] = min(R(texp1./tc < 1.25));
+    % y_data_e =  [aR.*R_nondim; reshape(epnm(1:idx_col,:).*aEP, [], 1)];
+    % x_data_e = struct('time', texp1, 'n', n, 'Req', Req, 'chi', chinm, 'ST', ST, ...
+    %     'rho', rho, 'Gqs', Gqs, 'epnmd0', epnmd0, 'epnm0', epnm0, 'R0', Rmax, ...
+    %     'idx_col', idx_col, 'perturbed', perturbed, 'aR', aR, 'aEP', aEP, 'pertmod', 0);
+
+    %define objective function that outputs the y_data_sim
+    objfun = @(params, x_data) f_run_fd_IMR(10.^params, x_data);
+
+    % create scalar function that computes sum or squared error
+    objfun_scalar = @(params, x_data, y_data) sqrt(sum((y_data - objfun(params, x_data)).^2))/norm(y_data);
+
+    %loss_eval(s) = objfun_scalar(log10(xsole(s, :)), x_data_e, y_data_e);
+    %     % figure
+    %     % plot(abs(y_data), 'o')
+    %     % hold on
+    %     % plot(abs(sol), '-')
+    %
     cmap = viridis(length(n)+4);
 
 
@@ -607,28 +679,62 @@ aEP = 1 ./ sEP;                 % per-column scale
         columns = length(n);
     end
 
+
     figure
     a = tiledlayout(rows,columns,'TileSpacing','compact','Padding','compact');
 
     % --- Top row: first plot spans all columns ---
     ax = nexttile([1 columns]);      % span 1 row by all columns
-    plot(ax, texp1(1:2:end)./tc, R_nondim(1:2:end), 'o', 'Color', cmap(1,:), 'MarkerFaceColor',cmap(1,:), 'MarkerSize',8)
-    hold on
     plot(ax, texp./tc, Rsol, '-', 'LineWidth',3, 'Color', cmap(5,:))
+    hold on
+    %plot(ax, texp1(1:2:end)./tc, R_nondim(1:2:end), 'o', 'Color', cmap(1,:), 'MarkerFaceColor',cmap(1,:), 'MarkerSize',8)
+    scatter(ax,texp1(1:end)./tc,  R_nondim(1:end), 40, ...
+        'MarkerFaceColor', cmap(1,:), ...
+        'MarkerEdgeColor', cmap(1,:), ...
+        'MarkerFaceAlpha', 0.5, ...
+        'MarkerEdgeAlpha', 0.75);
     set(gca, 'TickLabelInterpreter', 'latex', 'Fontsize', 18)
     xlabel('$t/t_c$', 'Interpreter','latex', 'FontSize',20)
     ylabel('$R/R_{\textrm{max}}$', 'Interpreter', 'latex','FontSize',20)
 
-for i = 1:length(n)
-    ax = nexttile;
-     plot(ax,texp1(1:2:size(epnm,1))./tc, epnm(1:2:end,i), 'o', 'Color', cmap(i+1,:), 'MarkerFaceColor',cmap(i+1,:), 'MarkerSize',8);
-     hold on
-     plot(ax, texp(1:idx_col)./tc, epnmsol(:,i), '-', 'LineWidth',3, 'Color', cmap(i+3,:))
-     set(gca, 'TickLabelInterpreter', 'latex', 'Fontsize', 18)
-     xlabel('$t/t_c$', 'Interpreter','latex', 'FontSize',20)
-     ylabel(['$\epsilon_{' num2str(n(i)) '}$'], 'Interpreter', 'latex','FontSize',20)
-end
+    for i = 1:length(n)
+        if i == length(n)
+            % Centered tile in the last row (1x1)
+            startRow = rows;
+            centerCol = ceil(columns/2)+1;          % for even columns this picks the left-center
+            tileIdx = (startRow-1)*columns + centerCol;
 
+            ax = nexttile(tileIdx);              % 1x1, centered in last row
+        else
+            ax = nexttile;
+        end
+        plot(ax, texp(:)./tc, epnmsol(:,i), '-', 'LineWidth',3, 'Color', cmap(i+3,:))
+        hold on
+        plot(ax, texp(:)./tc, epnmsoly(:,i), '--', 'LineWidth',3, 'Color', cmap(i+3,:))
+        % plot(ax,, , 'o', 'Color', cmap(i+1,:), 'MarkerFaceColor',cmap(i+1,:), 'MarkerSize',6);
+        scatter(ax,texp1(1:2:size(epnm,1))./tc, epnm(1:2:end,i), 40, ...
+            'MarkerFaceColor', cmap(i+1,:), ...
+            'MarkerEdgeColor', cmap(i+1,:), ...
+            'MarkerFaceAlpha', 0.5, ...
+            'MarkerEdgeAlpha', 0.75);
+        set(gca, 'TickLabelInterpreter', 'latex', 'Fontsize', 18)
+        xlabel('$t/t_c$', 'Interpreter','latex', 'FontSize',20)
+        ylabel(['$\epsilon_{' num2str(n(i)) '}$'], 'Interpreter', 'latex','FontSize',20)
+        % ylim([(sign(min(epnm(1:2:end,i)))-0.1)*abs(min(epnm(1:2:end,i))) 1.1*max(epnm(1:2:end,i))])
+        ylim([mean(epnm(1:2:end,i))-2.5*std(epnm(1:2:end,i)) mean(epnm(1:2:end,i))+2.5*std(epnm(1:2:end,i)) ])
+        yl = ylim(ax);
+        yl(1) = floor(yl(1)/0.01)*0.01;
+        yl(2) = ceil (yl(2)/0.01)*0.01;
+        ylim(ax, yl);
+        yticks(ax, [yl(1), 0, yl(2)]);
+
+        xlim([0 1.5])
+    end
+
+
+    set(gcf,'Units','normalized','OuterPosition',[0 0 0.625 1],'Renderer','painters');
+    drawnow;
+    exportgraphics(gcf,'LICExpt4.eps','ContentType','image','Resolution',900,'BackgroundColor','white');
 
 
 
@@ -648,4 +754,30 @@ end
 toc
 %%
 
+
+
+% Assume:
+% R : Nx1 vector
+% t : Nx1 vector (non-uniform, strictly increasing)
+
+R = Rsol(:);
+t = texp(:)./tc;
+
+% ---- 1) Compute Rdot using gradient (handles non-uniform spacing)
+Rdot = gradient(R, t);
+
+% ---- 2) Compute strain rate
+sr = 2*abs(Rdot ./ R);
+
+% ---- 3) Compute time-averaged strain rate
+T_total = t(end) - t(1);
+avg_sr = trapz(t, sr) / T_total*1/tc;
+
+% Display
+disp(['Time-averaged strain rate = ', num2str(avg_sr)])
+
+figure
+plot(t, R)
+figure
+plot(t, sr)
     

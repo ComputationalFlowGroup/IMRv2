@@ -33,7 +33,7 @@ epnmd0 = 0.*epnm0;
     bubtherm = 1;
     medtherm = 0;
     masstrans = 1;
-    perturbed = 1;
+    perturbed = 0;
     stress = 2;
 
     % combine all inputs into varin

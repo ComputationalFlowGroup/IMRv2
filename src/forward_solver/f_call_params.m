@@ -63,6 +63,7 @@ for n = 1:2:nargin
         case 'vapor',       vapor = varargin{n+1};
         case 'masstrans',   masstrans = varargin{n+1};
         case 'perturbed',   perturbed = varargin{n+1};
+        case 'pertmod',     pertmod = varargin{n+1};
         
         % solver options
         case 'method',      method = varargin{n+1};
@@ -490,7 +491,8 @@ end
 % out parameters
 
 % equation settings
-eqns_opts = [radial bubtherm medtherm stress eps3 masstrans perturbed];
+eqns_opts = [radial bubtherm medtherm stress eps3 masstrans perturbed pertmod];
+
 % solver options
 solve_opts = [method spectral divisions reltol abstol Nv Nt Mt Lv Lt];
 % dimensionless initial conditions

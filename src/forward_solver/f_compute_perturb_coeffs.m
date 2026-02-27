@@ -3,7 +3,7 @@
 
 % brief This function computes the coefficients for the linearized bubble
 % surface perturbation evolution equation
-function [eta, xi] = f_compute_perturb_coeffs(R, U, Rddot, n, Ro, We, Re, Ca, Ca2, alpha)
+function [eta, xi] = f_compute_perturb_coeffs(R, U, Rddot, n, Ro, We, Re, Ca, Ca2, alpha, pertmod)
 
     lam = R/Ro;
     if isequal(Ca, Inf)
@@ -11,7 +11,7 @@ function [eta, xi] = f_compute_perturb_coeffs(R, U, Rddot, n, Ro, We, Re, Ca, Ca
         xi = -(n-1).*Rddot./R+4.*(n-1).*(n+1).*1./Re.*U./R^3+(n-1).*(n+ ...
               1).*(n+2)./(2.*We.*R^3);
         xi = xi'; eta = eta';
-    else
+    elseif pertmod == 0
 
         % pre allocattion for only inertial case
         eta = 4.*(5+2.*n).*U./((4+n).*R);
@@ -61,6 +61,16 @@ function [eta, xi] = f_compute_perturb_coeffs(R, U, Rddot, n, Ro, We, Re, Ca, Ca
             % Correcting coefficients
             xi(i) = xi(i) + 1/Ca*elast + alpha/Ca*sselast + 1/Ca2*MRelast + 1/(2*We)*surften + 1/Re*viscxi;
             eta(i) = eta(i) + 1/Re*visceta;
+        end
+        xi = xi'; eta = eta';
+    elseif pertmod == 1 %Kazuya
+        for i = 1:length(n)
+            eta(i) = 3.*U./R+2.*(n(i)+1).*(n(i)+2)./(Re.*R^2);
+            xi(i) = -(n(i)-1).*Rddot./R+4.*(n(i)-1).*(n(i)+1).*1./Re.*U./R^3+(n(i)-1).*(n(i)+ ...
+                1).*(n(i)+2)./(2.*We.*R^3)+ (n(i)+1).*(2.*Ro./(Ca.*R^3).*(1+Ro^3./R^3)+n(i).*(n(i)+1)./(Ca.*(R^2+R.*Ro+Ro^2))+ ...
+                2.*alpha./Ca.*1./R^2.*(R-Ro)^2./(R.*Ro).*(1+1./lam)^3.*(2-2./lam+3./lam^2- ...
+                1./lam^3+1./lam^4)+alpha./Ca.*n(i).*(n(i)+1).*(R-Ro)^2./(5.*R.*Ro.*(R^2+R.*Ro+ ...
+                Ro^2)).*(10+6./lam+3./lam^2+1./lam^3));
         end
         xi = xi'; eta = eta';
     end
