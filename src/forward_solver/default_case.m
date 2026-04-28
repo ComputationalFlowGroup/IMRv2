@@ -6,7 +6,8 @@ radial          = 1;
 bubtherm        = 0;
 % 0 : cold fluid, 1: warm fluid assumption
 medtherm        = 0;
-% 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
+% 1 : NHKV, 2: qKV 3: linear Maxwell, Jeffreys, Zener - NH elasticity 
+% 4: linear Maxwell, Jeffreys, Zener - quadratic neo-Hookean, 5: upper-convected Maxwell, OldRoyd-B
 stress          = 0;
 % this value must be (0, 0.5]
 eps3            = 0;
@@ -92,11 +93,11 @@ S               = 0.07;
 % (Pa) Medium Shear Modulus
 G               = 1e3;
 % relaxation time (s)
-lambda1         = 1e-7;
+lambda1         = 0e-7;
 % retardation time (s)
-lambda2         = 1e-8;
+lambda2         = 0e-8;
 % qKV term
-alphax          = 0.25;
+alphax          = 0;
 
 % thermal options
 

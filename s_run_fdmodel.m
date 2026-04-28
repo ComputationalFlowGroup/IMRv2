@@ -1,53 +1,48 @@
 clc;
 clear;
-close;
+%close;
 
 addpath(genpath('src'));
 
 % equation options
-R0 = 100e-6;
-Req = R0/10;
-tfin = 1.5*R0; %160E-6;
+% ------- Initial condition and equilibrium ----------%
+R0 = 50e-6;
+Req = R0/1;
+
+% ------- Material Properties ------------------------%
 kappa = 1.4;
-Lheat = 2.378193575129533e+04;
 T8 = 298.15;
-rho8 = 998.2;
+rho8 = 1048;
 mu = 1e-2;
-Gelastic = 0;
-tvector = linspace(0,tfin,256);
+Gelastic = 1e4;
+
+% ------- Simulation settings ------------------------%
 radial = 2;
 vapor = 1;
 collapse = 0;
-bubtherm = 0;
+bubtherm = 1;
 medtherm = 0;
-masstrans = 0;
-stress = 1;
-varin = {'progdisplay',0,...
-         'radial',radial,...
-         'bubtherm',bubtherm,...
-         'tvector',tvector,...
-         'vapor',vapor,...
-         'medtherm',medtherm,...
-         'masstrans',masstrans,...
-         'method',23,...
-         'stress',stress,...
-         'collapse',collapse,...
-         'mu',mu,...
-         'g',Gelastic,...
-         'lambda1',1e-7,...
-         'lambda2',0,...
-         'alphax',1e-3,...
-         'r0',R0,...
-         'req',Req,...
-         'kappa',kappa,...
-         't8',T8,...
-         'rho8',rho8};
+masstrans = 1;
+stress = 2;
 
-[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
-% [tsp,Rsp,Rspdot,Psp,Tsp,Tmsp,kvsp] = f_imr_spectral(varin{:},'Nt',10,'Mt',10);
+% --------- Ultrasound settins -----------------------%
+pa = 100e3;
+omega = 2*pi*150e3;
+wavetype = 4;
 
-figure(1)
-hold on;
-plot(tfd,Rfd,'b-');
-% plot(tsp,Rsp,'r^');
-ylim([0 1]);
+% ------ Simulation time ---------------------------- %
+tc = R0*sqrt(rho8/101325);
+tfin = 25*tc;
+tvector = linspace(0,tfin,1000);
+varin = {'progdisplay',0,'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
+         'vapor',vapor,'medtherm',medtherm,'masstrans',masstrans,'method',23,...
+         'stress',stress,'collapse',collapse,'mu',mu,'g',Gelastic,'lambda1',0e-7,...
+         'lambda2',0,'alphax',10,'r0',R0,'req',Req,'kappa',kappa,'t8',T8,...
+         'rho8',rho8, 'pa',pa 'omega', omega, 'wave_type', wavetype};
+
+[t,R,Rd,~,~,~,~,Rddot] = f_imr_fd(varin{:},'Nt',75);
+
+%figure
+hold on
+plot(t, R)
+

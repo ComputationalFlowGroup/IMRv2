@@ -239,13 +239,37 @@ function varargout = f_imr_fd(varargin)
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
+
+
     bubble = @SVBDODE;
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan);
-    
-    % extract result
+
+    % optional post-processing: bubble wall acceleration
+    % IMPORTANT:
+    % Use Rddot_out, NOT Rddot, because SVBDODE has an internal scalar Rddot.
+    if nargout >= 8
+        Rddot_out = zeros(size(t));
+
+        progdisplay_save = progdisplay;
+        progdisplay = 0;
+
+        theta_bw_guess_save = theta_bw_guess;
+        theta_bw_guess = -0.0001;
+
+        for it_out = 1:numel(t)
+            dXdt_now = SVBDODE(t(it_out), X(it_out,:).');
+            Rddot_out(it_out) = dXdt_now(2);
+        end
+
+        progdisplay = progdisplay_save;
+        theta_bw_guess = theta_bw_guess_save;
+    end
+
+    % extract result AFTER the Rddot replay
     R    = X(:,1);
     Rdot = X(:,2);
     P    = X(:,3);
+
     if bubtherm
         theta = X(:,ibubtherm);
         T = f_theta_of_T(theta,kv0);
@@ -258,12 +282,17 @@ function varargout = f_imr_fd(varargin)
         kv(:,end) = f_kv_of_T(T(:,end),P);
         T = f_theta_of_T(theta,kv);
     end
-    
+
+   
+
     % transform variables back into their dimensional form
     if (dimensionalout == 1)
         t = t*tref;
         R = R*Rref;
         Rdot = Rdot*Uref;
+        if nargout >= 8
+            Rddot = Rddot*Uref/tref;
+        end
         P = P*P8;
         if bubtherm
             T = T*T8;
@@ -293,7 +322,10 @@ function varargout = f_imr_fd(varargin)
     else
         varargout{7} = [];
     end
-    
+    if nargout >= 8
+        varargout{8} = Rddot_out;
+    end
+
     % solver function
     function [dXdt] = SVBDODE(t,X)
         

@@ -30,6 +30,15 @@ function [p8,p8dot] = f_pinfinity(t,vararg)
     elseif wave_type == 3
         % heaviside impulse
         [p8,p8dot] = heaviside_impulse(t);
+    elseif wave_type == 4
+        % sinusoidal ultrasound wave
+        [p8, p8dot] = sinusoidal(t);
+    end
+    
+    % sinusoidal waveform
+    function [p,pdot] = sinusoidal(t)
+        p = ee * sin(om * (t - dt));
+        pdot = ee * om * cos(om * (t - dt));
     end
     
     % histotripsy waveform
