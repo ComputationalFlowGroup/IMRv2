@@ -9,9 +9,9 @@ addpath ../common/
 addpath ../forward_solver/
 
 ndata = 10;
-space0 = [275e-6 0.25];
-lb = [200e-6 1/8];
-ub = [375e-6 1/2.5];
+space0 = [25e-6 1/1.25];
+lb = [15e-6 1/1.35];
+ub = [30e-6 1/1.1];
 dim = numel(space0);
 array = repmat(lb, ndata, 1) + lhsdesign(ndata, dim) .* repmat(ub-lb, ndata, 1);
 
@@ -19,7 +19,7 @@ array = repmat(lb, ndata, 1) + lhsdesign(ndata, dim) .* repmat(ub-lb, ndata, 1);
 %%
 tic
 for i = 1:ndata
-    fps = 2e6;
+    fps = 10e6;
     % equation options
     R0 = array(i,1);
     Req = R0*array(i,2);
@@ -29,12 +29,12 @@ for i = 1:ndata
     Lheat = 2.378193575129533e+04;
     T8 = 298.15;
     rho8 = 1048;
-    ST = 0.056;
-    alphaxs = 2;
+    ST = 0.04;
+    alphaxs = 0;
     alphax = alphaxs*(1-0.1+0.2*rand(1,1));
-    mus = 5e-2;
-    mu = mus*(1-0.1+0.2*rand(1,1));
-    G = 2e3;
+    mus = 2e-3;
+    mu = mus;%*(1-0.1+0.2*rand(1,1));
+    G = 4e3;
     tvector = linspace(0,tfin,192);
     radial = 2;
     vapor = 1;
@@ -45,10 +45,10 @@ for i = 1:ndata
     perturbed = 1;
     pertmod = 0;
     stress = 2;
-    modes = 2:10;
-    orders = 2:10;
-    epnm0 = -1e-3+2e-3*rand(length(modes), 1);
-    epnmd0 = -0.1+0.2*rand(length(modes), 1);
+    modes = randi(10)+5;
+    orders = modes;
+    epnm0 = 1e-1+2e-1*rand(length(modes), 1);
+    epnmd0 = -0.0+0.0*rand(length(modes), 1);
     varin = {'progdisplay',0,...
         'radial',radial,...
         'bubtherm',bubtherm,...
@@ -58,7 +58,7 @@ for i = 1:ndata
         'vapor',vapor,...
         'medtherm',medtherm,...
         'masstrans',masstrans,...
-        'method',23,...
+        'method',45,...
         'stress',stress,...
         'collapse',collapse,...
         'mu',mu,...
@@ -86,8 +86,9 @@ for i = 1:ndata
         'epnmd0', epnmd0, 'n', modes, 'm', orders, 'G', G, 'alpha', alphax, ...
         'mu', mu, 'ST', ST, 'fps', fps,'rho', rho8);
     figure
-    plot(tfd, Rout)
+    plot(tfd, Rfd)
     hold on
+    plot(tfd, epnmout)
     yline(Req)
 end
 toc
