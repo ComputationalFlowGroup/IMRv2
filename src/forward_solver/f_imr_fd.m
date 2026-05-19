@@ -49,12 +49,22 @@ function varargout = f_imr_fd(varargin)
     T8              = init_opts(5);
     Pv_star         = init_opts(6);
     Req             = init_opts(7);
+
+
+    ani             = sigma_opts(19:20);
     
     % perturbation equation options
     if perturbed
         epnm0       = pert_opts.epnm0;
         epnmd0      = pert_opts.epnmd0;
+        epnmeq      = pert_opts.epnmeq;
         n           = pert_opts.n;
+        if sum(abs(ani)) > 0
+            m       = pert_opts.m; 
+            % --------- pre-compute orthogonality relationships for anisotropy ----- %
+            [chiS, M1, M2, M3, M4, M5] = f_ani_ortho([0 n], [0 m]);
+        end
+
     end
 
     % dimensionaless initial stress
@@ -115,6 +125,8 @@ function varargout = f_imr_fd(varargin)
     Ca1             = sigma_opts(16);
     l1              = sigma_opts(17);
     l2              = sigma_opts(18);
+    ani1            = sigma_opts(19);
+    ani2            = sigma_opts(20);
     iWe             = 1/We;
     
     % dimensionless thermal
@@ -498,11 +510,21 @@ function varargout = f_imr_fd(varargin)
             [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8, ...
                 Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
         end
+
+        if perturbed && sum(abs([ani1 ani2])) > 0 
+            [Ts1, Ts2, Ts3, T1, T2, T3, T4, T5] = f_ani_ortho_time_coeffs(n, m, R/Req, Req, Ca, ani1, ani2, epnmeq, epnm);
+            ortho_vect = chiS(:,1)*Ts1 + chiS(:,2)*Ts2 + chiS(:,3)*Ts3 + M1*T1 + ...
+                M2*T2 + M3*T3 + M4*T4 + M5*T5;
+            rad_mod = ortho_vect(1);
+            ep_mod = ortho_vect(2:end);
+        else
+            rad_mod = 0; ep_mod = 0;
+        end
         
         % bubble wall evolution / acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...
             Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
-            ddintfnu, iDRe);
+            ddintfnu, iDRe, rad_mod);
         
         % output assembly
         dXdt = [Rdot;
@@ -516,10 +538,9 @@ function varargout = f_imr_fd(varargin)
 
         if perturbed
             % \ddot{\epsilon} + c1 \dot{\epsion} + c2 \epsilon = 0;
-            Ca2 = Inf;
             [c1, c2] = f_compute_perturb_coeffs(R, Rdot, Rddot, n, ...
-                Req, We, Re8, Ca, Ca2, alphax, pertmod);
-            epddot = -c1.*epnmd - c2.*epnm;
+                Req, We, Re8, Ca, alphax, pertmod);
+            epddot = -c1.*epnmd - c2.*epnm + ep_mod;
             dXdt(ipertepnm) = epnmd;
             dXdt(ipertepdnm) = epddot;
         end

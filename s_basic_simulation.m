@@ -14,31 +14,35 @@ Req = Rmax/3;
 mu =  0.15;
 G = 15.07e3;
 alph = 0;
+ani = [0 0];
 sig = 0.056;
 p_a = -50e3; f_a = 28e3;
 rho = 1048;
 p8 = 101325;
 tcLIC = Rmax*sqrt(rho/p8);
-tf_nd = 2;
+tf_nd = 5;
 tsteps = 5000; ultra = false;
 
 
 % -------- perturbation solver initial conditions ---------------%
 % Mode numbers
-n = 2;
+n = [2 4];
+m = [0 0];
 N = n;
-ep0 = 0.25;
-epd0 = 0;
+ep0 = [0.25 0.05];
+epd0 = [0 0];
+epeq = [0 0];
 
 
 t = linspace(0, tf_nd, tsteps);
-[t, R, epnm] = f_call_IMRv2(Rmax, Req, ep0, epd0, n, mu, G, alph, sig, p_a, f_a, tf_nd, tsteps, ultra);
+[t, R, epnm] = f_call_IMRv2(Rmax, Req, ep0, epd0, epeq, n, m, mu, G, alph, ani, sig, p_a, f_a, tf_nd, tsteps, ultra);
 
 %%
-figure
-plot(t, epnm)
+% figure
+plot(t, epnm, '-.')
 hold on
-plot(t,R)
+plot(t,R, '-.')
+ylim([-1 1])
 
 
 

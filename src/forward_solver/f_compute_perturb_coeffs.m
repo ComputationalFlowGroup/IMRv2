@@ -3,7 +3,7 @@
 
 % brief This function computes the coefficients for the linearized bubble
 % surface perturbation evolution equation
-function [eta, xi] = f_compute_perturb_coeffs(R, U, Rddot, n, Ro, We, Re, Ca, Ca2, alpha, pertmod)
+function [eta, xi] = f_compute_perturb_coeffs(R, U, Rddot, n, Ro, We, Re, Ca, alpha, pertmod)
 
     lam = R/Ro;
     if isequal(Ca, Inf)
@@ -39,16 +39,7 @@ function [eta, xi] = f_compute_perturb_coeffs(R, U, Rddot, n, Ro, We, Re, Ca, Ca
                 n(i)).*(6+n(i).*(6+n(i)))+n(i).*(2+n(i)).*(11+n(i)).*(39+n(i).*(13+n(i)))-lam^3.*n(i).*(1398+n(i).*(1411+n(i).*(427+ ...
                 2.*n(i).*(25+n(i)))))).*hyp2f1(1/3,4+n(i)/3,5+n(i)/3,1-1/lam^3)-3.*(-2.*lam^9.*(6+n(i)).*(9+n(i))+lam^6.*n(i).*(1+ ...
                 n(i)).*(6+n(i)).*(9+n(i))+n(i).*(2+n(i)).*(7+n(i)).*(10+n(i))-lam^3.*n(i).*(2+n(i)).*(7+n(i)).*(19+2.*n(i))).*hyp2f1(2/3,4+n(i)/3,5+n(i)/3,1-1/lam^3)));
-            
-            % --- MR elastic term (coefficient of G2) ---
-            MRelast = (1/(lam^11.*(6+n(i)).*(9+n(i)).*(12+n(i)).*Ro^2)).*(1+n(i)).*(2.*lam^7.*(1+2.*lam^9+lam^6.*(-1+n(i))).*(648+234.*n(i)+ ...
-                27.*n(i)^2+n(i)^3)+lam^3.*(-1+lam^3).*(14+n(i)).*(-4.*lam^12.*(54+15.*n(i)+n(i)^2)+n(i).*(80+66.*n(i)+15.*n(i)^2+n(i)^3)- ...
-                2.*lam^9.*(54+69.*n(i)+16.*n(i)^2+n(i)^3)+lam^6.*n(i).*(54+69.*n(i)+16.*n(i)^2+n(i)^3)-lam^3.*n(i).*(170+139.*n(i)+31.*n(i)^2+ ...
-                2.*n(i)^3)).*hyp2f1(-(2/3),4+n(i)/3,5+n(i)/3,1-1/lam^3)-(-1+lam^3).*(-8.*lam^15.*(54+15.*n(i)+n(i)^2)-4.*lam^12.*(54+69.*n(i)+ ...
-                16.*n(i)^2+n(i)^3)+2.*lam^9.*n(i).*(54+69.*n(i)+16.*n(i)^2+n(i)^3)+lam^6.*n(i).*(540+528.*n(i)+169.*n(i)^2+22.*n(i)^3+n(i)^4)- ...
-                2.*lam^3.*n(i).*(800+740.*n(i)+216.*n(i)^2+25.*n(i)^3+n(i)^4)+n(i).*(880+806.*n(i)+231.*n(i)^2+26.*n(i)^3+ ...
-                n(i)^4)).*hyp2f1(1/3,4+n(i)/3,5+n(i)/3,1-1/lam^3));
-
+         
             % --- Viscous term (coefficient of μ) for eta ---
             visceta = 2.*(n(i)+1).*(n(i)+2)./R.^2;
 
@@ -59,7 +50,7 @@ function [eta, xi] = f_compute_perturb_coeffs(R, U, Rddot, n, Ro, We, Re, Ca, Ca
             surften = ((n(i)+1).*(n(i)-1).*(n(i)+2)./R^3);
 
             % Correcting coefficients
-            xi(i) = xi(i) + 1/Ca*elast + alpha/Ca*sselast + 1/Ca2*MRelast + 1/(2*We)*surften + 1/Re*viscxi;
+            xi(i) = xi(i) + 1/Ca*elast + alpha/Ca*sselast + 1/(2*We)*surften + 1/Re*viscxi;
             eta(i) = eta(i) + 1/Re*visceta;
         end
         xi = xi'; eta = eta';

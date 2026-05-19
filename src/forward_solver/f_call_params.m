@@ -117,6 +117,7 @@ for n = 1:2:nargin
         case 'lambda2',     lambda2 = varargin{n+1};
         case 'alphax',      alphax = varargin{n+1};
         case 'surft',       S = varargin{n+1};
+        case 'ani',         ani = varargin{n+1};
         
         % non-Newtonian viscosity options
         case 'du',          Dmu         = varargin{n+1};
@@ -160,6 +161,7 @@ for n = 1:2:nargin
         case 'epnmd0',      epnmd0 = varargin{n+1};
         case 'modes',       modes = varargin{n+1};
         case 'orders',      orders = varargin{n+1};
+        case 'epnmeq',      epnmeq = varargin{n+1};
 
         otherwise,          misscount = misscount + 1;
         
@@ -511,15 +513,18 @@ acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca alphax LAM De JdotA nu_model v_lambda_star zeNO iDRe graded Ca1 l1 l2];
+sigma_opts = [We Re8 DRe v_a v_nc Ca alphax LAM De JdotA nu_model v_lambda_star zeNO iDRe graded Ca1 l1 l2 ani(1) ani(2)];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionaless mass transfer
 mass_opts = [Fom kv0 Rv_star Ra_star L_heat_star mv0 ma0];
 % Perturbation information
 if perturbed
-     pert_opts = struct('n', modes, ...
-                            'epnm0', epnm0, 'epnmd0', epnmd0);
+    if sum(abs(ani)) == 0 || isempty(ani)
+        orders = [];
+    end
+     pert_opts = struct('n', modes, 'm', orders, ...
+                            'epnm0', epnm0, 'epnmd0', epnmd0, 'epnmeq', epnmeq);
 else 
     pert_opts = [];
 end
