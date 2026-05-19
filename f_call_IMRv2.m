@@ -21,9 +21,19 @@ pertmod = 0;
 
 if ultra
     % --------- Ultrasound settins -----------------------%
+    % sinusoidal
     pa = p_a;
     omega = 2*pi*f_a;
     wavetype = 4;
+
+
+%     % histo
+%     p = ee*(0.5 + 0.5*cos(om*(t - dt))).^mn;
+%     pa = p_a;
+%     omega = 2*pi*f_a;
+%     mn = 3.7;
+%     dt = pi/omega;
+% 
 else
     pa = 0;
     omega = 0;
