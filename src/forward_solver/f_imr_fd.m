@@ -59,12 +59,15 @@ function varargout = f_imr_fd(varargin)
         epnmd0      = pert_opts.epnmd0;
         epnmeq      = pert_opts.epnmeq;
         n           = pert_opts.n;
-        if sum(abs(ani)) > 0
-            m       = pert_opts.m; 
-            % --------- pre-compute orthogonality relationships for anisotropy ----- %
-            [chiS, M1, M2, M3, M4, M5] = f_ani_ortho([0 n], [0 m]);
+    end
+    if sum(abs(ani)) > 0
+        if perturbed
+            m       = pert_opts.m;
+        else
+            n = []; m = []; epnmeq = []; epnm = [];
         end
-
+        % --------- pre-compute orthogonality relationships for anisotropy ----- %
+        [chiS, M1, M2, M3, M4, M5] = f_ani_ortho([0 n], [0 m]);
     end
 
     % dimensionaless initial stress
@@ -511,7 +514,7 @@ function varargout = f_imr_fd(varargin)
                 Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
         end
 
-        if perturbed && sum(abs([ani1 ani2])) > 0 
+        if sum(abs([ani1 ani2])) > 0 
             [Ts1, Ts2, Ts3, T1, T2, T3, T4, T5] = f_ani_ortho_time_coeffs(n, m, R/Req, Req, Ca, ani1, ani2, epnmeq, epnm);
             ortho_vect = chiS(:,1)*Ts1 + chiS(:,2)*Ts2 + chiS(:,3)*Ts3 + M1*T1 + ...
                 M2*T2 + M3*T3 + M4*T4 + M5*T5;
