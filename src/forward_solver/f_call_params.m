@@ -302,8 +302,8 @@ L_heat_star = L_heat/(Uc)^2;
 % Cauchy number
 Ca      = Pref/G;
 Ca1     = Pref/G1;
-l1      = l1/R0;
-l2      = l2/R0;
+%l1      = l1/R0;
+%l2      = l2/R0;
 
 % Reynolds number
 Re8     = Pref*R0/(mu8*Uc);

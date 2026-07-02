@@ -11,8 +11,8 @@ function [S,Sdot,Z1dot,Z2dot] = f_stress_graded(radial,stress,Req,R,...
 Z1dot = [];
 Z2dot = [];
 
-reltol = 1e-8; %e-4
-abstol = 1e-8; %e-4
+reltol = 1e-10; %e-8
+abstol = 1e-10; %e-8
 % current ammplification factor
 Rstinv = Req/R;
 % incompressible condition (reference coord)

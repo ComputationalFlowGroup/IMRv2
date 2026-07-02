@@ -7,9 +7,9 @@
 function [t,X] = f_odesolve(bubble, init, method, divisions, tspan)
     
     if divisions == 0
-        options = odeset('RelTol',1e-8,'AbsTol',1e-8);
+        options = odeset('RelTol',1e-12,'AbsTol',1e-12);
     else
-        options = odeset('MaxStep',tspan(end)/divisions,'RelTol',1e-8);
+        options = odeset('MaxStep',tspan(end)/divisions,'RelTol',1e-12);
     end
     
     if method == 15
