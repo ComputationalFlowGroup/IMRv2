@@ -27,6 +27,8 @@ method          = 23;
 spectral        = 0;
 % minimum number of timesteps
 divisions       = 0;
+% stop integration at first collapse minimum instead of integrating full tspan
+stopcollapse    = 0;
 % number of points in bubble, thermal PDE
 Nt              = 25;
 % number of points outside of bubble, thermal PDE

@@ -39,6 +39,14 @@ if defaultread
     run('default_case.m');
 end
 
+% safe default: if neither default_case.m nor the given casefile defines
+% stopcollapse, assume off (unchanged prior behavior -- integrate the full
+% tspan and post-process for Rmin/tc, rather than stopping early).
+%if ~exist('stopcollapse','var')
+%    stopcollapse = 0;
+%end
+% IN DEFAULT_CASE.M NOW
+
 % overrides defaults with options and dimensional inputs %
 
 % load inputs
@@ -71,6 +79,7 @@ for n = 1:2:nargin
         case 'mt',          Mt = varargin{n+1};
         case 'lv',          Lv = varargin{n+1};
         case 'lt',          Lt = varargin{n+1};
+        case 'stopcollapse',stopcollapse = varargin{n+1};
         case 'tfin',        TFin = varargin{n+1};
         tflag = tflag + 1;
         case 'tvector',     TVector = varargin{n+1};
@@ -474,7 +483,7 @@ end
 % equation settings
 eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
 % solver options
-solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
+solve_opts = [method spectral divisions Nv Nt Mt Lv Lt stopcollapse];
 % dimensionless initial conditions
 init_opts = [Rzero Rdotzero Pb_star P8 T8 Pv_star Req_zero alphax];
 % dimensionaless initial stress

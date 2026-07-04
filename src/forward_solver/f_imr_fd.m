@@ -41,7 +41,8 @@ function varargout = f_imr_fd(varargin)
     Mt              = solve_opts(6);
     Lv              = solve_opts(7);
     Lt              = solve_opts(8);
-    
+    stopcollapse    = solve_opts(9);
+ 
     % dimensionless initial conditions
     Rzero           = init_opts(1);
     Rdotzero        = init_opts(2);
@@ -241,7 +242,16 @@ function varargout = f_imr_fd(varargin)
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
     bubble = @SVBDODE;
-    [t,X] = f_odesolve(bubble, init, method, divisions, tspan);
+    if stopcollapse
+	% stop the integration exactly at the first collapse minimum
+	% identified as Rdot crossing zero from negative to positive,
+	% instead of integrating the full tspan and post-processing a
+	% fixed output grid for minimum radius. See f_Rmin_event below.
+	event_fcn = @f_Rmin_event;
+    else
+	event_fcn = [];
+    end
+    [t,X] = f_odesolve(bubble, init, method, divisions, tspan, event_fcn);
     
     % extract result
     R    = X(:,1);
@@ -294,7 +304,22 @@ function varargout = f_imr_fd(varargin)
     else
         varargout{7} = [];
     end
-    
+    % if stopcollapse is on, the integration has stopped exactly at the
+    % the first Rdot zero-crossing from negative to positive, so t(end)/R(end)
+    % are the collapse time and minimum radius exactly. 
+    % Empty when stopcollapse is off, to keep this unambiguous rather than silently
+    % returning a meaningless value.
+    if stopcollapse
+	varargout{8} = t(end);
+	varargout{9} = R(end);
+    %else
+	%[pks,locs] = findpeaks(-R);
+	%idx_1stcollapse = locs(1);
+
+	%varargout{8} = []; %t(idx_1stcollapse);
+	%varargout{9} = []; %R(idx_1stcollapse);
+    end
+
     % solver function
     function [dXdt] = SVBDODE(t,X)
         
@@ -485,7 +510,17 @@ function varargout = f_imr_fd(varargin)
     % end of solver
     
     % solver functions
-    
+    % ODE event: detects minimum radius exactly, as the first moment
+    % bubble wall velocity crosses zero from negative (collapsing) to 
+    % positive (rebounding). direction=1 restricts trigger to that 
+    % crossing. isterminal=1 stops integration there so ODE solver returns
+    % t(end)/X(end,1) is collapse time and minimum radius.
+    function [value, isterminal, direction] = f_Rmin_event(t,X)
+	value =  X(2); % track Rdot
+	isterminal = 1; % stop integration
+	direction = 1; % trigger only on negative-to-positive crossings
+    end
+ 
     % temperature at the bubble wall as a function of theta
     function Tw = f_theta_of_T(theta_w,kv)
         alpha_m  = kv.*alpha_v + (1-kv).*alpha_g;

@@ -41,7 +41,8 @@ function varargout = f_imr_spectral(varargin)
     Mt              = solve_opts(6);
     Lv              = solve_opts(7);
     Lt              = solve_opts(8);
-    
+    stopcollapse    = solve_opts(9);
+ 
     % dimensionless initial conditions
     Rzero           = init_opts(1);
     Uzero           = init_opts(2);
@@ -217,6 +218,11 @@ function varargout = f_imr_spectral(varargin)
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
     bubble = @SVBDODE;
+    if stopcollapse
+	event_fcn = @f_Rmin_event;
+    else
+	event_fcn = [];
+    end
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan);
     
     % post processing
@@ -296,7 +302,11 @@ function varargout = f_imr_spectral(varargin)
         varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
     end
     varargout{7} = [];
-    
+    if stopcollapse
+	varargout{8} = t(end);
+	varargout{9} = R(end);
+    end
+ 
     % solver function
     function dXdt = SVBDODE(t,X)
         
@@ -419,7 +429,16 @@ function varargout = f_imr_spectral(varargin)
         
     end
     % end of solver
-    
+   
+    % Detects minimum radius exactly, as the first moment the 
+    % bubble wall velocity cross zero from negative (collapse)
+    % to positive (rebound). 
+    function [value, isterminal, direction] = f_Rmin_event(t,X)
+	value = X(2); % track Rdot
+	isterminal = 1; % stop integration
+	direction = 1; % trigger only on negative-to-positive crossings
+    end
+
     % function Cw= CW(Tw,P)
     %   % Calculates the concentration at the bubble wall
     %   %Function of P and temp at the wall
