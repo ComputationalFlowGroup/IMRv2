@@ -12,10 +12,12 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
     'chicken_Rt_data', 'processed_11.mat');
 
-maxmode = 26;
+maxmode = 22;
 polyOrder = 3;
-windowPts = 21;   % odd integer: 3, 5, 7, ...
-opt.fit.NumPerturbationModes = 5;
+windowPts = 9;   % odd integer: 3, 5, 7, ...
+icVelocityWindowPts = 9;  % forward polynomial derivative window from Rmax
+icVelocityPolyOrder = 3;
+opt.fit.NumPerturbationModes = 7;
 
 % Loss priority weights after per-trace normalization. Radial receives
 % RadialWeight, and mode n receives 1/(n + ModeWeightOffset)^ModeWeightPower.
@@ -24,10 +26,10 @@ opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Physical model parameters for this single simulation.
-modelParams.G = 10^(3.5104);       % Pa
-modelParams.alph = 3.6733;
-modelParams.mu = 10^(-0.30133);        % Pa*s
-modelParams.ani = [3.9024, 0.078849];
+modelParams.G = 10^(3.109);       % Pa
+modelParams.alph = 3.8828;
+modelParams.mu = 10^(-0.30144);        % Pa*s
+modelParams.ani = [4.581, 2.4672];
 
 % Forward-solver controls. The simulation is evaluated at the experimental
 % post-Rmax times, so tsteps is only a fallback for non-optimization calls.
@@ -77,7 +79,8 @@ amps = sgolayfilt(amps_og(1:maxmode-1, :), polyOrder, windowPts, [], 2);
 tc = Rmax * sqrt(1000 / 101325);
 
 epnm0 = amps(:, maxidx);
-epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc);
+epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc, ...
+    icVelocityWindowPts, icVelocityPolyOrder);
 eqWindow = max(1, size(amps, 2)-20):size(amps, 2);
 epnmeq = mean(amps(:, eqWindow), 2);
 
@@ -158,6 +161,10 @@ fprintf('Perturbation loss uses %d samples from t* = %.6g to %.6g.\n', ...
 paramSpec = fixedParamSpecFromParams(modelParams);
 [yModel, runInfo, sim] = f_optimize_model_to_data_predict([], xData, ...
     paramSpec, opt.sim);
+isotropicParams = modelParams;
+isotropicParams.ani = [0, 0];
+[~, isotropicRunInfo, isotropicSim] = f_optimize_model_to_data_predict([], ...
+    xData, fixedParamSpecFromParams(isotropicParams), opt.sim);
 
 if runInfo.success
     rawObjectiveLoss = sqrt(sum((yData - yModel).^2)) / norm(yData);
@@ -191,13 +198,16 @@ fprintf('  held-out mode loss      = %.6g\n', heldoutModeLoss);
 fprintf('  all mode loss           = %.6g\n', allModeLoss);
 fprintf('  max returned time error = %.3g\n', ...
     timeVerification.maxRadialAbsDt);
+fprintf('  isotropic comparison success = %d (%s)\n', ...
+    isotropicRunInfo.success, isotropicRunInfo.message);
 
 if opt.makePlot
-    plotSingleEvaluation(sim, xData, modelParams);
+    plotSingleEvaluation(sim, isotropicSim, xData, modelParams);
 end
 
 save(opt.outputFile, 'opt', 'modelParams', 'paramSpec', 'xData', ...
-    'yData', 'yModel', 'sim', 'runInfo', 'timeVerification', ...
+    'yData', 'yModel', 'sim', 'runInfo', 'isotropicParams', ...
+    'isotropicRunInfo', 'isotropicSim', 'timeVerification', ...
     'rawObjectiveLoss', 'optimizerLoss', 'fitR2', 'radialLoss', ...
     'trainModeLoss', 'heldoutModeLoss', 'allModeLoss');
 
@@ -262,21 +272,38 @@ function tf = isImrScriptDir(candidate)
         isfolder(fullfile(candidate, 'src', 'forward_solver'));
 end
 
-function epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc)
+function epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc, ...
+    windowPts, polyOrder)
     epnmd0 = zeros(size(amps, 1), 1);
-    dt = mean(diff(texp));
-    if maxidx > 2 && maxidx <= size(amps, 2) - 2
-        fdstenc = [1/12, -2/3, 0, 2/3, -1/12];
-        for ii = 1:size(amps, 1)
-            epnmd0(ii) = sum(fdstenc .* amps(ii, maxidx-2:maxidx+2)) ...
-                / dt * tc;
-        end
-    else
-        for ii = 1:size(amps, 1)
-            dadt = gradient(amps(ii, :), texp);
-            epnmd0(ii) = dadt(maxidx) * tc;
-        end
+    if nargin < 5 || isempty(windowPts)
+        windowPts = 15;
     end
+    if nargin < 6 || isempty(polyOrder)
+        polyOrder = 3;
+    end
+
+    windowIdx = localForwardWindow(size(amps, 2), maxidx, windowPts);
+    tstar = (texp(windowIdx) - texp(maxidx)) ./ tc;
+    fitOrder = min(polyOrder, numel(windowIdx) - 1);
+    if fitOrder < 1
+        return
+    end
+
+    for ii = 1:size(amps, 1)
+        p = polyfit(tstar(:), amps(ii, windowIdx).', fitOrder);
+        epnmd0(ii) = polyval(polyder(p), 0);
+    end
+end
+
+function windowIdx = localForwardWindow(nSamples, startIdx, windowPts)
+    windowPts = max(3, round(windowPts));
+    if mod(windowPts, 2) == 0
+        windowPts = windowPts - 1;
+    end
+    windowPts = min(windowPts, nSamples);
+    startIdx = min(max(1, startIdx), nSamples);
+    lastIdx = min(nSamples, startIdx + windowPts - 1);
+    windowIdx = startIdx:lastIdx;
 end
 
 function firstCollapseIdx = findFirstCollapseIndex(R_data)
@@ -505,29 +532,46 @@ function value = simOpt(simOpts, fieldName, defaultValue)
     end
 end
 
-function plotSingleEvaluation(sim, xData, modelParams)
+function plotSingleEvaluation(sim, isotropicSim, xData, modelParams)
     if ~isfield(sim, 'success') || ~sim.success
         warning('Simulation did not complete, so no fit plot was made.');
         return
     end
+    hasIsotropic = isfield(isotropicSim, 'success') && isotropicSim.success;
 
     figure('Name', 'Single model-to-data evaluation')
     plotl = ceil(sqrt(numel(xData.n) + 1));
 
     subplot(plotl, plotl, 1)
     hold on
-    plot(sim.t, sim.R, '-', 'LineWidth', 1.5)
-    plot(xData.tfit_nd, xData.R_data, 'o')
+    hFit = plot(sim.t, sim.R, '-', 'LineWidth', 1.5);
+    if hasIsotropic
+        hIso = plot(isotropicSim.t, isotropicSim.R, 'k--', ...
+            'LineWidth', 1.2);
+    else
+        hIso = gobjects(0);
+    end
+    hData = plot(xData.tfit_nd, xData.R_data, 'o');
     xlabel("t^*")
     ylabel("R")
     title(sprintf('G=%.3g, \\mu=%.3g, \\alpha=%.3g, ani=[%.3g %.3g]', ...
         modelParams.G, modelParams.mu, modelParams.alph, ...
         modelParams.ani(1), modelParams.ani(2)))
+    if hasIsotropic
+        legend([hFit, hIso, hData], {'model', 'ani=[0 0]', 'data'}, ...
+            'Location', 'best')
+    else
+        legend([hFit, hData], {'model', 'data'}, 'Location', 'best')
+    end
 
     for ii = 1:numel(xData.n)
         subplot(plotl, plotl, ii + 1)
         hold on
         plot(sim.t, sim.epnm(:, ii), '-', 'LineWidth', 1.5)
+        if hasIsotropic
+            plot(isotropicSim.t, isotropicSim.epnm(:, ii), 'k--', ...
+                'LineWidth', 1.2)
+        end
         plot(xData.tfit_nd, xData.ep_data(:, ii), 'r^')
         xlabel("t^*")
         ylabel(sprintf('$\\epsilon_{%.0f}$', xData.n(ii)), ...
