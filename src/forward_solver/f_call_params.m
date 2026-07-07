@@ -10,9 +10,23 @@
 function [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
     acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts, pert_opts] = ...
     f_call_params(varargin)
-addpath ../common/
+solver_dir = fileparts(mfilename('fullpath'));
+persistent commonPathAdded
+if isempty(commonPathAdded)
+    addpath(fullfile(solver_dir, '..', 'common'))
+    commonPathAdded = true;
+end
 
-disp('--- Inertial Microcavitation Rheometry forward solver ---');
+show_setup = false;
+for n = 1:2:nargin-1
+    if strcmpi(varargin{n}, 'progdisplay')
+        show_setup = logical(varargin{n+1});
+        break;
+    end
+end
+if show_setup
+    disp('--- Inertial Microcavitation Rheometry forward solver ---');
+end
 % check that all inputs are matched
 if mod(nargin,2) == 1
     error('input error: unmatched inputs');
@@ -23,7 +37,9 @@ defaultread = true;
 for n = 1:2:nargin
     if strcmpi(varargin{n},'casefile') == 1
         cfname = varargin{n+1};
-        disp('Case file: Using given casefile',cfname);
+        if show_setup
+            disp(['Case file: Using given casefile ' cfname]);
+        end
         try
             run(cfname);
         catch
@@ -36,8 +52,10 @@ end
 
 % otherwise, reading the default casefile
 if defaultread
-    disp('Case file: Using default case file');
-    run('default_case.m');
+    if show_setup
+        disp('Case file: Using default case file');
+    end
+    run(fullfile(solver_dir, 'default_case.m'));
 end
 
 % overrides defaults with options and dimensional inputs %
@@ -81,6 +99,7 @@ for n = 1:2:nargin
         TFin = 0;
         case 'reltol',      reltol = varargin{n+1};
         case 'abstol',      abstol = varargin{n+1};
+        case {'maxwalltime', 'maxtime', 'walltime'}, maxwalltime = varargin{n+1};
         
         % initial options
         case 'collapse',    collapse = varargin{n+1};
@@ -174,6 +193,9 @@ end
 if ~exist("abstol", 'var')
     abstol = 1e-8;
 end
+if ~exist("maxwalltime", 'var')
+    maxwalltime = 0;
+end
 
 if tempset == 1
     % recalculating the vapor pressure
@@ -197,11 +219,11 @@ end
 % loading waveform data
 if wave_type < 0
     if wave_type == -1
-        waveform_dir = './d_hn.mat';
+        waveform_dir = fullfile(solver_dir, 'd_hn.mat');
     elseif wave_type == -2
-        waveform_dir = './d_mn.mat';
+        waveform_dir = fullfile(solver_dir, 'd_mn.mat');
     elseif wave_type == -3
-        waveform_dir = './d_ml.mat';
+        waveform_dir = fullfile(solver_dir, 'd_ml.mat');
     end
     wave_poly = load(waveform_dir,'poly');
     wave_dpoly = load(waveform_dir,'dpoly');
@@ -496,7 +518,7 @@ end
 eqns_opts = [radial bubtherm medtherm stress eps3 masstrans perturbed pertmod];
 
 % solver options
-solve_opts = [method spectral divisions reltol abstol Nv Nt Mt Lv Lt];
+solve_opts = [method spectral divisions reltol abstol Nv Nt Mt Lv Lt maxwalltime];
 % dimensionless initial conditions
 init_opts = [Rzero Rdotzero Pb_star P8 T8 Pv_star Req_zero];
 % dimensionaless initial stress

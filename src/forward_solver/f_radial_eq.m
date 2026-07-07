@@ -11,7 +11,7 @@ function [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, ...
 
 % Rayleigh-Plesset
 if radial == 1
-    Rddot = (P - 1 - Pf8 - iWe/R + S - 1.5*Rdot^2)/R;
+    Rddot = (P - 1 - Pf8 - iWe/R + S + rad_mod - 1.5*Rdot^2)/R;
     
     % Keller-Miksis in pressure
 elseif radial == 2

@@ -5,7 +5,8 @@
 % difference solver of the PDEs involving thermal transport and
 % viscoelasticity to solve Rayleigh-Plesset equations
 function varargout = f_imr_fd(varargin)
-    addpath ../common/
+    solverDir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(solverDir, '..', 'common'))
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
         acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts, pert_opts] ...
@@ -40,6 +41,7 @@ function varargout = f_imr_fd(varargin)
     Mt              = solve_opts(8);
     Lv              = solve_opts(9);
     Lt              = solve_opts(10);
+    maxwalltime     = solve_opts(11);
     
     % dimensionless initial conditions
     Rzero           = init_opts(1);
@@ -272,11 +274,14 @@ function varargout = f_imr_fd(varargin)
     foptions = optimset('TolFun',1e-12);
     
     % solver start
-    f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
-        nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
+    if progdisplay
+        f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
+            nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
+    end
     Tol = [reltol; abstol];
     bubble = @SVBDODE;
-    [t,X] = f_odesolve(bubble, init, method, divisions, Tol, tspan);
+    solver_walltime_start = tic;
+    [t,X] = f_odesolve(bubble, init, method, divisions, Tol, tspan, maxwalltime);
     
     % extract result
     R    = X(:,1);
@@ -340,6 +345,10 @@ function varargout = f_imr_fd(varargin)
     
     % solver function
     function [dXdt] = SVBDODE(t,X)
+        if maxwalltime > 0 && toc(solver_walltime_start) >= maxwalltime
+            error('IMR:MaxWallTimeExceeded', ...
+                'Forward solve exceeded maxwalltime %.3g seconds.', maxwalltime);
+        end
         
         % showing output
         if progdisplay
@@ -520,6 +529,7 @@ function varargout = f_imr_fd(varargin)
                 M2*T2 + M3*T3 + M4*T4 + M5*T5;
             rad_mod = ortho_vect(1);
             ep_mod = ortho_vect(2:end);
+            
         else
             rad_mod = 0; ep_mod = 0;
         end
@@ -541,9 +551,8 @@ function varargout = f_imr_fd(varargin)
 
         if perturbed
             % \ddot{\epsilon} + c1 \dot{\epsion} + c2 \epsilon = 0;
-            [c1, c2] = f_compute_perturb_coeffs(R, Rdot, Rddot, n, ...
+            epddot = f_compute_perturb_coeffs(epnm, epnmd, epnmeq, ep_mod, R, Rdot, Rddot, n, ...
                 Req, We, Re8, Ca, alphax, pertmod);
-            epddot = -c1.*epnmd - c2.*epnm + ep_mod;
             dXdt(ipertepnm) = epnmd;
             dXdt(ipertepdnm) = epddot;
         end

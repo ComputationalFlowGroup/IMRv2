@@ -4,9 +4,9 @@ addpath src/forward_solver/
 
 % equation options
 % ------- Material Properties ------------------------%
-kappa = 1.4;
+kappa = 1;
 T8 = 298.15;
-rho8 = 1048;
+rho8 = 1000;
 
 % ------- Simulation settings ------------------------%
 radial = 2;
@@ -47,15 +47,21 @@ tc = Rmax*sqrt(rho8/101325);
 tfin = tf_nd*tc;
 tvector = linspace(0,tfin,tsteps);
 varin = {'progdisplay',0,'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
-    'vapor',vapor,'medtherm',medtherm,'masstrans',masstrans,'method',23,...
+    'vapor',vapor,'medtherm',medtherm,'masstrans',masstrans,'method',45,...
     'stress',stress,'collapse',collapse,'mu',mu,'g',G,'lambda1',0e-7,...
     'lambda2',0,'alphax', alph, 'ani', ani, 'surft', sig,'r0',Rmax,'req',Req,'kappa',kappa,'t8',T8,...
     'rho8',rho8, 'pa',pa 'omega', omega, 'wave_type', wavetype, 'perturbed', perturbed, ...
     'modes', modes, 'orders', orders, 'epnm0', epnm0, 'pertmod', pertmod, ...
-    'epnmd0', epnmd0, 'epnmeq',epeq, 'reltol', 1e-4, 'abstol', 1e-5, 'Nt', 75, ...
+    'epnmd0', epnmd0, 'epnmeq',epeq, 'reltol', 1e-6, 'abstol', 1e-7, 'Nt', 75, ...
     'dt', dt, 'mn', mn};
 % run the forward solver
-[t,R,~,~,~,~,~,epnm, ~] = f_imr_fd(varin{:});
+if perturbed
+    [t,R,~,~,~,~,~,epnm, ~] = f_imr_fd(varin{:});
+else
+    [t,R,~] = f_imr_fd(varin{:}); 
+
+    epnm = 0;
+end
 % [t,R] = f_imr_fd(varin{:});
 % epnm = 0;
 
