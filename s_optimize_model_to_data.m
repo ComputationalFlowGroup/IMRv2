@@ -17,6 +17,12 @@ polyOrder = 3;
 windowPts = 21;   % odd integer: 3, 5, 7, ...
 opt.fit.NumPerturbationModes = 7;
 
+% Loss priority weights after per-trace normalization. Radial receives
+% RadialWeight, and mode n receives 1/(n + ModeWeightOffset)^ModeWeightPower.
+opt.loss.RadialWeight = 1;
+opt.loss.ModeWeightPower = 1;
+opt.loss.ModeWeightOffset = 0;
+
 % Parameter bounds. G and mu are optimized in log10-space by default.
 opt.bounds.G = [1e3, 5e4];
 opt.bounds.alph = [0, 5];
@@ -150,12 +156,13 @@ nFitModes = min(opt.fit.NumPerturbationModes, nmodes);
 fitModeIdx = sort(modeEnergyOrder(1:nFitModes));
 testModeIdx = setdiff(1:nmodes, fitModeIdx, 'stable');
 
-% Weight the radial trace against the trained perturbation modes, and
-% normalize each perturbation mode by its own scale.
-aR = nFitModes / norm(R_data);
+% Normalize each trace, then apply priority weights: radial first, then
+% lower-order perturbation modes before higher-order modes.
+lossWeights = makePriorityLossWeights(n, opt.loss);
+aR = lossWeights.radial / norm(R_data);
 sEP = vecnorm(ep_data(epFitIdx, :), 2, 1);
 sEP(sEP < eps) = 1;
-aEP = 1 ./ sEP;
+aEP = lossWeights.modes ./ sEP;
 yDataAllFitModes = [aR .* R_data; reshape(ep_data(epFitIdx, fitModeIdx) .* ...
     aEP(fitModeIdx), [], 1)];
 
@@ -182,6 +189,7 @@ xDataAll = struct( ...
     'fitModeIdx', fitModeIdx, ...
     'testModeIdx', testModeIdx, ...
     'modeEnergy', modeEnergy, ...
+    'lossWeights', lossWeights, ...
     'aR', aR, ...
     'aEP', aEP, ...
     'y_data', yDataAllFitModes, ...
@@ -203,6 +211,7 @@ end
 
 fprintf('Training perturbation modes: %s\n', num2str(n(fitModeIdx)));
 fprintf('Held-out perturbation modes: %s\n', num2str(n(testModeIdx)));
+printLossWeights(n, fitModeIdx, lossWeights);
 printParameterSpec(paramSpec);
 fprintf(['First collapse at post-Rmax sample %d/%d: t* = %.6g, ', ...
     'R/Rmax = %.6g\n'], firstCollapseIdx, numel(tfit_nd), ...
@@ -613,6 +622,32 @@ function value = optionValue(options, fieldName, defaultValue)
         value = options.(fieldName);
     else
         value = defaultValue;
+    end
+end
+
+function lossWeights = makePriorityLossWeights(n, lossOpts)
+    radialWeight = optionValue(lossOpts, 'RadialWeight', 1);
+    modePower = optionValue(lossOpts, 'ModeWeightPower', 1);
+    modeOffset = optionValue(lossOpts, 'ModeWeightOffset', 0);
+
+    modeDenom = abs(n(:).') + modeOffset;
+    if any(modeDenom <= 0)
+        error('Mode weights require n + ModeWeightOffset to be positive.');
+    end
+
+    lossWeights = struct();
+    lossWeights.radial = radialWeight;
+    lossWeights.modes = 1 ./ (modeDenom .^ modePower);
+    lossWeights.modePower = modePower;
+    lossWeights.modeOffset = modeOffset;
+end
+
+function printLossWeights(n, fitModeIdx, lossWeights)
+    fprintf('Loss priority weights: radial=%.6g\n', lossWeights.radial);
+    fprintf('Training mode priority weights:\n');
+    for ii = 1:numel(fitModeIdx)
+        idx = fitModeIdx(ii);
+        fprintf('  n=%g: %.6g\n', n(idx), lossWeights.modes(idx));
     end
 end
 
