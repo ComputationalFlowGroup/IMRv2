@@ -12,16 +12,22 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
     'chicken_Rt_data', 'processed_11.mat');
 
-maxmode = 12;
+maxmode = 26;
 polyOrder = 3;
 windowPts = 21;   % odd integer: 3, 5, 7, ...
 opt.fit.NumPerturbationModes = 5;
 
+% Loss priority weights after per-trace normalization. Radial receives
+% RadialWeight, and mode n receives 1/(n + ModeWeightOffset)^ModeWeightPower.
+opt.loss.RadialWeight = 1;
+opt.loss.ModeWeightPower = 1;
+opt.loss.ModeWeightOffset = 0;
+
 % Physical model parameters for this single simulation.
-modelParams.G = 1e3;       % Pa
-modelParams.alph = 0;
-modelParams.mu = 0.5;        % Pa*s
-modelParams.ani = [1, 1];
+modelParams.G = 10^(3.5104);       % Pa
+modelParams.alph = 3.6733;
+modelParams.mu = 10^(-0.30133);        % Pa*s
+modelParams.ani = [3.9024, 0.078849];
 
 % Forward-solver controls. The simulation is evaluated at the experimental
 % post-Rmax times, so tsteps is only a fallback for non-optimization calls.
@@ -96,10 +102,11 @@ nFitModes = min(opt.fit.NumPerturbationModes, nmodes);
 fitModeIdx = sort(modeEnergyOrder(1:nFitModes));
 testModeIdx = setdiff(1:nmodes, fitModeIdx, 'stable');
 
-aR = nFitModes / norm(R_data);
+lossWeights = makePriorityLossWeights(n, opt.loss);
+aR = lossWeights.radial / norm(R_data);
 sEP = vecnorm(ep_data(epFitIdx, :), 2, 1);
 sEP(sEP < eps) = 1;
-aEP = 1 ./ sEP;
+aEP = lossWeights.modes ./ sEP;
 yData = [aR .* R_data; reshape(ep_data(epFitIdx, fitModeIdx) .* ...
     aEP(fitModeIdx), [], 1)];
 
@@ -126,6 +133,7 @@ xData = struct( ...
     'fitModeIdx', fitModeIdx, ...
     'testModeIdx', testModeIdx, ...
     'modeEnergy', modeEnergy, ...
+    'lossWeights', lossWeights, ...
     'aR', aR, ...
     'aEP', aEP, ...
     'y_data', yData, ...
@@ -139,6 +147,7 @@ fprintf('  ani   = [%.6g %.6g]\n', modelParams.ani(1), ...
     modelParams.ani(2));
 fprintf('Training perturbation modes: %s\n', num2str(n(fitModeIdx)));
 fprintf('Held-out perturbation modes: %s\n', num2str(n(testModeIdx)));
+printLossWeights(n, fitModeIdx, lossWeights);
 fprintf(['First collapse at post-Rmax sample %d/%d: t* = %.6g, ', ...
     'R/Rmax = %.6g\n'], firstCollapseIdx, numel(tfit_nd), ...
     firstCollapseTimeNd, R_data(firstCollapseIdx));
@@ -319,6 +328,40 @@ function spec = fixedParamSpec(name, variableName, fixedValue, logScale)
         'bounds', [fixedValue, fixedValue], 'optimizerBounds', [], ...
         'logScale', logScale, 'optimize', false, ...
         'fixedValue', fixedValue);
+end
+
+function lossWeights = makePriorityLossWeights(n, lossOpts)
+    radialWeight = optionValue(lossOpts, 'RadialWeight', 1);
+    modePower = optionValue(lossOpts, 'ModeWeightPower', 1);
+    modeOffset = optionValue(lossOpts, 'ModeWeightOffset', 0);
+
+    modeDenom = abs(n(:).') + modeOffset;
+    if any(modeDenom <= 0)
+        error('Mode weights require n + ModeWeightOffset to be positive.');
+    end
+
+    lossWeights = struct();
+    lossWeights.radial = radialWeight;
+    lossWeights.modes = 1 ./ (modeDenom .^ modePower);
+    lossWeights.modePower = modePower;
+    lossWeights.modeOffset = modeOffset;
+end
+
+function printLossWeights(n, fitModeIdx, lossWeights)
+    fprintf('Loss priority weights: radial=%.6g\n', lossWeights.radial);
+    fprintf('Training mode priority weights:\n');
+    for ii = 1:numel(fitModeIdx)
+        idx = fitModeIdx(ii);
+        fprintf('  n=%g: %.6g\n', n(idx), lossWeights.modes(idx));
+    end
+end
+
+function value = optionValue(options, fieldName, defaultValue)
+    if isfield(options, fieldName) && ~isempty(options.(fieldName))
+        value = options.(fieldName);
+    else
+        value = defaultValue;
+    end
 end
 
 function loss = transformLossForOptimizer(rawLoss, simOpts)
