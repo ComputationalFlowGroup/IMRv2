@@ -10,12 +10,12 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'chicken_Rt_data', 'processed_54.mat');
+    'chicken_Rt_data', 'processed_11.mat');
 
-maxmode = 12;
+maxmode = 14;
 polyOrder = 3;
 windowPts = 21;   % odd integer: 3, 5, 7, ...
-opt.fit.NumPerturbationModes = 5;
+opt.fit.NumPerturbationModes = 7;
 
 % Parameter bounds. G and mu are optimized in log10-space by default.
 opt.bounds.G = [1e3, 5e4];
@@ -31,7 +31,7 @@ opt.bounds.ani = [0, 5; ...
 %   opt.fixed.ani = [0, 0];
 %   opt.fixed.ani = [NaN, 0];  % optimize ani1, fix ani2 = 0
 opt.fixed.G = NaN;
-opt.fixed.alph = 0;
+opt.fixed.alph = NaN;
 opt.fixed.mu = NaN;
 opt.fixed.ani = [NaN, NaN];
 
@@ -58,8 +58,8 @@ opt.sim.PrintFailures = true;
 opt.sim.PrintSuccess = false;
 
 % Bayes-opt controls.
-opt.bayes.MaxObjectiveEvaluations = 15;
-opt.bayes.NumSeedPoints = 6;
+opt.bayes.MaxObjectiveEvaluations = 150;
+opt.bayes.NumSeedPoints = 15;
 opt.bayes.UseLatinHypercubeInitialX = true;
 opt.bayes.InitialRegionFraction = 1; % lower half of each optimizer bound range
 opt.bayes.UseParallel = true;  % use true for larger budgets or an open pool
@@ -70,17 +70,17 @@ opt.bayes.MinWorkerUtilization = []; % [] keeps all pool workers busy
 opt.bayes.ParallelMethod = 'clipped-model-prediction';
 opt.bayes.IsObjectiveDeterministic = true;
 opt.bayes.AcquisitionFunctionName = 'lower-confidence-bound';
-opt.bayes.ExplorationRatio = 0.75;
+opt.bayes.ExplorationRatio = 0.65;
 opt.bayes.Verbose = 1;
 opt.bayes.PlotFcn = {};         % plots add overhead during fast searches
 
 % Optional local refinement from the best Bayes-opt points.
-opt.refine.Enabled = false;     % can be expensive: finite differences call many simulations
-opt.refine.NumStarts = 3;
+opt.refine.Enabled = true;     % can be expensive: finite differences call many simulations
+opt.refine.NumStarts = 5;
 opt.refine.Display = 'iter-detailed';
 opt.refine.UseParallel = true;
-opt.refine.MaxFunctionEvaluations = 10;
-opt.refine.MaxIterations = 5;
+opt.refine.MaxFunctionEvaluations = 50;
+opt.refine.MaxIterations = 10;
 opt.refine.OptimalityTolerance = 1e-10;
 opt.refine.FunctionTolerance = 1e-10;
 opt.refine.StepTolerance = 1e-10;
@@ -233,7 +233,7 @@ else
     fvalFromBayes = results.MinObjective;
 end
 
-%% Optional local refinement
+% Optional local refinement
 refineOutput = [];
 solutions = [];
 if opt.refine.Enabled && ~isempty(bayesoptVars)
