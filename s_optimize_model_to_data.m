@@ -12,7 +12,7 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
     'chicken_Rt_data', 'processed_11.mat');
 
-maxmode = 14;
+maxmode = 22;
 polyOrder = 3;
 windowPts = 21;   % odd integer: 3, 5, 7, ...
 opt.fit.NumPerturbationModes = 7;
@@ -86,7 +86,7 @@ opt.refine.NumStarts = 5;
 opt.refine.Display = 'iter-detailed';
 opt.refine.UseParallel = true;
 opt.refine.MaxFunctionEvaluations = 50;
-opt.refine.MaxIterations = 10;
+opt.refine.MaxIterations = 5;
 opt.refine.OptimalityTolerance = 1e-10;
 opt.refine.FunctionTolerance = 1e-10;
 opt.refine.StepTolerance = 1e-10;
