@@ -33,7 +33,7 @@ opt.bounds.ani = [0, 5; ...
 opt.fixed.G = NaN;
 opt.fixed.alph = 0;
 opt.fixed.mu = NaN;
-opt.fixed.ani = [NaN, 0];
+opt.fixed.ani = [NaN, NaN];
 
 opt.logScale.G = true;
 opt.logScale.alph = false;
