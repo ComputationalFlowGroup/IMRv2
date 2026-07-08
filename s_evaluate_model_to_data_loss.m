@@ -20,9 +20,12 @@ icVelocityPolyOrder = 3;
 opt.fit.NumPerturbationModes = 7;
 
 % Loss priority weights after per-trace normalization. Radial receives
-% RadialWeight, and mode n receives 1/(n + ModeWeightOffset)^ModeWeightPower.
-opt.loss.RadialWeight = 1;
-opt.loss.ModeWeightPower = 1;
+% RadialWeight, and mode n receives
+% ModeBaseWeight*(ModeReference/(n + ModeWeightOffset))^ModeWeightPower.
+opt.loss.RadialWeight = 1.5;
+opt.loss.ModeBaseWeight = 1;
+opt.loss.ModeReference = 2;
+opt.loss.ModeWeightPower = 2;
 opt.loss.ModeWeightOffset = 0;
 
 % Physical model parameters for this single simulation.
@@ -359,23 +362,32 @@ end
 
 function lossWeights = makePriorityLossWeights(n, lossOpts)
     radialWeight = optionValue(lossOpts, 'RadialWeight', 1);
-    modePower = optionValue(lossOpts, 'ModeWeightPower', 1);
+    modeBaseWeight = optionValue(lossOpts, 'ModeBaseWeight', 1);
+    modeReference = optionValue(lossOpts, 'ModeReference', 2);
+    modePower = optionValue(lossOpts, 'ModeWeightPower', 2);
     modeOffset = optionValue(lossOpts, 'ModeWeightOffset', 0);
 
     modeDenom = abs(n(:).') + modeOffset;
-    if any(modeDenom <= 0)
-        error('Mode weights require n + ModeWeightOffset to be positive.');
+    if modeReference <= 0 || any(modeDenom <= 0)
+        error(['Mode weights require ModeReference and n + ' ...
+            'ModeWeightOffset to be positive.']);
     end
 
     lossWeights = struct();
     lossWeights.radial = radialWeight;
-    lossWeights.modes = 1 ./ (modeDenom .^ modePower);
+    lossWeights.modes = modeBaseWeight .* ...
+        (modeReference ./ modeDenom) .^ modePower;
+    lossWeights.modeBaseWeight = modeBaseWeight;
+    lossWeights.modeReference = modeReference;
     lossWeights.modePower = modePower;
     lossWeights.modeOffset = modeOffset;
 end
 
 function printLossWeights(n, fitModeIdx, lossWeights)
-    fprintf('Loss priority weights: radial=%.6g\n', lossWeights.radial);
+    fprintf(['Loss priority weights: radial=%.6g, mode formula=' ...
+        '%.6g*(%.6g/(n+%.6g))^%.6g\n'], lossWeights.radial, ...
+        lossWeights.modeBaseWeight, lossWeights.modeReference, ...
+        lossWeights.modeOffset, lossWeights.modePower);
     fprintf('Training mode priority weights:\n');
     for ii = 1:numel(fitModeIdx)
         idx = fitModeIdx(ii);
