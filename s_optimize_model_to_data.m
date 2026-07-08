@@ -9,16 +9,30 @@ addpath(fullfile(scriptDir, 'src', 'forward_solver'));
 addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
-dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'PVA_Rt_data', 'processed_14.mat');
+dataDir = fullfile(projectDir, 'data', 'SicongJinChicken', 'PVA_Rt_data');
+outputDir = fullfile(projectDir, 'optimized_data', 'Jin_data', 'PVA');
 
 material = "PVA";
 maxmode = 22;
 polyOrder = 3;
-windowPts = 15;   % odd integer: 3, 5, 7, ...
+windowPts = 8;   % odd integer: 3, 5, 7, ...
 icVelocityWindowPts = 5;  % forward polynomial derivative window from Rmax
 icVelocityPolyOrder = 3;
-opt.fit.NumPerturbationModes = 7;
+opt.fit.NumPerturbationModes = 5;
+% Fit through the requested number of experimental radial collapses. A
+% collapse is a radius minimum with sufficient prominence relative to the
+% full post-Rmax radial range.
+opt.fit.NumRadialCollapses = 4;
+opt.fit.CollapseMinProminenceFraction = 0.08;
+opt.fit.CollapseMinSeparationSteps = 5;
+
+% Fallback when the requested number of collapses is not present: stop once
+% the experimental mean radius remains close to Req for this many samples.
+% The confirming samples are retained and only the later tail is excluded.
+opt.fit.StopAtRadiusEquilibrium = true;
+opt.fit.RadiusEquilibriumRelTol = 0.02;
+opt.fit.RadiusEquilibriumAbsTol = 0;  % dimensional radius units (m)
+opt.fit.RadiusEquilibriumConsecutiveSteps = 10;
 
 % Loss priority weights after per-trace normalization. Radial receives
 % RadialWeight, and mode n receives
@@ -108,10 +122,36 @@ opt.refine.FiniteDifferenceType = 'forward';
 opt.refine.Algorithm = 'interior-point';
 
 opt.randomSeed = 1;
-opt.outputFile = fullfile(scriptDir, 'optimized_model_to_data.mat');
 opt.plotInitialConditionCheck = true;
 
-%% Load and process data
+%% Discover and optimize all datasets
+[dataFiles, datasetNumbers] = listProcessedDataFiles(dataDir);
+if ~isfolder(outputDir)
+    mkdir(outputDir);
+end
+
+baseOpt = opt;
+completedDatasets = strings(numel(dataFiles), 1);
+nCompleted = 0;
+emptyFailure = struct('datasetNumber', "", 'identifier', '', 'message', '');
+batchFailures = repmat(emptyFailure, numel(dataFiles), 1);
+nFailures = 0;
+
+for datasetIdx = 1:numel(dataFiles)
+opt = baseOpt;
+datasetNumber = datasetNumbers(datasetIdx);
+dataFile = fullfile(dataFiles(datasetIdx).folder, dataFiles(datasetIdx).name);
+opt.outputFile = fullfile(outputDir, "optimized_" + datasetNumber + ".mat");
+opt.sim.DiagnosticLogFile = fullfile(outputDir, ...
+    "model_to_data_eval_diagnostics_" + datasetNumber + ".tsv");
+
+fprintf('\n============================================================\n');
+fprintf('Optimizing %s (%d of %d)\n', dataFiles(datasetIdx).name, ...
+    datasetIdx, numel(dataFiles));
+fprintf('Output: %s\n', opt.outputFile);
+fprintf('============================================================\n');
+
+try
 if ~isempty(opt.randomSeed)
     rng(opt.randomSeed, 'twister');
 end
@@ -119,7 +159,20 @@ end
 if ~isfile(dataFile)
     error('Could not find the data file: %s', dataFile);
 end
-load(dataFile)
+loadedData = load(dataFile, 'amp_extract_fft', 'mode_extract_fft');
+requiredDataVariables = {'amp_extract_fft', 'mode_extract_fft'};
+for variableIdx = 1:numel(requiredDataVariables)
+    variableName = requiredDataVariables{variableIdx};
+    if ~isfield(loadedData, variableName)
+        error('Data file does not contain %s: %s', variableName, dataFile);
+    end
+end
+amp_extract_fft = loadedData.amp_extract_fft;
+mode_extract_fft = loadedData.mode_extract_fft;
+if size(mode_extract_fft, 2) ~= size(amp_extract_fft, 2)
+    error(['mode_extract_fft and amp_extract_fft must contain the same ', ...
+        'number of experimental time samples in %s.'], dataFile);
+end
 
 pxpermicron = 3.2;
 
@@ -154,14 +207,27 @@ epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc, ...
 eqWindow = max(1, size(amps, 2)-20):size(amps, 2);
 epnmeq = mean(amps(:, eqWindow), 2);
 
-% Fit only the data after Rmax because the forward simulation starts there.
-fitIdx = maxidx:numel(texp);
+% Fit only after Rmax through the fourth detected radial collapse. If fewer
+% collapses are available, fall back to the radius-equilibrium cutoff.
+[collapseFitEndIdx, radialCollapseCutoffInfo] = ...
+    findRadialCollapseCutoff(expR, maxidx, opt.fit);
+if radialCollapseCutoffInfo.foundRequestedCount
+    fitEndIdx = collapseFitEndIdx;
+    [~, radiusEquilibriumInfo] = findRadiusEquilibriumCutoff( ...
+        expR, Req, maxidx, opt.fit);
+    radiusEquilibriumInfo.usedAsFallback = false;
+else
+    [fitEndIdx, radiusEquilibriumInfo] = findRadiusEquilibriumCutoff( ...
+        expR, Req, maxidx, opt.fit);
+    radiusEquilibriumInfo.usedAsFallback = true;
+end
+fitIdx = maxidx:fitEndIdx;
 tfit_nd = (texp(fitIdx) - texp(maxidx)) ./ tc;
 R_data = expR(fitIdx).' ./ Rmax;
 ep_data = amps(:, fitIdx).';
 tf_nd = max(tfit_nd);
 [firstCollapseIdx, collapseInfo] = findFirstCollapseIndex(R_data);
-epFitIdx = 1:2*firstCollapseIdx;
+epFitIdx = (1:numel(tfit_nd)).';
 firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
 firstCollapseTimeSeconds = firstCollapseTimeNd * tc;
 
@@ -170,8 +236,9 @@ n = mode_extract_fft(modeRows, 10);
 n = n(:).';
 m = zeros(size(n));
 
-% Train only against the largest-energy perturbation modes before first
-% collapse, while still simulating every retained mode for held-out testing.
+% Train only against the largest-energy perturbation modes while simulating
+% every retained mode for held-out testing. Every mode uses exactly the same
+% retained experimental time rows as the mean radius.
 nmodes = size(ep_data, 2);
 modeEnergy = sum(ep_data(epFitIdx, :).^2, 1);
 [~, modeEnergyOrder] = sort(modeEnergy, 'descend');
@@ -211,6 +278,8 @@ xDataAll = struct( ...
     'firstCollapseTimeNd', firstCollapseTimeNd, ...
     'firstCollapseTimeSeconds', firstCollapseTimeSeconds, ...
     'collapseInfo', collapseInfo, ...
+    'radialCollapseCutoffInfo', radialCollapseCutoffInfo, ...
+    'radiusEquilibriumInfo', radiusEquilibriumInfo, ...
     'fitModeIdx', fitModeIdx, ...
     'testModeIdx', testModeIdx, ...
     'modeEnergy', modeEnergy, ...
@@ -246,6 +315,8 @@ fprintf(['First collapse (raw radius minimum) at post-Rmax sample ', ...
 fprintf(['  Sustained rebound confirmed through sample %d: t* = %.6g, ', ...
     'rise in R/Rmax = %.6g\n'], collapseInfo.confirmationIdx, ...
     tfit_nd(collapseInfo.confirmationIdx), collapseInfo.reboundRise);
+printFitWindowCutoff(radialCollapseCutoffInfo, radiusEquilibriumInfo, ...
+    texp, maxidx);
 fprintf('Perturbation loss uses %d samples from t* = %.6g to %.6g.\n', ...
     numel(epFitIdx), tfit_nd(epFitIdx(1)), tfit_nd(epFitIdx(end)));
 if isfield(opt.bayes, 'InitialX') && ~isempty(opt.bayes.InitialX)
@@ -254,8 +325,13 @@ if isfield(opt.bayes, 'InitialX') && ~isempty(opt.bayes.InitialX)
 end
 
 if opt.plotInitialConditionCheck
-    plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, tc);
-    plotCollapseDetection(tfit_nd, R_data, collapseInfo);
+    fitEndPostRmaxIdx = fitEndIdx - maxidx + 1;
+    tpost_nd = (texp(maxidx:end) - texp(maxidx)) ./ tc;
+    Rpost_data = expR(maxidx:end).' ./ Rmax;
+    plotInitialConditionCheck(texp, maxidx, fitEndIdx, amps_og, amps, ...
+        epnm0, epnmd0, tc);
+    plotCollapseDetection(tpost_nd, Rpost_data, collapseInfo, ...
+        fitEndPostRmaxIdx);
 end
 
 %% Bayesian optimization
@@ -305,11 +381,12 @@ else
 end
 toc
 
-save('../optimized_data/Jin_data/PVA/optimized_14.mat')
+% Save a checkpoint before the final best-fit simulation and plotting.
+save(opt.outputFile, 'opt', 'dataFile', 'datasetNumber', 'paramSpec', ...
+    'xDataAll', 'xDataOpt', 'results', 'bestZ', 'fval', 'exitflag', ...
+    'refineOutput', 'solutions');
 
 %% Evaluate and plot best fit
-
-% load('../optimized_data/Jin_data/PVA/optimized_03_donot_delete.mat')
 
 bestParams = f_unpack_model_to_data_params(bestZ, paramSpec);
 [bestY, bestRunInfo, bestSimOpt] = f_optimize_model_to_data_predict(bestZ, ...
@@ -340,7 +417,8 @@ fprintf('  held-out mode loss = %.6g\n', heldoutModeLoss);
 fprintf('  all mode loss     = %.6g\n', allModeLoss);
 fprintf('  radial loss samples       = %d\n', bestRunInfo.nRadialLossTimes);
 fprintf('  perturbation loss samples = %d (through t* = %.6g)\n', ...
-    bestRunInfo.nPerturbationLossTimes, bestRunInfo.firstCollapseTimeNd);
+    bestRunInfo.nPerturbationLossTimes, ...
+    bestRunInfo.perturbationLossTimeNd(end));
 fprintf('  max requested/returned simulation time mismatch = %.3g\n', ...
     bestRunInfo.maxRequestedReturnedTimeMismatch);
 fprintf('  max radial time extraction mismatch = %.3g\n', ...
@@ -354,13 +432,72 @@ fprintf('  perturbation rows used    = %d:%d of %d\n', ...
 plotOptimizedFit(bestSim, xDataAll, bestParams);
 
 save(opt.outputFile, 'opt', 'paramSpec', 'xData', 'xDataAll', ...
-    'xDataOpt', 'results', 'bestZ', 'bestParams', 'bestLoss', ...
+    'xDataOpt', 'dataFile', 'datasetNumber', 'results', 'bestZ', ...
+    'bestParams', 'bestLoss', ...
     'fitR2', 'bestRunInfo', 'fullRunInfo', 'bestSimOpt', 'bestSim', ...
     'timeVerification', 'trainModeLoss', 'heldoutModeLoss', ...
     'allModeLoss', 'fval', ...
     'exitflag', 'refineOutput', 'solutions');
 
+nCompleted = nCompleted + 1;
+completedDatasets(nCompleted) = datasetNumber;
+fprintf('Saved completed optimization: %s\n', opt.outputFile);
+close all
+catch ME
+    nFailures = nFailures + 1;
+    batchFailures(nFailures).datasetNumber = datasetNumber;
+    batchFailures(nFailures).identifier = ME.identifier;
+    batchFailures(nFailures).message = ME.message;
+    warning('ModelToData:DatasetOptimizationFailed', ...
+        'Dataset processed_%s failed: %s', datasetNumber, ...
+        getReport(ME, 'basic', 'hyperlinks', 'off'));
+    close all
+end
+end
+
+fprintf('\nBatch optimization complete: %d/%d datasets completed.\n', ...
+    nCompleted, numel(dataFiles));
+completedDatasets = completedDatasets(1:nCompleted);
+batchFailures = batchFailures(1:nFailures);
+if nFailures > 0
+    fprintf('Failed datasets: %s\n', strjoin( ...
+        string({batchFailures.datasetNumber}), ', '));
+end
+
 %% Local helper functions
+function [dataFiles, datasetNumbers] = listProcessedDataFiles(dataDir)
+    if ~isfolder(dataDir)
+        error('Could not find the processed-data directory: %s', dataDir);
+    end
+
+    candidates = dir(fullfile(dataDir, 'processed_*.mat'));
+    keep = false(size(candidates));
+    numberValues = NaN(size(candidates));
+    datasetNumbers = strings(size(candidates));
+    for ii = 1:numel(candidates)
+        token = regexp(candidates(ii).name, ...
+            '^processed_(\d{2})\.mat$', 'tokens', 'once');
+        if isempty(token)
+            continue
+        end
+        keep(ii) = true;
+        datasetNumbers(ii) = string(token{1});
+        numberValues(ii) = str2double(token{1});
+    end
+
+    dataFiles = candidates(keep);
+    datasetNumbers = datasetNumbers(keep);
+    numberValues = numberValues(keep);
+    if isempty(dataFiles)
+        error('No files matching processed_XX.mat were found in %s.', ...
+            dataDir);
+    end
+
+    [~, order] = sort(numberValues);
+    dataFiles = dataFiles(order);
+    datasetNumbers = datasetNumbers(order);
+end
+
 function [scriptDir, projectDir] = locateProjectPaths()
     candidates = {};
     candidates = addCandidate(candidates, fileparts(mfilename('fullpath')));
@@ -484,6 +621,164 @@ function windowIdx = localForwardWindow(nSamples, startIdx, windowPts)
     startIdx = min(max(1, startIdx), nSamples);
     lastIdx = min(nSamples, startIdx + windowPts - 1);
     windowIdx = startIdx:lastIdx;
+end
+
+function [fitEndIdx, info] = findRadialCollapseCutoff( ...
+        radius, startIdx, fitOpts)
+    radius = radius(:);
+    nSamples = numel(radius);
+    fitEndIdx = nSamples;
+
+    requestedCount = optionValue(fitOpts, 'NumRadialCollapses', 4);
+    prominenceFraction = optionValue(fitOpts, ...
+        'CollapseMinProminenceFraction', 0.08);
+    minSeparation = optionValue(fitOpts, ...
+        'CollapseMinSeparationSteps', 5);
+
+    if ~isscalar(requestedCount) || ~isfinite(requestedCount) || ...
+            requestedCount < 1 || requestedCount ~= round(requestedCount)
+        error('opt.fit.NumRadialCollapses must be a positive integer.');
+    end
+    if ~isscalar(prominenceFraction) || ~isfinite(prominenceFraction) || ...
+            prominenceFraction < 0
+        error(['opt.fit.CollapseMinProminenceFraction must be finite ', ...
+            'and nonnegative.']);
+    end
+    if ~isscalar(minSeparation) || ~isfinite(minSeparation) || ...
+            minSeparation < 1 || minSeparation ~= round(minSeparation)
+        error(['opt.fit.CollapseMinSeparationSteps must be a positive ', ...
+            'integer.']);
+    end
+    if any(~isfinite(radius))
+        error('Finite experimental radius data are required.');
+    end
+
+    startIdx = min(max(1, round(startIdx)), nSamples);
+    postMaxRadius = radius(startIdx:end);
+    radialRange = max(postMaxRadius) - min(postMaxRadius);
+    minProminence = prominenceFraction * radialRange;
+    [~, localCollapseIdx, ~, prominences] = findpeaks( ...
+        -postMaxRadius, 'MinPeakProminence', minProminence, ...
+        'MinPeakDistance', minSeparation);
+    collapseIdx = startIdx + localCollapseIdx - 1;
+
+    info = struct('requestedCount', requestedCount, ...
+        'detectedCount', numel(collapseIdx), ...
+        'foundRequestedCount', numel(collapseIdx) >= requestedCount, ...
+        'collapseIdx', collapseIdx(:), 'prominences', prominences(:), ...
+        'prominenceFraction', prominenceFraction, ...
+        'minProminence', minProminence, ...
+        'minSeparationSteps', minSeparation, 'fitEndIdx', nSamples);
+    if info.foundRequestedCount
+        fitEndIdx = collapseIdx(requestedCount);
+        info.fitEndIdx = fitEndIdx;
+    end
+end
+
+function [fitEndIdx, info] = findRadiusEquilibriumCutoff( ...
+        radius, Req, startIdx, fitOpts)
+    radius = radius(:);
+    nSamples = numel(radius);
+    fitEndIdx = nSamples;
+
+    enabled = optionValue(fitOpts, 'StopAtRadiusEquilibrium', false);
+    relTol = optionValue(fitOpts, 'RadiusEquilibriumRelTol', 0.02);
+    absTol = optionValue(fitOpts, 'RadiusEquilibriumAbsTol', 0);
+    nConsecutive = optionValue(fitOpts, ...
+        'RadiusEquilibriumConsecutiveSteps', 10);
+
+    if ~isscalar(relTol) || ~isfinite(relTol) || relTol < 0
+        error('opt.fit.RadiusEquilibriumRelTol must be finite and nonnegative.');
+    end
+    if ~isscalar(absTol) || ~isfinite(absTol) || absTol < 0
+        error('opt.fit.RadiusEquilibriumAbsTol must be finite and nonnegative.');
+    end
+    if ~isscalar(nConsecutive) || ~isfinite(nConsecutive) || ...
+            nConsecutive < 1 || nConsecutive ~= round(nConsecutive)
+        error(['opt.fit.RadiusEquilibriumConsecutiveSteps must be a ', ...
+            'positive integer.']);
+    end
+    if any(~isfinite(radius)) || ~isscalar(Req) || ~isfinite(Req)
+        error('Finite experimental radius data and Req are required.');
+    end
+
+    startIdx = min(max(1, round(startIdx)), nSamples);
+    tolerance = max(absTol, relTol * abs(Req));
+    info = struct('enabled', logical(enabled), 'found', false, ...
+        'startIdx', NaN, 'confirmationIdx', NaN, ...
+        'fitEndIdx', fitEndIdx, 'nConsecutive', nConsecutive, ...
+        'relativeTolerance', relTol, 'absoluteTolerance', absTol, ...
+        'radiusTolerance', tolerance, 'Req', Req, ...
+        'nExcludedSamples', 0);
+    if ~enabled
+        return
+    end
+
+    nearEquilibrium = abs(radius(startIdx:end) - Req) <= tolerance;
+    runLength = 0;
+    for ii = 1:numel(nearEquilibrium)
+        if nearEquilibrium(ii)
+            runLength = runLength + 1;
+        else
+            runLength = 0;
+        end
+        if runLength >= nConsecutive
+            info.startIdx = startIdx + ii - nConsecutive;
+            info.confirmationIdx = startIdx + ii - 1;
+            fitEndIdx = info.confirmationIdx;
+            info.fitEndIdx = fitEndIdx;
+            info.found = true;
+            info.nExcludedSamples = nSamples - fitEndIdx;
+            return
+        end
+    end
+end
+
+function printFitWindowCutoff(collapseInfo, equilibriumInfo, texp, maxidx)
+    if collapseInfo.foundRequestedCount
+        selectedIdx = collapseInfo.collapseIdx( ...
+            collapseInfo.requestedCount);
+        postRmaxIdx = selectedIdx - maxidx + 1;
+        collapseTimesUs = (texp(collapseInfo.collapseIdx) - ...
+            texp(maxidx)) .* 1e6;
+        fprintf(['Fit window ends at radial collapse %d, post-Rmax ', ...
+            'sample %d (t = %.6g us).\n'], collapseInfo.requestedCount, ...
+            postRmaxIdx, collapseTimesUs(collapseInfo.requestedCount));
+        fprintf('  Detected collapse times (us after Rmax): %s\n', ...
+            num2str(collapseTimesUs(1:collapseInfo.requestedCount).', ...
+            ' %.6g'));
+        return
+    end
+
+    fprintf(['Detected only %d of %d requested radial collapses; using ', ...
+        'the radius-equilibrium fallback.\n'], collapseInfo.detectedCount, ...
+        collapseInfo.requestedCount);
+    printRadiusEquilibriumCutoff(equilibriumInfo, texp, maxidx);
+end
+
+function printRadiusEquilibriumCutoff(info, texp, maxidx)
+    if ~info.enabled
+        fprintf(['Radius-equilibrium cutoff is disabled, so the full ', ...
+            'post-Rmax record is used.\n']);
+        return
+    end
+    if ~info.found
+        fprintf(['Radius did not remain within %.3g m of Req for %d ', ...
+            'consecutive samples; the full post-Rmax record is used.\n'], ...
+            info.radiusTolerance, info.nConsecutive);
+        return
+    end
+
+    startPostRmax = info.startIdx - maxidx + 1;
+    confirmationPostRmax = info.confirmationIdx - maxidx + 1;
+    fprintf(['Radius equilibrium begins at post-Rmax sample %d and is ', ...
+        'confirmed at sample %d after %d consecutive points ', ...
+        '(t = %.6g us, |R-Req| <= %.3g m).\n'], startPostRmax, ...
+        confirmationPostRmax, info.nConsecutive, ...
+        (texp(info.confirmationIdx) - texp(maxidx)) * 1e6, ...
+        info.radiusTolerance);
+    fprintf('  Excluding %d later samples from simulation and loss.\n', ...
+        info.nExcludedSamples);
 end
 
 function [firstCollapseIdx, info] = findFirstCollapseIndex(R_data)
@@ -1164,38 +1459,52 @@ function plotOptimizedFit(bestSim, xData, bestParams)
     end
 end
 
-function plotCollapseDetection(tfit_nd, R_data, collapseInfo)
-    figure('Name', 'First-collapse detection')
-    plot(tfit_nd, R_data, 'o-', 'DisplayName', 'experimental radius')
+function plotCollapseDetection(tpost_nd, Rpost_data, collapseInfo, ...
+        fitEndPostRmaxIdx)
+    figure('Name', 'Optimization-window and collapse check')
+    plot(tpost_nd, Rpost_data, 'o-', 'DisplayName', 'experimental radius')
     hold on
-    collapseIdx = find(R_data == min(R_data(1: ...
+    collapseIdx = find(Rpost_data == min(Rpost_data(1: ...
         collapseInfo.confirmationIdx)), 1, 'first');
-    plot(tfit_nd(collapseIdx), R_data(collapseIdx), 'kp', ...
+    plot(tpost_nd(collapseIdx), Rpost_data(collapseIdx), 'kp', ...
         'MarkerFaceColor', 'y', 'MarkerSize', 11, ...
         'DisplayName', 'first collapse')
-    plot(tfit_nd(collapseInfo.confirmationIdx), ...
-        R_data(collapseInfo.confirmationIdx), 'ks', ...
+    plot(tpost_nd(collapseInfo.confirmationIdx), ...
+        Rpost_data(collapseInfo.confirmationIdx), 'ks', ...
         'MarkerFaceColor', 'c', 'MarkerSize', 8, ...
         'DisplayName', 'rebound confirmation')
+    xline(tpost_nd(fitEndPostRmaxIdx), 'r--', 'optimization ends', ...
+        'LineWidth', 1.5, 'LabelVerticalAlignment', 'middle', ...
+        'DisplayName', 'optimization cutoff')
     xlabel("t^*")
     ylabel("R/R_{max}")
-    title('First collapse from raw radius and sustained rebound')
+    title('Experimental radius and optimization window')
     legend('Location', 'best')
     grid on
 end
 
-function plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, tc)
+function plotInitialConditionCheck(texp, maxidx, fitEndIdx, amps_og, ...
+        amps, epnm0, epnmd0, tc)
     figure('Name', 'Initial-condition check')
     nmodes = size(amps, 1);
     plotl = ceil(sqrt(nmodes));
     t0 = texp(maxidx);
+    timeNd = (texp - t0) ./ tc;
+    fitEndTimeNd = timeNd(fitEndIdx);
     for ii = 1:nmodes
         subplot(plotl, plotl, ii)
-        plot((texp - t0)./tc, amps_og(ii, :), 'o')
+        plot(timeNd, amps_og(ii, :), 'o')
         hold on
-        plot((texp - t0)./tc, amps(ii, :), '-')
-        plot((texp - t0)./tc, 0 .* (texp - t0) + epnm0(ii), ':')
-        plot((texp - t0)./tc, ((texp - t0) ./ tc) .* epnmd0(ii) + epnm0(ii), '-')
+        plot(timeNd, amps(ii, :), '-')
+        plot(timeNd, 0 .* timeNd + epnm0(ii), ':')
+        plot(timeNd, timeNd .* epnmd0(ii) + epnm0(ii), '-')
+        xline(0, 'k:', 'LineWidth', 1)
+        if ii == 1
+            xline(fitEndTimeNd, 'r--', 'optimization ends', ...
+                'LineWidth', 1.5, 'LabelVerticalAlignment', 'middle')
+        else
+            xline(fitEndTimeNd, 'r--', 'LineWidth', 1.5)
+        end
         % xlim([min(texp - t0), -min(texp - t0)])
         ylim([min(amps_og(ii, :)) max(amps_og(ii, :))])
     end
