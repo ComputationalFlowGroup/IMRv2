@@ -15,7 +15,7 @@ clear all; clc; close all;
 
 % load('../data/SicongJinChicken/chicken_Rt_data/Jin_15_33_11/ellipse_fitting_results.mat')
 % load('../data/SicongJinChicken/chicken_Rt_data/Jin_15_43_39/ellipse_fitting_results.mat')
-load('../data/SicongJinChicken/PVA_Rt_data/Jin_17_21_14/ellipse_fitting_results.mat')
+load('../data/SicongJinChicken/PVA_Rt_data/Jin_17_25_03/ellipse_fitting_results.mat')
 
 addpath src\common\
 
@@ -24,6 +24,7 @@ nFrames = size(CircleEdgePtSave,2);
 % Frames used to estimate one global rotation.
 % Use frames with visible deformation, not purely spherical/noisy frames.
 frameIDsForRotation = 1:nFrames;
+maxDeflectionAxis = 'x'; % align maximum deflection with extraction +x
 
 [globalAxisAngleRaw, rotInfo] = estimateGlobalThetaRotation( ...
     CircleEdgePtSave, frameIDsForRotation, ...
@@ -35,11 +36,14 @@ frameIDsForRotation = 1:nFrames;
     'CenterMode', 'circle', ...
     'NumTheta', 1001, ...
     'NumBins', 500, ...
-    'SmoothWindow', 21);
+    'SmoothWindow', 21, ...
+    'TargetAxis', maxDeflectionAxis);
 
 fprintf('Raw global axis angle      = %.3f deg\n', rad2deg(globalAxisAngleRaw));
 fprintf('Corrected global axis angle = %.3f deg\n', rad2deg(globalAxisAngle));
 fprintf('Applied correction          = %.3f deg\n', rad2deg(poleInfo.appliedCorrection));
+fprintf('Maximum deflection aligned with extraction +%s axis.\n', ...
+    maxDeflectionAxis);
 
 %%
 Nmax = 26;
@@ -48,6 +52,44 @@ for i = 1:nFrames
 
     data = CircleEdgePtSave{i};
     if isempty(data)
+        continue
+    end
+
+    xq = data(:,1);
+    yq = data(:,2);
+
+    % Get cleaned theta-radius data after rotating max deflection to +x.
+
+    [theta, radiusSmooth] = axisymThetaRadiusFromXY( ...
+        xq, yq, globalAxisAngle, ...
+        'CenterMode', 'circle', ...
+        'NumTheta', 1001, ...
+        'NumBins', 500, ...
+        'SmoothWindow', 31, ...
+        'LegendreCleanN', []);
+
+    simdata = [theta, radiusSmooth];
+
+    [modeFFT, ampFFT, phaseFFT] = fft_extract_axissym(simdata, Nmax);
+
+    mode_extract_fft(:,i)  = modeFFT(:);
+    amp_extract_fft(:,i)   = ampFFT(:);
+    phase_extract_fft(:,i) = phaseFFT(:);
+end
+
+
+
+
+
+%% DEBUGGING
+Nmax = 26;
+debugFrame = min(15, nFrames);
+
+for i = debugFrame % or 1:nFrames
+
+    data = CircleEdgePtSave{i};
+    if isempty(data)
+        warning('Debug frame %d is empty; skipping orientation plot.', i);
         continue
     end
 
@@ -71,77 +113,49 @@ for i = 1:nFrames
     mode_extract_fft(:,i)  = modeFFT(:);
     amp_extract_fft(:,i)   = ampFFT(:);
     phase_extract_fft(:,i) = phaseFFT(:);
-end
 
-
-
-
-
-%% DEBUGGING
-Nmax = 26;
-
-for i = 45 % or 1:nFrames
-
-    data = CircleEdgePtSave{i};
-
-    xq = data(:,1);
-    yq = data(:,2);
-
-    % Get cleaned theta-radius data using the global rotation
-
-    [theta, radiusSmooth, shapeInfo] = axisymThetaRadiusFromXY( ...
-        xq, yq, globalAxisAngle, ...
-        'CenterMode', 'circle', ...
-        'NumTheta', 1001, ...
-        'NumBins', 500, ...
-        'SmoothWindow', 31, ...
-        'LegendreCleanN', []);
-
-    simdata = [theta, radiusSmooth];
-
-    [modeFFT, ampFFT, phaseFFT] = fft_extract_axissym(simdata, Nmax);
-
-    mode_extract_fft(:,i)  = modeFFT(:);
-    amp_extract_fft(:,i)   = ampFFT(:);
-    phase_extract_fft(:,i) = phaseFFT(:);
-
-    % Correct reconstruction of your method.
-    radiusYour = reconstruct_axisym_spharm(theta, modeYour, ampYour);
+    % Reconstruction from the current script's axisymmetric SH extraction.
+    modeCurrent = modeFFT;
+    ampCurrent = ampFFT;
+    radiusCurrent = reconstruct_axisym_spharm(theta, modeCurrent, ...
+        ampCurrent);
 
     % Method 2: same SH basis, but sin(theta)-weighted
 
-    [modeWeighted, ampWeighted, radiusWeighted, ampNormWeighted] = ...
+    [modeWeighted, ampWeighted, radiusWeighted] = ...
         fitAxisymSHModes(theta, radiusSmooth, Nmax, ...
         'WeightBySinTheta', true, ...
         'Ridge', 1e-10);
 
     % Errors
 
-    errYour = sqrt(mean((radiusYour - radiusSmooth).^2)) / mean(radiusSmooth);
+    errCurrent = sqrt(mean((radiusCurrent - radiusSmooth).^2)) / ...
+        mean(radiusSmooth);
     errWeighted = sqrt(mean((radiusWeighted - radiusSmooth).^2)) / mean(radiusSmooth);
 
     fprintf('Frame %d\n', i);
-    fprintf('  Your SH extraction RMSE       = %.4e\n', errYour);
+    fprintf('  Current SH extraction RMSE    = %.4e\n', errCurrent);
     fprintf('  Weighted SH extraction RMSE   = %.4e\n', errWeighted);
 
-    % Convert reconstructions to x-y branches
+    % Convert reconstructions to aligned x-y branches. In this debug view,
+    % the maximum-deflection direction should be horizontal along +x.
 
-    [xYourUpper, yYourUpper, xYourLower, yYourLower] = ...
-        thetaRadiusToXYBranches(theta, radiusYour, globalAxisAngle);
+    [xCurrentUpper, yCurrentUpper, xCurrentLower, yCurrentLower] = ...
+        thetaRadiusToXYBranches(theta, radiusCurrent, 0);
 
     [xWeightedUpper, yWeightedUpper, xWeightedLower, yWeightedLower] = ...
-        thetaRadiusToXYBranches(theta, radiusWeighted, globalAxisAngle);
+        thetaRadiusToXYBranches(theta, radiusWeighted, 0);
 
-    % Plot 1: x-y reconstruction comparison
+    % Plot 1: aligned x-y reconstruction comparison
 
     figure
-    plot(shapeInfo.xRawCentered, shapeInfo.yRawCentered, 'o', ...
-        'DisplayName', 'raw centered data')
+    plot(shapeInfo.xAlignedRaw, shapeInfo.yAlignedRaw, 'o', ...
+        'DisplayName', 'raw aligned data')
     hold on
 
-    plot(xYourUpper, yYourUpper, 'r-', 'LineWidth', 1.6, ...
-        'DisplayName', 'your SH reconstruction')
-    plot(xYourLower, yYourLower, 'r-', 'LineWidth', 1.6, ...
+    plot(xCurrentUpper, yCurrentUpper, 'r-', 'LineWidth', 1.6, ...
+        'DisplayName', 'current SH reconstruction')
+    plot(xCurrentLower, yCurrentLower, 'r-', 'LineWidth', 1.6, ...
         'HandleVisibility', 'off')
 
     plot(xWeightedUpper, yWeightedUpper, 'k--', 'LineWidth', 1.6, ...
@@ -150,16 +164,18 @@ for i = 45 % or 1:nFrames
         'HandleVisibility', 'off')
 
     Rplot = max(radiusSmooth);
-    plot([-Rplot*cos(globalAxisAngle), Rplot*cos(globalAxisAngle)], ...
-         [-Rplot*sin(globalAxisAngle), Rplot*sin(globalAxisAngle)], ...
+    plot([-Rplot, Rplot], [0, 0], ...
          'b:', 'LineWidth', 1.2, ...
-         'DisplayName', 'global axis')
+         'DisplayName', 'extraction x-axis')
+    plot([0, 0], [-Rplot, Rplot], ...
+         'c:', 'LineWidth', 1.0, ...
+         'DisplayName', 'extraction y-axis')
 
     axis equal
     grid on
-    xlabel('x')
-    ylabel('y')
-    title(sprintf('Frame %d: x-y reconstruction comparison', i))
+    xlabel('aligned x')
+    ylabel('aligned y')
+    title(sprintf('Frame %d: aligned x-y reconstruction comparison', i))
     legend('Location', 'best')
 
     % Plot 2: theta-radius reconstruction comparison
@@ -176,8 +192,8 @@ for i = 45 % or 1:nFrames
     plot(theta, radiusSmooth, 'b-', 'LineWidth', 1.4, ...
         'DisplayName', 'smoothed/interpolated data')
 
-    plot(theta, radiusYour, 'r-', 'LineWidth', 1.6, ...
-        'DisplayName', sprintf('your SH reconstruction, RMSE %.3g', errYour))
+    plot(theta, radiusCurrent, 'r-', 'LineWidth', 1.6, ...
+        'DisplayName', sprintf('current SH reconstruction, RMSE %.3g', errCurrent))
 
     plot(theta, radiusWeighted, 'k--', 'LineWidth', 1.6, ...
         'DisplayName', sprintf('weighted SH reconstruction, RMSE %.3g', errWeighted))
@@ -191,8 +207,8 @@ for i = 45 % or 1:nFrames
     % Plot 3: apples-to-apples amplitude comparison
 
     figure
-    stem(modeYour, abs(ampYour), 'r', 'LineWidth', 1.3, ...
-        'DisplayName', 'your unweighted SH |a_n|')
+    stem(modeCurrent, abs(ampCurrent), 'r', 'LineWidth', 1.3, ...
+        'DisplayName', 'current unweighted SH |a_n|')
     hold on
 
     stem(modeWeighted, abs(ampWeighted), 'k--', 'LineWidth', 1.3, ...
@@ -231,10 +247,10 @@ end
 %%
 
 figure
-plot(tStep, amp_extractf(1,:), 'o-')
+plot(tStep, amp_extract_fft(1,:), 'o-')
 
 figure
-plot(tStep, amp_extractf(2,:), 'o-')
+plot(tStep, amp_extract_fft(2,:), 'o-')
 
 
 
@@ -1095,7 +1111,8 @@ function [axisAngleOut, info] = orientAxisAngleToMaxDeflection(CircleEdgePtSave,
 % orientAxisAngleToMaxDeflection
 %
 % Takes a candidate symmetry-axis angle and resolves the 90-degree ambiguity
-% so that the maximum radius/deflection is placed near theta = 0.
+% so that the maximum radius/deflection is placed on the requested aligned
+% coordinate axis.
 %
 % It tests:
 %
@@ -1104,7 +1121,9 @@ function [axisAngleOut, info] = orientAxisAngleToMaxDeflection(CircleEdgePtSave,
 %   axisAngleIn + pi
 %   axisAngleIn + 3*pi/2
 %
-% and chooses the one with the largest radius near theta = 0.
+% and chooses the one with the largest radius near the target axis. For
+% TargetAxis='x', the winner puts the maximum at theta = 0 (+x). For
+% TargetAxis='y', the winner puts the maximum at theta = pi/2.
 
     p = inputParser;
     addParameter(p, 'CenterMode', 'circle');
@@ -1114,6 +1133,7 @@ function [axisAngleOut, info] = orientAxisAngleToMaxDeflection(CircleEdgePtSave,
     addParameter(p, 'PoleWidth', 0.10);      % radians near theta = 0
     addParameter(p, 'EquatorWidth', 0.10);   % radians near theta = pi/2
     addParameter(p, 'UseDeflectionFromMean', true);
+    addParameter(p, 'TargetAxis', 'x');
     parse(p, varargin{:});
 
     centerMode = p.Results.CenterMode;
@@ -1123,6 +1143,8 @@ function [axisAngleOut, info] = orientAxisAngleToMaxDeflection(CircleEdgePtSave,
     poleWidth = p.Results.PoleWidth;
     equatorWidth = p.Results.EquatorWidth;
     useDeflectionFromMean = p.Results.UseDeflectionFromMean;
+    targetAxis = validatestring(p.Results.TargetAxis, {'x', 'y'}, ...
+        mfilename, 'TargetAxis');
 
     corrections = [0, pi/2, pi, 3*pi/2];
     candidateAngles = mod(axisAngleIn + corrections, 2*pi);
@@ -1191,9 +1213,14 @@ function [axisAngleOut, info] = orientAxisAngleToMaxDeflection(CircleEdgePtSave,
             eqVal = mean(signal(eqID), 'omitnan');
             oppVal = mean(signal(oppPoleID), 'omitnan');
 
-            % We want theta = 0 to be the maximum-deflection location.
-            % Penalize cases where equator or opposite pole is larger.
-            score = poleVal - max(eqVal, oppVal);
+            switch targetAxis
+                case 'x'
+                    % theta = 0 is the extraction +x direction.
+                    score = poleVal - max(eqVal, oppVal);
+                case 'y'
+                    % theta = pi/2 is the extraction y direction.
+                    score = eqVal - max(poleVal, oppVal);
+            end
 
             frameScores(end+1,1) = score; %#ok<AGROW>
             framePoleVals(end+1,1) = poleVal; %#ok<AGROW>
@@ -1217,6 +1244,7 @@ function [axisAngleOut, info] = orientAxisAngleToMaxDeflection(CircleEdgePtSave,
     info.axisAngleOut = axisAngleOut;
     info.axisAngleInDegrees = rad2deg(axisAngleIn);
     info.axisAngleOutDegrees = rad2deg(axisAngleOut);
+    info.targetAxis = targetAxis;
 
     info.corrections = corrections;
     info.correctionsDegrees = rad2deg(corrections);
