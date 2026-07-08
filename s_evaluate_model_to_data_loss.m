@@ -74,6 +74,7 @@ expR = amp_extract_fft(1, :) .* 1e-6 .* pxpermicron;
 texp = (0:numel(expR)-1) .* tstepdt;
 
 amps_og = amp_extract_fft(3:end, :) ./ expR .* 1e-6 .* pxpermicron;
+amps_og = fillNonfiniteTimeRows(amps_og);
 Req = expR(end);
 
 maxmode = min(maxmode, size(amps_og, 1) + 1);
@@ -306,9 +307,43 @@ function epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc, ...
         return
     end
 
+    tstar = tstar(:);
+    finiteTime = isfinite(tstar);
     for ii = 1:size(amps, 1)
-        p = polyfit(tstar(:), amps(ii, windowIdx).', fitOrder);
+        y = amps(ii, windowIdx).';
+        if all(finiteTime) && all(isfinite(y))
+            p = polyfit(tstar, y, fitOrder);
+        else
+            fitRows = finiteTime & isfinite(y);
+            localFitOrder = min(polyOrder, nnz(fitRows) - 1);
+            if localFitOrder < 1
+                continue
+            end
+            p = polyfit(tstar(fitRows), y(fitRows), localFitOrder);
+        end
         epnmd0(ii) = polyval(polyder(p), 0);
+    end
+end
+
+function values = fillNonfiniteTimeRows(values)
+    if all(isfinite(values(:)))
+        return
+    end
+
+    sampleIdx = 1:size(values, 2);
+    for ii = 1:size(values, 1)
+        row = values(ii, :);
+        good = isfinite(row);
+        if all(good)
+            continue
+        end
+        if nnz(good) < 2
+            error(['Cannot repair nonfinite amplitude row %d; at least ', ...
+                'two finite samples are required.'], ii);
+        end
+        row(~good) = interp1(sampleIdx(good), row(good), ...
+            sampleIdx(~good), 'linear', 'extrap');
+        values(ii, :) = row;
     end
 end
 
@@ -634,4 +669,3 @@ function plotSingleEvaluation(sim, isotropicSim, xData, modelParams)
             'Interpreter', 'latex')
     end
 end
-
