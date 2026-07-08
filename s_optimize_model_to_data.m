@@ -159,9 +159,10 @@ tfit_nd = (texp(fitIdx) - texp(maxidx)) ./ tc;
 R_data = expR(fitIdx).' ./ Rmax;
 ep_data = amps(:, fitIdx).';
 tf_nd = max(tfit_nd);
-firstCollapseIdx = findFirstCollapseIndex(R_data);
-epFitIdx = 1:firstCollapseIdx;
+[firstCollapseIdx, collapseInfo] = findFirstCollapseIndex(R_data);
+epFitIdx = 1:firstCollapseIdx+5;
 firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
+firstCollapseTimeSeconds = firstCollapseTimeNd * tc;
 
 modeRows = 3:maxmode+1;
 n = mode_extract_fft(modeRows, 5);
@@ -207,6 +208,8 @@ xDataAll = struct( ...
     'epFitIdx', epFitIdx, ...
     'firstCollapseIdx', firstCollapseIdx, ...
     'firstCollapseTimeNd', firstCollapseTimeNd, ...
+    'firstCollapseTimeSeconds', firstCollapseTimeSeconds, ...
+    'collapseInfo', collapseInfo, ...
     'fitModeIdx', fitModeIdx, ...
     'testModeIdx', testModeIdx, ...
     'modeEnergy', modeEnergy, ...
@@ -235,9 +238,13 @@ fprintf('Training perturbation modes: %s\n', num2str(n(fitModeIdx)));
 fprintf('Held-out perturbation modes: %s\n', num2str(n(testModeIdx)));
 printLossWeights(n, fitModeIdx, lossWeights);
 printParameterSpec(paramSpec);
-fprintf(['First collapse at post-Rmax sample %d/%d: t* = %.6g, ', ...
-    'R/Rmax = %.6g\n'], firstCollapseIdx, numel(tfit_nd), ...
-    firstCollapseTimeNd, R_data(firstCollapseIdx));
+fprintf(['First collapse (raw radius minimum) at post-Rmax sample ', ...
+    '%d/%d: t* = %.6g, dt = %.6g us, R/Rmax = %.6g\n'], ...
+    firstCollapseIdx, numel(tfit_nd), firstCollapseTimeNd, ...
+    firstCollapseTimeSeconds * 1e6, R_data(firstCollapseIdx));
+fprintf(['  Sustained rebound confirmed through sample %d: t* = %.6g, ', ...
+    'rise in R/Rmax = %.6g\n'], collapseInfo.confirmationIdx, ...
+    tfit_nd(collapseInfo.confirmationIdx), collapseInfo.reboundRise);
 fprintf('Perturbation loss uses %d samples from t* = %.6g to %.6g.\n', ...
     numel(epFitIdx), tfit_nd(epFitIdx(1)), tfit_nd(epFitIdx(end)));
 if isfield(opt.bayes, 'InitialX') && ~isempty(opt.bayes.InitialX)
@@ -247,6 +254,7 @@ end
 
 if opt.plotInitialConditionCheck
     plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, tc);
+    plotCollapseDetection(tfit_nd, R_data, collapseInfo);
 end
 
 %% Bayesian optimization
@@ -440,36 +448,61 @@ function windowIdx = localForwardWindow(nSamples, startIdx, windowPts)
     windowIdx = startIdx:lastIdx;
 end
 
-function firstCollapseIdx = findFirstCollapseIndex(R_data)
+function [firstCollapseIdx, info] = findFirstCollapseIndex(R_data)
     R_data = R_data(:);
-    if numel(R_data) < 3
+    nSamples = numel(R_data);
+    info = struct('method', 'sustained-raw-rebound', ...
+        'confirmationIdx', nSamples, 'reboundRise', 0, ...
+        'collapseDrop', 0, 'usedFallback', false);
+    if nSamples < 3
         firstCollapseIdx = numel(R_data);
         return
     end
 
-    smoothWindow = min(7, 2 * floor((numel(R_data) - 1) / 2) + 1);
-    if smoothWindow >= 3
-        R_smooth = movmean(R_data, smoothWindow, 'Endpoints', 'shrink');
-    else
-        R_smooth = R_data;
+    if any(~isfinite(R_data))
+        error('Radius data contain nonfinite values; cannot locate collapse.');
     end
 
-    dR = diff(R_smooth);
-    localMinIdx = find(dR(1:end-1) < 0 & dR(2:end) >= 0) + 1;
-    if ~isempty(localMinIdx)
-        cumulativeMin = cummin(R_smooth);
-        drop = R_smooth(1) - min(R_smooth);
-        minDrop = max(1e-6, 0.05 * drop);
-        valid = R_smooth(localMinIdx) <= cumulativeMin(localMinIdx) + 1e-6 & ...
-            R_smooth(localMinIdx) <= R_smooth(1) - minDrop;
-        localMinIdx = localMinIdx(valid);
+    initialRadius = R_data(1);
+    totalDrop = max(0, initialRadius - min(R_data));
+    minCollapseDrop = max(0.05 * max(abs(initialRadius), eps), ...
+        0.10 * totalDrop);
+    runningMin = cummin(R_data);
+    noiseTol = max(1e-10, 0.002 * max(totalDrop, abs(initialRadius)));
+
+    for candidateIdx = 2:nSamples-2
+        collapseDrop = initialRadius - R_data(candidateIdx);
+        if collapseDrop < minCollapseDrop || ...
+                R_data(candidateIdx) > runningMin(candidateIdx) + noiseTol
+            continue
+        end
+
+        nConfirm = min(5, nSamples - candidateIdx);
+        reboundSegment = R_data(candidateIdx:candidateIdx + nConfirm);
+        reboundRise = reboundSegment(end) - reboundSegment(1);
+        minReboundRise = max(0.01 * max(abs(initialRadius), eps), ...
+            0.05 * collapseDrop);
+        nPositiveSteps = sum(diff(reboundSegment) > 0);
+        sustainedRebound = min(reboundSegment(2:end)) >= ...
+            reboundSegment(1) - noiseTol && ...
+            nPositiveSteps >= ceil(0.6 * nConfirm) && ...
+            reboundRise >= minReboundRise;
+
+        if sustainedRebound
+            [~, localOffset] = min(reboundSegment);
+            firstCollapseIdx = candidateIdx + localOffset - 1;
+            info.confirmationIdx = candidateIdx + nConfirm;
+            info.reboundRise = R_data(info.confirmationIdx) - ...
+                R_data(firstCollapseIdx);
+            info.collapseDrop = initialRadius - R_data(firstCollapseIdx);
+            return
+        end
     end
 
-    if isempty(localMinIdx)
-        [~, firstCollapseIdx] = min(R_smooth);
-    else
-        firstCollapseIdx = localMinIdx(1);
-    end
+    [~, firstCollapseIdx] = min(R_data);
+    info.confirmationIdx = firstCollapseIdx;
+    info.collapseDrop = initialRadius - R_data(firstCollapseIdx);
+    info.usedFallback = true;
 end
 
 function paramSpec = buildParameterSpec(opt)
@@ -1073,6 +1106,9 @@ function plotOptimizedFit(bestSim, xData, bestParams)
     hold on
     plot(bestSim.t, bestSim.R, '-', 'LineWidth', 1.5)
     plot(xData.tfit_nd, xData.R_data, 'o')
+    plot(xData.firstCollapseTimeNd, ...
+        xData.R_data(xData.firstCollapseIdx), 'kp', ...
+        'MarkerFaceColor', 'y', 'MarkerSize', 10)
     xlabel("t^*")
     ylabel("R")
     title(sprintf('G=%.3g, \\mu=%.3g, \\alpha=%.3g, ani=[%.3g %.3g]', ...
@@ -1090,6 +1126,26 @@ function plotOptimizedFit(bestSim, xData, bestParams)
     end
 end
 
+function plotCollapseDetection(tfit_nd, R_data, collapseInfo)
+    figure('Name', 'First-collapse detection')
+    plot(tfit_nd, R_data, 'o-', 'DisplayName', 'experimental radius')
+    hold on
+    collapseIdx = find(R_data == min(R_data(1: ...
+        collapseInfo.confirmationIdx)), 1, 'first');
+    plot(tfit_nd(collapseIdx), R_data(collapseIdx), 'kp', ...
+        'MarkerFaceColor', 'y', 'MarkerSize', 11, ...
+        'DisplayName', 'first collapse')
+    plot(tfit_nd(collapseInfo.confirmationIdx), ...
+        R_data(collapseInfo.confirmationIdx), 'ks', ...
+        'MarkerFaceColor', 'c', 'MarkerSize', 8, ...
+        'DisplayName', 'rebound confirmation')
+    xlabel("t^*")
+    ylabel("R/R_{max}")
+    title('First collapse from raw radius and sustained rebound')
+    legend('Location', 'best')
+    grid on
+end
+
 function plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, tc)
     figure('Name', 'Initial-condition check')
     nmodes = size(amps, 1);
@@ -1097,11 +1153,11 @@ function plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, t
     t0 = texp(maxidx);
     for ii = 1:nmodes
         subplot(plotl, plotl, ii)
-        plot(texp - t0, amps_og(ii, :), 'o')
+        plot((texp - t0)./tc, amps_og(ii, :), 'o')
         hold on
-        plot(texp - t0, amps(ii, :), '-')
-        plot(texp - t0, 0 .* (texp - t0) + epnm0(ii), ':')
-        plot(texp - t0, ((texp - t0) ./ tc) .* epnmd0(ii) + epnm0(ii), '-')
+        plot((texp - t0)./tc, amps(ii, :), '-')
+        plot((texp - t0)./tc, 0 .* (texp - t0) + epnm0(ii), ':')
+        plot((texp - t0)./tc, ((texp - t0) ./ tc) .* epnmd0(ii) + epnm0(ii), '-')
         % xlim([min(texp - t0), -min(texp - t0)])
     end
 end

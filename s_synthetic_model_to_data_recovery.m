@@ -182,7 +182,7 @@ if syntheticTimeMismatch > opt.sim.TimeMatchTolerance
         syntheticTimeMismatch);
 end
 
-firstCollapseIdx = findFirstCollapseIndex(R_data);
+[firstCollapseIdx, collapseInfo] = findFirstCollapseIndex(R_data);
 epFitIdx = 1:firstCollapseIdx;
 firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
 
@@ -221,6 +221,7 @@ xDataAll = struct( ...
     'epFitIdx', epFitIdx, ...
     'firstCollapseIdx', firstCollapseIdx, ...
     'firstCollapseTimeNd', firstCollapseTimeNd, ...
+    'collapseInfo', collapseInfo, ...
     'fitModeIdx', fitModeIdx, ...
     'testModeIdx', testModeIdx, ...
     'modeEnergy', modeEnergy, ...
@@ -459,36 +460,61 @@ function windowIdx = localForwardWindow(nSamples, startIdx, windowPts)
     windowIdx = startIdx:lastIdx;
 end
 
-function firstCollapseIdx = findFirstCollapseIndex(R_data)
+function [firstCollapseIdx, info] = findFirstCollapseIndex(R_data)
     R_data = R_data(:);
-    if numel(R_data) < 3
+    nSamples = numel(R_data);
+    info = struct('method', 'sustained-raw-rebound', ...
+        'confirmationIdx', nSamples, 'reboundRise', 0, ...
+        'collapseDrop', 0, 'usedFallback', false);
+    if nSamples < 3
         firstCollapseIdx = numel(R_data);
         return
     end
 
-    smoothWindow = min(7, 2 * floor((numel(R_data) - 1) / 2) + 1);
-    if smoothWindow >= 3
-        R_smooth = movmean(R_data, smoothWindow, 'Endpoints', 'shrink');
-    else
-        R_smooth = R_data;
+    if any(~isfinite(R_data))
+        error('Radius data contain nonfinite values; cannot locate collapse.');
     end
 
-    dR = diff(R_smooth);
-    localMinIdx = find(dR(1:end-1) < 0 & dR(2:end) >= 0) + 1;
-    if ~isempty(localMinIdx)
-        cumulativeMin = cummin(R_smooth);
-        drop = R_smooth(1) - min(R_smooth);
-        minDrop = max(1e-6, 0.05 * drop);
-        valid = R_smooth(localMinIdx) <= cumulativeMin(localMinIdx) + ...
-            1e-6 & R_smooth(localMinIdx) <= R_smooth(1) - minDrop;
-        localMinIdx = localMinIdx(valid);
+    initialRadius = R_data(1);
+    totalDrop = max(0, initialRadius - min(R_data));
+    minCollapseDrop = max(0.05 * max(abs(initialRadius), eps), ...
+        0.10 * totalDrop);
+    runningMin = cummin(R_data);
+    noiseTol = max(1e-10, 0.002 * max(totalDrop, abs(initialRadius)));
+
+    for candidateIdx = 2:nSamples-2
+        collapseDrop = initialRadius - R_data(candidateIdx);
+        if collapseDrop < minCollapseDrop || ...
+                R_data(candidateIdx) > runningMin(candidateIdx) + noiseTol
+            continue
+        end
+
+        nConfirm = min(5, nSamples - candidateIdx);
+        reboundSegment = R_data(candidateIdx:candidateIdx + nConfirm);
+        reboundRise = reboundSegment(end) - reboundSegment(1);
+        minReboundRise = max(0.01 * max(abs(initialRadius), eps), ...
+            0.05 * collapseDrop);
+        nPositiveSteps = sum(diff(reboundSegment) > 0);
+        sustainedRebound = min(reboundSegment(2:end)) >= ...
+            reboundSegment(1) - noiseTol && ...
+            nPositiveSteps >= ceil(0.6 * nConfirm) && ...
+            reboundRise >= minReboundRise;
+
+        if sustainedRebound
+            [~, localOffset] = min(reboundSegment);
+            firstCollapseIdx = candidateIdx + localOffset - 1;
+            info.confirmationIdx = candidateIdx + nConfirm;
+            info.reboundRise = R_data(info.confirmationIdx) - ...
+                R_data(firstCollapseIdx);
+            info.collapseDrop = initialRadius - R_data(firstCollapseIdx);
+            return
+        end
     end
 
-    if isempty(localMinIdx)
-        [~, firstCollapseIdx] = min(R_smooth);
-    else
-        firstCollapseIdx = localMinIdx(1);
-    end
+    [~, firstCollapseIdx] = min(R_data);
+    info.confirmationIdx = firstCollapseIdx;
+    info.collapseDrop = initialRadius - R_data(firstCollapseIdx);
+    info.usedFallback = true;
 end
 
 function paramSpec = buildParameterSpec(opt)
