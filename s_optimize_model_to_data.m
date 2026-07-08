@@ -10,7 +10,7 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'PVA_Rt_data', 'processed_22.mat');
+    'PVA_Rt_data', 'processed_03.mat');
 
 material = "PVA";
 maxmode = 22;
@@ -165,7 +165,7 @@ firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
 firstCollapseTimeSeconds = firstCollapseTimeNd * tc;
 
 modeRows = 3:maxmode+1;
-n = mode_extract_fft(modeRows, 5);
+n = mode_extract_fft(modeRows, 10);
 n = n(:).';
 m = zeros(size(n));
 

@@ -4,6 +4,7 @@ clc
 close all
 
 addpath src\common\
+addpath ../cmap/
 % % addpath ../Anisotropic_material_IMR/IMRv2/
 % %%
 % % load data and process
@@ -83,15 +84,15 @@ epnmeq =  0.*amp_extractf(3:end,:).*1e-6;
 
 
 % load("../data/Sims_Brown_Surya/aniso_sim_FEA_sphequil.mat")
-% load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
-load("../data/Sims_Brown_Surya/aniso_sim_FEA_new_props.mat")
+load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
+% load("../data/Sims_Brown_Surya/aniso_sim_FEA_new_props.mat")
 Req =  amp_extractf(1,end).*1e-6;
 Rexp = amp_extractf(1,:).*1e-6;
 epnmeq =  amp_extractf(3:end,end).*1e-6./Req;
 
 Rmax = Rexp(1);
 k = 0;
-idxs = 3:20;%size(amp_extractf,1);
+idxs = 3:2:7;%size(amp_extractf,1);
 for i = idxs
     k = k+1;
     amp(k,:) = amp_extractf(i,:)./amp_extractf(1,:);
@@ -107,10 +108,10 @@ tic
 % Req = Rmax;
 % Rmax = 100e-6;
 % Req = Rmax;
-mu =  0.05;
-G = 50e3;
+mu =  0.2625;
+G = 105e3;
 alph = 0.0;
-ani = [3 0];
+ani = [0 0];
 sig = 0.0;
 p_a = -1.15*101325; f_a = 50e3;
 rho = 1000;
@@ -136,7 +137,16 @@ epeq = epnmeq(idxs-2);
 t = linspace(0, tf_nd, tsteps);
 [t, R, epnm] = f_call_IMRv2(Rmax, Req, ep0, epd0, epeq, n, m, mu, G, alph, ani, sig, p_a, f_a, tf_nd, tsteps, ultra);
 
-[t, Riso, epnmiso] = f_call_IMRv2(Rmax, Req, ep0, epd0, epeq, n, m, mu, G, alph, [0 0], sig, p_a, f_a, tf_nd, tsteps, ultra);
+hasDistinctIsotropicModel = any(ani ~= 0);
+if hasDistinctIsotropicModel
+    [tiso, Riso, epnmiso] = f_call_IMRv2(Rmax, Req, ep0, epd0, ...
+        epeq, n, m, mu, G, alph, [0 0], sig, p_a, f_a, ...
+        tf_nd, tsteps, ultra);
+else
+    tiso = [];
+    Riso = [];
+    epnmiso = [];
+end
 
 
 
@@ -151,30 +161,123 @@ t = linspace(0, tf_nd, tsteps);
 
 %%
 % load("../data/Sims_Brown_Surya/aniso_model_FEA_rad_aniso.mat")
-figure
-plotl = ceil(sqrt(size(epnm,2)+1));
+ms.AxesFontSize = 14;
+ms.LabelFontSize = 16;
+ms.LegendFontSize = 11;
+ms.LineWidth = 2.0;
+ms.LineWidthAlt = 1.4;
 
-subplot(plotl, plotl, 1)
-hold on
-plot(t, R, '-')
-plot(t, Riso, '--')
-plot(texp./tcLIC, Rexp./Rexp(1), 'o')
-% yline(Req/Rmax, 'k--', 'LineWidth',2)
-xlabel("t^*")
-ylabel("R")
+nModes = size(epnm, 2);
+nCols = 3;
+nModeRows = ceil(nModes / nCols);
+cmap = viridis(nModes + 2);
+cmap = cmap(2:end-1, :);
+tExpNd = texp ./ tcLIC;
+xLimits = [0, max([t(:); tExpNd(:)])];
 
+figComparison = figure('Name', 'IMR and FEM mode comparison', ...
+    'Color', 'w', 'Units', 'pixels', 'Position', [100 40 950 1450]);
+tl = tiledlayout(figComparison, nModeRows + 1, nCols, ...
+    'TileSpacing', 'compact', 'Padding', 'loose');
+comparisonAxes = gobjects(nModes + 1, 1);
 
-for i = 1:size(epnm,2)
-    subplot(plotl, plotl, i + 1)
-    hold on
-    plot(t, epnm(:,i), '-')
-    plot(t, epnmiso(:,i), '--')
-    plot(texp./tcLIC, amp(i,:), 'r^')
-    xlabel("t^*")
-    str = sprintf('$\\epsilon_{%.0f}$', n(i));
-    ylabel(str, 'Interpreter', 'latex')
-    ylim([min(amp(i,:)) max(amp(i,:))])
-    % yline(epeq(i), 'k--', 'LineWidth',2)
+axR = nexttile(tl, [1 nCols]);
+comparisonAxes(1) = axR;
+hold(axR, 'on')
+box(axR, 'on')
+grid(axR, 'on')
+radialColor = [0.10 0.42 0.58];
+hModel = plot(axR, t, R, '-', 'Color', radialColor, ...
+    'LineWidth', ms.LineWidth);
+if hasDistinctIsotropicModel
+    hIsotropic = plot(axR, tiso, Riso, '--', 'Color', radialColor, ...
+        'LineWidth', ms.LineWidthAlt);
+else
+    hIsotropic = gobjects(0);
+end
+hData = scatter(axR, tExpNd, Rexp ./ Rexp(1), 32, ...
+    'MarkerFaceColor', [0.45 0.25 0.55], ...
+    'MarkerEdgeColor', [0.30 0.15 0.40], ...
+    'MarkerFaceAlpha', 0.55, 'MarkerEdgeAlpha', 0.55);
+xlim(axR, xLimits)
+radialValues = [R(:); Riso(:); Rexp(:) ./ Rexp(1)];
+radialValues = radialValues(isfinite(radialValues));
+radialPadding = 0.05 * max(eps, ...
+    max(radialValues) - min(radialValues));
+ylim(axR, [max(0, min(radialValues) - radialPadding), ...
+    max(radialValues) + radialPadding])
+xlabel(axR, '$t^*$', 'Interpreter', 'latex', ...
+    'FontSize', ms.LabelFontSize)
+ylabel(axR, '$R/R_{\max}$', 'Interpreter', 'latex', ...
+    'FontSize', ms.LabelFontSize)
+if hasDistinctIsotropicModel
+    legend(axR, [hModel hIsotropic hData], ...
+        {'Full model', 'Isotropic model', 'FEM data'}, ...
+        'Interpreter', 'latex', 'FontSize', ms.LegendFontSize, ...
+        'Location', 'best', 'NumColumns', 3)
+else
+    legend(axR, [hModel hData], {'Isotropic model', 'FEM data'}, ...
+        'Interpreter', 'latex', 'FontSize', ms.LegendFontSize, ...
+        'Location', 'best', 'NumColumns', 2)
+end
+
+for i = 1:nModes
+    ax = nexttile(tl);
+    comparisonAxes(i + 1) = ax;
+    hold(ax, 'on')
+    box(ax, 'on')
+    grid(ax, 'on')
+    col = cmap(i, :);
+
+    scatter(ax, tExpNd, amp(i, :), 32, ...
+        'MarkerFaceColor', col, ...
+        'MarkerEdgeColor', 0.65 .* col, ...
+        'MarkerFaceAlpha', 0.55, 'MarkerEdgeAlpha', 0.55);
+    if hasDistinctIsotropicModel
+        plot(ax, tiso, epnmiso(:, i), '--', 'Color', col, ...
+            'LineWidth', ms.LineWidthAlt);
+    end
+    plot(ax, t, epnm(:, i), '-', ...
+        'Color', 0.55 .* col, 'LineWidth', ms.LineWidth);
+
+    if hasDistinctIsotropicModel
+        modeValues = [amp(i, :).'; epnm(:, i); epnmiso(:, i)];
+    else
+        modeValues = [amp(i, :).'; epnm(:, i)];
+    end
+    modeValues = modeValues(isfinite(modeValues));
+    if isempty(modeValues)
+        modeLimits = [-1 1];
+    else
+        modeMin = min(modeValues);
+        modeMax = max(modeValues);
+        modeSpan = modeMax - modeMin;
+        modeScale = max(abs(modeValues));
+        if modeSpan <= 100 * eps(max(modeScale, eps))
+            modePadding = 0.05 * modeScale;
+            if modePadding == 0
+                modePadding = 1e-12;
+            end
+        else
+            modePadding = 0.06 * modeSpan;
+        end
+        modeLimits = [modeMin - modePadding, modeMax + modePadding];
+    end
+    xlim(ax, xLimits)
+    ylim(ax, modeLimits)
+    xlabel(ax, '$t^*$', 'Interpreter', 'latex', ...
+        'FontSize', ms.LabelFontSize)
+    ylabel(ax, sprintf('$\\epsilon_{%.0f}$', n(i)), ...
+        'Interpreter', 'latex', 'FontSize', ms.LabelFontSize)
+end
+
+for i = 1:numel(comparisonAxes)
+    ax = comparisonAxes(i);
+    ax.FontSize = ms.AxesFontSize - (i > 1);
+    ax.TickLabelInterpreter = 'latex';
+    ax.Box = 'on';
+    ax.Layer = 'top';
+    ax.GridAlpha = 0.18;
 end
 
 % xlim([0 1])
