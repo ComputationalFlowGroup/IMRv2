@@ -2,7 +2,6 @@ function [y_out, runInfo, sim] = f_optimize_model_to_data_predict( ...
     z, xData, paramSpec, simOpts)
 % Run one IMRv2 simulation and return the weighted model vector.
 
-params = f_unpack_model_to_data_params(z, paramSpec);
 wantSimOutput = nargout >= 3;
 runInfo = struct('success', false, 'message', '', 'identifier', '', ...
     'elapsed', NaN, 'completedTime', NaN, 'timedOut', false, ...
@@ -12,8 +11,20 @@ runInfo = struct('success', false, 'message', '', 'identifier', '', ...
     'maxRadialNearestTimeMismatch', NaN, ...
     'maxPerturbationNearestTimeMismatch', NaN, ...
     'firstCollapseTimeNd', NaN, 'nRadialLossTimes', 0, ...
-    'nPerturbationLossTimes', 0);
+    'nPerturbationLossTimes', 0, 'params', struct(), ...
+    'usedNearestTimeExtraction', false);
 sim = struct('success', false);
+
+try
+    params = f_unpack_model_to_data_params(z, paramSpec);
+catch ME
+    runInfo.identifier = nonemptyIdentifier(ME, ...
+        'ModelToData:ParameterUnpackFailed');
+    runInfo.message = exceptionSummary(ME);
+    y_out = failedPrediction(xData, simOpts);
+    return
+end
+runInfo.params = params;
 
 ticRun = tic;
 try
@@ -21,7 +32,8 @@ try
         params, xData, simOpts);
 catch ME
     runInfo.elapsed = toc(ticRun);
-    runInfo.identifier = ME.identifier;
+    runInfo.identifier = nonemptyIdentifier(ME, ...
+        'ModelToData:ForwardSolveFailed');
     runInfo.message = exceptionSummary(ME);
     runInfo.timedOut = strcmp(ME.identifier, 'IMR:MaxWallTimeExceeded');
     y_out = failedPrediction(xData, simOpts);
@@ -64,45 +76,38 @@ end
 if isfield(xData, 'firstCollapseTimeNd')
     runInfo.firstCollapseTimeNd = xData.firstCollapseTimeNd;
 end
-if numel(t) == numel(xData.tfit_nd)
-    runInfo.maxRequestedReturnedTimeMismatch = max(abs(t(:) - xData.tfit_nd(:)));
-    runInfo.maxRadialNearestTimeMismatch = runInfo.maxRequestedReturnedTimeMismatch;
-    runInfo.maxPerturbationNearestTimeMismatch = max(abs(t(epRows) - ...
-        xData.tfit_nd(epRows)));
-else
-    runInfo.maxRequestedReturnedTimeMismatch = Inf;
-    runInfo.maxRadialNearestTimeMismatch = Inf;
-    runInfo.maxPerturbationNearestTimeMismatch = Inf;
-end
-
-if numel(t) < 2 || max(t) < xData.tfit_nd(end) - timeTol || ...
-        any(~isfinite(t(:))) || any(~isfinite(R(:))) || ...
-        any(~isfinite(epnm(:)))
+if numel(t) < 2 || any(~isfinite(t(:))) || ...
+        max(t) < xData.tfit_nd(end) - timeTol
     if runInfo.timedOut
         runInfo.message = 'Simulation exceeded the per-evaluation wall-time limit.';
     else
-        runInfo.message = 'Simulation failed or ended before the fit window.';
+        runInfo.message = ['Simulation failed, returned nonfinite times, ', ...
+            'or ended before the fit window.'];
     end
     y_out = failedPrediction(xData, simOpts);
     return
 end
 
-timesAligned = numel(t) == numel(xData.tfit_nd) && ...
-    runInfo.maxRequestedReturnedTimeMismatch <= timeTol;
-if ~timesAligned
+[RFit, epFit, runInfo] = extractRequestedTimeSamples(t, R, epnm, xData, ...
+    epRows, simOpts, runInfo, timeTol);
+if isempty(RFit)
     runInfo.identifier = 'IMR:UnexpectedTimeVector';
-    runInfo.message = sprintf(['Solver did not return the requested ', ...
-        'experimental time vector; max |dt*| = %.3g.'], ...
-        runInfo.maxRequestedReturnedTimeMismatch);
     y_out = failedPrediction(xData, simOpts);
     return
 end
 
-RFit = R(:);
-epFit = epnm;
+if any(~isfinite(RFit(:)))
+    runInfo.identifier = 'IMR:NonfiniteRadialLossData';
+    runInfo.message = 'Solver returned nonfinite radial values on the loss time grid.';
+    y_out = failedPrediction(xData, simOpts);
+    return
+end
 
-if any(~isfinite(RFit(:))) || any(~isfinite(epFit(:)))
-    runInfo.message = 'Solver returned nonfinite values on the experimental time grid.';
+epLoss = epFit(epRows, xData.fitModeIdx);
+if any(~isfinite(epLoss(:)))
+    runInfo.identifier = 'IMR:NonfinitePerturbationLossData';
+    runInfo.message = ['Solver returned nonfinite values for perturbation ', ...
+        'modes used in the loss window.'];
     y_out = failedPrediction(xData, simOpts);
     return
 end
@@ -114,6 +119,53 @@ runInfo.message = 'Simulation completed.';
 if wantSimOutput
     sim.success = true;
 end
+end
+
+function [RFit, epFit, runInfo] = extractRequestedTimeSamples(t, R, epnm, ...
+    xData, epRows, simOpts, runInfo, timeTol)
+RFit = [];
+epFit = [];
+requested = xData.tfit_nd(:);
+returned = t(:);
+
+if numel(returned) == numel(requested)
+    dt = abs(returned - requested);
+    runInfo.maxRequestedReturnedTimeMismatch = max(dt);
+    runInfo.maxRadialNearestTimeMismatch = runInfo.maxRequestedReturnedTimeMismatch;
+    runInfo.maxPerturbationNearestTimeMismatch = max(dt(epRows));
+    if runInfo.maxRequestedReturnedTimeMismatch <= timeTol
+        RFit = R(:);
+        epFit = epnm;
+        return
+    end
+end
+
+if ~simOpt(simOpts, 'AllowNearestTimeExtraction', true)
+    runInfo.message = sprintf(['Solver did not return the requested ', ...
+        'experimental time vector; max |dt*| = %.3g.'], ...
+        runInfo.maxRequestedReturnedTimeMismatch);
+    return
+end
+
+[nearestIdx, nearestDt] = nearestReturnedTimeIndices(returned, requested);
+nearestTol = simOpt(simOpts, 'NearestTimeTolerance', ...
+    max(timeTol, 1e-6 * max(1, abs(requested(end)))));
+runInfo.maxRequestedReturnedTimeMismatch = maxFinite(nearestDt);
+runInfo.maxRadialNearestTimeMismatch = runInfo.maxRequestedReturnedTimeMismatch;
+runInfo.maxPerturbationNearestTimeMismatch = maxFinite(nearestDt(epRows));
+
+if any(~isfinite(nearestDt)) || ...
+        runInfo.maxRequestedReturnedTimeMismatch > nearestTol
+    runInfo.message = sprintf(['Solver did not return usable samples near ', ...
+        'the requested experimental time vector; max nearest |dt*| = %.3g ', ...
+        '(tol %.3g).'], runInfo.maxRequestedReturnedTimeMismatch, ...
+        nearestTol);
+    return
+end
+
+RFit = R(nearestIdx);
+epFit = epnm(nearestIdx, :);
+runInfo.usedNearestTimeExtraction = true;
 end
 
 function epRows = perturbationFitRows(xData)
@@ -137,6 +189,21 @@ end
 for ii = 1:numel(requestedTimes)
     [absDt(ii), nearestIdx] = min(abs(returnedTimes - requestedTimes(ii)));
     nearestTimes(ii) = returnedTimes(nearestIdx);
+end
+end
+
+function [nearestIdx, absDt] = nearestReturnedTimeIndices(returnedTimes, ...
+    requestedTimes)
+returnedTimes = returnedTimes(:);
+requestedTimes = requestedTimes(:);
+nearestIdx = nan(size(requestedTimes));
+absDt = nan(size(requestedTimes));
+if isempty(returnedTimes) || isempty(requestedTimes)
+    return
+end
+
+for ii = 1:numel(requestedTimes)
+    [absDt(ii), nearestIdx(ii)] = min(abs(returnedTimes - requestedTimes(ii)));
 end
 end
 
@@ -206,6 +273,13 @@ if ~isempty(ME.cause)
     causeMessages = cellfun(@(cause) cause.message, ME.cause, ...
         'UniformOutput', false);
     message = strjoin([{message}, causeMessages(:).'], ' | Cause: ');
+end
+end
+
+function identifier = nonemptyIdentifier(ME, fallback)
+identifier = ME.identifier;
+if isempty(identifier)
+    identifier = fallback;
 end
 end
 

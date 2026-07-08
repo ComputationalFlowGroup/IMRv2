@@ -67,7 +67,7 @@ COLOR_MAP_NAME = 'turbo';
 % fileName = sprintf('../data/Sims_Brown_Surya/%s_bubble_time.dat', JOB_NAME);
 
 % fileName = sprintf('../data/Sims_Brown_Surya/%s_spherical_QSR_Step5_bubble_time.dat', JOB_NAME);
-fileName = sprintf('../data/Sims_Brown_Surya/%s_Slightly_NonSphere_Step5_bubble_time.dat', JOB_NAME);
+fileName = sprintf('../data/Sims_Brown_Surya/%s_anisotropic_new.dat', JOB_NAME);
 filePath = fullfile(DATA_DIR, fileName);
 
 if ~isfile(filePath)
@@ -273,6 +273,7 @@ end
 legend('Location', 'bestoutside', 'Interpreter', 'none')
 
 %%
+% load("../data/Sims_Brown_Surya/aniso_sim_FEA_sphequil.mat")
 
 figure
 nmodes = size(amp_extractf,1);

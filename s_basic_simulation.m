@@ -83,15 +83,15 @@ epnmeq =  0.*amp_extractf(3:end,:).*1e-6;
 
 
 % load("../data/Sims_Brown_Surya/aniso_sim_FEA_sphequil.mat")
-load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
-% load("../data/Sims_Brown_Surya/aniso_sim_FEA.mat")
+% load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
+load("../data/Sims_Brown_Surya/aniso_sim_FEA_new_props.mat")
 Req =  amp_extractf(1,end).*1e-6;
 Rexp = amp_extractf(1,:).*1e-6;
 epnmeq =  amp_extractf(3:end,end).*1e-6./Req;
 
 Rmax = Rexp(1);
 k = 0;
-idxs = 3:2:9;%size(amp_extractf,1);
+idxs = 3:20;%size(amp_extractf,1);
 for i = idxs
     k = k+1;
     amp(k,:) = amp_extractf(i,:)./amp_extractf(1,:);
@@ -107,10 +107,10 @@ tic
 % Req = Rmax;
 % Rmax = 100e-6;
 % Req = Rmax;
-mu =  0.2625;
-G = 105e3;
+mu =  0.05;
+G = 50e3;
 alph = 0.0;
-ani = [0 0];
+ani = [3 0];
 sig = 0.0;
 p_a = -1.15*101325; f_a = 50e3;
 rho = 1000;
@@ -173,6 +173,7 @@ for i = 1:size(epnm,2)
     xlabel("t^*")
     str = sprintf('$\\epsilon_{%.0f}$', n(i));
     ylabel(str, 'Interpreter', 'latex')
+    ylim([min(amp(i,:)) max(amp(i,:))])
     % yline(epeq(i), 'k--', 'LineWidth',2)
 end
 

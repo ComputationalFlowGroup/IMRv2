@@ -65,9 +65,14 @@ opt.sim.FailurePenalty = 1e5;   % scalar BO loss for failed/timeout runs
 opt.sim.UseLogLoss = true;      % Bayes opt minimizes log10(normalized loss)
 opt.sim.LogLossFloor = 1e-12;   % prevents log10(0)
 opt.sim.TimeMatchTolerance = 1e-8; % dimensionless tolerance for t == t_exp
+opt.sim.AllowNearestTimeExtraction = true; % no interpolation; nearest returned samples only
+opt.sim.NearestTimeTolerance = 1e-6; % dimensionless tolerance for nearest returned samples
 opt.sim.VerifyTimeExtraction = false; % final best fit is always verified
 opt.sim.PrintFailures = true;
 opt.sim.PrintSuccess = false;
+opt.sim.DiagnosticLogFile = fullfile(scriptDir, ...
+    'model_to_data_eval_diagnostics.tsv');
+opt.sim.DiagnosticLogAppend = false;
 
 % Bayes-opt controls.
 opt.bayes.MaxObjectiveEvaluations = 750;
@@ -85,6 +90,9 @@ opt.bayes.AcquisitionFunctionName = 'lower-confidence-bound';
 opt.bayes.ExplorationRatio = 0.65;
 opt.bayes.Verbose = 1;
 opt.bayes.PlotFcn = {};         % plots add overhead during fast searches
+opt.bayes.RunClientPreflight = true;
+opt.bayes.RunWorkerPreflight = true;
+opt.bayes.FallbackToSerialOnWorkerPreflightFailure = true;
 
 % Optional local refinement from the best Bayes-opt points.
 opt.refine.Enabled = true;     % can be expensive: finite differences call many simulations
@@ -140,7 +148,8 @@ amps = sgolayfilt(amps_og(1:maxmode-1, :), polyOrder, windowPts, [], 2);
 tc = Rmax * sqrt(1000 / 101325);
 
 epnm0 = amps(:, maxidx);
-epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc);
+epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc, ...
+    icVelocityWindowPts, icVelocityPolyOrder);
 eqWindow = max(1, size(amps, 2)-20):size(amps, 2);
 epnmeq = mean(amps(:, eqWindow), 2);
 
@@ -214,12 +223,13 @@ paramSpec = buildParameterSpec(opt);
 bayesoptVars = buildBayesoptVariables(paramSpec);
 [lbOpt, ubOpt] = optimizerBounds(paramSpec);
 if ~isempty(bayesoptVars)
-    opt.bayes = prepareBayesoptParallelPool(opt.bayes);
+    opt.bayes = prepareBayesoptParallelPool(opt.bayes, scriptDir);
 end
 if opt.bayes.UseLatinHypercubeInitialX
     opt.bayes.InitialX = makeLowerRegionLatinHypercubeInitialX( ...
         paramSpec, opt.bayes.NumSeedPoints, opt.bayes.InitialRegionFraction);
 end
+initializeDiagnosticLog(opt.sim);
 
 fprintf('Training perturbation modes: %s\n', num2str(n(fitModeIdx)));
 fprintf('Held-out perturbation modes: %s\n', num2str(n(testModeIdx)));
@@ -242,6 +252,7 @@ end
 %% Bayesian optimization
 tic
 lossfun = @(T) f_optimize_model_to_data_loss(T, xDataOpt, paramSpec, opt.sim);
+opt.bayes = runOptimizerPreflight(opt.bayes, xDataOpt, paramSpec, opt.sim);
 
 if isempty(bayesoptVars)
     results = [];
@@ -395,21 +406,38 @@ function tf = isImrScriptDir(candidate)
         isfolder(fullfile(candidate, 'src', 'forward_solver'));
 end
 
-function epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc)
+function epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc, ...
+    windowPts, polyOrder)
     epnmd0 = zeros(size(amps, 1), 1);
-    dt = mean(diff(texp));
-    if maxidx > 2 && maxidx <= size(amps, 2) - 2
-        fdstenc = [1/12, -2/3, 0, 2/3, -1/12];
-        for ii = 1:size(amps, 1)
-            epnmd0(ii) = sum(fdstenc .* amps(ii, maxidx-2:maxidx+2)) ...
-                / dt * tc;
-        end
-    else
-        for ii = 1:size(amps, 1)
-            dadt = gradient(amps(ii, :), texp);
-            epnmd0(ii) = dadt(maxidx) * tc;
-        end
+    if nargin < 5 || isempty(windowPts)
+        windowPts = 15;
     end
+    if nargin < 6 || isempty(polyOrder)
+        polyOrder = 3;
+    end
+
+    windowIdx = localForwardWindow(size(amps, 2), maxidx, windowPts);
+    tstar = (texp(windowIdx) - texp(maxidx)) ./ tc;
+    fitOrder = min(polyOrder, numel(windowIdx) - 1);
+    if fitOrder < 1
+        return
+    end
+
+    for ii = 1:size(amps, 1)
+        p = polyfit(tstar(:), amps(ii, windowIdx).', fitOrder);
+        epnmd0(ii) = polyval(polyder(p), 0);
+    end
+end
+
+function windowIdx = localForwardWindow(nSamples, startIdx, windowPts)
+    windowPts = max(3, round(windowPts));
+    if mod(windowPts, 2) == 0
+        windowPts = windowPts - 1;
+    end
+    windowPts = min(windowPts, nSamples);
+    startIdx = min(max(1, startIdx), nSamples);
+    lastIdx = min(nSamples, startIdx + windowPts - 1);
+    windowIdx = startIdx:lastIdx;
 end
 
 function firstCollapseIdx = findFirstCollapseIndex(R_data)
@@ -570,7 +598,7 @@ function initialX = makeLowerRegionLatinHypercubeInitialX(paramSpec, ...
         {paramSpec.variableName});
 end
 
-function bayesOpts = prepareBayesoptParallelPool(bayesOpts)
+function bayesOpts = prepareBayesoptParallelPool(bayesOpts, scriptDir)
     if ~bayesOpts.UseParallel
         return
     end
@@ -592,6 +620,7 @@ function bayesOpts = prepareBayesoptParallelPool(bayesOpts)
             return
         end
     end
+    syncParallelWorkerPaths(p, scriptDir);
 
     nWorkers = p.NumWorkers;
     fprintf('Bayes-opt parallel pool: %d workers (%s).\n', ...
@@ -619,6 +648,34 @@ function bayesOpts = prepareBayesoptParallelPool(bayesOpts)
     end
 end
 
+function syncParallelWorkerPaths(poolObj, scriptDir)
+    workerPaths = {scriptDir, ...
+        fullfile(scriptDir, 'src', 'common'), ...
+        fullfile(scriptDir, 'src', 'forward_solver'), ...
+        fullfile(scriptDir, 'src', 'characterization')};
+    for ii = 1:numel(workerPaths)
+        if isfolder(workerPaths{ii})
+            addpath(workerPaths{ii});
+        end
+    end
+
+    if isempty(poolObj)
+        return
+    end
+
+    futures = cell(0, 1);
+    for ii = 1:numel(workerPaths)
+        if isfolder(workerPaths{ii})
+            futures{end+1, 1} = parfevalOnAll(poolObj, @addpath, 0, ...
+                workerPaths{ii}); %#ok<AGROW>
+        end
+    end
+    for ii = 1:numel(futures)
+        wait(futures{ii});
+    end
+    fprintf('Synchronized IMRv2 paths on parallel workers.\n');
+end
+
 function p = startRequestedPool(bayesOpts)
     profile = optionValue(bayesOpts, 'ParallelPoolProfile', '');
     nWorkers = optionValue(bayesOpts, 'NumWorkers', []);
@@ -630,6 +687,143 @@ function p = startRequestedPool(bayesOpts)
         p = parpool(profile);
     else
         p = parpool(profile, nWorkers);
+    end
+end
+
+function initializeDiagnosticLog(simOpts)
+    logFile = optionValue(simOpts, 'DiagnosticLogFile', '');
+    if isempty(logFile)
+        return
+    end
+    appendLog = optionValue(simOpts, 'DiagnosticLogAppend', false);
+    if appendLog
+        mode = 'a';
+    else
+        mode = 'w';
+    end
+    try
+        logDir = fileparts(logFile);
+        if ~isempty(logDir) && ~isfolder(logDir)
+            mkdir(logDir);
+        end
+        fid = fopen(logFile, mode);
+        if fid < 0
+            warning('ModelToData:DiagnosticLogOpenFailed', ...
+                'Could not open diagnostic log: %s', logFile);
+            return
+        end
+        cleanup = onCleanup(@() fclose(fid));
+        if ~appendLog
+            fprintf(fid, ['timestamp\tworker\tsuccess\tloss\trawLoss', ...
+                '\telapsed\tcompleted_tstar\tdt_requested\tdt_radial', ...
+                '\tdt_ep\ttimedOut\tidentifier\tmessage\tG\talph', ...
+                '\tmu\tani1\tani2\n']);
+        end
+        clear cleanup
+        fprintf('Objective diagnostic log: %s\n', logFile);
+    catch ME
+        warning('ModelToData:DiagnosticLogInitFailed', ...
+            'Could not initialize diagnostic log %s: %s', ...
+            logFile, ME.message);
+    end
+end
+
+function bayesOpts = runOptimizerPreflight(bayesOpts, xData, paramSpec, simOpts)
+    preflightPoint = makePreflightPoint(paramSpec, bayesOpts);
+    clientLoss = NaN;
+    workerLoss = NaN;
+
+    if optionValue(bayesOpts, 'RunClientPreflight', false)
+        fprintf('Running optimizer client preflight evaluation...\n');
+        clientLoss = f_optimize_model_to_data_loss(preflightPoint, xData, ...
+            paramSpec, simOpts);
+        printPreflightLoss('client', clientLoss, simOpts);
+    end
+
+    if bayesOpts.UseParallel && optionValue(bayesOpts, ...
+            'RunWorkerPreflight', false)
+        poolObj = gcp('nocreate');
+        if isempty(poolObj)
+            warning('Worker preflight requested, but no parallel pool exists.');
+        else
+            fprintf('Running optimizer worker preflight evaluation...\n');
+            try
+                future = parfeval(poolObj, @f_optimize_model_to_data_loss, ...
+                    1, preflightPoint, xData, paramSpec, simOpts);
+                workerLoss = fetchOutputs(future);
+                printPreflightLoss('worker', workerLoss, simOpts);
+            catch ME
+                warning('ModelToData:WorkerPreflightFailed', ...
+                    'Worker preflight errored: %s', ME.message);
+                if optionValue(bayesOpts, ...
+                        'FallbackToSerialOnWorkerPreflightFailure', false)
+                    bayesOpts.UseParallel = false;
+                    fprintf(['Using serial bayesopt because the worker ', ...
+                        'preflight errored.\n']);
+                end
+                return
+            end
+        end
+    end
+
+    if isfinite(clientLoss) && isfinite(workerLoss) && ...
+            ~isPenaltyObjective(clientLoss, simOpts) && ...
+            isPenaltyObjective(workerLoss, simOpts) && ...
+            optionValue(bayesOpts, ...
+            'FallbackToSerialOnWorkerPreflightFailure', false)
+        bayesOpts.UseParallel = false;
+        warning('ModelToData:WorkerPreflightPenalty', ...
+            ['Client preflight succeeded but worker preflight returned ', ...
+            'the failure penalty. Using serial bayesopt to avoid an ', ...
+            'all-penalty parallel run. Check the diagnostic log for ', ...
+            'the worker failure reason.']);
+    end
+end
+
+function preflightPoint = makePreflightPoint(paramSpec, bayesOpts)
+    activeSpec = activeParameterSpec(paramSpec);
+    if isempty(activeSpec)
+        preflightPoint = [];
+        return
+    end
+    if isfield(bayesOpts, 'InitialX') && ~isempty(bayesOpts.InitialX)
+        preflightPoint = bayesOpts.InitialX(1, :);
+        return
+    end
+
+    x = zeros(1, numel(activeSpec));
+    for ii = 1:numel(activeSpec)
+        x(ii) = mean(activeSpec(ii).optimizerBounds);
+    end
+    preflightPoint = array2table(x, 'VariableNames', ...
+        {activeSpec.variableName});
+end
+
+function printPreflightLoss(label, loss, simOpts)
+    penaltyObjective = penaltyObjectiveValue(simOpts);
+    if isPenaltyObjective(loss, simOpts)
+        fprintf(['Optimizer %s preflight objective = %.6g ', ...
+            '(failure penalty; diagnostic log has the reason)\n'], ...
+            label, loss);
+    else
+        fprintf(['Optimizer %s preflight objective = %.6g ', ...
+            '(penalty would be %.6g)\n'], label, loss, penaltyObjective);
+    end
+end
+
+function tf = isPenaltyObjective(loss, simOpts)
+    penaltyObjective = penaltyObjectiveValue(simOpts);
+    tf = isfinite(loss) && abs(loss - penaltyObjective) <= ...
+        1e-10 * max(1, abs(penaltyObjective));
+end
+
+function value = penaltyObjectiveValue(simOpts)
+    rawPenalty = optionValue(simOpts, 'FailurePenalty', 1e6);
+    if optionValue(simOpts, 'UseLogLoss', false)
+        floorValue = optionValue(simOpts, 'LogLossFloor', 1e-12);
+        value = log10(max(rawPenalty, floorValue));
+    else
+        value = rawPenalty;
     end
 end
 
@@ -896,7 +1090,7 @@ function plotOptimizedFit(bestSim, xData, bestParams)
     end
 end
 
-function plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, tc) %#ok<DEFNU>
+function plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, tc)
     figure('Name', 'Initial-condition check')
     nmodes = size(amps, 1);
     plotl = ceil(sqrt(nmodes));
