@@ -15,6 +15,7 @@ dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
 maxmode = 12;
 %test
 polyOrder = 3;
+%test
 windowPts = 21;   % odd integer: 3, 5, 7, ...
 icVelocityWindowPts = 15;  % forward polynomial derivative window from Rmax
 icVelocityPolyOrder = 3;
