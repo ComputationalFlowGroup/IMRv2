@@ -14,8 +14,10 @@ dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
 
 maxmode = 22;
 polyOrder = 3;
-windowPts = 9;   % odd integer: 3, 5, 7, ...
-opt.fit.NumPerturbationModes = 7;
+windowPts = 21;   % odd integer: 3, 5, 7, ...
+icVelocityWindowPts = 15;  % forward polynomial derivative window from Rmax
+icVelocityPolyOrder = 3;
+opt.fit.NumPerturbationModes = 5;
 
 % Loss priority weights after per-trace normalization. Radial receives
 % RadialWeight, and mode n receives
