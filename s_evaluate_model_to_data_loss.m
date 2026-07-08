@@ -10,7 +10,7 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'PVA_Rt_data/', 'processed_22.mat');
+    'PVA_Rt_data/', 'processed_11.mat');
 
 material = "PVA";
 maxmode = 22;
@@ -23,17 +23,17 @@ opt.fit.NumPerturbationModes = 7;
 % Loss priority weights after per-trace normalization. Radial receives
 % RadialWeight, and mode n receives
 % ModeBaseWeight*(ModeReference/(n + ModeWeightOffset))^ModeWeightPower.
-opt.loss.RadialWeight = 1.5;
+opt.loss.RadialWeight = 1;
 opt.loss.ModeBaseWeight = 1;
 opt.loss.ModeReference = 2;
-opt.loss.ModeWeightPower = 2;
+opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Physical model parameters for this single simulation.
-modelParams.G = 10^(5.4596);       % Pa
-modelParams.alph = 10^(-0.038316);
-modelParams.mu = 10^(-0.32659);        % Pa*s
-modelParams.ani = [3.1193, 2.5972];
+modelParams.G = 10^(5.0);       % Pa
+modelParams.alph = 10^(-1);
+modelParams.mu = 10^(-0.8);        % Pa*s
+modelParams.ani = [1, 2];
 
 % Forward-solver controls. The simulation is evaluated at the experimental
 % post-Rmax times, so tsteps is only a fallback for non-optimization calls.
@@ -105,7 +105,7 @@ firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
 firstCollapseTimeSeconds = firstCollapseTimeNd * tc;
 
 modeRows = 3:maxmode+1;
-n = mode_extract_fft(modeRows, 5);
+n = mode_extract_fft(modeRows, 10);
 n = n(:).';
 m = zeros(size(n));
 

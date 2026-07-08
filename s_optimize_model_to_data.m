@@ -10,7 +10,7 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'PVA_Rt_data', 'processed_22.mat');
+    'PVA_Rt_data', 'processed_11.mat');
 
 material = "PVA";
 maxmode = 22;
@@ -23,16 +23,16 @@ opt.fit.NumPerturbationModes = 7;
 % Loss priority weights after per-trace normalization. Radial receives
 % RadialWeight, and mode n receives
 % ModeBaseWeight*(ModeReference/(n + ModeWeightOffset))^ModeWeightPower.
-opt.loss.RadialWeight = 2;
-opt.loss.ModeBaseWeight = 1.5;
+opt.loss.RadialWeight = 1;
+opt.loss.ModeBaseWeight = 1;
 opt.loss.ModeReference = 2;
-opt.loss.ModeWeightPower = 2;
+opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Parameter bounds. G and mu are optimized in log10-space by default.
-opt.bounds.G = [5e3, 5e5];
+opt.bounds.G = [5e4, 5e6];
 opt.bounds.alph = [1e-3, 5];
-opt.bounds.mu = [5e-2, 1];
+opt.bounds.mu = [5e-2, 5e-1];
 opt.bounds.ani = [0, 5; ...
                  0, 5];
 
@@ -75,8 +75,8 @@ opt.sim.DiagnosticLogFile = fullfile(scriptDir, ...
 opt.sim.DiagnosticLogAppend = false;
 
 % Bayes-opt controls.
-opt.bayes.MaxObjectiveEvaluations = 750;
-opt.bayes.NumSeedPoints = 25;
+opt.bayes.MaxObjectiveEvaluations = 500;
+opt.bayes.NumSeedPoints = 50;
 opt.bayes.UseLatinHypercubeInitialX = true;
 opt.bayes.InitialRegionFraction = 1; % lower half of each optimizer bound range
 opt.bayes.UseParallel = true;  % use true for larger budgets or an open pool
@@ -96,11 +96,11 @@ opt.bayes.FallbackToSerialOnWorkerPreflightFailure = true;
 
 % Optional local refinement from the best Bayes-opt points.
 opt.refine.Enabled = true;     % can be expensive: finite differences call many simulations
-opt.refine.NumStarts = 10;
+opt.refine.NumStarts = 15;
 opt.refine.Display = 'iter-detailed';
 opt.refine.UseParallel = true;
-opt.refine.MaxFunctionEvaluations = 75;
-opt.refine.MaxIterations = 10;
+opt.refine.MaxFunctionEvaluations = 100;
+opt.refine.MaxIterations = 25;
 opt.refine.OptimalityTolerance = 1e-4;
 opt.refine.FunctionTolerance = 1e-4;
 opt.refine.StepTolerance = 1e-5;
@@ -160,12 +160,12 @@ R_data = expR(fitIdx).' ./ Rmax;
 ep_data = amps(:, fitIdx).';
 tf_nd = max(tfit_nd);
 [firstCollapseIdx, collapseInfo] = findFirstCollapseIndex(R_data);
-epFitIdx = 1:firstCollapseIdx+5;
+epFitIdx = 1:2*firstCollapseIdx;
 firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
 firstCollapseTimeSeconds = firstCollapseTimeNd * tc;
 
 modeRows = 3:maxmode+1;
-n = mode_extract_fft(modeRows, 5);
+n = mode_extract_fft(modeRows, 10);
 n = n(:).';
 m = zeros(size(n));
 
@@ -304,9 +304,12 @@ else
 end
 toc
 
-save('../data/SicongJinChicken/chicken_Rt_data/optimized_54.mat')
+save('../optimized_data/Jin_data/PVA/optimized_11.mat')
 
 %% Evaluate and plot best fit
+
+% load('../optimized_data/Jin_data/PVA/optimized_22.mat')
+
 bestParams = f_unpack_model_to_data_params(bestZ, paramSpec);
 [bestY, bestRunInfo, bestSimOpt] = f_optimize_model_to_data_predict(bestZ, ...
     xDataOpt, paramSpec, opt.sim);
