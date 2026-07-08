@@ -10,8 +10,9 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'chicken_Rt_data', 'processed_11.mat');
+    'PVA_Rt_data/', 'processed_22.mat');
 
+material = "PVA";
 maxmode = 22;
 polyOrder = 3;
 windowPts = 9;   % odd integer: 3, 5, 7, ...
@@ -29,10 +30,10 @@ opt.loss.ModeWeightPower = 2;
 opt.loss.ModeWeightOffset = 0;
 
 % Physical model parameters for this single simulation.
-modelParams.G = 10^(3.109);       % Pa
-modelParams.alph = 3.8828;
-modelParams.mu = 10^(-0.30144);        % Pa*s
-modelParams.ani = [4.581, 2.4672];
+modelParams.G = 10^(5.4596);       % Pa
+modelParams.alph = 10^(-0.038316);
+modelParams.mu = 10^(-0.32659);        % Pa*s
+modelParams.ani = [3.1193, 2.5972];
 
 % Forward-solver controls. The simulation is evaluated at the experimental
 % post-Rmax times, so tsteps is only a fallback for non-optimization calls.
@@ -63,8 +64,14 @@ load(dataFile)
 
 pxpermicron = 3.2;
 
+if material == "PVA"
+    tstepdt = 5e-7;
+elseif material == "chicken"
+    tstepdt = 1e-6;
+end
+
 expR = amp_extract_fft(1, :) .* 1e-6 .* pxpermicron;
-texp = (0:numel(expR)-1) .* 1e-6;
+texp = (0:numel(expR)-1) .* tstepdt;
 
 amps_og = amp_extract_fft(3:end, :) ./ expR .* 1e-6 .* pxpermicron;
 Req = expR(end);
@@ -97,7 +104,7 @@ epFitIdx = 1:firstCollapseIdx;
 firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
 
 modeRows = 3:maxmode+1;
-n = mode_extract_fft(modeRows, 1);
+n = mode_extract_fft(modeRows, 5);
 n = n(:).';
 m = zeros(size(n));
 
