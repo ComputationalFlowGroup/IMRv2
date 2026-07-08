@@ -10,13 +10,13 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'PVA_Rt_data', 'processed_11.mat');
+    'PVA_Rt_data', 'processed_14.mat');
 
 material = "PVA";
 maxmode = 22;
 polyOrder = 3;
 windowPts = 15;   % odd integer: 3, 5, 7, ...
-icVelocityWindowPts = 15;  % forward polynomial derivative window from Rmax
+icVelocityWindowPts = 5;  % forward polynomial derivative window from Rmax
 icVelocityPolyOrder = 3;
 opt.fit.NumPerturbationModes = 7;
 
@@ -305,11 +305,11 @@ else
 end
 toc
 
-save('../optimized_data/Jin_data/PVA/optimized_11.mat')
+save('../optimized_data/Jin_data/PVA/optimized_14.mat')
 
 %% Evaluate and plot best fit
 
-% load('../optimized_data/Jin_data/PVA/optimized_22.mat')
+% load('../optimized_data/Jin_data/PVA/optimized_03_donot_delete.mat')
 
 bestParams = f_unpack_model_to_data_params(bestZ, paramSpec);
 [bestY, bestRunInfo, bestSimOpt] = f_optimize_model_to_data_predict(bestZ, ...
@@ -1197,5 +1197,6 @@ function plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, t
         plot((texp - t0)./tc, 0 .* (texp - t0) + epnm0(ii), ':')
         plot((texp - t0)./tc, ((texp - t0) ./ tc) .* epnmd0(ii) + epnm0(ii), '-')
         % xlim([min(texp - t0), -min(texp - t0)])
+        ylim([min(amps_og(ii, :)) max(amps_og(ii, :))])
     end
 end

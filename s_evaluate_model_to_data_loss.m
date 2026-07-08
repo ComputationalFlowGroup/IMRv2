@@ -10,7 +10,7 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'PVA_Rt_data/', 'processed_11.mat');
+    'PVA_Rt_data/', 'processed_14.mat');
 
 material = "PVA";
 maxmode = 22;
@@ -41,7 +41,7 @@ opt.sim.tsteps = 3000;
 opt.sim.RelTol = 1e-4;
 opt.sim.AbsTol = 1e-5;
 opt.sim.Nt = 75;
-opt.sim.Method = 45;
+opt.sim.Method = 23;
 opt.sim.MaxWallTime = 45;
 opt.sim.UseHardTimeout = false;
 opt.sim.TimeoutPollInterval = 1;
