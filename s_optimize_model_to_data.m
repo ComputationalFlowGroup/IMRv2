@@ -10,14 +10,12 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'chicken_Rt_data', 'processed_11.mat');
+    'chicken_Rt_data', 'processed_54.mat');
 
-maxmode = 12;
+maxmode = 22;
 polyOrder = 3;
-windowPts = 21;   % odd integer: 3, 5, 7, ...
-icVelocityWindowPts = 15;  % forward polynomial derivative window from Rmax
-icVelocityPolyOrder = 3;
-opt.fit.NumPerturbationModes = 5;
+windowPts = 9;   % odd integer: 3, 5, 7, ...
+opt.fit.NumPerturbationModes = 7;
 
 % Loss priority weights after per-trace normalization. Radial receives
 % RadialWeight, and mode n receives 1/(n + ModeWeightOffset)^ModeWeightPower.
@@ -26,7 +24,7 @@ opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Parameter bounds. G and mu are optimized in log10-space by default.
-opt.bounds.G = [1e3, 5e4];
+opt.bounds.G = [5e2, 5e4];
 opt.bounds.alph = [0, 5];
 opt.bounds.mu = [5e-3, 5e-1];
 opt.bounds.ani = [0, 5; ...
@@ -54,7 +52,7 @@ opt.sim.RelTol = 1e-4;
 opt.sim.AbsTol = 1e-5;
 opt.sim.Nt = 75;
 opt.sim.Method = 45;
-opt.sim.MaxWallTime = 45;       % seconds per simulation
+opt.sim.MaxWallTime = 90;       % seconds per simulation
 opt.sim.UseHardTimeout = false; % true can fail if background workers do not inherit paths
 opt.sim.TimeoutPollInterval = 1;
 opt.sim.FailurePenalty = 1e5;   % scalar BO loss for failed/timeout runs
@@ -66,8 +64,8 @@ opt.sim.PrintFailures = true;
 opt.sim.PrintSuccess = false;
 
 % Bayes-opt controls.
-opt.bayes.MaxObjectiveEvaluations = 150;
-opt.bayes.NumSeedPoints = 15;
+opt.bayes.MaxObjectiveEvaluations = 3125;
+opt.bayes.NumSeedPoints = 75;
 opt.bayes.UseLatinHypercubeInitialX = true;
 opt.bayes.InitialRegionFraction = 1; % lower half of each optimizer bound range
 opt.bayes.UseParallel = true;  % use true for larger budgets or an open pool
@@ -84,14 +82,14 @@ opt.bayes.PlotFcn = {};         % plots add overhead during fast searches
 
 % Optional local refinement from the best Bayes-opt points.
 opt.refine.Enabled = true;     % can be expensive: finite differences call many simulations
-opt.refine.NumStarts = 5;
+opt.refine.NumStarts = 10;
 opt.refine.Display = 'iter-detailed';
 opt.refine.UseParallel = true;
 opt.refine.MaxFunctionEvaluations = 50;
-opt.refine.MaxIterations = 5;
-opt.refine.OptimalityTolerance = 1e-10;
-opt.refine.FunctionTolerance = 1e-10;
-opt.refine.StepTolerance = 1e-10;
+opt.refine.MaxIterations = 10;
+opt.refine.OptimalityTolerance = 1e-3;
+opt.refine.FunctionTolerance = 1e-3;
+opt.refine.StepTolerance = 1e-5;
 opt.refine.FiniteDifferenceType = 'forward';
 opt.refine.Algorithm = 'interior-point';
 
@@ -130,8 +128,7 @@ amps = sgolayfilt(amps_og(1:maxmode-1, :), polyOrder, windowPts, [], 2);
 tc = Rmax * sqrt(1000 / 101325);
 
 epnm0 = amps(:, maxidx);
-epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc, ...
-    icVelocityWindowPts, icVelocityPolyOrder);
+epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc);
 eqWindow = max(1, size(amps, 2)-20):size(amps, 2);
 epnmeq = mean(amps(:, eqWindow), 2);
 
@@ -226,11 +223,12 @@ if isfield(opt.bayes, 'InitialX') && ~isempty(opt.bayes.InitialX)
     disp(opt.bayes.InitialX)
 end
 
-% if opt.plotInitialConditionCheck
-%     plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, tc);
-% end
+if opt.plotInitialConditionCheck
+    plotInitialConditionCheck(texp, maxidx, amps_og, amps, epnm0, epnmd0, tc);
+end
 
 %% Bayesian optimization
+tic
 lossfun = @(T) f_optimize_model_to_data_loss(T, xDataOpt, paramSpec, opt.sim);
 
 if isempty(bayesoptVars)
@@ -273,6 +271,9 @@ else
     fval = fvalFromBayes;
     exitflag = NaN;
 end
+toc
+
+save('../data/SicongJinChicken/chicken_Rt_data/optimized_54.mat')
 
 %% Evaluate and plot best fit
 bestParams = f_unpack_model_to_data_params(bestZ, paramSpec);
@@ -283,10 +284,6 @@ bestSim = bestSimOpt;
 xData = xDataAll;  % saved alias for compatibility with older analysis code
 timeVerification = makeTimeExtractionVerification(bestSim, xDataAll, ...
     bestRunInfo);
-isotropicParams = bestParams;
-isotropicParams.ani = [0, 0];
-[~, isotropicRunInfo, isotropicSim] = f_optimize_model_to_data_predict([], ...
-    xDataOpt, fixedParamSpecFromParams(isotropicParams), opt.sim);
 
 bestLoss = sqrt(sum((yData - bestY).^2)) / norm(yData);
 fitR2 = 1 - sum((bestY - yData).^2) / sum((yData - mean(yData)).^2);
@@ -318,15 +315,12 @@ fprintf('  max perturbation time extraction mismatch = %.3g\n', ...
 fprintf('  perturbation rows used    = %d:%d of %d\n', ...
     timeVerification.firstPerturbationRow, ...
     timeVerification.lastPerturbationRow, numel(xDataAll.tfit_nd));
-fprintf('  isotropic comparison success = %d (%s)\n', ...
-    isotropicRunInfo.success, isotropicRunInfo.message);
 
-plotOptimizedFit(bestSim, isotropicSim, xDataAll, bestParams);
+plotOptimizedFit(bestSim, xDataAll, bestParams);
 
 save(opt.outputFile, 'opt', 'paramSpec', 'xData', 'xDataAll', ...
     'xDataOpt', 'results', 'bestZ', 'bestParams', 'bestLoss', ...
     'fitR2', 'bestRunInfo', 'fullRunInfo', 'bestSimOpt', 'bestSim', ...
-    'isotropicParams', 'isotropicRunInfo', 'isotropicSim', ...
     'timeVerification', 'trainModeLoss', 'heldoutModeLoss', ...
     'allModeLoss', 'fval', ...
     'exitflag', 'refineOutput', 'solutions');
@@ -389,38 +383,21 @@ function tf = isImrScriptDir(candidate)
         isfolder(fullfile(candidate, 'src', 'forward_solver'));
 end
 
-function epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc, ...
-    windowPts, polyOrder)
+function epnmd0 = computeInitialModeVelocities(amps, texp, maxidx, tc)
     epnmd0 = zeros(size(amps, 1), 1);
-    if nargin < 5 || isempty(windowPts)
-        windowPts = 15;
+    dt = mean(diff(texp));
+    if maxidx > 2 && maxidx <= size(amps, 2) - 2
+        fdstenc = [1/12, -2/3, 0, 2/3, -1/12];
+        for ii = 1:size(amps, 1)
+            epnmd0(ii) = sum(fdstenc .* amps(ii, maxidx-2:maxidx+2)) ...
+                / dt * tc;
+        end
+    else
+        for ii = 1:size(amps, 1)
+            dadt = gradient(amps(ii, :), texp);
+            epnmd0(ii) = dadt(maxidx) * tc;
+        end
     end
-    if nargin < 6 || isempty(polyOrder)
-        polyOrder = 3;
-    end
-
-    windowIdx = localForwardWindow(size(amps, 2), maxidx, windowPts);
-    tstar = (texp(windowIdx) - texp(maxidx)) ./ tc;
-    fitOrder = min(polyOrder, numel(windowIdx) - 1);
-    if fitOrder < 1
-        return
-    end
-
-    for ii = 1:size(amps, 1)
-        p = polyfit(tstar(:), amps(ii, windowIdx).', fitOrder);
-        epnmd0(ii) = polyval(polyder(p), 0);
-    end
-end
-
-function windowIdx = localForwardWindow(nSamples, startIdx, windowPts)
-    windowPts = max(3, round(windowPts));
-    if mod(windowPts, 2) == 0
-        windowPts = windowPts - 1;
-    end
-    windowPts = min(windowPts, nSamples);
-    startIdx = min(max(1, startIdx), nSamples);
-    lastIdx = min(nSamples, startIdx + windowPts - 1);
-    windowIdx = startIdx:lastIdx;
 end
 
 function firstCollapseIdx = findFirstCollapseIndex(R_data)
@@ -759,25 +736,6 @@ function printParameterSpec(paramSpec)
     fprintf('Fixed parameters: %s\n', strjoin(fixedText, ', '));
 end
 
-function paramSpec = fixedParamSpecFromParams(modelParams)
-    paramSpec = repmat(struct('name', '', 'variableName', '', ...
-        'bounds', [], 'optimizerBounds', [], 'logScale', false, ...
-        'optimize', false, 'fixedValue', NaN), 5, 1);
-
-    paramSpec(1) = fixedParamSpec('G', 'log10_G', modelParams.G, true);
-    paramSpec(2) = fixedParamSpec('alph', 'alph', modelParams.alph, false);
-    paramSpec(3) = fixedParamSpec('mu', 'log10_mu', modelParams.mu, true);
-    paramSpec(4) = fixedParamSpec('ani1', 'ani1', modelParams.ani(1), false);
-    paramSpec(5) = fixedParamSpec('ani2', 'ani2', modelParams.ani(2), false);
-end
-
-function spec = fixedParamSpec(name, variableName, fixedValue, logScale)
-    spec = struct('name', name, 'variableName', variableName, ...
-        'bounds', [fixedValue, fixedValue], 'optimizerBounds', [], ...
-        'logScale', logScale, 'optimize', false, ...
-        'fixedValue', fixedValue);
-end
-
 function loss = computePerturbationSubsetLoss(sim, xData, modeIdx)
     if isempty(modeIdx)
         loss = NaN;
@@ -887,46 +845,29 @@ function value = maxFinite(values)
     end
 end
 
-function plotOptimizedFit(bestSim, isotropicSim, xData, bestParams)
+function plotOptimizedFit(bestSim, xData, bestParams)
     if ~isfield(bestSim, 'success') || ~bestSim.success
         warning('Best simulation did not complete, so no fit plot was made.');
         return
     end
-    hasIsotropic = isfield(isotropicSim, 'success') && isotropicSim.success;
 
     figure('Name', 'Optimized model fit')
     plotl = ceil(sqrt(numel(xData.n) + 1));
 
     subplot(plotl, plotl, 1)
     hold on
-    hFit = plot(bestSim.t, bestSim.R, '-', 'LineWidth', 1.5);
-    if hasIsotropic
-        hIso = plot(isotropicSim.t, isotropicSim.R, 'k--', ...
-            'LineWidth', 1.2);
-    else
-        hIso = gobjects(0);
-    end
-    hData = plot(xData.tfit_nd, xData.R_data, 'o');
+    plot(bestSim.t, bestSim.R, '-', 'LineWidth', 1.5)
+    plot(xData.tfit_nd, xData.R_data, 'o')
     xlabel("t^*")
     ylabel("R")
     title(sprintf('G=%.3g, \\mu=%.3g, \\alpha=%.3g, ani=[%.3g %.3g]', ...
         bestParams.G, bestParams.mu, bestParams.alph, bestParams.ani(1), ...
         bestParams.ani(2)))
-    if hasIsotropic
-        legend([hFit, hIso, hData], {'fit', 'ani=[0 0]', 'data'}, ...
-            'Location', 'best')
-    else
-        legend([hFit, hData], {'fit', 'data'}, 'Location', 'best')
-    end
 
     for ii = 1:numel(xData.n)
         subplot(plotl, plotl, ii + 1)
         hold on
         plot(bestSim.t, bestSim.epnm(:, ii), '-', 'LineWidth', 1.5)
-        if hasIsotropic
-            plot(isotropicSim.t, isotropicSim.epnm(:, ii), 'k--', ...
-                'LineWidth', 1.2)
-        end
         plot(xData.tfit_nd, xData.ep_data(:, ii), 'r^')
         xlabel("t^*")
         ylabel(sprintf('$\\epsilon_{%.0f}$', xData.n(ii)), ...
