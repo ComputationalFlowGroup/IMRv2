@@ -10,28 +10,29 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'chicken_Rt_data', 'processed_54.mat');
+    'PVA_Rt_data', 'processed_22.mat');
 
+material = "PVA";
 maxmode = 22;
 polyOrder = 3;
-windowPts = 21;   % odd integer: 3, 5, 7, ...
+windowPts = 15;   % odd integer: 3, 5, 7, ...
 icVelocityWindowPts = 15;  % forward polynomial derivative window from Rmax
 icVelocityPolyOrder = 3;
-opt.fit.NumPerturbationModes = 5;
+opt.fit.NumPerturbationModes = 7;
 
 % Loss priority weights after per-trace normalization. Radial receives
 % RadialWeight, and mode n receives
 % ModeBaseWeight*(ModeReference/(n + ModeWeightOffset))^ModeWeightPower.
-opt.loss.RadialWeight = 1.5;
-opt.loss.ModeBaseWeight = 1;
+opt.loss.RadialWeight = 2;
+opt.loss.ModeBaseWeight = 1.5;
 opt.loss.ModeReference = 2;
 opt.loss.ModeWeightPower = 2;
 opt.loss.ModeWeightOffset = 0;
 
 % Parameter bounds. G and mu are optimized in log10-space by default.
-opt.bounds.G = [5e2, 5e4];
-opt.bounds.alph = [0, 5];
-opt.bounds.mu = [5e-3, 5e-1];
+opt.bounds.G = [5e3, 5e5];
+opt.bounds.alph = [1e-3, 5];
+opt.bounds.mu = [5e-2, 1];
 opt.bounds.ani = [0, 5; ...
                  0, 5];
 
@@ -47,7 +48,7 @@ opt.fixed.mu = NaN;
 opt.fixed.ani = [NaN, NaN];
 
 opt.logScale.G = true;
-opt.logScale.alph = false;
+opt.logScale.alph = true;
 opt.logScale.mu = true;
 opt.logScale.ani = [false, false];
 
@@ -56,8 +57,8 @@ opt.sim.tsteps = 3000;          % fallback only; optimizer feeds experimental ti
 opt.sim.RelTol = 1e-4;
 opt.sim.AbsTol = 1e-5;
 opt.sim.Nt = 75;
-opt.sim.Method = 45;
-opt.sim.MaxWallTime = 90;       % seconds per simulation
+opt.sim.Method = 23;
+opt.sim.MaxWallTime = 120;       % seconds per simulation
 opt.sim.UseHardTimeout = false; % true can fail if background workers do not inherit paths
 opt.sim.TimeoutPollInterval = 1;
 opt.sim.FailurePenalty = 1e5;   % scalar BO loss for failed/timeout runs
@@ -69,8 +70,8 @@ opt.sim.PrintFailures = true;
 opt.sim.PrintSuccess = false;
 
 % Bayes-opt controls.
-opt.bayes.MaxObjectiveEvaluations = 3125;
-opt.bayes.NumSeedPoints = 75;
+opt.bayes.MaxObjectiveEvaluations = 750;
+opt.bayes.NumSeedPoints = 25;
 opt.bayes.UseLatinHypercubeInitialX = true;
 opt.bayes.InitialRegionFraction = 1; % lower half of each optimizer bound range
 opt.bayes.UseParallel = true;  % use true for larger budgets or an open pool
@@ -90,10 +91,10 @@ opt.refine.Enabled = true;     % can be expensive: finite differences call many 
 opt.refine.NumStarts = 10;
 opt.refine.Display = 'iter-detailed';
 opt.refine.UseParallel = true;
-opt.refine.MaxFunctionEvaluations = 50;
+opt.refine.MaxFunctionEvaluations = 75;
 opt.refine.MaxIterations = 10;
-opt.refine.OptimalityTolerance = 1e-3;
-opt.refine.FunctionTolerance = 1e-3;
+opt.refine.OptimalityTolerance = 1e-4;
+opt.refine.FunctionTolerance = 1e-4;
 opt.refine.StepTolerance = 1e-5;
 opt.refine.FiniteDifferenceType = 'forward';
 opt.refine.Algorithm = 'interior-point';
@@ -114,8 +115,14 @@ load(dataFile)
 
 pxpermicron = 3.2;
 
+if material == "PVA"
+    tstepdt = 5e-7;
+elseif material == "chicken"
+    tstepdt = 1e-6;
+end
+
 expR = amp_extract_fft(1, :) .* 1e-6 .* pxpermicron;
-texp = (0:numel(expR)-1) .* 1e-6;
+texp = (0:numel(expR)-1) .* tstepdt;
 
 amps_og = amp_extract_fft(3:end, :) ./ expR .* 1e-6 .* pxpermicron;
 Req = expR(end);
@@ -148,7 +155,7 @@ epFitIdx = 1:firstCollapseIdx;
 firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
 
 modeRows = 3:maxmode+1;
-n = mode_extract_fft(modeRows, 1);
+n = mode_extract_fft(modeRows, 5);
 n = n(:).';
 m = zeros(size(n));
 
