@@ -73,26 +73,26 @@ addpath ../cmap/
 % % plot(tshare, R2interp, '^--')
 % plot(tshare, Rbar, 'o')
 % plot(tshare, ep2, 'o')
+ 
 
-
-load("../data/Sims_Brown_Surya/FEM_Equil_analysis.mat")
+% load("../data/Sims_Brown_Surya/FEM_Equil_analysis.mat")
 
 % Req = amp_extractf(1,:).*1e-6;
 % epnmeq =  0.*amp_extractf(3:end,:).*1e-6./Req;
-epnmeq =  0.*amp_extractf(3:end,:).*1e-6;
+% epnmeq =  0.*amp_extractf(3:end,:).*1e-6;
 
 
 
-% load("../data/Sims_Brown_Surya/aniso_sim_FEA_sphequil.mat")
-load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
+load("../data/Sims_Brown_Surya/aniso_sim_FEA_sphequil.mat")
+% load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
 % load("../data/Sims_Brown_Surya/aniso_sim_FEA_new_props.mat")
 Req =  amp_extractf(1,end).*1e-6;
 Rexp = amp_extractf(1,:).*1e-6;
-epnmeq =  amp_extractf(3:end,end).*1e-6./Req;
+epnmeq =  0.*amp_extractf(3:end,end).*1e-6./Req;
 
 Rmax = Rexp(1);
 k = 0;
-idxs = 3:22;%size(amp_extractf,1);
+idxs = 3:2:18;%size(amp_extractf,1);
 for i = idxs
     k = k+1;
     amp(k,:) = amp_extractf(i,:)./amp_extractf(1,:);
@@ -108,17 +108,24 @@ tic
 % Req = Rmax;
 % Rmax = 100e-6;
 % Req = Rmax;
-mu =  0.2625;
-G = 105e3;
+mu =  0.05;
+G = 50e3;
 alph = 0.0;
-ani = [0 0];
+ani = [0.5 0];
+
+% mu =  0.2625;
+% G = 105e3;
+% alph = 0.0;
+% ani = [5 0];
+
 sig = 0.0;
 p_a = -1.15*101325; f_a = 50e3;
 rho = 1000;
 p8 = 101325;
 tcLIC = Rmax*sqrt(rho/p8);
+pertmod = 0;
 tf_nd = 3;
-tsteps = 30000; ultra = false;
+tsteps = 3000; ultra = false;
 
 
 % -------- perturbation solver initial conditions ---------------%
@@ -135,13 +142,15 @@ epeq = epnmeq(idxs-2);
 
 
 t = linspace(0, tf_nd, tsteps);
-[t, R, epnm] = f_call_IMRv2(Rmax, Req, ep0, epd0, epeq, n, m, mu, G, alph, ani, sig, p_a, f_a, tf_nd, tsteps, ultra);
+[t, R, epnm] = f_call_IMRv2(Rmax, Req, ep0, epd0, epeq, n, m, ...
+    mu, G, alph, ani, sig, p_a, f_a, tf_nd, tsteps, ultra, ...
+    'pertmod', pertmod);
 
 hasDistinctIsotropicModel = any(ani ~= 0);
 if hasDistinctIsotropicModel
     [tiso, Riso, epnmiso] = f_call_IMRv2(Rmax, Req, ep0, epd0, ...
         epeq, n, m, mu, G, alph, [0 0], sig, p_a, f_a, ...
-        tf_nd, tsteps, ultra);
+        tf_nd, tsteps, ultra, 'pertmod', pertmod);
 else
     tiso = [];
     Riso = [];
@@ -281,6 +290,10 @@ for i = 1:numel(comparisonAxes)
 end
 
 % xlim([0 1])
+
+% Stop here for the main basic-simulation workflow. The sections below are
+% older exploratory plotting snippets that load different datasets.
+return
 
 %%
 clear all

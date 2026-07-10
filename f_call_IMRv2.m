@@ -1,6 +1,12 @@
-function [t, R, epnm] = f_call_IMRv2(Rmax, Req, epnm0, epnmd0, epeq, modes, orders, mu, G, alph, ani, sig, p_a, f_a, tf_nd, tsteps, ultra)
+function [t, R, epnm] = f_call_IMRv2(Rmax, Req, epnm0, epnmd0, epeq, modes, orders, mu, G, alph, ani, sig, p_a, f_a, tf_nd, tsteps, ultra, varargin)
 
-addpath src/forward_solver/
+thisDir = fileparts(mfilename('fullpath'));
+persistent imrPathsAdded
+if isempty(imrPathsAdded)
+    addpath(fullfile(thisDir, 'src', 'forward_solver'));
+    addpath(fullfile(thisDir, 'src', 'common'));
+    imrPathsAdded = true;
+end
 
 % equation options
 % ------- Material Properties ------------------------%
@@ -17,7 +23,8 @@ medtherm = 0;
 masstrans = 0;
 stress = 2;
 perturbed = 1;
-pertmod = 0;
+opts = parse_options(varargin{:});
+pertmod = opts.PertMod;
 
 if ultra
     % --------- Ultrasound settins -----------------------%
@@ -47,23 +54,50 @@ tc = Rmax*sqrt(rho8/101325);
 tfin = tf_nd*tc;
 tvector = linspace(0,tfin,tsteps);
 varin = {'progdisplay',0,'radial',radial,'bubtherm',bubtherm,'tvector',tvector,...
-    'vapor',vapor,'medtherm',medtherm,'masstrans',masstrans,'method',45,...
+    'vapor',vapor,'medtherm',medtherm,'masstrans',masstrans,'method',opts.Method,...
     'stress',stress,'collapse',collapse,'mu',mu,'g',G,'lambda1',0e-7,...
     'lambda2',0,'alphax', alph, 'ani', ani, 'surft', sig,'r0',Rmax,'req',Req,'kappa',kappa,'t8',T8,...
-    'rho8',rho8, 'pa',pa 'omega', omega, 'wave_type', wavetype, 'perturbed', perturbed, ...
+    'rho8',rho8, 'pa',pa, 'omega', omega, 'wave_type', wavetype, 'perturbed', perturbed, ...
     'modes', modes, 'orders', orders, 'epnm0', epnm0, 'pertmod', pertmod, ...
-    'epnmd0', epnmd0, 'epnmeq',epeq, 'reltol', 1e-6, 'abstol', 1e-7, 'Nt', 75, ...
+    'epnmd0', epnmd0, 'epnmeq',epeq, 'reltol', opts.RelTol, 'abstol', opts.AbsTol, 'Nt', opts.Nt, ...
     'dt', dt, 'mn', mn};
-% run the forward solver
-if perturbed
-    [t,R,~,~,~,~,~,epnm, ~] = f_imr_fd(varin{:});
-else
-    [t,R,~] = f_imr_fd(varin{:}); 
-
-    epnm = 0;
+if opts.MaxWallTime > 0
+    varin = [varin, {'maxwalltime', opts.MaxWallTime}];
 end
+% run the forward solver
+[t,R,~,~,~,~,~,epnm, ~] = f_imr_fd(varin{:});
 % [t,R] = f_imr_fd(varin{:});
 % epnm = 0;
 
 
+end
+
+function opts = parse_options(varargin)
+opts = struct('PertMod', 0, 'Method', 23, 'RelTol', 1e-4, ...
+    'AbsTol', 1e-5, 'Nt', 75, 'MaxWallTime', 0);
+
+if mod(numel(varargin), 2) ~= 0
+    error('Optional f_call_IMRv2 inputs must be name-value pairs.');
+end
+
+for ii = 1:2:numel(varargin)
+    name = lower(varargin{ii});
+    value = varargin{ii+1};
+    switch name
+        case 'pertmod'
+            opts.PertMod = value;
+        case 'method'
+            opts.Method = value;
+        case 'reltol'
+            opts.RelTol = value;
+        case 'abstol'
+            opts.AbsTol = value;
+        case 'nt'
+            opts.Nt = value;
+        case {'maxwalltime', 'maxtime', 'walltime'}
+            opts.MaxWallTime = value;
+        otherwise
+            error('Unknown f_call_IMRv2 option "%s".', varargin{ii});
+    end
+end
 end

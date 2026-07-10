@@ -258,8 +258,9 @@ grid on
 xlabel('x')
 ylabel('y')
 title('Simulated and extracted surfaces')
-comparisonFrameIdx = unique(round(linspace(1, nFrames, min(8, nFrames))), 'stable');
+comparisonFrameIdx = unique(round(linspace(1, nFrames, min(150, nFrames))), 'stable');
 comparisonColors = getColorMap(numel(comparisonFrameIdx), COLOR_MAP_NAME);
+
 for k = 1:numel(comparisonFrameIdx)
     i = comparisonFrameIdx(k);
     plot(simSurfaceX{i}, simSurfaceY{i}, 'o', ...
