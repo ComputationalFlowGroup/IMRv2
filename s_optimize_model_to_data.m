@@ -9,16 +9,16 @@ addpath(fullfile(scriptDir, 'src', 'forward_solver'));
 addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
-dataDir = fullfile(projectDir, 'data', 'SicongJinChicken', 'PVA_Rt_data');
-outputDir = fullfile(projectDir, 'optimized_data', 'Jin_data', 'PVA');
+dataDir = fullfile(projectDir, 'data', 'SicongJinChicken', 'chicken_Rt_data/');
+outputDir = fullfile(projectDir, 'optimized_data', 'Jin_data', 'chicken');
 
-material = "PVA";
+material = "chicken";
 maxmode = 22;
 polyOrder = 3;
 windowPts = 8;   % odd integer: 3, 5, 7, ...
 icVelocityWindowPts = 5;  % forward polynomial derivative window from Rmax
 icVelocityPolyOrder = 3;
-opt.fit.NumPerturbationModes = 5;
+opt.fit.NumPerturbationModes = 3;
 % Fit through the requested number of experimental radial collapses. A
 % collapse is a radius minimum with sufficient prominence relative to the
 % full post-Rmax radial range.
@@ -44,7 +44,7 @@ opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Parameter bounds. G and mu are optimized in log10-space by default.
-opt.bounds.G = [5e4, 5e6];
+opt.bounds.G = [1e3, 5e5];
 opt.bounds.alph = [1e-3, 5];
 opt.bounds.mu = [5e-2, 5e-1];
 opt.bounds.ani = [0, 5; ...
