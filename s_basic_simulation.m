@@ -84,15 +84,15 @@ epnmeq =  0.*amp_extractf(3:end,:).*1e-6;
 
 
 % load("../data/Sims_Brown_Surya/aniso_sim_FEA_sphequil.mat")
-% load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
-load("../data/Sims_Brown_Surya/aniso_sim_FEA_new_props.mat")
+load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
+% load("../data/Sims_Brown_Surya/aniso_sim_FEA_new_props.mat")
 Req =  amp_extractf(1,end).*1e-6;
 Rexp = amp_extractf(1,:).*1e-6;
 epnmeq =  amp_extractf(3:end,end).*1e-6./Req;
 
 Rmax = Rexp(1);
 k = 0;
-idxs = 3:2:13;%size(amp_extractf,1);
+idxs = 3:22;%size(amp_extractf,1);
 for i = idxs
     k = k+1;
     amp(k,:) = amp_extractf(i,:)./amp_extractf(1,:);
@@ -108,10 +108,10 @@ tic
 % Req = Rmax;
 % Rmax = 100e-6;
 % Req = Rmax;
-mu =  0.05;
-G = 50e3;
+mu =  0.2625;
+G = 105e3;
 alph = 0.0;
-ani = [3 0];
+ani = [0 0];
 sig = 0.0;
 p_a = -1.15*101325; f_a = 50e3;
 rho = 1000;
@@ -167,7 +167,7 @@ ms.LegendFontSize = 11;
 ms.LineWidth = 2.0;
 ms.LineWidthAlt = 1.4;
 
-nModes = size(epnm, 2);
+nModes = 3;%size(epnm, 2);
 nCols = 3;
 nModeRows = ceil(nModes / nCols);
 cmap = viridis(nModes + 2);
@@ -229,21 +229,21 @@ for i = 1:nModes
     grid(ax, 'on')
     col = cmap(i, :);
 
-    scatter(ax, tExpNd, amp(i, :), 32, ...
+    scatter(ax, tExpNd, amp(2*i-1, :), 32, ...
         'MarkerFaceColor', col, ...
         'MarkerEdgeColor', 0.65 .* col, ...
         'MarkerFaceAlpha', 0.55, 'MarkerEdgeAlpha', 0.55);
     if hasDistinctIsotropicModel
-        plot(ax, tiso, epnmiso(:, i), '--', 'Color', col, ...
+        plot(ax, tiso, epnmiso(:, 2*i-1), '--', 'Color', col, ...
             'LineWidth', ms.LineWidthAlt);
     end
-    plot(ax, t, epnm(:, i), '-', ...
+    plot(ax, t, epnm(:, 2*i-1), '-', ...
         'Color', 0.55 .* col, 'LineWidth', ms.LineWidth);
 
     if hasDistinctIsotropicModel
-        modeValues = [amp(i, :).'; epnm(:, i); epnmiso(:, i)];
+        modeValues = [amp(2*i-1, :).'; epnm(:, 2*i-1); epnmiso(:, 2*i-1)];
     else
-        modeValues = [amp(i, :).'; epnm(:, i)];
+        modeValues = [amp(2*i-1, :).'; epnm(:, 2*i-1)];
     end
     modeValues = modeValues(isfinite(modeValues));
     if isempty(modeValues)
@@ -267,7 +267,7 @@ for i = 1:nModes
     ylim(ax, modeLimits)
     xlabel(ax, '$t^*$', 'Interpreter', 'latex', ...
         'FontSize', ms.LabelFontSize)
-    ylabel(ax, sprintf('$\\epsilon_{%.0f}$', n(i)), ...
+    ylabel(ax, sprintf('$\\epsilon_{%.0f}$', n(2*i-1)), ...
         'Interpreter', 'latex', 'FontSize', ms.LabelFontSize)
 end
 

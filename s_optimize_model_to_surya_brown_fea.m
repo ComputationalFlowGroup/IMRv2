@@ -1,4 +1,4 @@
-%% Optimize anisotropic IMR model to experimental data
+%% Optimize anisotropic IMR model to Surya Brown FEA data
 clear
 clc
 close all
@@ -9,17 +9,17 @@ addpath(fullfile(scriptDir, 'src', 'forward_solver'));
 addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
-dataDir = fullfile(projectDir, 'data', 'SicongJinChicken', 'chicken_Rt_data/');
-outputDir = fullfile(projectDir, 'optimized_data', 'Jin_data', 'chicken');
+dataFile = resolveSuryaBrownFeaDataFile(projectDir);
+outputDir = fullfile(projectDir, 'optimized_data', 'Surya_brown_sims');
+datasetLabel = "aniso_sim_FEA_new_props";
 
-material = "chicken";
 maxmode = 22;
 polyOrder = 3;
 windowPts = 8;   % odd integer: 3, 5, 7, ...
 icVelocityWindowPts = 5;  % forward polynomial derivative window from Rmax
 icVelocityPolyOrder = 3;
-opt.fit.NumPerturbationModes = 3;
-% Fit through the requested number of experimental radial collapses. A
+opt.fit.NumPerturbationModes = 5;
+% Fit through the requested number of data radial collapses. A
 % collapse is a radius minimum with sufficient prominence relative to the
 % full post-Rmax radial range.
 opt.fit.NumRadialCollapses = 4;
@@ -27,7 +27,7 @@ opt.fit.CollapseMinProminenceFraction = 0.08;
 opt.fit.CollapseMinSeparationSteps = 5;
 
 % Fallback when the requested number of collapses is not present: stop once
-% the experimental mean radius remains close to Req for this many samples.
+% the data mean radius remains close to Req for this many samples.
 % The confirming samples are retained and only the later tail is excluded.
 opt.fit.StopAtRadiusEquilibrium = true;
 opt.fit.RadiusEquilibriumRelTol = 0.02;
@@ -44,7 +44,7 @@ opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Parameter bounds. G and mu are optimized in log10-space by default.
-opt.bounds.G = [1e3, 5e5];
+opt.bounds.G = [5e4, 5e6];
 opt.bounds.alph = [1e-3, 5];
 opt.bounds.mu = [5e-2, 5e-1];
 opt.bounds.ani = [0, 5; ...
@@ -67,7 +67,7 @@ opt.logScale.mu = true;
 opt.logScale.ani = [false, false];
 
 % Forward-solver controls.
-opt.sim.tsteps = 3000;          % fallback only; optimizer feeds experimental times
+opt.sim.tsteps = 3000;          % fallback only; optimizer feeds data times
 opt.sim.RelTol = 1e-4;
 opt.sim.AbsTol = 1e-5;
 opt.sim.Nt = 75;
@@ -124,8 +124,9 @@ opt.refine.Algorithm = 'interior-point';
 opt.randomSeed = 1;
 opt.plotInitialConditionCheck = true;
 
-%% Discover and optimize all datasets
-[dataFiles, datasetNumbers] = listProcessedDataFiles(dataDir);
+%% Optimize the Surya Brown FEA dataset
+dataFiles = dir(dataFile);
+datasetNumbers = datasetLabel;
 if ~isfolder(outputDir)
     mkdir(outputDir);
 end
@@ -159,33 +160,36 @@ end
 if ~isfile(dataFile)
     error('Could not find the data file: %s', dataFile);
 end
-loadedData = load(dataFile, 'amp_extract_fft', 'mode_extract_fft');
-requiredDataVariables = {'amp_extract_fft', 'mode_extract_fft'};
+loadedData = load(dataFile, 'amp_extractf', 'mode_extractf', 'tStep');
+requiredDataVariables = {'amp_extractf', 'mode_extractf', 'tStep'};
 for variableIdx = 1:numel(requiredDataVariables)
     variableName = requiredDataVariables{variableIdx};
     if ~isfield(loadedData, variableName)
         error('Data file does not contain %s: %s', variableName, dataFile);
     end
 end
-amp_extract_fft = loadedData.amp_extract_fft;
-mode_extract_fft = loadedData.mode_extract_fft;
-if size(mode_extract_fft, 2) ~= size(amp_extract_fft, 2)
-    error(['mode_extract_fft and amp_extract_fft must contain the same ', ...
-        'number of experimental time samples in %s.'], dataFile);
+amp_extractf = loadedData.amp_extractf;
+mode_extractf = loadedData.mode_extractf;
+tStep = loadedData.tStep(:).';
+if size(mode_extractf, 2) ~= size(amp_extractf, 2)
+    error(['mode_extractf and amp_extractf must contain the same ', ...
+        'number of FEA time samples in %s.'], dataFile);
+end
+if numel(tStep) ~= size(amp_extractf, 2)
+    error('tStep must contain one value per FEA time sample in %s.', ...
+        dataFile);
+end
+if numel(tStep) < 2 || any(~isfinite(tStep)) || any(diff(tStep) <= 0)
+    error('tStep must be a finite, strictly increasing time vector in %s.', ...
+        dataFile);
 end
 
-pxpermicron = 3.2;
+% The FEM extractor stores radii and modal amplitudes in microns. The IMR
+% solver expects dimensional radii in meters and dimensionless eps_n.
+expR = amp_extractf(1, :) .* 1e-6;
+texp = tStep;
 
-if material == "PVA"
-    tstepdt = 5e-7;
-elseif material == "chicken"
-    tstepdt = 1e-6;
-end
-
-expR = amp_extract_fft(1, :) .* 1e-6 .* pxpermicron;
-texp = (0:numel(expR)-1) .* tstepdt;
-
-amps_og = amp_extract_fft(3:end, :) ./ expR .* 1e-6 .* pxpermicron;
+amps_og = amp_extractf(3:end, :) ./ amp_extractf(1, :);
 amps_og = fillNonfiniteTimeRows(amps_og);
 Req = expR(end);
 
@@ -232,13 +236,13 @@ firstCollapseTimeNd = tfit_nd(firstCollapseIdx);
 firstCollapseTimeSeconds = firstCollapseTimeNd * tc;
 
 modeRows = 3:maxmode+1;
-n = mode_extract_fft(modeRows, 10);
+n = mode_extractf(modeRows, 1);
 n = n(:).';
 m = zeros(size(n));
 
 % Train only against the largest-energy perturbation modes while simulating
 % every retained mode for held-out testing. Every mode uses exactly the same
-% retained experimental time rows as the mean radius.
+% retained data time rows as the mean radius.
 nmodes = size(ep_data, 2);
 modeEnergy = sum(ep_data(epFitIdx, :).^2, 1);
 [~, modeEnergyOrder] = sort(modeEnergy, 'descend');
@@ -387,9 +391,6 @@ save(opt.outputFile, 'opt', 'dataFile', 'datasetNumber', 'paramSpec', ...
     'refineOutput', 'solutions');
 
 %% Evaluate and plot best fit
-clear all
-clc
-load('../optimized_data/Jin_data/PVA/optimized_03.mat')
 bestParams = f_unpack_model_to_data_params(bestZ, paramSpec);
 [bestY, bestRunInfo, bestSimOpt] = f_optimize_model_to_data_predict(bestZ, ...
     xDataOpt, paramSpec, opt.sim);
@@ -451,7 +452,7 @@ catch ME
     batchFailures(nFailures).identifier = ME.identifier;
     batchFailures(nFailures).message = ME.message;
     warning('ModelToData:DatasetOptimizationFailed', ...
-        'Dataset processed_%s failed: %s', datasetNumber, ...
+        'Dataset %s failed: %s', datasetNumber, ...
         getReport(ME, 'basic', 'hyperlinks', 'off'));
     close all
 end
@@ -467,43 +468,32 @@ if nFailures > 0
 end
 
 %% Local helper functions
-function [dataFiles, datasetNumbers] = listProcessedDataFiles(dataDir)
-    if ~isfolder(dataDir)
-        error('Could not find the processed-data directory: %s', dataDir);
-    end
+function dataFile = resolveSuryaBrownFeaDataFile(projectDir)
+    fileName = 'aniso_sim_FEA_new_props.mat';
+    candidates = { ...
+        fullfile(projectDir, 'data', 'Surya_brown_sims', fileName), ...
+        fullfile(projectDir, 'data', 'Sims_Brown_Surya', fileName), ...
+        fullfile(projectDir, '..', 'data', 'Surya_brown_sims', fileName), ...
+        fullfile(projectDir, '..', 'data', 'Sims_Brown_Surya', fileName)};
 
-    candidates = dir(fullfile(dataDir, 'processed_*.mat'));
-    keep = false(size(candidates));
-    numberValues = NaN(size(candidates));
-    datasetNumbers = strings(size(candidates));
     for ii = 1:numel(candidates)
-        token = regexp(candidates(ii).name, ...
-            '^processed_(\d{2})\.mat$', 'tokens', 'once');
-        if isempty(token)
-            continue
+        candidate = char(candidates{ii});
+        if isfile(candidate)
+            dataFile = candidate;
+            return
         end
-        keep(ii) = true;
-        datasetNumbers(ii) = string(token{1});
-        numberValues(ii) = str2double(token{1});
     end
 
-    dataFiles = candidates(keep);
-    datasetNumbers = datasetNumbers(keep);
-    numberValues = numberValues(keep);
-    if isempty(dataFiles)
-        error('No files matching processed_XX.mat were found in %s.', ...
-            dataDir);
-    end
-
-    [~, order] = sort(numberValues);
-    dataFiles = dataFiles(order);
-    datasetNumbers = datasetNumbers(order);
+    error(['Could not find %s beneath the expected Surya Brown data ', ...
+        'folders. Checked:\n%s'], fileName, strjoin(candidates, newline));
 end
 
 function [scriptDir, projectDir] = locateProjectPaths()
     candidates = {};
     candidates = addCandidate(candidates, fileparts(mfilename('fullpath')));
     candidates = addCandidate(candidates, fileparts(which('s_optimize_model_to_data')));
+    candidates = addCandidate(candidates, ...
+        fileparts(which('s_optimize_model_to_surya_brown_fea')));
     candidates = addCandidate(candidates, fileparts(which('f_call_IMRv2_exp')));
     candidates = addCandidate(candidates, pwd);
     candidates = addCandidate(candidates, fullfile(pwd, 'IMRv2'));
@@ -1464,7 +1454,7 @@ end
 function plotCollapseDetection(tpost_nd, Rpost_data, collapseInfo, ...
         fitEndPostRmaxIdx)
     figure('Name', 'Optimization-window and collapse check')
-    plot(tpost_nd, Rpost_data, 'o-', 'DisplayName', 'experimental radius')
+    plot(tpost_nd, Rpost_data, 'o-', 'DisplayName', 'data radius')
     hold on
     collapseIdx = find(Rpost_data == min(Rpost_data(1: ...
         collapseInfo.confirmationIdx)), 1, 'first');
