@@ -83,9 +83,9 @@ addpath ../cmap/
 
 
 
-load("../data/Sims_Brown_Surya/aniso_sim_FEA_sphequil.mat")
+% load("../data/Sims_Brown_Surya/aniso_sim_FEA_sphequil.mat")
 % load("../data/Sims_Brown_Surya/iso_sim_FEA_slight.mat")
-% load("../data/Sims_Brown_Surya/aniso_sim_FEA_new_props.mat")
+load("../data/Sims_Brown_Surya/aniso_sim_FEA_new_props.mat")
 Req =  amp_extractf(1,end).*1e-6;
 Rexp = amp_extractf(1,:).*1e-6;
 epnmeq =  0.*amp_extractf(3:end,end).*1e-6./Req;
@@ -111,7 +111,7 @@ tic
 mu =  0.05;
 G = 50e3;
 alph = 0.0;
-ani = [0.5 0];
+ani = [3 0];
 
 % mu =  0.2625;
 % G = 105e3;
@@ -125,7 +125,7 @@ p8 = 101325;
 tcLIC = Rmax*sqrt(rho/p8);
 pertmod = 0;
 tf_nd = 3;
-tsteps = 3000; ultra = false;
+tsteps = 30000; ultra = false;
 
 
 % -------- perturbation solver initial conditions ---------------%
