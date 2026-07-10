@@ -13,9 +13,9 @@
  
 clear all; clc; close all;
 
-% load('../data/SicongJinChicken/chicken_Rt_data/Jin_15_33_11/ellipse_fitting_results.mat')
+load('../data/SicongJinChicken/chicken_Rt_data/Jin_15_33_11/ellipse_fitting_results.mat')
 % load('../data/SicongJinChicken/chicken_Rt_data/Jin_15_43_39/ellipse_fitting_results.mat')
-load('../data/SicongJinChicken/PVA_Rt_data/Jin_17_25_03/ellipse_fitting_results.mat')
+% load('../data/SicongJinChicken/PVA_Rt_data/Jin_17_25_03/ellipse_fitting_results.mat')
 
 addpath src\common\
 
