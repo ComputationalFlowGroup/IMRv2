@@ -461,7 +461,23 @@ completedDatasets(nCompleted) = datasetNumber;
 fprintf('Saved completed optimization: %s\n', opt.outputFile);
 close all
 catch ME
+    if ~exist('nFailures', 'var') || isempty(nFailures)
+        nFailures = 0;
+    end
+    if ~exist('emptyFailure', 'var') || isempty(emptyFailure)
+        emptyFailure = struct('datasetNumber', "", 'identifier', '', ...
+            'message', '');
+    end
+    if ~exist('batchFailures', 'var') || isempty(batchFailures)
+        batchFailures = repmat(emptyFailure, 0, 1);
+    end
+    if ~exist('datasetNumber', 'var') || isempty(datasetNumber)
+        datasetNumber = "<unknown>";
+    end
     nFailures = nFailures + 1;
+    if numel(batchFailures) < nFailures
+        batchFailures(nFailures, 1) = emptyFailure;
+    end
     batchFailures(nFailures).datasetNumber = datasetNumber;
     batchFailures(nFailures).identifier = ME.identifier;
     batchFailures(nFailures).message = ME.message;
@@ -472,8 +488,30 @@ catch ME
 end
 end
 
+if ~exist('nCompleted', 'var') || isempty(nCompleted)
+    nCompleted = 0;
+end
+if ~exist('completedDatasets', 'var') || isempty(completedDatasets)
+    completedDatasets = strings(0, 1);
+end
+if ~exist('nFailures', 'var') || isempty(nFailures)
+    nFailures = 0;
+end
+if ~exist('emptyFailure', 'var') || isempty(emptyFailure)
+    emptyFailure = struct('datasetNumber', "", 'identifier', '', ...
+        'message', '');
+end
+if ~exist('batchFailures', 'var') || isempty(batchFailures)
+    batchFailures = repmat(emptyFailure, 0, 1);
+end
+if ~exist('dataFiles', 'var') || isempty(dataFiles)
+    nDatasets = nCompleted + nFailures;
+else
+    nDatasets = numel(dataFiles);
+end
+
 fprintf('\nBatch optimization complete: %d/%d datasets completed.\n', ...
-    nCompleted, numel(dataFiles));
+    nCompleted, nDatasets);
 completedDatasets = completedDatasets(1:nCompleted);
 batchFailures = batchFailures(1:nFailures);
 if nFailures > 0
