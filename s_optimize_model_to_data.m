@@ -9,16 +9,16 @@ addpath(fullfile(scriptDir, 'src', 'forward_solver'));
 addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
-dataDir = fullfile(projectDir, 'data', 'SicongJinChicken', 'PVA_Rt_data');
-outputDir = fullfile(projectDir, 'optimized_data', 'Jin_data', 'PVA');
+dataDir = fullfile(projectDir, 'data', 'SicongJinChicken', 'chicken_Rt_data/');
+outputDir = fullfile(projectDir, 'optimized_data', 'Jin_data', 'chicken');
 
-material = "PVA";
+material = "chicken";
 maxmode = 22;
 polyOrder = 3;
 windowPts = 8;   % odd integer: 3, 5, 7, ...
 icVelocityWindowPts = 5;  % forward polynomial derivative window from Rmax
 icVelocityPolyOrder = 3;
-opt.fit.NumPerturbationModes = 5;
+opt.fit.NumPerturbationModes = 3;
 % Fit through the requested number of experimental radial collapses. A
 % collapse is a radius minimum with sufficient prominence relative to the
 % full post-Rmax radial range.
@@ -37,18 +37,18 @@ opt.fit.RadiusEquilibriumConsecutiveSteps = 10;
 % Loss priority weights after per-trace normalization. Radial receives
 % RadialWeight, and mode n receives
 % ModeBaseWeight*(ModeReference/(n + ModeWeightOffset))^ModeWeightPower.
-opt.loss.RadialWeight = 1;
+opt.loss.RadialWeight = 2;
 opt.loss.ModeBaseWeight = 1;
 opt.loss.ModeReference = 2;
 opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Parameter bounds. G and mu are optimized in log10-space by default.
-opt.bounds.G = [5e4, 5e6];
+opt.bounds.G = [1e3, 5e5];
 opt.bounds.alph = [1e-3, 5];
 opt.bounds.mu = [5e-2, 5e-1];
-opt.bounds.ani = [0, 5; ...
-                 0, 5];
+opt.bounds.ani = [0, 10; ...
+                 0, 10];
 
 % Set any entry to a finite value to remove that parameter from the
 % optimizer and hold it fixed. Leave entries as NaN to optimize them.
@@ -89,7 +89,7 @@ opt.sim.DiagnosticLogFile = fullfile(scriptDir, ...
 opt.sim.DiagnosticLogAppend = false;
 
 % Bayes-opt controls.
-opt.bayes.MaxObjectiveEvaluations = 500;
+opt.bayes.MaxObjectiveEvaluations = 1000;
 opt.bayes.NumSeedPoints = 50;
 opt.bayes.UseLatinHypercubeInitialX = true;
 opt.bayes.InitialRegionFraction = 1; % lower half of each optimizer bound range
@@ -110,11 +110,11 @@ opt.bayes.FallbackToSerialOnWorkerPreflightFailure = true;
 
 % Optional local refinement from the best Bayes-opt points.
 opt.refine.Enabled = true;     % can be expensive: finite differences call many simulations
-opt.refine.NumStarts = 15;
+opt.refine.NumStarts = 25;
 opt.refine.Display = 'iter-detailed';
 opt.refine.UseParallel = true;
-opt.refine.MaxFunctionEvaluations = 100;
-opt.refine.MaxIterations = 25;
+opt.refine.MaxFunctionEvaluations = 250;
+opt.refine.MaxIterations = 50;
 opt.refine.OptimalityTolerance = 1e-4;
 opt.refine.FunctionTolerance = 1e-4;
 opt.refine.StepTolerance = 1e-5;
@@ -141,7 +141,7 @@ for datasetIdx = 1:numel(dataFiles)
 opt = baseOpt;
 datasetNumber = datasetNumbers(datasetIdx);
 dataFile = fullfile(dataFiles(datasetIdx).folder, dataFiles(datasetIdx).name);
-opt.outputFile = fullfile(outputDir, "optimized_" + datasetNumber + ".mat");
+opt.outputFile = fullfile(outputDir, "optimized2_" + datasetNumber + ".mat");
 opt.sim.DiagnosticLogFile = fullfile(outputDir, ...
     "model_to_data_eval_diagnostics_" + datasetNumber + ".tsv");
 
@@ -389,7 +389,7 @@ save(opt.outputFile, 'opt', 'dataFile', 'datasetNumber', 'paramSpec', ...
 %% Evaluate and plot best fit
 clear all
 clc
-load('../optimized_data/Jin_data/PVA/optimized_03.mat')
+load('../optimized_data/Jin_data/chicken/optimized2_11.mat')
 bestParams = f_unpack_model_to_data_params(bestZ, paramSpec);
 [bestY, bestRunInfo, bestSimOpt] = f_optimize_model_to_data_predict(bestZ, ...
     xDataOpt, paramSpec, opt.sim);
@@ -399,37 +399,37 @@ xData = xDataAll;  % saved alias for compatibility with older analysis code
 timeVerification = makeTimeExtractionVerification(bestSim, xDataAll, ...
     bestRunInfo);
 
-bestLoss = sqrt(sum((yData - bestY).^2)) / norm(yData);
-fitR2 = 1 - sum((bestY - yData).^2) / sum((yData - mean(yData)).^2);
-trainModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
-    xDataAll.fitModeIdx);
-heldoutModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
-    xDataAll.testModeIdx);
-allModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, 1:nmodes);
-
-fprintf('\nBest fit\n');
-fprintf('  G     = %.6g Pa\n', bestParams.G);
-fprintf('  alph  = %.6g\n', bestParams.alph);
-fprintf('  mu    = %.6g Pa*s\n', bestParams.mu);
-fprintf('  ani   = [%.6g %.6g]\n', bestParams.ani(1), bestParams.ani(2));
-fprintf('  loss  = %.6g\n', bestLoss);
-fprintf('  R2    = %.6g\n', fitR2);
-fprintf('  train mode loss   = %.6g\n', trainModeLoss);
-fprintf('  held-out mode loss = %.6g\n', heldoutModeLoss);
-fprintf('  all mode loss     = %.6g\n', allModeLoss);
-fprintf('  radial loss samples       = %d\n', bestRunInfo.nRadialLossTimes);
-fprintf('  perturbation loss samples = %d (through t* = %.6g)\n', ...
-    bestRunInfo.nPerturbationLossTimes, ...
-    bestRunInfo.perturbationLossTimeNd(end));
-fprintf('  max requested/returned simulation time mismatch = %.3g\n', ...
-    bestRunInfo.maxRequestedReturnedTimeMismatch);
-fprintf('  max radial time extraction mismatch = %.3g\n', ...
-    timeVerification.maxRadialAbsDt);
-fprintf('  max perturbation time extraction mismatch = %.3g\n', ...
-    timeVerification.maxPerturbationAbsDt);
-fprintf('  perturbation rows used    = %d:%d of %d\n', ...
-    timeVerification.firstPerturbationRow, ...
-    timeVerification.lastPerturbationRow, numel(xDataAll.tfit_nd));
+% bestLoss = sqrt(sum((yData - bestY).^2)) / norm(yData);
+% fitR2 = 1 - sum((bestY - yData).^2) / sum((yData - mean(yData)).^2);
+% trainModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
+%     xDataAll.fitModeIdx);
+% heldoutModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
+%     xDataAll.testModeIdx);
+% allModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, 1:nmodes);
+% 
+% fprintf('\nBest fit\n');
+% fprintf('  G     = %.6g Pa\n', bestParams.G);
+% fprintf('  alph  = %.6g\n', bestParams.alph);
+% fprintf('  mu    = %.6g Pa*s\n', bestParams.mu);
+% fprintf('  ani   = [%.6g %.6g]\n', bestParams.ani(1), bestParams.ani(2));
+% fprintf('  loss  = %.6g\n', bestLoss);
+% fprintf('  R2    = %.6g\n', fitR2);
+% fprintf('  train mode loss   = %.6g\n', trainModeLoss);
+% fprintf('  held-out mode loss = %.6g\n', heldoutModeLoss);
+% fprintf('  all mode loss     = %.6g\n', allModeLoss);
+% fprintf('  radial loss samples       = %d\n', bestRunInfo.nRadialLossTimes);
+% fprintf('  perturbation loss samples = %d (through t* = %.6g)\n', ...
+%     bestRunInfo.nPerturbationLossTimes, ...
+%     bestRunInfo.perturbationLossTimeNd(end));
+% fprintf('  max requested/returned simulation time mismatch = %.3g\n', ...
+%     bestRunInfo.maxRequestedReturnedTimeMismatch);
+% fprintf('  max radial time extraction mismatch = %.3g\n', ...
+%     timeVerification.maxRadialAbsDt);
+% fprintf('  max perturbation time extraction mismatch = %.3g\n', ...
+%     timeVerification.maxPerturbationAbsDt);
+% fprintf('  perturbation rows used    = %d:%d of %d\n', ...
+%     timeVerification.firstPerturbationRow, ...
+%     timeVerification.lastPerturbationRow, numel(xDataAll.tfit_nd));
 
 plotOptimizedFit(bestSim, xDataAll, bestParams);
 

@@ -11,7 +11,7 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 %% User settings
 dataFile = resolveSuryaBrownFeaDataFile(projectDir);
 outputDir = fullfile(projectDir, 'optimized_data', 'Surya_brown_sims');
-datasetLabel = "aniso_sim_FEA_new_props";
+datasetLabel = "aniso_sim_FEA_sphequil";
 
 maxmode = 22;
 polyOrder = 3;
@@ -44,10 +44,10 @@ opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Parameter bounds. G and mu are optimized in log10-space by default.
-opt.bounds.G = [5e4, 5e6];
+opt.bounds.G = [1e4, 1e6];
 opt.bounds.alph = [1e-3, 5];
-opt.bounds.mu = [5e-2, 5e-1];
-opt.bounds.ani = [0, 5; ...
+opt.bounds.mu = [1e-2, 1e-0];
+opt.bounds.ani = [0.1, 10; ...
                  0, 5];
 
 % Set any entry to a finite value to remove that parameter from the
@@ -57,9 +57,9 @@ opt.bounds.ani = [0, 5; ...
 %   opt.fixed.ani = [0, 0];
 %   opt.fixed.ani = [NaN, 0];  % optimize ani1, fix ani2 = 0
 opt.fixed.G = NaN;
-opt.fixed.alph = NaN;
+opt.fixed.alph = 0;
 opt.fixed.mu = NaN;
-opt.fixed.ani = [NaN, NaN];
+opt.fixed.ani = [NaN, 0];
 
 opt.logScale.G = true;
 opt.logScale.alph = true;
@@ -89,7 +89,7 @@ opt.sim.DiagnosticLogFile = fullfile(scriptDir, ...
 opt.sim.DiagnosticLogAppend = false;
 
 % Bayes-opt controls.
-opt.bayes.MaxObjectiveEvaluations = 500;
+opt.bayes.MaxObjectiveEvaluations = 250;
 opt.bayes.NumSeedPoints = 50;
 opt.bayes.UseLatinHypercubeInitialX = true;
 opt.bayes.InitialRegionFraction = 1; % lower half of each optimizer bound range
@@ -110,7 +110,7 @@ opt.bayes.FallbackToSerialOnWorkerPreflightFailure = true;
 
 % Optional local refinement from the best Bayes-opt points.
 opt.refine.Enabled = true;     % can be expensive: finite differences call many simulations
-opt.refine.NumStarts = 15;
+opt.refine.NumStarts = 5;
 opt.refine.Display = 'iter-detailed';
 opt.refine.UseParallel = true;
 opt.refine.MaxFunctionEvaluations = 100;
