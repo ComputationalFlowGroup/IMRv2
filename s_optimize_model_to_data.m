@@ -122,7 +122,8 @@ opt.refine.FiniteDifferenceType = 'forward';
 opt.refine.Algorithm = 'interior-point';
 
 opt.randomSeed = 1;
-opt.plotInitialConditionCheck = true;
+opt.plotInitialConditionCheck = false;
+opt.plotFinalFit = false;
 
 %% Discover and optimize all datasets
 [dataFiles, datasetNumbers] = listProcessedDataFiles(dataDir);
@@ -381,15 +382,12 @@ else
 end
 toc
 
-% Save a checkpoint before the final best-fit simulation and plotting.
+% Save a checkpoint before the final best-fit simulation.
 save(opt.outputFile, 'opt', 'dataFile', 'datasetNumber', 'paramSpec', ...
     'xDataAll', 'xDataOpt', 'results', 'bestZ', 'fval', 'exitflag', ...
     'refineOutput', 'solutions');
 
-%% Evaluate and plot best fit
-clear all
-clc
-load('../optimized_data/Jin_data/chicken/optimized2_11.mat')
+%% Evaluate and save best fit
 bestParams = f_unpack_model_to_data_params(bestZ, paramSpec);
 [bestY, bestRunInfo, bestSimOpt] = f_optimize_model_to_data_predict(bestZ, ...
     xDataOpt, paramSpec, opt.sim);
@@ -399,43 +397,60 @@ xData = xDataAll;  % saved alias for compatibility with older analysis code
 timeVerification = makeTimeExtractionVerification(bestSim, xDataAll, ...
     bestRunInfo);
 
-% bestLoss = sqrt(sum((yData - bestY).^2)) / norm(yData);
-% fitR2 = 1 - sum((bestY - yData).^2) / sum((yData - mean(yData)).^2);
-% trainModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
-%     xDataAll.fitModeIdx);
-% heldoutModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
-%     xDataAll.testModeIdx);
-% allModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, 1:nmodes);
-% 
-% fprintf('\nBest fit\n');
-% fprintf('  G     = %.6g Pa\n', bestParams.G);
-% fprintf('  alph  = %.6g\n', bestParams.alph);
-% fprintf('  mu    = %.6g Pa*s\n', bestParams.mu);
-% fprintf('  ani   = [%.6g %.6g]\n', bestParams.ani(1), bestParams.ani(2));
-% fprintf('  loss  = %.6g\n', bestLoss);
-% fprintf('  R2    = %.6g\n', fitR2);
-% fprintf('  train mode loss   = %.6g\n', trainModeLoss);
-% fprintf('  held-out mode loss = %.6g\n', heldoutModeLoss);
-% fprintf('  all mode loss     = %.6g\n', allModeLoss);
-% fprintf('  radial loss samples       = %d\n', bestRunInfo.nRadialLossTimes);
-% fprintf('  perturbation loss samples = %d (through t* = %.6g)\n', ...
-%     bestRunInfo.nPerturbationLossTimes, ...
-%     bestRunInfo.perturbationLossTimeNd(end));
-% fprintf('  max requested/returned simulation time mismatch = %.3g\n', ...
-%     bestRunInfo.maxRequestedReturnedTimeMismatch);
-% fprintf('  max radial time extraction mismatch = %.3g\n', ...
-%     timeVerification.maxRadialAbsDt);
-% fprintf('  max perturbation time extraction mismatch = %.3g\n', ...
-%     timeVerification.maxPerturbationAbsDt);
-% fprintf('  perturbation rows used    = %d:%d of %d\n', ...
-%     timeVerification.firstPerturbationRow, ...
-%     timeVerification.lastPerturbationRow, numel(xDataAll.tfit_nd));
+if bestRunInfo.success
+    bestResidual = yData - bestY;
+    bestLoss = sqrt(sum(bestResidual.^2)) / norm(yData);
+    fitR2Denom = sum((yData - mean(yData)).^2);
+    if fitR2Denom > 0
+        fitR2 = 1 - sum(bestResidual.^2) / fitR2Denom;
+    else
+        fitR2 = NaN;
+    end
+else
+    bestLoss = NaN;
+    fitR2 = NaN;
+    warning('ModelToData:BestFitSimulationFailed', ...
+        'The best-fit simulation failed for dataset %s: %s', ...
+        datasetNumber, bestRunInfo.message);
+end
+trainModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
+    xDataAll.fitModeIdx);
+heldoutModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
+    xDataAll.testModeIdx);
+allModeLoss = computePerturbationSubsetLoss(bestSim, xDataAll, ...
+    1:numel(xDataAll.n));
 
-plotOptimizedFit(bestSim, xDataAll, bestParams);
+fprintf('\nBest fit\n');
+fprintf('  G     = %.6g Pa\n', bestParams.G);
+fprintf('  alph  = %.6g\n', bestParams.alph);
+fprintf('  mu    = %.6g Pa*s\n', bestParams.mu);
+fprintf('  ani   = [%.6g %.6g]\n', bestParams.ani(1), bestParams.ani(2));
+fprintf('  loss  = %.6g\n', bestLoss);
+fprintf('  R2    = %.6g\n', fitR2);
+fprintf('  train mode loss   = %.6g\n', trainModeLoss);
+fprintf('  held-out mode loss = %.6g\n', heldoutModeLoss);
+fprintf('  all mode loss     = %.6g\n', allModeLoss);
+fprintf('  radial loss samples       = %d\n', bestRunInfo.nRadialLossTimes);
+fprintf('  perturbation loss samples = %d (through t* = %.6g)\n', ...
+    bestRunInfo.nPerturbationLossTimes, ...
+    lastValueOrNaN(bestRunInfo.perturbationLossTimeNd));
+fprintf('  max requested/returned simulation time mismatch = %.3g\n', ...
+    bestRunInfo.maxRequestedReturnedTimeMismatch);
+fprintf('  max radial time extraction mismatch = %.3g\n', ...
+    timeVerification.maxRadialAbsDt);
+fprintf('  max perturbation time extraction mismatch = %.3g\n', ...
+    timeVerification.maxPerturbationAbsDt);
+fprintf('  perturbation rows used    = %d:%d of %d\n', ...
+    timeVerification.firstPerturbationRow, ...
+    timeVerification.lastPerturbationRow, numel(xDataAll.tfit_nd));
+
+if opt.plotFinalFit
+    plotOptimizedFit(bestSim, xDataAll, bestParams);
+end
 
 save(opt.outputFile, 'opt', 'paramSpec', 'xData', 'xDataAll', ...
     'xDataOpt', 'dataFile', 'datasetNumber', 'results', 'bestZ', ...
-    'bestParams', 'bestLoss', ...
+    'bestParams', 'bestY', 'bestLoss', ...
     'fitR2', 'bestRunInfo', 'fullRunInfo', 'bestSimOpt', 'bestSim', ...
     'timeVerification', 'trainModeLoss', 'heldoutModeLoss', ...
     'allModeLoss', 'fval', ...
@@ -1425,6 +1440,14 @@ function value = maxFinite(values)
         value = NaN;
     else
         value = max(finiteValues);
+    end
+end
+
+function value = lastValueOrNaN(values)
+    if isempty(values)
+        value = NaN;
+    else
+        value = values(end);
     end
 end
 
