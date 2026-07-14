@@ -10,7 +10,7 @@ addpath(fullfile(scriptDir, 'src', 'characterization'));
 
 %% User settings
 dataFile = fullfile(projectDir, 'data', 'SicongJinChicken', ...
-    'PVA_Rt_data', 'processed_03.mat');
+    'chicken_Rt_data/', 'processed_11.mat');
 
 material = "PVA";
 maxmode = 22;
@@ -37,10 +37,10 @@ opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Physical model parameters for this single simulation.
-modelParams.G = 102417;       % Pa
-modelParams.alph = 0.416379;
-modelParams.mu = 0.261672;        % Pa*s
-modelParams.ani = [1.14854, 3.27647];
+modelParams.G = 10^(4.2991);       % Pa
+modelParams.alph = 0;
+modelParams.mu = 10^(-0.36269);        % Pa*s
+modelParams.ani = [4.8497, 7.7555];
 
 % Forward-solver controls. The simulation is evaluated at the experimental
 % post-Rmax times, so tsteps is only a fallback for non-optimization calls.

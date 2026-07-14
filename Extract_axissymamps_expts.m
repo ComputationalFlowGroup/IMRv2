@@ -83,7 +83,7 @@ end
 
 %% DEBUGGING
 Nmax = 26;
-debugFrame = min(15, nFrames);
+debugFrame = nFrames;%min(15, nFrames);
 
 for i = debugFrame % or 1:nFrames
 

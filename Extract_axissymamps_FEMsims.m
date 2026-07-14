@@ -27,10 +27,10 @@ DATA_DIR = fullfile(pwd);
 
 % Uncomment line below for non-spherical bubble in NHKV
 % JOB_NAME = 'Job1';
-JOB_NAME = 'Job';
+% JOB_NAME = 'Job';
 
 % Uncomment line below for non-spherical bubble in fiber reinofced material
-% JOB_NAME = 'Job_QSR';
+JOB_NAME = 'Job_spherical_QSR_Step5';
 
 % Number of Step-5 (bubble collapse step) frames to plot from beginning to end.
 NUM_FRAMES_TO_PLOT = 39;
@@ -64,10 +64,10 @@ COLOR_MAP_NAME = 'turbo';
 
 % ===================== LOAD DATA =====================
 
-% fileName = sprintf('../data/Sims_Brown_Surya/%s_bubble_time.dat', JOB_NAME);
+fileName = sprintf('../data/Sims_Brown_Surya/%s_bubble_time.dat', JOB_NAME);
 
 % fileName = sprintf('../data/Sims_Brown_Surya/%s_spherical_QSR_Step5_bubble_time.dat', JOB_NAME);
-fileName = sprintf('../data/Sims_Brown_Surya/%s_anisotropic_new.dat', JOB_NAME);
+% fileName = sprintf('../data/Sims_Brown_Surya/%s_anisotropic_new.dat', JOB_NAME);
 filePath = fullfile(DATA_DIR, fileName);
 
 if ~isfile(filePath)
