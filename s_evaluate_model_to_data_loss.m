@@ -37,10 +37,10 @@ opt.loss.ModeWeightPower = 1;
 opt.loss.ModeWeightOffset = 0;
 
 % Physical model parameters for this single simulation.
-modelParams.G = 10^(5.25);       % Pa
+modelParams.G = 10^(4.1221);       % Pa
 modelParams.alph = 0;
-modelParams.mu = 10^(-0.1);        % Pa*s
-modelParams.ani = [0, 0];
+modelParams.mu = 10^(-0.30305);        % Pa*s
+modelParams.ani = [4.3742, 8.7014];
 
 % Forward-solver controls. The simulation is evaluated at the experimental
 % post-Rmax times, so tsteps is only a fallback for non-optimization calls.

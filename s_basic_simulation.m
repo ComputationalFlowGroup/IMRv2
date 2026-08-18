@@ -93,7 +93,7 @@ epnmeq =  amp_extractf(3:end,end).*1e-6./Req;
 
 Rmax = Rexp(1);
 k = 0;
-idxs = 3:21;%size(amp_extractf,1);
+idxs = [3 5];%size(amp_extractf,1);
 for i = idxs
     k = k+1;
     amp(k,:) = amp_extractf(i,:)./amp_extractf(1,:);
@@ -114,12 +114,13 @@ tic
 % G = 200e3;
 % alph = 0.0;
 % ani = [2.5 0];
+Rmax = 1.1*Req;
 
 
-mu =  0.2625;
+mu =  0.001;
 G = 105e3;
 alph = 0.0;
-ani = [4 0];
+ani = [5 0];
 
 % mu =  0.2625;
 % G = 105e3;
@@ -132,8 +133,23 @@ rho = 1000;
 p8 = 101325;
 tcLIC = Rmax*sqrt(rho/p8);
 pertmod = 0;
-tf_nd = 3;
-tsteps = 30000; ultra = false;
+tf_nd = 10;
+tsteps = 3000; ultra = false;
+
+% Optional rotational full-model comparison from ../../IMR_nonspherical_dynamics.
+% This is only run when ani = [0 0]. Set Enabled=false to skip it.
+fullModel = struct();
+fullModel.Enabled = true;
+fullModel.Root = ""; % Empty uses auto-detection for ../../IMR_nonspherical_dynamics.
+fullModel.xN = 256;
+fullModel.L = 5;
+fullModel.MaxSteps = 1000;
+fullModel.TimeSteppingMethod = 2;
+fullModel.ForcedEp = 'F';
+fullModel.Model = "me";
+fullModel.Verbose = true;
+fullModel.RunOnlyWhenIsotropic = true;
+fullModel.IsotropicTolerance = 100*eps;
 
 
 % -------- perturbation solver initial conditions ---------------%
@@ -142,6 +158,7 @@ n = mode_extractf(idxs,1)';
 m = zeros(size(n));
 N = n;
 ep0 = amp(:,1);
+ep0(1) = 0.1;
 epd0 = zeros(size(ep0));
 epeq = epnmeq(idxs-2);
 % ep0 = epeq.*0;
@@ -165,6 +182,10 @@ else
     epnmiso = [];
 end
 
+fullModelSolution = runFullNonsphericalModelForBasicSimulation( ...
+    fullModel, Rmax, Req, ep0, epd0, epeq, n, mu, G, alph, sig, ...
+    p_a, f_a, rho, p8, tf_nd, tsteps, ultra, ani);
+
 
 
 % Rsiminterp = interp1(t, R, tshare(tshare < max(t)), 'linear');
@@ -184,13 +205,23 @@ ms.LegendFontSize = 11;
 ms.LineWidth = 2.0;
 ms.LineWidthAlt = 1.4;
 
-nModes = 10;%size(epnm, 2);
+nModes = min(length(n), 10);%size(epnm, 2);
 nCols = 3;
 nModeRows = ceil(nModes / nCols);
 cmap = viridis(nModes + 2);
 cmap = cmap(2:end-1, :);
 tExpNd = texp ./ tcLIC;
-xLimits = [0, max([t(:); tExpNd(:)])];
+if fullModelSolution.success
+    xLimits = [0, max([t(:); tExpNd(:); fullModelSolution.t(:)])];
+else
+    xLimits = [0, max([t(:); tExpNd(:)])];
+end
+
+if hasDistinctIsotropicModel
+    modelLabel = 'IMRv2 anisotropic model';
+else
+    modelLabel = 'IMRv2 isotropic model';
+end
 
 figComparison = figure('Name', 'IMR and FEM mode comparison', ...
     'Color', 'w', 'Units', 'pixels', 'Position', [100 40 950 1450]);
@@ -212,12 +243,19 @@ if hasDistinctIsotropicModel
 else
     hIsotropic = gobjects(0);
 end
+if fullModelSolution.success
+    hFull = plot(axR, fullModelSolution.t, fullModelSolution.R, ':', ...
+        'Color', [0.08 0.08 0.08], 'LineWidth', ms.LineWidth);
+else
+    hFull = gobjects(0);
+end
 hData = scatter(axR, tExpNd, Rexp ./ Rexp(1), 32, ...
     'MarkerFaceColor', [0.45 0.25 0.55], ...
     'MarkerEdgeColor', [0.30 0.15 0.40], ...
     'MarkerFaceAlpha', 0.55, 'MarkerEdgeAlpha', 0.55);
 xlim(axR, xLimits)
-radialValues = [R(:); Riso(:); Rexp(:) ./ Rexp(1)];
+radialValues = [R(:); Riso(:); fullModelSolution.R(:); ...
+    Rexp(:) ./ Rexp(1)];
 radialValues = radialValues(isfinite(radialValues));
 radialPadding = 0.05 * max(eps, ...
     max(radialValues) - min(radialValues));
@@ -227,16 +265,22 @@ xlabel(axR, '$t^*$', 'Interpreter', 'latex', ...
     'FontSize', ms.LabelFontSize)
 ylabel(axR, '$R/R_{\max}$', 'Interpreter', 'latex', ...
     'FontSize', ms.LabelFontSize)
+radialLegendHandles = hModel;
+radialLegendLabels = {modelLabel};
 if hasDistinctIsotropicModel
-    legend(axR, [hModel hIsotropic hData], ...
-        {'Full model', 'Isotropic model', 'FEM data'}, ...
-        'Interpreter', 'latex', 'FontSize', ms.LegendFontSize, ...
-        'Location', 'best', 'NumColumns', 3)
-else
-    legend(axR, [hModel hData], {'Isotropic model', 'FEM data'}, ...
-        'Interpreter', 'latex', 'FontSize', ms.LegendFontSize, ...
-        'Location', 'best', 'NumColumns', 2)
+    radialLegendHandles = [radialLegendHandles hIsotropic];
+    radialLegendLabels{end + 1} = 'IMRv2 isotropic model';
 end
+if fullModelSolution.success
+    radialLegendHandles = [radialLegendHandles hFull];
+    radialLegendLabels{end + 1} = 'Full nonspherical model';
+end
+radialLegendHandles = [radialLegendHandles hData];
+radialLegendLabels{end + 1} = 'FEM data';
+legend(axR, radialLegendHandles, radialLegendLabels, ...
+    'Interpreter', 'latex', 'FontSize', ms.LegendFontSize, ...
+    'Location', 'best', 'NumColumns', ...
+    min(4, numel(radialLegendLabels)))
 
 for i = 1:nModes
     ax = nexttile(tl);
@@ -246,21 +290,28 @@ for i = 1:nModes
     grid(ax, 'on')
     col = cmap(i, :);
 
-    scatter(ax, tExpNd, amp(2*i-1, :), 32, ...
+    scatter(ax, tExpNd, amp(i, :), 32, ...
         'MarkerFaceColor', col, ...
         'MarkerEdgeColor', 0.65 .* col, ...
         'MarkerFaceAlpha', 0.55, 'MarkerEdgeAlpha', 0.55);
+    hModeData = ax.Children(1);
     if hasDistinctIsotropicModel
-        plot(ax, tiso, epnmiso(:, 2*i-1), '--', 'Color', col, ...
+        hModeIso = plot(ax, tiso, epnmiso(:, i), '--', 'Color', col, ...
             'LineWidth', ms.LineWidthAlt);
+    else
+        hModeIso = gobjects(0);
     end
-    plot(ax, t, epnm(:, 2*i-1), '-', ...
+    hModeModel = plot(ax, t, epnm(:, i), '-', ...
         'Color', 0.55 .* col, 'LineWidth', ms.LineWidth);
+    [fullModeValues, hModeFull] = plotFullModelModeIfAvailable(ax, ...
+        fullModelSolution, n(i), ms);
 
     if hasDistinctIsotropicModel
-        modeValues = [amp(2*i-1, :).'; epnm(:, 2*i-1); epnmiso(:, 2*i-1)];
+        modeValues = [amp(i, :).'; epnm(:, i); ...
+            epnmiso(:, i); fullModeValues(:)];
     else
-        modeValues = [amp(2*i-1, :).'; epnm(:, 2*i-1)];
+        modeValues = [amp(i, :).'; epnm(:, i); ...
+            fullModeValues(:)];
     end
     modeValues = modeValues(isfinite(modeValues));
     if isempty(modeValues)
@@ -284,8 +335,24 @@ for i = 1:nModes
     ylim(ax, modeLimits)
     xlabel(ax, '$t^*$', 'Interpreter', 'latex', ...
         'FontSize', ms.LabelFontSize)
-    ylabel(ax, sprintf('$\\epsilon_{%.0f}$', n(2*i-1)), ...
+    ylabel(ax, sprintf('$\\epsilon_{%.0f}$', n(i)), ...
         'Interpreter', 'latex', 'FontSize', ms.LabelFontSize)
+    if i == 1
+        modeLegendHandles = [hModeModel hModeData];
+        modeLegendLabels = {modelLabel, 'FEM data'};
+        if hasDistinctIsotropicModel
+            modeLegendHandles = [hModeModel hModeIso hModeData];
+            modeLegendLabels = {modelLabel, 'IMRv2 isotropic model', ...
+                'FEM data'};
+        end
+        if ~isempty(hModeFull) && isgraphics(hModeFull)
+            modeLegendHandles = [modeLegendHandles hModeFull];
+            modeLegendLabels{end + 1} = 'Full nonspherical model';
+        end
+        legend(ax, modeLegendHandles, modeLegendLabels, ...
+            'Interpreter', 'latex', 'FontSize', ms.LegendFontSize, ...
+            'Location', 'best')
+    end
 end
 
 for i = 1:numel(comparisonAxes)
@@ -463,6 +530,220 @@ avg_relerr_p2 = mean((abs(R2interp(tshare < tf)-R2simint(tshare < tf))./R2interp
 
 0.5*(avg_relerr_p1+avg_relerr_p2)
 
+function sol = runFullNonsphericalModelForBasicSimulation(opts, Rmax, Req, ...
+    ep0, epd0, epeq, modes, mu, G, alph, sig, p_a, f_a, rho, p8, ...
+    tfNd, tsteps, ultra, ani)
+sol = struct('success', false, 't', [], 'R', [], 'epnm', [], ...
+    'modes', [], 'message', "");
+
+if ~opts.Enabled
+    sol.message = "disabled";
+    return
+end
+
+tol = opts.IsotropicTolerance;
+if opts.RunOnlyWhenIsotropic && any(abs(ani(:)) > tol)
+    sol.message = "skipped because ani is not [0 0]";
+    return
+end
+
+fullModelRoot = resolveFullModelRoot(opts.Root);
+if strlength(string(fullModelRoot)) == 0
+    sol.message = "IMR_nonspherical_dynamics root was not found";
+    warning('s_basic_simulation:FullModelRootMissing', '%s', sol.message);
+    return
+end
+
+commonDir = fullfile(fullModelRoot, 'common');
+radialSolverDir = resolveFullModelRadialSolverDir(fullModelRoot);
+if strlength(string(radialSolverDir)) == 0
+    sol.message = "sibling Code/IMRv2/src/forward_solver was not found";
+    warning('s_basic_simulation:FullModelRadialMissing', '%s', sol.message);
+    return
+end
+
+originalPath = path;
+pathCleanup = onCleanup(@() path(originalPath));
+addpath(radialSolverDir, '-begin')
+addpath(commonDir, '-begin')
+clear f_imr_fd f_call_params f_odesolve compute_rotational_perturbation_evolution
+
+try
+    tstepsFull = tsteps;
+    if isfield(opts, 'MaxSteps') && isfinite(opts.MaxSteps) && opts.MaxSteps > 0
+        tstepsFull = min(tsteps, opts.MaxSteps);
+    end
+
+    [tRadial, RRadial, RdRadial, RddRadial] = runFullModelRadialHistory( ...
+        radialSolverDir, Rmax, Req, mu, G, alph, sig, p_a, f_a, ...
+        rho, p8, tfNd, tstepsFull, ultra);
+
+    Lmax = Rmax/Req;
+    tReq = tRadial(:).' .* Lmax;
+    RReq = RRadial(:).' .* Lmax;
+    RdReq = RdRadial(:).';
+    RddReq = RddRadial(:).' ./ Lmax;
+
+    nMode = numel(modes);
+    T0 = zeros(nMode, opts.xN);
+    Td0 = T0;
+
+    Lc = Req;
+    rhoc = rho;
+    tc = sqrt(rhoc/p8)*Lc;
+    Uc = Lc/tc;
+    pc = rhoc*Uc^2;
+    Ca = pc/G;
+    Re = Lc*sqrt(rhoc*pc)/mu;
+    We = pc*Lc/(2*sig);
+
+    [epFull, ~, ~, ~, RReqOut, ~, tReqOut] = ...
+        compute_rotational_perturbation_evolution(opts.xN, opts.L, ...
+        modes, ep0, epd0, epeq, T0, Td0, 1, RReq, RdReq, RddReq, ...
+        Ca, alph, Re, We, tReq, opts.TimeSteppingMethod, ...
+        opts.ForcedEp, opts.Model, "rot", 'Verbose', opts.Verbose);
+
+    sol.success = true;
+    sol.t = tReqOut(:)./Lmax;
+    sol.R = RReqOut(:)./Lmax;
+    sol.epnm = epFull.';
+    sol.modes = modes(:).';
+    sol.message = "ok";
+    fprintf('Full nonspherical model completed with %d time samples.\n', ...
+        numel(sol.t));
+catch ME
+    sol.success = false;
+    sol.message = string(ME.message);
+    warning('s_basic_simulation:FullModelFailed', ...
+        'Full nonspherical model failed: %s', ME.message);
+end
+
+clear pathCleanup
+end
+
+function [t, R, Rd, Rdd] = runFullModelRadialHistory(radialSolverDir, ...
+    Rmax, Req, mu, G, alph, sig, p_a, f_a, rho, p8, tfNd, tsteps, ultra)
+startDir = pwd;
+dirCleanup = onCleanup(@() cd(startDir));
+cd(radialSolverDir)
+clear f_imr_fd f_call_params f_odesolve
+
+kappa = 1;
+T8 = 298.15;
+radial = 2;
+vapor = 0;
+collapse = 0;
+bubtherm = 0;
+medtherm = 0;
+masstrans = 0;
+stress = 2;
+
+if ultra
+    pa = p_a;
+    omega = 2*pi*f_a;
+    wavetype = 4;
+else
+    pa = 0;
+    omega = 0;
+    wavetype = 0;
+end
+
+tcLIC = Rmax*sqrt(rho/p8);
+tvector = linspace(0, tfNd*tcLIC, tsteps);
+varin = {'progdisplay', 0, 'radial', radial, 'bubtherm', bubtherm, ...
+    'tvector', tvector, 'vapor', vapor, 'medtherm', medtherm, ...
+    'masstrans', masstrans, 'method', 23, 'stress', stress, ...
+    'collapse', collapse, 'mu', mu, 'g', G, 'lambda1', 0e-7, ...
+    'lambda2', 0, 'alphax', alph, 'surft', sig, 'r0', Rmax, ...
+    'req', Req, 'kappa', kappa, 't8', T8, 'rho8', rho, ...
+    'p8', p8, 'pa', pa, 'omega', omega, 'wave_type', wavetype};
+
+[t, R, Rd, ~, ~, ~, ~, Rdd] = f_imr_fd(varin{:}, 'Nt', 75);
+clear dirCleanup
+end
+
+function fullModelRoot = resolveFullModelRoot(rootIn)
+scriptDir = "";
+stack = dbstack('-completenames');
+for kk = 1:numel(stack)
+    [candidateDir, candidateName] = fileparts(stack(kk).file);
+    if strcmp(candidateName, 's_basic_simulation')
+        scriptDir = string(candidateDir);
+        break
+    end
+end
+if strlength(scriptDir) == 0
+    scriptPath = which('s_basic_simulation');
+    if strlength(string(scriptPath)) > 0
+        scriptDir = string(fileparts(scriptPath));
+    else
+        scriptDir = string(fileparts(mfilename('fullpath')));
+    end
+end
+if strlength(scriptDir) == 0
+    scriptDir = string(pwd);
+end
+
+currentDir = string(pwd);
+repoDir = string(fileparts(char(scriptDir)));
+candidates = strings(0, 1);
+if strlength(string(rootIn)) > 0
+    candidates(end + 1) = string(rootIn);
+end
+candidates(end + 1) = string(fullfile(char(scriptDir), '..', '..', ...
+    'IMR_nonspherical_dynamics'));
+candidates(end + 1) = string(fullfile(char(scriptDir), '..', ...
+    'IMR_nonspherical_dynamics'));
+candidates(end + 1) = string(fullfile(char(repoDir), '..', ...
+    'IMR_nonspherical_dynamics'));
+candidates(end + 1) = string(fullfile(char(currentDir), '..', '..', ...
+    'IMR_nonspherical_dynamics'));
+candidates(end + 1) = string(fullfile(char(currentDir), '..', ...
+    'IMR_nonspherical_dynamics'));
+candidates(end + 1) = string(fullfile(fileparts(char(currentDir)), ...
+    'IMR_nonspherical_dynamics'));
+candidates(end + 1) = string(fullfile(fileparts(fileparts(char(currentDir))), ...
+    'IMR_nonspherical_dynamics'));
+
+fullModelRoot = "";
+for ii = 1:numel(candidates)
+    candidate = char(candidates(ii));
+    solverFile = fullfile(candidate, 'common', ...
+        'compute_rotational_perturbation_evolution.m');
+    if exist(candidate, 'dir') == 7 && exist(solverFile, 'file') == 2
+        fullModelRoot = candidate;
+        return
+    end
+end
+end
+
+function radialSolverDir = resolveFullModelRadialSolverDir(fullModelRoot)
+codeDir = fileparts(fullModelRoot);
+candidate = fullfile(codeDir, 'IMRv2', 'src', 'forward_solver');
+if exist(fullfile(candidate, 'f_imr_fd.m'), 'file') == 2
+    radialSolverDir = candidate;
+else
+    radialSolverDir = "";
+end
+end
+
+function [values, hLine] = plotFullModelModeIfAvailable(ax, fullSol, ...
+    modeNumber, ms)
+values = [];
+hLine = gobjects(0);
+if ~fullSol.success
+    return
+end
+
+modeIdx = find(fullSol.modes == modeNumber, 1, 'first');
+if isempty(modeIdx)
+    return
+end
+
+values = fullSol.epnm(:, modeIdx);
+hLine = plot(ax, fullSol.t, values, ':', 'Color', [0.08 0.08 0.08], ...
+    'LineWidth', ms.LineWidthAlt);
+end
 
 
 
