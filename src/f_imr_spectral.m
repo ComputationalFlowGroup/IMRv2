@@ -48,11 +48,9 @@ function varargout = f_imr_spectral(varargin)
     Rzero           = init_opts(1);
     Uzero           = init_opts(2);
     Pb_star         = init_opts(3);
-    P8              = init_opts(4);
-    T8              = init_opts(5);
-    Pv_star         = init_opts(6);
-    Req             = init_opts(7);
-    alphax          = init_opts(8);
+    Pv_star         = init_opts(4);
+    Req             = init_opts(5);
+    alphax          = init_opts(6);
     
     % dimensionaless initial stress
     Szero           = init_stress;
@@ -61,11 +59,7 @@ function varargout = f_imr_spectral(varargin)
     tspan = tspan_opts;
     
     % output options
-    dimensionalout  = out_opts(1);
-    progdisplay     = out_opts(2);
-    tref            = out_opts(3);
-    Rref            = out_opts(4);
-    Uref            = out_opts(5);
+    progdisplay     = out_opts(1);
     
     % physical parameters
     
@@ -257,29 +251,6 @@ function varargout = f_imr_spectral(varargin)
         %t00 = d;
     end
     
-    % transform variables back into their dimensional form
-    if dimensionalout == 1
-        t = t*tref;
-        R = R*Rref;
-        Rdot = Rdot*Uref;
-        P = P*P8;
-        T = T*T8;
-        %pA = pA*p0;
-        % c = c*p0;
-        % d = d*p0;
-        % e = e*C0;
-        % C = C*C0;
-        if spectral == 1
-            % trr = trr*p0;
-            % t00 = t00*p0;
-        end
-        if bubtherm == 1
-            if medtherm == 1
-                Tm = Tm*T8;
-            end
-        end
-    end
-    
     % outputs
     varargout{1} = t;
     varargout{2} = R;
@@ -293,7 +264,7 @@ function varargout = f_imr_spectral(varargin)
     if medtherm == 1
         varargout{6} = Tm;
     else
-        varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
+        varargout{6} = ones(size(t,1),1);
     end
     varargout{7} = [];
     
@@ -412,7 +383,7 @@ function varargout = f_imr_spectral(varargin)
     % function Cw= CW(Tw,P)
     %   % Calculates the concentration at the bubble wall
     %   %Function of P and temp at the wall
-    %   thetha = Rv_star/Ra_star*(P./(f_pvsat(Tw*T8)/P8) -1);
+    %   thetha = Rv_star/Ra_star*(P./(Pv_star*exp(thetav*(1-1./Tw))) -1);
     %   Cw = 1./(1+thetha);
     % end
     

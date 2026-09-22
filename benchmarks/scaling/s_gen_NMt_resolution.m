@@ -5,7 +5,8 @@ clear;
 close;
 format long;
 
-addpath('../../src/forward_solver/');
+addpath('../../src/');
+addpath('../../toolchain/');
 
 % material parameter test cases
 tvector = linspace(0,350E-6,500);
@@ -54,6 +55,8 @@ for iNt = 1:nNt
         'stress',stress,...
         'Nt',Nt,...
         'Mt',Mt};
+    % dimensional (SI) values converted to the solver's dimensionless inputs
+    varin = f_dim2nondim(varin{:});
     [tvec, Rvec] = f_imr_fd(varin{:});
     filename = strcat('fd_Nt_',num2str(Nt),'_Mt_',num2str(Mt));
     save(filename,"tvec","Rvec");

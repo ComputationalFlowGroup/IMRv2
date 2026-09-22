@@ -73,6 +73,8 @@ for k = 1:total_valid
         'masstrans',masstrans, ...
         'Req',      Req, ...
         'R0',       R0};
+    % dimensional (SI) values converted to the solver's dimensionless inputs
+    varin = f_dim2nondim(varin{:});
     
     load(filenames_fd{k});
     [~,Rf_test] = f_imr_fd(varin{:},'Nt',70,'Mt',70);

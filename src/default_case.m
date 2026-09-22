@@ -1,14 +1,25 @@
+% file default_case.m
+% brief contains the default (dimensionless) simulation case
+
+% brief All quantities are dimensionless. Lengths are scaled by the initial
+% radius R0, pressures by the far-field pressure P8, velocities by
+% Uc = sqrt(P8/rho8), time by t0 = R0/Uc, and temperatures by the far-field
+% temperature T8. The values below correspond to a 50 um bubble in water
+% at 1 atm and 298.15 K; toolchain/f_dim2nondim.m converts dimensional
+% (SI) properties into these numbers.
+
 % equation options
 
-% 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil
+% 1 : RP, 2 : K-M P, 3 : K-M E, 4 : Gil, 5 : K-M MG, 6 : Gil MG
 radial          = 1;
 % 0 : polytropic assumption, 1: thermal PDE in bubble
 bubtherm        = 0;
 % 0 : cold fluid, 1: warm fluid assumption
 medtherm        = 0;
-% 1 : NHKV, qKV, 2: linear Maxwell, Jeffreys, Zener, 3: UCM or OldB, 4: PTT, 5: Giesekus
+% 0 : none, 1 : NHKV, 2 : qNHKV, 3 : linear Maxwell, Jeffreys, Zener
+% (neo-Hookean), 4 : same with quadratic neo-Hookean, 5 : UCM or OldB
 stress          = 0;
-% this value must be (0, 0.5]
+% this value must be [0, 0.5]
 eps3            = 0;
 % 0 : ignore vapor pressure, 1 : vapor pressure
 vapor           = 0;
@@ -17,8 +28,8 @@ masstrans       = 0;
 
 % solver options
 
-% final time (s)
-TFin            = 20e-6;
+% final time
+TFin            = 3.903439778613622;
 % time span vector
 TVector         = linspace(0,TFin,128);
 % ode45 setting for the time stepper
@@ -49,46 +60,38 @@ jacobian        = 2;
 % initial conditions
 
 collapse        = 0;
-% initial bubble radius
-R0              = 50E-6;
-% initial velocity (m/s)
-U0              = 0;
-% Equilibrium radius for pre-stress bubble, see Estrada JMPS 2017
-Req             = R0/5;
+% initial bubble wall velocity, Rdot(0)/Uc
+Rdotzero        = 0;
+% equilibrium radius for pre-stress bubble, Req/R0, see Estrada JMPS 2017
+Req             = 0.2;
 
 % output options
 
-% output result in dimensional variables
-dimensionalout  = 0;
 % display progress while code running; note this prints on every
 % right-hand-side evaluation and adds noticeable wall-clock time
 progdisplay     = 0;
 
 % acoustic options
 
-% far-field density (kg/m^3)
-rho8            = 1064;
-% state equation parameter (Pa)
-GAM             = 3049.13*1e5;
+% far-field sound speed, C8/Uc
+Cstar           = 152.071002414908;
+% Tait state equation parameter, GAM/P8
+GAMa            = 3009.257340241796;
 % state equation parameter
 nstate          = 7.15;
 % hugoniot slope
 hugoniot_s      = 1.65;
-% far-field pressure (Pa)
-P8              = 101325;
-% far-field sound speed (m/s)
-C8              = 1484;
 
 % pressure wave options
 
-% pressure amplitude (Pa)
-pA              = 0;
-% frequency (rad/s)
-omega           = 0;
-% Gaussian width (s)
-TW              = 0;
-% delay (s)
-DT              = 0;
+% pressure amplitude, pA/P8
+ee              = 0;
+% frequency, omega*t0
+om              = 0;
+% Gaussian width, TW/t0
+tw              = 0;
+% delay, DT/t0
+dt              = 0;
 % power shift for waveform
 mn              = 0;
 % wave type oscillating bubble, see f_pinfinity
@@ -96,78 +99,63 @@ wave_type       = 0;
 
 % stress options
 
-% (N/m) Liquid Surface Tension
-S               = 0.07;
-% (Pa) Medium Shear Modulus
-G               = 1e3;
-% relaxation time (s)
-lambda1         = 1e-7;
-% retardation time (s)
-lambda2         = 1e-8;
+% Weber number, P8*R0/(2*S)
+We              = 36.1875;
+% Reynolds number, P8*R0/(mu8*Uc)
+Re8             = 623.3655014295973;
+% Cauchy number, P8/G
+Ca              = 101.325;
+% Deborah number, lambda1*Uc/R0
+De              = 0.01951719889306811;
+% relaxation time ratio, lambda2/lambda1
+LAM             = 0.1;
 % qKV term
 alphax          = 0.25;
 
-% thermal options
-
-% gas properties
-
-% ratio of specific heats
-kappa           = 1.47;
-
-% medium properties
-
-% (W/m-K^2) thermal conductivity coeff non-condensible gas
-ATg              = 5.28e-5;
-% (W/m-K) thermal conductivity coeff non-condensible gas
-BTg              = 1.165e-2;
-% (W/m-K^2) thermal conductivity coeff vapor
-ATv              = 3.30e-5;
-% (W/m-K) thermal conductivity coeff vapor
-BTv              = 1.742e-2;
-% (K) far field temperature
-T8              = 298.15;
-% (W/m-K) thermal conductivity medium
-Km              = 0.55;
-% (J/Kg K) specific heat medium
-Cp              = 4.181e3;
-
-% mass transfer options
-
-% (m^2/s) diffusion coefficient
-D0              = 24.2e-6;
-% (J/Kg) latent heat of evaporation
-L_heat          = 2264.76e3;
-% (J/mol-K) universal gas constant
-Ru              = 8.3144598;
-% (kg/mol) molecular weight of vapor
-mwv = 18.01528E-3;
-% (kg/mol) molecular weight of non-vapor gas (air)
-mwg = 28.966E-3;
-% (J/Kg-K) gas constant vapor
-Rv              = Ru/mwv;
-% (J/Kg-K) gas constant air
-Ra              = Ru/mwg;
-
 % viscosity variables
 
-% infinite strain rate viscosity
-mu8             = 8.3283e-4;
-% zero strain rate viscosity
-muo             = 8.3283e-4;
-% viscosity difference
-Dmu             = 0;
+% non-Newtonian Reynolds number, P8*R0/((mu0-mu8)*Uc), 0 : no contribution
+DRe             = 0;
 % power factor 1
 v_a             = 0;
 % power factor 2
 v_nc            = 0;
-% viscosity time scale
-v_lambda        = 0;
+% viscosity time scale, v_lambda/t0
+v_lambda_star   = 0;
 % viscosity model
 nu_model        = 0;
 
+% thermal options
+
+% ratio of specific heats
+kappa           = 1.47;
+% thermal Fourier number, Dm/(Uc*R0)
+Foh             = 0.0002533864560818251;
+% Brinkman number, Uc^2/(Cp*T8)
+Br              = 7.639413243495116e-05;
+% gas and vapor thermal conductivity coefficients, scaled by K8
+alpha_g         = 0.5761007932661034;
+beta_g          = 0.4263395891806357;
+alpha_v         = 0.3600629957913147;
+beta_v          = 0.6374966217619463;
+% thermal conduction number, T8*K8/(P8*R0*Uc)
+chi             = 0.1647900432365406;
+% medium to gas thermal conductivity ratio, Km/K8
+Km_star         = 20.12762009007293;
+
+% mass transfer options
+
+% mass Fourier number, D0/(Uc*R0)
+Fom             = 0.04959728111106163;
+% latent heat of evaporation, L_heat/Uc^2
+L_heat_star     = 23781.93575129533;
+% gas constants of the vapor and non-condensible gas, R/(P8/(rho8*T8))
+Rv_star         = 1444.950104049612;
+Ra_star         = 898.6805465194676;
+
 % pressure variables
 
-% vapor pressure
-Pv              = f_pvsat(T8);
-% internal bubble pressure w/o vapor
-P0              = (P8 + 2*S/Req - Pv*vapor)*((Req/R0)^(3));
+% saturated vapor pressure at the far-field temperature, Pv/P8
+Pv_sat          = 0.03076018438379325;
+% vapor pressure temperature exponent, Pv(T)/P8 = Pv_sat*exp(thetav*(1-1/T))
+thetav          = 17.44088546033876;

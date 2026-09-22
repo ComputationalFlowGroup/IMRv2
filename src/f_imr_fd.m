@@ -49,11 +49,9 @@ function varargout = f_imr_fd(varargin)
     Rzero           = init_opts(1);
     Rdotzero        = init_opts(2);
     Pb_star         = init_opts(3);
-    P8              = init_opts(4);
-    T8              = init_opts(5);
-    Pv_star         = init_opts(6);
-    Req             = init_opts(7);
-    alphax          = init_opts(8);
+    Pv_star         = init_opts(4);
+    Req             = init_opts(5);
+    alphax          = init_opts(6);
     
     % dimensionaless initial stress
     Szero           = init_stress;
@@ -62,11 +60,7 @@ function varargout = f_imr_fd(varargin)
     tspan           = tspan_opts;
     
     % output options
-    dimensionalout  = out_opts(1);
-    progdisplay     = out_opts(2);
-    tref            = out_opts(3);
-    Rref            = out_opts(4);
-    Uref            = out_opts(5);
+    progdisplay     = out_opts(1);
     
     % physical parameters
     
@@ -121,6 +115,7 @@ function varargout = f_imr_fd(varargin)
     Rv_star         = mass_opts(3);
     Rg_star         = mass_opts(4);
     L_heat_star     = mass_opts(5);
+    thetav          = mass_opts(8);
     
     % pre_process
     
@@ -154,9 +149,10 @@ function varargout = f_imr_fd(varargin)
     no = (nstate-1)/nstate;
     nog = (nstate-1)/2;
     kapover = (kappa-1)/kappa;
-    [~, pv_c1, pv_c2] = f_pvsat(T8);
-    C1_pv = pv_c1/P8;
-    C2_pv = pv_c2/T8;
+    % dimensionless saturated vapor pressure, Pv(T) = C1_pv*exp(C2_pv/T)
+    % with Pv(1) = Pv_star
+    C1_pv = Pv_star*exp(thetav);
+    C2_pv = -thetav;
     % boundary conditions coefficients
     coeff = [-1.5 , 2 ,-0.5 ];
     Rvg_ratio = Rv_star / Rg_star;
@@ -259,20 +255,6 @@ function varargout = f_imr_fd(varargin)
         T = f_theta_of_T(theta,kv);
     end
     
-    % transform variables back into their dimensional form
-    if (dimensionalout == 1)
-        t = t*tref;
-        R = R*Rref;
-        Rdot = Rdot*Uref;
-        P = P*P8;
-        if bubtherm
-            T = T*T8;
-        end
-        if medtherm
-            Tm = Tm*T8;
-        end
-    end
-    
     % outputs assembly
     varargout{1} = t;
     varargout{2} = R;
@@ -286,7 +268,7 @@ function varargout = f_imr_fd(varargin)
     if medtherm == 1
         varargout{6} = Tm;
     else
-        varargout{6} = ((T8 - 1)*dimensionalout + 1)*ones(size(t,1),1);
+        varargout{6} = ones(size(t,1),1);
     end
     if masstrans == 1
         varargout{7} = kv;
@@ -655,7 +637,7 @@ function varargout = f_imr_fd(varargin)
     
     % concentration at the bubble wall
     function kv_w = f_kv_of_T(Tw,pressure)
-        theta_var = Rvg_ratio*(pressure./(f_pvsat(Tw*T8)/P8)-1);
+        theta_var = Rvg_ratio*(pressure./(C1_pv*exp(C2_pv./Tw))-1);
         kv_w = 1./(1+theta_var);
     end
     

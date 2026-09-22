@@ -45,14 +45,12 @@ Inputs are passed through `varargin` to `f_call_params` and unpacked locally.
 | `divisions`, `Nv`, `Nt`, `Mt` | Spectral resolution settings |
 | `Lv`, `Lt`         | Physical domain lengths |
 | `Rzero`, `Uzero`   | Initial bubble radius and wall velocity (non-dimensional) |
-| `Pb_star`, `Pv_star`, `P8` | Pressures |
-| `T8`               | Far-field temperature |
+| `Pb_star`, `Pv_star` | Pressures |
 | `Req`              | Equilibrium radius |
 | `alphax`           | Strain-softening parameter |
 | `Szero`            | Initial stress tensor or value |
 | `tspan`            | Non-dimensional simulation times |
 | `tfin`             | Final simulation time |
-| `dimensionalout`   | Output in dimensional units (0/1) |
 | `progdisplay`      | Display simulation progress (0/1) |
 | `Cstar`, `GAMa`, `kappa`, `nstate`, `hugoniot_s` | Acoustic medium properties |
 | `om`, `ee`, `tw`, `dt`, `mn`, `wave_type` | Driving waveform settings |

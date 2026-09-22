@@ -48,6 +48,8 @@ for radial = 1:4
                         'Req',Req,...
                         'R0',R0,...
                         't8',T8};
+                    % dimensional (SI) values converted to the solver's dimensionless inputs
+                    varin = f_dim2nondim(varin{:});
                     [~,Rf_test] = f_imr_fd(varin{:},'Nt',150,'Mt',150);
                     [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);
                     errors_fd(count) = abs(norm(Rf_test,2)/10-1);

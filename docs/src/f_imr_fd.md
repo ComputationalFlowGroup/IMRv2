@@ -22,17 +22,17 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 - The stiff integrators receive an analytic Jacobian (`bubtherm = 1`, `masstrans = 0`) or the sparsity pattern from `f_jpattern` otherwise; see the `jacobian` option.
 
 ### 4. Output Assembly
-- Returns `[t, R, Rdot, P, T, Tm, kv]` through `varargout`, in dimensional units if `dimout = 1`.
+- Returns `[t, R, Rdot, P, T, Tm, kv]` through `varargout`. All outputs are dimensionless.
 
 ---
 
 ## Inputs
 
-Inputs are passed as name/value pairs, routed through `f_call_params`, and then unpacked locally.
+Inputs are dimensionless name/value pairs (see `default_case`), routed through `f_call_params` and checked by `f_checkers`, then unpacked locally.
 
 | Variable          | Description |
 |-------------------|-------------|
-| `radial`           | Radial dynamics model (1–6) |
+| `radial`           | Radial dynamics model (1–6; 5 and 6 are Mie–Grüneisen and polytropic only) |
 | `bubtherm`         | Enable bubble thermal model (0 or 1) |
 | `medtherm`         | Enable medium thermal model (0 or 1) |
 | `stress`           | Stress model selection (0–5) |
@@ -45,13 +45,11 @@ Inputs are passed as name/value pairs, routed through `f_call_params`, and then 
 | `divisions`, `Nv`, `Nt`, `Mt` | Maximum step control and grid sizes |
 | `Lt`               | Grid stretching length in the medium |
 | `Rzero`, `Uzero`   | Initial radius and velocity (non-dimensional) |
-| `Pb_star`, `Pv_star`, `P8` | Non-dimensional pressures |
-| `T8`               | Far-field temperature |
+| `Pb_star`, `Pv_star` | Non-dimensional pressures |
 | `Req`              | Equilibrium radius |
 | `alphax`           | Strain-stiffening parameter |
 | `Szero`            | Initial stress state |
 | `tspan`            | Time vector (non-dimensional) |
-| `dimensionalout`   | Output in physical units (0/1) |
 | `progdisplay`      | Show progress during run (0/1); prints on every right-hand-side call |
 | `Cstar`, `GAMa`, `kappa`, `nstate`, `hugoniot_s` | Acoustic properties |
 | `om`, `ee`, `tw`, `dt`, `mn`, `wave_type` | Acoustic waveform parameters |
