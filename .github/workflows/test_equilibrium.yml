@@ -35,9 +35,7 @@ jobs:
         uses: matlab-actions/setup-matlab@v1
         with: 
           release: R2023a
-          products: > 
-            MATLAB
-            Symbolic_Math_Toolbox
+          products: MATLAB
 
       - name: Equilibrium test
         uses: matlab-actions/run-command@v1

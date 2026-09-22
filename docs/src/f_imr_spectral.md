@@ -1,7 +1,7 @@
-# `m_imr_spectral.m` Documentation
+# `f_imr_spectral.m` Documentation
 
 ## Overview
-`m_imr_spectral` is a Chebyshev spectral collocation solver for Rayleigh–Plesset type equations, modeling bubble dynamics with optional thermal transport and viscoelastic material behavior.  
+`f_imr_spectral` is a Chebyshev spectral collocation solver for Rayleigh–Plesset type equations, modeling bubble dynamics with optional thermal transport and viscoelastic material behavior.  
 It uses high-accuracy spectral differentiation matrices to discretize spatial derivatives and advance the solution robustly in time.
 
 ---

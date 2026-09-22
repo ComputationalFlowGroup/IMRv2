@@ -9,6 +9,10 @@ function [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, ...
     R, Rdot, S, Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
     ddintfnu, iDRe )
 
+% ddintfnu is the Rddot coefficient of d/dt(intfnu); the stress enters as
+% -6*intfnu*iDRe, so its Rddot part moves to the denominator as
+% +6*R*ddintfnu*iDRe/C, mirroring JdotA
+
 % Rayleigh-Plesset
 if radial == 1
     Rddot = (P - 1 - Pf8 - iWe/R + S - 1.5*Rdot^2)/R;
@@ -18,7 +22,7 @@ elseif radial == 2
     Rddot = ((1+Rdot./Cstar)*(P - 1 - Pf8 - iWe/R + S) ...
         + R/Cstar*(Pdot + iWe*Rdot/R^2 +  Sdot - Pf8dot) ...
         - 1.5*(1-Rdot/(3*Cstar))*Rdot^2)/((1-Rdot/Cstar)*R + JdotA/Cstar ...
-        - 6*ddintfnu*iDRe/Cstar);
+        + 6*R*ddintfnu*iDRe/Cstar);
     
     % Keller-Miksis in enthalpy with Tait EoS
 elseif radial == 3
@@ -28,7 +32,7 @@ elseif radial == 3
     Rddot = ((1 + Rdot/Cstar)*(hB - Pf8) - R/Cstar*Pf8dot ...
         + R/Cstar*hH*(Pdot + iWe*Rdot/R^2 + Sdot) ...
         - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2) / ((1 - Rdot/Cstar)*R + ...
-        JdotA*hH/Cstar - 6*hH*ddintfnu*iDRe/Cstar);
+        JdotA*hH/Cstar + 6*hH*R*ddintfnu*iDRe/Cstar);
     
     % Gilmore equation with Tait EoS
 elseif radial == 4
@@ -40,24 +44,25 @@ elseif radial == 4
     Rddot = ((1 + Rdot/C)*(hB - Pf8) - R/C*Pf8dot ...
         + R/C*hH*(Pdot + iWe*Rdot/R^2 + Sdot) ...
         - 1.5*(1 - Rdot/(3*C))*Rdot^2) / ((1 - Rdot/C)*R + ...
-        JdotA*hH/C - 6*hH*ddintfnu*iDRe/C);
+        JdotA*hH/C + 6*hH*R*ddintfnu*iDRe/C);
     
     % Keller-Miksis in enthalpy with Mie-Gruneisen EoS
 elseif radial == 5
-    Pb = P - iWe/R;
+    Pb = P - iWe/R + S;
     [~, hB, hH] = f_mie_gruneisen_eos_scalar(Pb);
     Rddot = ((1 + Rdot/Cstar)*(hB - Pf8) - R/Cstar*Pf8dot ...
         + R/Cstar*hH*(Pdot + iWe*Rdot/R^2 + Sdot) ...
         - 1.5*(1 - Rdot/(3*Cstar))*Rdot^2) / ((1 - Rdot/Cstar)*R + ...
-        JdotA*hH/Cstar - 6*hH*ddintfnu*iDRe/Cstar);
+        JdotA*hH/Cstar + 6*hH*R*ddintfnu*iDRe/Cstar);
     
     % Gilmore with Mie-Gruneisen EoS
 elseif radial == 6
-    [C, hB, hH] = f_mie_gruneisen_eos_scalar(P);
+    Pb = P - iWe/R + S;
+    [C, hB, hH] = f_mie_gruneisen_eos_scalar(Pb);
     Rddot = ((1 + Rdot/C)*(hB - Pf8) - R/C*Pf8dot ...
         + R/C*hH*(Pdot + iWe*Rdot/R^2 + Sdot) ...
         - 1.5*(1 - Rdot/(3*C))*Rdot^2) / ((1 - Rdot/C)*R + ...
-        JdotA*hH/C - 6*hH*ddintfnu*iDRe/C);
+        JdotA*hH/C + 6*hH*R*ddintfnu*iDRe/C);
     
 end
 
@@ -76,8 +81,10 @@ function [C, hB, hH] = f_mie_gruneisen_eos_scalar(pval)
     % discriminant calculation
     d = b^2 - 4*a*A;
     
-    %  density strain
-    mu = (-b + sqrt(d)) / (2 * a);
+    % density strain, small (physical) root in numerically stable form:
+    % mu -> A as A -> 0, i.e. drho/rho ~ p/(rho*c^2). The other root is the
+    % spurious -1/nog branch since a < 0 near ambient
+    mu = 2*A / (-b + sqrt(d));
     C = Cstar*sqrt(((1+2*nog*mu)*(1-hugoniot_s*mu)^2+ ...
         2*hugoniot_s*mu*(1+nog*mu)*(1-hugoniot_s*mu))/(1-hugoniot_s*mu)^4);
     
@@ -98,7 +105,7 @@ function rho = f_mie_rho_from_p_scalar(p)
     b = -2*A*hugoniot_s - 1;
     
     d = b.^2 - 4.*a.*A;
-    rho = 1 ./ (1 + (-b + sqrt(d))./(2*a));
+    rho = 1 ./ (1 + 2.*A ./ (-b + sqrt(d)));
 end
 
 end

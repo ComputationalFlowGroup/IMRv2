@@ -25,7 +25,7 @@
    - Iterates over all combinations.
    - Builds `varin` parameters.
    - Loads reference `Rm` from test files.
-   - Executes `m_imr_fd(...,'Nt',30,'Mt',70)`, computes L2 error.
+   - Executes `f_imr_fd(...,'Nt',30,'Mt',70)`, computes L2 error.
    - Records failures above `threshold`.
 
 5. **Summary**
@@ -37,7 +37,7 @@
 | Name            | Description                          |
 |-----------------|--------------------------------------|
 | `file_ids.mat`  | Test case identifiers                |
-| `m_imr_fd`      | Finite difference solver function    |
+| `f_imr_fd`      | Finite difference solver function    |
 
 ## Outputs
 

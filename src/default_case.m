@@ -37,6 +37,14 @@ Nv              = 150;
 Lv              = 3;
 % characteristic length for grid stretching, leave at 3
 Lt              = 2;
+% relative tolerance of the time integrator
+rtol            = 1e-8;
+% absolute tolerance of the time integrator
+atol            = 1e-8;
+% Jacobian for the stiff integrators (finite difference solver only)
+% 0 : dense numerical, 1 : sparsity pattern, 2 : analytic (falls back to
+% the sparsity pattern for configurations it does not cover)
+jacobian        = 2;
 
 % initial conditions
 
@@ -52,7 +60,8 @@ Req             = R0/5;
 
 % output result in dimensional variables
 dimensionalout  = 0;
-% display progress while code running
+% display progress while code running; note this prints on every
+% right-hand-side evaluation and adds noticeable wall-clock time
 progdisplay     = 0;
 
 % acoustic options

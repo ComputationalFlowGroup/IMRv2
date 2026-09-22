@@ -10,7 +10,7 @@ These defaults are used when no custom case file is specified.
    - `radial`, `bubtherm`, `medtherm`, `stress`, `eps3`, `vapor`, `masstrans`
 
 2. **Solver Options**:  
-   - `TFin`, `TVector`, `method`, `spectral`, `divisions`, `Nt`, `Mt`, `Nv`, `Lv`, `Lt`
+   - `TFin`, `TVector`, `method`, `spectral`, `divisions`, `Nt`, `Mt`, `Nv`, `Lv`, `Lt`, `rtol`, `atol`, `jacobian`
 
 3. **Initial Conditions**:  
    - `collapse`, `R0`, `U0`, `Req`
@@ -43,7 +43,7 @@ These defaults are used when no custom case file is specified.
 
 | Name            | Description                                                                                       | Units         | Default / Calculation        |
 |-----------------|---------------------------------------------------------------------------------------------------|---------------|------------------------------|
-| `radial`        | Select radial model: 1=Rayleigh–Plesset, 2=Keller–Miksis (pressure form), 3=Keller–Miksis (enthalpy), 4=Gilmore | –             | 1                            |
+| `radial`        | Select radial model: 1=Rayleigh–Plesset, 2=Keller–Miksis (pressure form), 3=Keller–Miksis (enthalpy), 4=Gilmore, 5=Keller–Miksis (Mie–Grüneisen), 6=Gilmore (Mie–Grüneisen) | –             | 1                            |
 | `bubtherm`      | Bubble thermal model: 0=off, 1=on                                                                  | –             | 0                            |
 | `medtherm`      | Medium thermal model: 0=off, 1=on                                                                  | –             | 0                            |
 | `stress`        | Constitutive model: 0=none, 1=NHKV, 2=quad. KV NH, 3=Maxwell/Jeffreys/Zener, 4=PTT, 5=Giesekus      | –             | 0                            |
@@ -60,12 +60,15 @@ These defaults are used when no custom case file is specified.
 | `Nv`            | Number of points outside bubble (stress PDE)                                                       | –             | 150                          |
 | `Lv`            | Grid stretching factor (velocity domain)                                                           | –             | 3                            |
 | `Lt`            | Grid stretching factor (thermal domain)                                                            | –             | 2                            |
+| `rtol`          | Relative tolerance of the time integrator (option `reltol`)                                        | –             | 1e-8                         |
+| `atol`          | Absolute tolerance of the time integrator (option `abstol`)                                        | –             | 1e-8                         |
+| `jacobian`      | Stiff-integrator Jacobian (FD solver): 0=dense numerical, 1=sparsity pattern, 2=analytic           | –             | 2                            |
 | `collapse`      | Special collapse IC: 0=off, 1=on                                                                   | –             | 0                            |
 | `R0`            | Initial bubble radius                                                                              | m             | 50e-6                        |
 | `U0`            | Initial wall velocity                                                                              | m/s           | 0                            |
 | `Req`           | Equilibrium radius (pre-stress bubble)                                                             | m             | R0/5                         |
 | `dimensionalout`| Return outputs in physical units: 0=non-dim, 1=dim                                                   | –             | 0                            |
-| `progdisplay`   | Display progress: 0=off, 1=on                                                                      | –             | 0                            |
+| `progdisplay`   | Display progress: 0=off, 1=on (prints every RHS call; slows runs)                                                                      | –             | 0                            |
 | `rho8`          | Far-field density                                                                                  | kg/m³         | 1064                         |
 | `GAM`           | Mie–Grüneisen parameter (Pa)                                                                        | Pa            | 3049.13×1e5                  |
 | `nstate`        | EOS exponent                                                                                       | –             | 7.15                         |
@@ -77,7 +80,7 @@ These defaults are used when no custom case file is specified.
 | `TW`            | Gaussian pulse width                                                                               | s             | 0                            |
 | `DT`            | Pulse delay                                                                                        | s             | 0                            |
 | `mn`            | Waveform power exponent                                                                            | –             | 0                            |
-| `wave_type`     | Waveform type: 0=impulse,1=Gaussian,2=histotripsy,3=heaviside                                       | –             | 0                            |
+| `wave_type`     | Waveform type: -1/-2/-3=measured (d_hn/d_mn/d_ml),0=impulse,1=Gaussian,2=histotripsy,3=heaviside                                       | –             | 0                            |
 | `S`             | Surface tension                                                                                     | N/m           | 0.072                        |
 | `G`             | Shear modulus                                                                                      | Pa            | 1e3                          |
 | `lambda1`       | Relaxation time                                                                                    | s             | 1e-7                         |
@@ -102,7 +105,7 @@ These defaults are used when no custom case file is specified.
 | `v_a`           | Viscosity power factor 1                                                                           | –             | 0                            |
 | `v_nc`          | Viscosity power factor 2                                                                           | –             | 0                            |
 | `v_lambda`      | Viscosity time scale                                                                               | s             | 0                            |
-| `nu_model`      | Viscosity model type                                                                               | 0=Newtonian...7=modified Cross | 0             |
+| `nu_model`      | Viscosity model type                                                                               | 0=Newtonian,1=Carreau,2=Carreau–Yasuda (3–7 not yet implemented) | 0             |
 | `Pv`            | Vapor pressure from `f_pvsat(T8)`                                                                  | Pa            | computed                     |
 | `P0`            | Initial internal bubble pressure                                                                   | Pa            | (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^3 |
 

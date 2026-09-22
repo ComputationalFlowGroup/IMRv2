@@ -1,5 +1,5 @@
-% file f_initial_stress_calc.m
-% brief contains function f_initial_stress_calc
+% file f_init_stress.m
+% brief contains function f_init_stress
 
 % brief This function computes the stress value at the bubble maximum
 % radius by using shooting method to determine the initial stress. The
@@ -11,18 +11,35 @@ function [S0] = f_init_stress(Req, Re, Ca, De, We, CL, Pv_star)
     tspan = [0, tf_nd];
     opts = odeset('RelTol',1e-6,'AbsTol',1e-6);
     X0 = [Req, Rdotic, 0];
-    [~,X] = ode23tb(@(t,X) f_RP_bub_collapse_comp(X, Req, Re, Ca, De, We, CL),tspan, X0, opts);
-    [~,Imax] = max(abs(X(:,1)));
-    S0 = X(Imax,3);
+    % root-find the maximum radius with an integrator event on Rdot = 0
+    opts = odeset(opts,'Events',@(t,X) f_rmax_event(X));
+    [~,X,~,Xe,~] = ode23tb(@(t,X) f_RP_bub_collapse_comp(X, Req, Re, Ca, ...
+        De, We, CL), tspan, X0, opts);
+    % the first zero may not be the global maximum, and the trajectory
+    % itself is the fallback if no event fires
+    Xall = [Xe; X];
+    [~,Imax] = max(abs(Xall(:,1)));
+    S0 = Xall(Imax,3);
     
     function Rmax = f_maxwell_growth_iter(Rdoti, Req, Re, Ca, De, We, CL)
         X0 = [Req, Rdoti, 0];
         % final time
         tf_nd = 2;
         tspan = [0, tf_nd];
-        opts = odeset('RelTol',1e-6,'AbsTol',1e-6);
-        [~,X] = ode23tb(@(t,X) f_RP_bub_collapse_comp(X, Req, Re, Ca, De, We, CL),tspan, X0, opts);
-        [Rmax, ~] = max(abs(X(:,1)));
+        opts = odeset('RelTol',1e-6,'AbsTol',1e-6, ...
+            'Events',@(t,X) f_rmax_event(X));
+        [~,X,~,Xe,~] = ode23tb(@(t,X) f_RP_bub_collapse_comp(X, Req, Re, ...
+            Ca, De, We, CL), tspan, X0, opts);
+        Rmax = max(abs([Xe(:,1); X(:,1)]));
+    end
+    
+    % event locating the maximum radius, growth -> collapse crossing
+    function [value,isterminal,direction] = f_rmax_event(X)
+        % wall velocity
+        value = X(2);
+        % record and continue (first zero may not be global max)
+        isterminal = 0;
+        direction = -1;
     end
     
     % non-dimensional rayleigh plesset solver
@@ -41,7 +58,7 @@ function [S0] = f_init_stress(Req, Re, Ca, De, We, CL, Pv_star)
         if De == 0 || De == Inf
             S = (-0.5/Ca*(5-4*Req/R - (Req/R)^4) - 4*Rdot/(Re*R))*R^3;
             Sdot = (2*Rdot*((Req/R)^2 - (Req/R)^5)/Ca - 4/Re*Rdot^2/R^2)*R^3;
-            Rddot = ((1+Rdot/CL)*(Pb - 1 -1/(We*R) + S/z1^3) + R/CL*(Pbdot + 1/We*Rdot/R^2+ ...
+            Rddot = ((1+Rdot/CL)*(Pb - 1 -1/(We*R) + S/R^3) + R/CL*(Pbdot + 1/We*Rdot/R^2+ ...
                 (Sdot-3*Rdot*R^2*S/R^3)/R^3) ...
                 - 1.5*(1-Rdot/(3*CL))*Rdot^2)/((1-Rdot/CL)*R + 4/Re/CL);
         else % SLS or Maxwell

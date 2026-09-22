@@ -22,7 +22,7 @@ defaultread = true;
 for n = 1:2:nargin
     if strcmpi(varargin{n},'casefile') == 1
         cfname = varargin{n+1};
-        disp('Case file: Using given casefile',cfname);
+        fprintf('Case file: using %s\n', cfname);
         try
             run(cfname);
         catch
@@ -44,13 +44,12 @@ end
 % load inputs
 misscount = 0;
 p0set = 0;
-tempset = 0;
 dmset = 0;
 tflag = 0;
 visflag = 0;
 for n = 1:2:nargin
     if strcmpi(varargin{n},'p0') == 1
-        p0set = 0;
+        p0set = 1;
     end
     switch lower(varargin{n})
         % equation options
@@ -71,6 +70,9 @@ for n = 1:2:nargin
         case 'mt',          Mt = varargin{n+1};
         case 'lv',          Lv = varargin{n+1};
         case 'lt',          Lt = varargin{n+1};
+        case 'reltol',      rtol = varargin{n+1};
+        case 'abstol',      atol = varargin{n+1};
+        case 'jacobian',    jacobian = varargin{n+1};
         case 'tfin',        TFin = varargin{n+1};
         tflag = tflag + 1;
         case 'tvector',     TVector = varargin{n+1};
@@ -124,7 +126,6 @@ for n = 1:2:nargin
         
         % thermal options
         case 't8',          T8 = varargin{n+1};
-        tempset = 1;
         case 'kappa',       kappa = varargin{n+1};
         case 'atg',         ATg = varargin{n+1};
         case 'btg',         BTg = varargin{n+1};
@@ -144,19 +145,23 @@ for n = 1:2:nargin
         case 'pv',          Pv = varargin{n+1};
         case 'p0',          P0 = varargin{n+1};
         
+        % handled in the pre-scan; matched here only, so that it is
+        % counted once by the second (nondimensional) switch
+        case 'casefile'
+        
         otherwise,          misscount = misscount + 1;
         
     end
 end
 
-if tempset == 1
-    % recalculating the vapor pressure
-    Pv = vapor*f_pvsat(T8);
-    P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^(3);
-end
+% vapor pressure at the far-field temperature
+Pv = vapor*f_pvsat(T8);
+% initial gas pressure: this block is the single authoritative computation
+% of P0. A user-supplied 'p0' is kept as given. Otherwise P0 follows from
+% mechanical equilibrium at Req, compressed from Req to R0 polytropically
+% (exponent 3*kappa) for bubtherm = 0 and isothermally (exponent 3) for
+% bubtherm = 1, where the thermal PDE resolves the temperature.
 if p0set == 0
-    % need to add Pv_sat at room temp
-    Pv = vapor*f_pvsat(T8);
     if bubtherm == 0
         P0 = (P8 + 2*S/Req - Pv)*(Req/R0)^(3*kappa);
     else
@@ -170,23 +175,28 @@ end
 
 % loading waveform data
 if wave_type < 0
+    % waveform files live next to this function in src/
+    srcdir = fileparts(mfilename('fullpath'));
     if wave_type == -1
-        waveform_dir = './d_hn.mat';
+        waveform_dir = fullfile(srcdir,'d_hn.mat');
     elseif wave_type == -2
-        waveform_dir = './d_mn.mat';
+        waveform_dir = fullfile(srcdir,'d_mn.mat');
     elseif wave_type == -3
-        waveform_dir = './d_ml.mat';
+        waveform_dir = fullfile(srcdir,'d_ml.mat');
+    else
+        error('INPUT ERROR: wave_type must be an integer in -3..3');
     end
-    wave_poly = load(waveform_dir,'poly');
-    wave_dpoly = load(waveform_dir,'dpoly');
+    tmp = load(waveform_dir,'poly','dpoly');
+    wave_poly  = tmp.poly;
+    wave_dpoly = tmp.dpoly;
 else
     wave_poly = [];
     wave_dpoly = [];
 end
 
-check = isnumeric(radial);
-if check && radial > 7 || radial <= 0
-    error('INPUT ERROR: radial must be 1, 2, 3, or 4');
+check = 1-isnumeric(radial);
+if check || radial > 6 || radial <= 0
+    error('INPUT ERROR: radial must be an integer in 1..6');
 end
 check = 1-isnumeric(bubtherm);
 if check || bubtherm ~= 0 && bubtherm ~= 1
@@ -217,9 +227,22 @@ end
 if check && masstrans == 1 && vapor == 0
     error('INPUT ERROR: if masstrans is 1 you must have vapor be 1')
 end
+if masstrans == 1 && bubtherm == 0
+    error(['INPUT ERROR: masstrans = 1 requires bubtherm = 1 ' ...
+        '(isothermal vapor diffusion is not implemented)']);
+end
+if nu_model > 2
+    error(['INPUT ERROR: nu_model 3-7 are not yet implemented; ' ...
+        'supported: 0 (Newtonian), 1 (Carreau), 2 (Carreau-Yasuda)']);
+end
+if stress >= 3 && medtherm == 1 && spectral == 0
+    warning('IMR:dissipation', ['Medium heating for stress>=3 currently ' ...
+        'uses the Kelvin-Voigt closed form (inconsistent for ' ...
+        'history-dependent stress); see docs.']);
+end
 check = 1-isnumeric(wave_type);
-if check || wave_type > 5 || wave_type <= -3
-    error('INPUT ERROR: wavetype must be between -3 and 5');
+if check || wave_type > 3 || wave_type < -3
+    error('INPUT ERROR: wave_type must be an integer in -3..3');
 end
 if (tflag > 1)
     error('INPUT ERROR: Only tvector or tfin can be specified, not both');
@@ -229,7 +252,7 @@ if TVector == 0
 end
 check = 1-isnumeric(collapse);
 if check || collapse ~= 0 && collapse ~= 1
-    error('INPUT ERROR: vapor must be 0 or 1');
+    error('INPUT ERROR: collapse must be 0 or 1');
 end
 if collapse == 1 && (bubtherm ~= 1 || medtherm ~= 1 || masstrans ~= 1 || vapor ~= 1)
     error('INPUT ERROR: collapse must have full model with vapor');
@@ -312,7 +335,12 @@ We = Pref*R0/(2*S);
 % relaxation time
 v_lambda_star = v_lambda/t0;
 % Weissenberg number
-LAM     = lambda2/lambda1;
+if lambda1 > 0
+    LAM = lambda2/lambda1;
+else
+    % no relaxation time; LAM unused for stress <= 2
+    LAM = 0;
+end
 % Deborah number
 De      = lambda1*Uc/R0;
 % dimensionless initial conditions
@@ -390,8 +418,12 @@ if Ca == -1
     Ca = Inf;
 end
 
-if stress == 1 || stress == 2 || stress == 3 || stress == 4
+if stress == 1 || stress == 2
     JdotA = 4/Re8;
+elseif stress == 3 || stress == 4
+    % the stress integral carries -4*LAM/Re8*Rdot/R, so the Rddot
+    % coefficient moved to the Keller-Miksis denominator carries LAM too
+    JdotA = 4*LAM/Re8;
 elseif stress == 5 || stress == 6
     JdotA = 4*LAM/Re8;
 else
@@ -416,8 +448,8 @@ else
     zeNO = 1;
 end
 
-if (stress == 3 || stress == 4) && De == 0
-    error('INPUT ERROR: De can not equal zero for stress = 3 or 4');
+if (stress == 3 || stress == 4 || stress == 5) && De == 0
+    error('INPUT ERROR: De cannot equal zero for stress = 3, 4, or 5');
 end
 
 % inertial Rayleigh collapse out of equilibrium initial conditions
@@ -464,7 +496,7 @@ end
 % equation settings
 eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
 % solver options
-solve_opts = [method spectral divisions Nv Nt Mt Lv Lt];
+solve_opts = [method spectral divisions Nv Nt Mt Lv Lt rtol atol jacobian];
 % dimensionless initial conditions
 init_opts = [Rzero Rdotzero Pb_star P8 T8 Pv_star Req_zero alphax];
 % dimensionaless initial stress
@@ -479,7 +511,7 @@ out_opts = [dimensionalout progdisplay t0 R0 Uc];
 % acoustic parameters
 acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
-wave_opts = [om ee tw dt mn wave_type wave_poly wave_dpoly];
+wave_opts = {[om ee tw dt mn wave_type], wave_poly, wave_dpoly};
 % dimensionless viscoelastic
 sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe];
 % dimensionless thermal

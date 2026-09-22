@@ -1,9 +1,9 @@
-% file m_imr_spectral.m
-% brief contains module m_imr_spectral
+% file f_imr_spectral.m
+% brief contains function f_imr_spectral
 
-% brief This module features a Chebyshev spectral collocation solver of the
-% PDEs involving thermal transport and viscoelasticity to solve
-% Rayleigh-Plesset equations
+% brief This function features a Chebyshev spectral collocation solver of
+% the PDEs involving thermal transport and viscoelasticity coupled to the
+% radial (Rayleigh-Plesset family) dynamics
 function varargout = f_imr_spectral(varargin)
     
     % problem initialization
@@ -41,12 +41,14 @@ function varargout = f_imr_spectral(varargin)
     Mt              = solve_opts(6);
     Lv              = solve_opts(7);
     Lt              = solve_opts(8);
+    rtol            = solve_opts(9);
+    atol            = solve_opts(10);
     
     % dimensionless initial conditions
     Rzero           = init_opts(1);
     Uzero           = init_opts(2);
     Pb_star         = init_opts(3);
-    % P8              = init_opts(4);
+    P8              = init_opts(4);
     T8              = init_opts(5);
     Pv_star         = init_opts(6);
     Req             = init_opts(7);
@@ -75,21 +77,16 @@ function varargout = f_imr_spectral(varargin)
     hugoniot_s      = acos_opts(5);
     
     % dimensionless waveform parameters
-    om              = wave_opts(1);
-    ee              = wave_opts(2);
-    tw              = wave_opts(3);
-    dt              = wave_opts(4);
-    mn              = wave_opts(5);
-    wave_type       = wave_opts(6);
-    if wave_type < 0
-        wave_poly   = wave_opts(7);
-        wave_dpoly  = wave_opts(8);
-    else
-        wave_poly   = [];
-        wave_dpoly  = [];
-    end
+    om              = wave_opts{1}(1);
+    ee              = wave_opts{1}(2);
+    tw              = wave_opts{1}(3);
+    dt              = wave_opts{1}(4);
+    mn              = wave_opts{1}(5);
+    wave_type       = wave_opts{1}(6);
+    wave_poly       = wave_opts{2};
+    wave_dpoly      = wave_opts{3};
     
-    pvarargin = [om,ee,tw,dt,mn,wave_type,wave_poly,wave_dpoly];
+    pvarargin = {[om,ee,tw,dt,mn,wave_type], wave_poly, wave_dpoly};
     
     % dimensionless viscoelastic
     We              = sigma_opts(1);
@@ -141,6 +138,17 @@ function varargout = f_imr_spectral(varargin)
     zeros(Mt,Nt+1) mA(2:end,:);
     2*(0:Nt).^2 iota*(0:Mt).^2];
     Q = sparse(Q);
+    % thermal boundary condition system: only its first row varies in time,
+    % linearly through s = alpha_g*(T(1)-1)+1, so factor the reference
+    % matrix at s = 1 once and apply a Sherman-Morrison rank-one update
+    if bubtherm && medtherm
+        A0 = [ones(1,Nt+1), -ones(1,Mt+1); Q];
+        [LA0,UA0,PA0,QA0] = lu(sparse(A0));
+        e1 = [1; zeros(Nt+Mt+1,1)];
+        vrow = [zeros(1,Nt+1), ones(1,Mt+1)]';
+        w1 = QA0*(UA0\(LA0\(PA0*e1)));
+        vw1 = vrow'*w1;
+    end
     % [sCA,sCI,sCAd,~,~,~] = f_dcdmtx(Nv);
     % sCA = sCA(2:end,2:end) - 1;
     % sCI = sCI(2:end,2:end);
@@ -213,7 +221,7 @@ function varargout = f_imr_spectral(varargin)
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
     bubble = @SVBDODE;
-    [t,X] = f_odesolve(bubble, init, method, divisions, tspan);
+    [t,X] = f_odesolve(bubble, init, method, divisions, tspan, [], rtol, atol);
     
     % post processing
     
@@ -238,10 +246,7 @@ function varargout = f_imr_spectral(varargin)
     %     C = gC*e;
     % end
     
-    pA = zeros(size(t));
-    for n = 1:length(t)
-        pA(n) = f_pinfinity(t(n),pvarargin);
-    end
+    pA = f_pinfinity(t,pvarargin);
     
     % transform to real space
     if spectral == 1
@@ -264,7 +269,6 @@ function varargout = f_imr_spectral(varargin)
         % d = d*p0;
         % e = e*C0;
         % C = C*C0;
-        Rddot = Rddot*uc/tc;
         if spectral == 1
             % trr = trr*p0;
             % t00 = t00*p0;
@@ -298,7 +302,7 @@ function varargout = f_imr_spectral(varargin)
         
         % showing output
         if progdisplay
-            disp(t/tfin);
+            disp(t/tspan(end));
         end
         
         % extract standard inputs
@@ -363,13 +367,13 @@ function varargout = f_imr_spectral(varargin)
                 % surrounding temperature evolution equation
                 Tmdot = advection + diffusion + taugradu;
                 
-                % enforce boundary condition and solve A*x=b problem
+                % enforce boundary condition and solve A*x=b problem with
+                % the Sherman-Morrison update of the prefactored system
                 Tmdot(end) = 0;
-                qdot = [ones(1,Nt+1) -(alpha_g*(T(1)-1)+1)*ones(1,Mt+1); Q]...
-                    \[0;
-                thetadot(2:end);
-                Tmdot(2:end);
-                0];
+                s = alpha_g*(T(1)-1) + 1;
+                rhs = [0; thetadot(2:end); Tmdot(2:end); 0];
+                y0 = QA0*(UA0\(LA0\(PA0*rhs)));
+                qdot = y0 + w1*(((s-1)*(vrow'*y0)) / (1 - (s-1)*vw1));
             else
                 % cold-liquid approximation
                 % solve auxiliary temperature with boundary condition
@@ -490,53 +494,14 @@ function [A,B,D,E,C,F] = f_dcdmtxe(N)
     
 end
 
-% prestress integrals
+% prestress integrals, numeric quadrature; the (cos-1) zero at x = 1 tames
+% the (1-x)^-2 endpoint
 function cdd = f_preStressInt(L,N)
     
-    % integral precomputations
-    Lstr = ['L' num2str(L,18)];
-    Lstr = strrep(Lstr,'.','p');
-    if exist('d_stress_store.mat','file') ~= 0
-        load('d_stress_store.mat','store');
-        if isfield(store,Lstr) == 1
-            if size(store.(Lstr),2) >= N, Nstart = 0;
-            else
-                Nstart = size(store.(Lstr),2) + 1;
-                disp('Past integral precomputation not found in full, catching up ...');
-            end
-        else
-            Nstart = 1;
-            disp('Past integral precomputation not found, starting anew ...');
-        end
-    else
-        Nstart = 1;
-        store = struct;
-        disp('Past integral precomputation not found, starting anew ...');
-    end
-    if Nstart ~= 0 % begin extended precomputation
-        
-        store.(Lstr)(Nstart:N) = f_StressInt(L,N,Nstart);
-        save('stress_store.mat','store');
-        disp('Precomputation completed.');
-        
-    end
-    cdd = store.(Lstr)(1:N)';
-    
-end
-
-%
-function cdd = f_StressInt(L,N,varargin)
-    
-    if nargin == 2
-        k = 1;
-    else
-        k = varargin{1};
-    end
-    syms x;
-    cdd = zeros(N-k+1,1);
-    
-    for n = k:N
-        cdd(n-k+1) = subs(2*L*int((cos(n*acos(x))-1)/((L*(2/(1-x)-1)+1)*(1-x)^2),-1,1));
+    cdd = zeros(N,1);
+    for n = 1:N
+        g = @(x) (cos(n*acos(x))-1)./((L*(2./(1-x)-1)+1).*(1-x).^2);
+        cdd(n) = 2*L*integral(g,-1,1,'AbsTol',1e-12,'RelTol',1e-12);
     end
     
 end

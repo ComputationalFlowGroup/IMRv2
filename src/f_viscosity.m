@@ -33,16 +33,15 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
         % account for the Rddot term
         I2 = integral(@(r) sf_carreau_dd(r,nc,lambda,gammadot_num),R,Inf,...
             'RelTol',reltol,'AbsTol',abstol);
-        intf = gammadot_num*I1;
-        % note the additional h term is to account for the Leibniz
-        % integration rule correction
-        dintf = dgammadot*I2 - h;
-        % second term that is used for the denominator of the Rdot_dot
-        % calculation
-        ddintf = ddgammadot*I2;
+        % S_def = (6/DRe)*I1 enters f_stress as -6*intf*iDRe  =>  intf = -I1
+        intf = -I1;
+        % d/dt intf = -(dg/dt)*I2 + Leibniz boundary term h; dg/dt splits
+        % into the Rdot part (dintf) and the Rddot coefficient (ddintf)
+        dintf = -dgammadot*I2 + h;
+        ddintf = -ddgammadot*I2;
         % carreau_yasuda
     elseif nu_model == 2
-        f = sf_carreau_yasuda(nc,lambda,gammadot_R);
+        f = sf_carreau_yasuda(a,nc,lambda,gammadot_R);
         % calculating the Leibniz integration rule limit, see Appendix
         % of the manuscript
         h = f*gammadot_R*(Rdot/R);
@@ -57,13 +56,12 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
         % account for the Rddot term
         I2 = integral(@(r) sf_carreau_yasuda_dd(r,a,nc,lambda,gammadot_num),R,Inf,...
             'RelTol',reltol,'AbsTol',abstol);
-        intf = gammadot_num*I1;
-        % note the additional h term is to account for the Leibniz
-        % integration rule correction
-        dintf = dgammadot*I2 - h;
-        % second term that is used for the denominator of the Rdot_dot
-        % calculation
-        ddintf = ddgammadot*I2;
+        % S_def = (6/DRe)*I1 enters f_stress as -6*intf*iDRe  =>  intf = -I1
+        intf = -I1;
+        % d/dt intf = -(dg/dt)*I2 + Leibniz boundary term h; dg/dt splits
+        % into the Rdot part (dintf) and the Rddot coefficient (ddintf)
+        dintf = -dgammadot*I2 + h;
+        ddintf = -ddgammadot*I2;
         % powell_eyring
     elseif nu_model == 3
         f = sf_powell_eyring(nc,lambda,gammadot_R);
@@ -97,12 +95,13 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
         gammadot = gammadot_num./r.^3;
         % term inside the power, reduces computation
         pre_f = (1+(lambda).^2.*(gammadot).^2);
-        % regular f calculation
-        f = pre_f.^((nc-1)./2);
+        % regular f calculation; named fr since a nested-function variable
+        % f would be shared with, and overwrite, the parent's output f
+        fr = pre_f.^((nc-1)./2);
         % derivative of f with respect to gammadot only
         dfdgamma = ((nc-1)./2)*pre_f.^((nc-3)./2)*2*lambda^2.*gammadot;
         % collecting terms for integration
-        dintf = (1./r.^4).*(f+gammadot.*dfdgamma);
+        dintf = (1./r.^4).*(fr+gammadot.*dfdgamma);
     end
     
     function f = sf_carreau_yasuda(a,nc,lambda,gammadot_R)
@@ -120,12 +119,13 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
         gammadot = gammadot_num./r.^3;
         % term inside the power, reduces computation
         pre_f = (1+(lambda).^a.*(gammadot).^a);
-        % regular f calculation
-        f = pre_f.^((nc-1)./a);
+        % regular f calculation; named fr since a nested-function variable
+        % f would be shared with, and overwrite, the parent's output f
+        fr = pre_f.^((nc-1)./a);
         % derivative of f with respect to gammadot only
         dfdgamma = ((nc-1)./a)*pre_f.^((nc-3)./a)*a*lambda^a.*gammadot;
         % collecting terms for integration
-        dintf = (1./r.^4).*(f+gammadot.*dfdgamma);
+        dintf = (1./r.^4).*(fr+gammadot.*dfdgamma);
     end
     
     function f = sf_cross(a,lambda,gammadot_R)
