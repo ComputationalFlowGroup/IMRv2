@@ -58,7 +58,7 @@ for n = 1:2:nargin
         case 'eps3',        eps3 = varargin{n+1};
         case 'vapor',       vapor = varargin{n+1};
         case 'masstrans',   masstrans = varargin{n+1};
-
+        
         % solver options
         case 'method',      method = varargin{n+1};
         case 'spectral',    spectral = varargin{n+1};
@@ -75,7 +75,7 @@ for n = 1:2:nargin
         tfinset = 1;
         case 'tvector',     TVector = varargin{n+1};
         tvecset = 1;
-
+        
         % initial options
         case 'collapse',    collapse = varargin{n+1};
         case 'req',         Req = varargin{n+1};
@@ -83,16 +83,16 @@ for n = 1:2:nargin
         case 'p0star',      P0_star = varargin{n+1};
         p0set = 1;
         case 'stress0',     Szero = varargin{n+1};
-
+        
         % output options
         case 'progdisplay', progdisplay = varargin{n+1};
-
+        
         % acoustic options
         case 'cstar',       Cstar = varargin{n+1};
         case 'gama',        GAMa = varargin{n+1};
         case 'nstate',      nstate = varargin{n+1};
         case 'hugoniot_s',  hugoniot_s = varargin{n+1};
-
+        
         % pressure waveform options
         case 'ee',          ee = varargin{n+1};
         case 'om',          om = varargin{n+1};
@@ -100,7 +100,7 @@ for n = 1:2:nargin
         case 'dt',          dt = varargin{n+1};
         case 'mn',          mn = varargin{n+1};
         case 'wave_type',   wave_type = varargin{n+1};
-
+        
         % stress options
         case 'we',          We = varargin{n+1};
         case 're',          Re8 = varargin{n+1};
@@ -108,14 +108,14 @@ for n = 1:2:nargin
         case 'de',          De = varargin{n+1};
         case 'lam',         LAM = varargin{n+1};
         case 'alphax',      alphax = varargin{n+1};
-
+        
         % non-Newtonian viscosity options
         case 'dre',         DRe = varargin{n+1};
         case 'v_a',         v_a = varargin{n+1};
         case 'v_nc',        v_nc = varargin{n+1};
         case 'v_lambda',    v_lambda_star = varargin{n+1};
         case 'nu_model',    nu_model = varargin{n+1};
-
+        
         % thermal options
         case 'kappa',       kappa = varargin{n+1};
         case 'foh',         Foh = varargin{n+1};
@@ -126,22 +126,22 @@ for n = 1:2:nargin
         case 'beta_v',      beta_v = varargin{n+1};
         case 'chi',         chi = varargin{n+1};
         case 'kmstar',      Km_star = varargin{n+1};
-
+        
         % mass transfer options
         case 'fom',         Fom = varargin{n+1};
         case 'lheat',       L_heat_star = varargin{n+1};
         case 'rv',          Rv_star = varargin{n+1};
         case 'ra',          Ra_star = varargin{n+1};
-
+        
         % vapor pressure options
         case 'pv',          Pv_sat = varargin{n+1};
         case 'thetav',      thetav = varargin{n+1};
-
+        
         % handled in the pre-scan
         case 'casefile'
-
+        
         otherwise,          unknown{end+1} = varargin{n}; %#ok<AGROW>
-
+        
     end
 end
 if ~isempty(unknown)
@@ -207,8 +207,9 @@ Req_zero = Req;
 % dimensionless time
 tvector = TVector;
 
-% compatibility of the conditions and dimensionless numbers
-f_checkers(struct( ...
+% compatibility of the conditions and dimensionless numbers; settings
+% tied to the stress model (spectral, Nv, Ca) come back adjusted
+chk = f_checkers(struct( ...
     'radial',radial, 'bubtherm',bubtherm, 'medtherm',medtherm, ...
     'stress',stress, 'eps3',eps3, 'vapor',vapor, 'masstrans',masstrans, ...
     'collapse',collapse, 'method',method, 'spectral',spectral, ...
@@ -226,22 +227,11 @@ f_checkers(struct( ...
     'alpha_g',alpha_g, 'beta_g',beta_g, 'alpha_v',alpha_v, ...
     'beta_v',beta_v, 'chi',chi, 'Km_star',Km_star, 'Fom',Fom, ...
     'L_heat_star',L_heat_star, 'Rv_star',Rv_star, 'Ra_star',Ra_star));
+spectral = chk.spectral;
+Nv = chk.Nv;
+Ca = chk.Ca;
 
-% final setting adjustments
-
-% 1 : N-H, 2: qN-H, 3: linear Maxwell, Jeffreys, Zener, 5: UCM or OldB
-if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
-    spectral = 0;
-    if stress == 3 || stress == 4
-        Nv = 1;
-    else
-        Nv = 0;
-    end
-elseif stress == 5
-    Nv = (Nv - 1)*(spectral == 1) + 1;
-    % no elastic contribution for UCM and Oldroyd-B
-    Ca = Inf;
-end
+% derived stress-model quantities
 
 if stress == 1 || stress == 2
     JdotA = 4/Re8;

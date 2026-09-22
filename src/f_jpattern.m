@@ -3,30 +3,30 @@
 
 % brief This function builds a conservative Jacobian sparsity pattern for
 % the finite difference solver from its state-vector index bookkeeping.
-% State layout: [R; Rdot; P; theta(ith); Tm(itm); kv(ikv); Z(iz)]. The
+% State layout: [R, Rdot, P, theta(ith), Tm(itm), kv(ikv), Z(iz)]. The
 % pattern is a superset of the true Jacobian: the bubble pressure equation
 % and the wall boundary condition feed every field row, so all field rows
 % couple to (R, Rdot, P) and to the wall stencil columns, while the field
 % operators themselves are tridiagonal.
 function Sp = f_jpattern(n, ith, itm, ikv, iz)
-
+    
     % wall stencil columns: last three bubble points and first three
     % material points
     iwall = [ith(max(1,end-2):end), ikv(max(1,end-2):end), ...
         itm(1:min(3,end))];
     % columns every row may depend on
     icore = [1 2 3 iwall];
-
+    
     rows = [];
     cols = [];
-
+    
     % (R, Rdot, P) and stress rows depend on the core and the stress states
     for r = [1 2 3 iz]
         c = [icore iz];
         rows = [rows, r*ones(1,numel(c))]; %#ok<AGROW>
         cols = [cols, c]; %#ok<AGROW>
     end
-
+    
     % field rows: tridiagonal within each field and between the bubble
     % temperature and vapor concentration, plus the core columns
     [rt,ct] = f_band(ith, ith);
@@ -46,10 +46,10 @@ function Sp = f_jpattern(n, ith, itm, ikv, iz)
         rows = [rows, r*ones(1,numel(iz))]; %#ok<AGROW>
         cols = [cols, iz]; %#ok<AGROW>
     end
-
+    
     Sp = sparse(rows, cols, 1, n, n);
     Sp = spones(Sp);
-
+    
     % tridiagonal band between two equally-sized index blocks
     function [r,c] = f_band(ir, ic)
         r = [];
@@ -61,5 +61,5 @@ function Sp = f_jpattern(n, ith, itm, ikv, iz)
             c = [c, ic(idx+k)]; %#ok<AGROW>
         end
     end
-
+    
 end

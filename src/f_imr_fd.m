@@ -221,6 +221,11 @@ function varargout = f_imr_fd(varargin)
     
     theta_bw_guess = -0.0001;
     foptions = optimset('TolFun',1e-12);
+    % constants of the bubble-wall heat (and mass) flux balance
+    wallc = struct('grad_Tm',grad_Tm_coeff, 'grad_Tr',grad_Trans_coeff, ...
+        'grad_C',grad_C_coeff, 'alpha_g',alpha_g, 'alpha_v',alpha_v, ...
+        'C1',C1_pv, 'C2',C2_pv, 'Rvg',Rvg_ratio, 'Rva',Rva_diff, ...
+        'Rg',Rg_star);
     
     % solver start
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
@@ -228,8 +233,19 @@ function varargout = f_imr_fd(varargin)
     bubble = @SVBDODE;
     % Jacobian for the stiff integrators: analytic where implemented,
     % otherwise the sparsity pattern
-    if jacobian == 2 && bubtherm && ~masstrans
-        Sp = @f_jacobian;
+    if jacobian == 2 && bubtherm
+        jp = struct('ith',ibubtherm, 'itm',imedtherm, 'ikv',imass, ...
+            'iz',(4+Nt+Mt+Nc):numel(init), 'medtherm',medtherm, ...
+            'masstrans',masstrans, 'D1',dmatrix_Tkv, 'D2',ddmatrix_Tkv, ...
+            'Dm1',dmatrix_Tm, 'Dm2',ddmatrix_Tm, 'y',y, 'xi',xi, 'yT',yT, ...
+            'yT2',yT2, 'yT3',yT3, 'Lt',Lt, 'Foh',Foh, 'chi',chi, ...
+            'kappa',kappa, 'kapover',kapover, 'alpha_g',alpha_g, ...
+            'beta_g',beta_g, 'alpha_v',alpha_v, 'beta_v',beta_v, 'kv0',kv0, ...
+            'Fom',Fom, 'Rv',Rv_star, 'Rg',Rg_star, 'Rva',Rva_diff, ...
+            'Rvg',Rvg_ratio, 'C1_pv',C1_pv, 'C2_pv',C2_pv, 'wall',wallc, ...
+            'closure',@f_closure, 'taugradu',@f_taugradu, ...
+            'theta_bw',@f_theta_bw_of_X);
+        Sp = @(t,X) f_jacobian_fd(t,X,jp);
     elseif jacobian >= 1
         Sp = f_jpattern(numel(init), ibubtherm, imedtherm, imass, ...
             (4+Nt+Mt+Nc):numel(init));
@@ -310,14 +326,17 @@ function varargout = f_imr_fd(varargin)
             % temperature in the material
             Tm = X(imedtherm);
             % warm-started Newton on the transcendental wall balance
-            theta_bw = f_wall_theta_newton(theta_bw_guess);
+            theta_bw = f_wall_theta_newton([Tm(2), Tm(3), theta(end-1), ...
+                theta(end-2), kv(end), kv(end-1), kv(end-2), P], theta_bw_guess);
             theta_bw_guess = theta_bw;
             theta(end) = theta_bw;
         elseif medtherm
             % temperature in the material
             Tm = X(imedtherm);
             % closed-form wall temperature, no root finding
-            theta_bw = f_wall_theta_exact(Tm,theta);
+            theta_bw = f_wall_thermal_bc(grad_Tm_coeff(2:3)*Tm(2:3) + ...
+                grad_Trans_coeff(2:3)*theta(end-1:-1:end-2), ...
+                grad_Tm_coeff(1), grad_Trans_coeff(1), alpha_g);
             theta(end) = theta_bw;
         end
         
@@ -455,143 +474,6 @@ function varargout = f_imr_fd(varargin)
     end
     % end of solver
     
-    % analytic Jacobian of SVBDODE for bubtherm = 1, masstrans = 0. The
-    % thermal field blocks and the bubble pressure row are assembled in
-    % closed form from the finite difference operators. The radial and
-    % stress closure rows are chained through Pdot, and the partials of
-    % that low-dimensional closure (radial model, stress model, viscosity)
-    % are taken by central differences of the closure alone, which is far
-    % cheaper than differencing the full right-hand side.
-    function J = f_jacobian(t,X)
-        
-        nX = numel(X);
-        jR = X(1);
-        jRdot = X(2);
-        jP = X(3);
-        ith = ibubtherm;
-        iz = (4+Nt+Mt+Nc):nX;
-        nth = numel(ith);
-        
-        % effective bubble temperature (wall value set by the boundary
-        % condition) and its sensitivity E = d(theta_eff)/dX
-        jtheta = X(ith);
-        E = sparse(1:nth, ith, 1, nth, nX);
-        if medtherm
-            jTm = X(imedtherm);
-            [theta_bw, ~, dth_dK] = f_wall_theta_exact(jTm,jtheta);
-            jtheta(end) = theta_bw;
-            % last row: theta_bw depends on Tm(2:3), theta(end-1), theta(end-2)
-            E(nth,ith(end)) = 0;
-            E(nth,ith(end-1)) = dth_dK*grad_Trans_coeff(2);
-            E(nth,ith(end-2)) = dth_dK*grad_Trans_coeff(3);
-            E(nth,imedtherm(2)) = dth_dK*grad_Tm_coeff(2);
-            E(nth,imedtherm(3)) = dth_dK*grad_Tm_coeff(3);
-        end
-        
-        % bubble temperature field quantities
-        alpha_m = kv0*alpha_v + (1-kv0)*alpha_g;
-        sq = sqrt(1+2*alpha_m*jtheta);
-        jT = (alpha_m - 1 + sq)/alpha_m;
-        dT = 1./sq;
-        Ka = kv0*alpha_v + (1-kv0)*alpha_g;
-        Kb = kv0*beta_v + (1-kv0)*beta_g;
-        Kst = Ka*jT + Kb;
-        dth = dmatrix_Tkv*jtheta;
-        ddth = ddmatrix_Tkv*jtheta;
-        
-        % bubble pressure and its partials
-        cP = 3*chi*(kappa-1);
-        jPdot = cP*dth(end)/jR^2 - 3*kappa*jP*jRdot/jR;
-        Pdot_R = -2*cP*dth(end)/jR^3 + 3*kappa*jP*jRdot/jR^2;
-        Pdot_Rdot = -3*kappa*jP/jR;
-        Pdot_P = -3*kappa*jRdot/jR;
-        % d(Pdot)/dX, through theta_eff
-        Pdot_th = (cP/jR^2)*dmatrix_Tkv(end,:);
-        dPdot = Pdot_th*E;
-        dPdot(1) = dPdot(1) + Pdot_R;
-        dPdot(2) = dPdot(2) + Pdot_Rdot;
-        dPdot(3) = dPdot(3) + Pdot_P;
-        
-        % bubble temperature rows
-        cu = chi*(kappa-1)/kappa;
-        Uv = (cu*dth/jR - y*jR*jPdot/(3*kappa))/jP;
-        av = Uv - y*jRdot;
-        W = kapover*Kst.*jT/jP;
-        dW = kapover*(2*Ka*jT + Kb).*dT/jP;
-        dfc = chi*ddth/jR^2 + jPdot;
-        % coefficient of dPdot in each row
-        cPd = W + dth.*y/(3*kappa*jP);
-        % d(thetadot)/d(theta_eff), excluding the Pdot path
-        Jtt = -spdiags(av/jR + cu*dth/(jR^2*jP), 0, nth, nth)*dmatrix_Tkv ...
-            + spdiags(chi*W/jR^2, 0, nth, nth)*ddmatrix_Tkv ...
-            + spdiags(dfc.*dW, 0, nth, nth);
-        % direct partials with respect to R, Rdot, P
-        dUv_R = -cu*dth/(jR^2*jP) - y*jPdot/(3*kappa*jP);
-        th_R = -(dth/jR).*dUv_R + dth.*av/jR^2 - 2*chi*ddth.*W/jR^3;
-        th_Rdot = dth.*y/jR;
-        dUv_P = -cu*dth/(jR*jP^2) + y*jR*jPdot/(3*kappa*jP^2);
-        th_P = -(dth/jR).*dUv_P - dfc.*W/jP;
-        Jth = Jtt*E + cPd*dPdot;
-        Jth(:,1) = Jth(:,1) + th_R;
-        Jth(:,2) = Jth(:,2) + th_Rdot;
-        Jth(:,3) = Jth(:,3) + th_P;
-        % wall value held by the boundary condition
-        Jth(end,:) = 0;
-        
-        J = sparse(nX,nX);
-        J(1,2) = 1;
-        J(3,:) = dPdot;
-        J(ith,:) = Jth;
-        
-        % material temperature rows
-        if medtherm
-            ntm = numel(imedtherm);
-            jTm(1) = jT(end);
-            F = sparse(1:ntm, imedtherm, 1, ntm, nX);
-            F(1,:) = dT(end)*E(nth,:);
-            dTm = dmatrix_Tm*jTm;
-            ddTm = ddmatrix_Tm*jTm;
-            g1 = (1-yT3)./(2*yT2);
-            g2 = (xi+1)/(2*Lt) - 1./yT;
-            cA = (1+xi).^2/Lt;
-            Am = cA.*(jRdot*g1/jR + Foh*g2/jR^2);
-            Am_R = cA.*(-jRdot*g1/jR^2 - 2*Foh*g2/jR^3);
-            Am_Rdot = cA.*g1/jR;
-            Bm = Foh*(xi+1).^4/(4*Lt^2);
-            Jmm = spdiags(Am, 0, ntm, ntm)*dmatrix_Tm + ...
-                spdiags(Bm/jR^2, 0, ntm, ntm)*ddmatrix_Tm;
-            % dissipation partials by central differences
-            hR = eps^(1/3)*max(abs(jR),1);
-            hU = eps^(1/3)*max(abs(jRdot),1);
-            tg_R = (f_taugradu(jR+hR,jRdot,X) - f_taugradu(jR-hR,jRdot,X))/(2*hR);
-            tg_U = (f_taugradu(jR,jRdot+hU,X) - f_taugradu(jR,jRdot-hU,X))/(2*hU);
-            Jm = Jmm*F;
-            Jm(:,1) = Jm(:,1) + Am_R.*dTm - 2*Bm.*ddTm/jR^3 + tg_R;
-            Jm(:,2) = Jm(:,2) + Am_Rdot.*dTm + tg_U;
-            Jm([1 end],:) = 0;
-            J(imedtherm,:) = Jm;
-        end
-        
-        % radial and stress closure rows: g(R, Rdot, P, Pdot, Z)
-        v0 = [jR; jRdot; jP; jPdot; X(iz)];
-        nv = numel(v0);
-        G = zeros(1+numel(iz), nv);
-        for k = 1:nv
-            hk = eps^(1/3)*max(abs(v0(k)),1);
-            vp = v0;
-            vm = v0;
-            vp(k) = vp(k) + hk;
-            vm(k) = vm(k) - hk;
-            G(:,k) = (f_closure(t,vp,X) - f_closure(t,vm,X))/(2*hk);
-        end
-        % chain rule through Pdot
-        Jc = G(:,4)*dPdot;
-        Jc(:,1:3) = Jc(:,1:3) + G(:,1:3);
-        Jc(:,iz) = Jc(:,iz) + G(:,5:end);
-        J([2 iz],:) = Jc;
-        
-    end
-    
     % medium dissipation as a function of (R, Rdot)
     function tg = f_taugradu(Rv,Rdotv,X)
         fnu_loc = 0;
@@ -605,7 +487,7 @@ function varargout = f_imr_fd(varargin)
     end
     
     % radial acceleration and stress evolution as a function of
-    % v = [R; Rdot; P; Pdot; Z], mirroring SVBDODE
+    % v = [R, Rdot, P, Pdot, Z], mirroring SVBDODE
     function out = f_closure(t,v,X)
         Rv = v(1);
         Rdotv = v(2);
@@ -624,7 +506,7 @@ function varargout = f_imr_fd(varargin)
         Rddot_loc = f_radial_eq(radial, v(3), v(4), Pf8_loc, Pf8dot_loc, ...
             iWe, Rv, Rdotv, S_loc, Sdot_loc, Cstar, sam, no, GAMa, nstate, ...
             nog, hugoniot_s, JdotA, ddintf_loc, iDRe);
-        out = [Rddot_loc; Z1dot_loc; Z2dot_loc];
+        out = vertcat(Rddot_loc, Z1dot_loc, Z2dot_loc);
     end
     
     % solver functions
@@ -641,63 +523,16 @@ function varargout = f_imr_fd(varargin)
         kv_w = 1./(1+theta_var);
     end
     
-    % temperature boundary conditions at the bubble wall, full; the
-    % optional second output is the derivative with respect to theta_bw
-    function [theta_w, dtheta_w] = f_bubble_wall_full_bc(theta_bw)
-        
-        Tm_trans = Tm(2:3);
-        T_trans = theta(end-1:-1:end-2);
-        alpha_m  = kv(end)*alpha_v + (1-kv(end))*alpha_g;
-        
-        u_w = sqrt(1+2*theta_bw*alpha_m);
-        Tw_prelim = (alpha_m - 1 + u_w)/alpha_m;
-        Pv_prelim = C1_pv*exp(C2_pv/Tw_prelim);
-        demCw = (1 + Rvg_ratio*(P/Pv_prelim - 1));
-        kvw_prelim = 1 / demCw;
-        
-        kv_trans = kv(end-1:-1:end-2);
-        Mw = kvw_prelim * Rva_diff + Rg_star;
-        Nw = Tw_prelim * (1 - kvw_prelim);
-        Gw = P / (Mw * Nw);
-        Hw = grad_C_coeff * [kvw_prelim; kv_trans];
-        theta_w = grad_Tm_coeff * [Tw_prelim; Tm_trans]  + ...
-            grad_Trans_coeff * [theta_bw ;T_trans] + Gw * Hw;
-        
-        if nargout > 1
-            dTw = 1/u_w;
-            dPv = -Pv_prelim*C2_pv/Tw_prelim^2*dTw;
-            dkvw = Rvg_ratio*P/(Pv_prelim*demCw)^2*dPv;
-            dNw = dTw*(1 - kvw_prelim) - Tw_prelim*dkvw;
-            dGw = -Gw*(Rva_diff*dkvw/Mw + dNw/Nw);
-            dtheta_w = grad_Tm_coeff(1)*dTw + grad_Trans_coeff(1) + ...
-                dGw*Hw + Gw*grad_C_coeff(1)*dkvw;
-        end
-        
-    end
-    
-    % temperature boundary condition at the bubble wall, thermal only. The
-    % flux balance c1*Tw + c2*theta_w + K = 0 with Tw = (ag-1+u)/ag and
-    % theta_w = (u^2-1)/(2*ag), u = sqrt(1+2*ag*theta_w), is quadratic in u:
-    % c2*u^2 + 2*c1*u + q = 0. The positive root (u = 1 at equilibrium) is
-    % taken in cancellation-free form. dtheta_dK is d(theta_w)/dK.
-    function [theta_w, u, dtheta_dK] = f_wall_theta_exact(Tm_in,theta_in)
-        c1 = grad_Tm_coeff(1);
-        c2 = grad_Trans_coeff(1);
-        K  = grad_Tm_coeff(2:3)*Tm_in(2:3) + ...
-            grad_Trans_coeff(2:3)*theta_in(end-1:-1:end-2);
-        q  = 2*c1*(alpha_g - 1) - c2 + 2*alpha_g*K;
-        u  = -q/(c1 + sqrt(c1^2 - c2*q));
-        theta_w = (u^2 - 1)/(2*alpha_g);
-        dtheta_dK = -u/(c2*u + c1);
-    end
-    
     % warm-started Newton iteration on the full (thermal and mass transfer)
-    % wall balance, with fzero as the fallback if it does not converge
-    function theta_bw = f_wall_theta_newton(theta_bw)
+    % wall balance, with fzero as the fallback if it does not converge;
+    % vrest = [Tm(2), Tm(3), theta(end-1), theta(end-2), kv(end),
+    % kv(end-1), kv(end-2), P]
+    function theta_bw = f_wall_theta_newton(vrest, theta_bw)
+        theta_start = theta_bw;
         converged = false;
         for iter = 1:10
-            [res,dres] = f_bubble_wall_full_bc(theta_bw);
-            step = res/dres;
+            [res,dres] = f_wall_mass_bc([theta_bw, vrest], wallc);
+            step = res/dres(1);
             theta_bw = theta_bw - step;
             if ~isfinite(theta_bw)
                 break;
@@ -708,8 +543,19 @@ function varargout = f_imr_fd(varargin)
             end
         end
         if ~converged
-            theta_bw = fzero(@f_bubble_wall_full_bc,theta_bw_guess,foptions);
+            theta_bw = fzero(@(x) f_wall_mass_bc([x, vrest], wallc), ...
+                theta_start, foptions);
         end
+    end
+    
+    % bubble-wall theta at the state X (mass transfer), for the Jacobian
+    function theta_bw = f_theta_bw_of_X(X)
+        th_X = X(ibubtherm);
+        Tm_X = X(imedtherm);
+        kv_X = X(imass);
+        theta_bw = f_wall_theta_newton([Tm_X(2), Tm_X(3), th_X(end-1), ...
+            th_X(end-2), kv_X(end), kv_X(end-1), kv_X(end-2), X(3)], ...
+            theta_bw_guess);
     end
     
     % finite difference matrices, second-order central in the interior and
@@ -736,8 +582,8 @@ function varargout = f_imr_fd(varargin)
         sup = zeros(nodes,1);
         
         if order == 1
-            sup([false; interior(1:end-1)]) = 0.5;
-            sub([interior(2:end); false]) = -0.5;
+            sup(vertcat(false, interior(1:end-1))) = 0.5;
+            sub(vertcat(interior(2:end), false)) = -0.5;
             dmatrix = spdiags([sub dia sup], -1:1, nodes, nodes);
             if Tm_check == 0
                 dmatrix(end,end-2:end) = [0.5 -2 1.5];
@@ -755,9 +601,9 @@ function varargout = f_imr_fd(varargin)
                 dia(1) = -6;
                 sup(2) = 6;
             else
-                sup([false; interior(1:end-1)]) = 1;
+                sup(vertcat(false, interior(1:end-1))) = 1;
                 dia(interior) = -2;
-                sub([interior(2:end); false]) = 1;
+                sub(vertcat(interior(2:end), false)) = 1;
             end
             dmatrix = spdiags([sub dia sup], -1:1, nodes, nodes);
             dmatrix = dmatrix / (deltaY^2);

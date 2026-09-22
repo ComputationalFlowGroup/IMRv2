@@ -8,9 +8,15 @@
 % Jacobian function handle, and the relative and absolute tolerances.
 function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, Sp, rtol, atol)
     
-    if nargin < 6, Sp   = [];   end
-    if nargin < 7, rtol = 1e-8; end
-    if nargin < 8, atol = 1e-8; end
+    if nargin < 6
+        Sp   = [];
+    end
+    if nargin < 7
+        rtol = 1e-8;
+    end
+    if nargin < 8
+        atol = 1e-8;
+    end
     
     if divisions == 0
         options = odeset('RelTol',rtol,'AbsTol',atol);

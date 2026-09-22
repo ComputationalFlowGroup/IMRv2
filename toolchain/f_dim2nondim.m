@@ -31,11 +31,11 @@
 %   ref     reference scales: R0 (m), Uc (m/s), t0 (s), P8 (Pa), T8 (K),
 %           rho8 (kg/m^3), to restore dimensions of the solver outputs
 function [varin, ref] = f_dim2nondim(varargin)
-
+    
     if mod(nargin,2) == 1
         error('f_dim2nondim: unmatched inputs');
     end
-
+    
     % dimensional defaults (SI)
     R0 = 50e-6;
     Req = [];
@@ -74,7 +74,7 @@ function [varin, ref] = f_dim2nondim(varargin)
     omega = 0;
     TW = 0;
     DT = 0;
-
+    
     % read the dimensional inputs, pass everything else through
     passthrough = {};
     for n = 1:2:nargin
@@ -116,24 +116,34 @@ function [varin, ref] = f_dim2nondim(varargin)
             case 'tw',          TW = val;
             case 'dt',          DT = val;
             otherwise
-                passthrough = [passthrough, varargin(n:n+1)]; %#ok<AGROW>
+            passthrough = [passthrough, varargin(n:n+1)]; %#ok<AGROW>
         end
     end
-
+    
     % dependent defaults
-    if isempty(Req), Req = R0/5; end
-    if isempty(muo), muo = mu8; end
-    if isempty(Dmu), Dmu = muo - mu8; end
-    if isempty(Dm), Dm = Km/(rho8*Cp); end
+    if isempty(Req)
+        Req = R0/5;
+    end
+    if isempty(muo)
+        muo = mu8;
+    end
+    if isempty(Dmu)
+        Dmu = muo - mu8;
+    end
+    if isempty(Dm)
+        Dm = Km/(rho8*Cp);
+    end
     [Pvsat, ~, pv_c2] = f_pvsat(T8);
-    if isempty(Pv), Pv = Pvsat; end
-
+    if isempty(Pv)
+        Pv = Pvsat;
+    end
+    
     % reference scales
     Uc = sqrt(P8/rho8);
     t0 = R0/Uc;
     Rnondim = P8/(rho8*T8);
     K8 = 0.5*(ATg*T8 + BTg + ATv*T8 + BTv);
-
+    
     % dimensionless numbers
     if Dmu ~= 0
         DRe = P8*R0/(Dmu*Uc);
@@ -145,7 +155,7 @@ function [varin, ref] = f_dim2nondim(varargin)
     else
         LAM = 0;
     end
-
+    
     varin = { ...
         'req',      Req/R0, ...
         'rdotzero', U0/Uc, ...
@@ -186,7 +196,7 @@ function [varin, ref] = f_dim2nondim(varargin)
         varin = [varin, {'tfin', TFin/t0}];
     end
     varin = [varin, passthrough];
-
+    
     ref = struct('R0',R0,'Uc',Uc,'t0',t0,'P8',P8,'T8',T8,'rho8',rho8);
-
+    
 end

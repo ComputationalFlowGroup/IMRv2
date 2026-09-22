@@ -136,9 +136,9 @@ function varargout = f_imr_spectral(varargin)
     % linearly through s = alpha_g*(T(1)-1)+1, so factor the reference
     % matrix at s = 1 once and apply a Sherman-Morrison rank-one update
     if bubtherm && medtherm
-        A0 = [ones(1,Nt+1), -ones(1,Mt+1); Q];
+        A0 = vertcat([ones(1,Nt+1), -ones(1,Mt+1)], Q);
         [LA0,UA0,PA0,QA0] = lu(sparse(A0));
-        e1 = [1; zeros(Nt+Mt+1,1)];
+        e1 = vertcat(1, zeros(Nt+Mt+1,1));
         vrow = [zeros(1,Nt+1), ones(1,Mt+1)]';
         w1 = QA0*(UA0\(LA0\(PA0*e1)));
         vw1 = vrow'*w1;
@@ -342,7 +342,7 @@ function varargout = f_imr_spectral(varargin)
                 % the Sherman-Morrison update of the prefactored system
                 Tmdot(end) = 0;
                 s = alpha_g*(T(1)-1) + 1;
-                rhs = [0; thetadot(2:end); Tmdot(2:end); 0];
+                rhs = vertcat(0, thetadot(2:end), Tmdot(2:end), 0);
                 y0 = QA0*(UA0\(LA0\(PA0*rhs)));
                 qdot = y0 + w1*(((s-1)*(vrow'*y0)) / (1 - (s-1)*vw1));
             else

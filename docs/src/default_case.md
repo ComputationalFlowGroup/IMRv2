@@ -84,7 +84,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `dre` | `DRe` | `P8*R0/((mu0-mu8)*Uc)`, 0 for no non-Newtonian contribution | 0 |
 | `v_a`, `v_nc` | `v_a`, `v_nc` | Carreau(-Yasuda) exponents | 0, 0 |
 | `v_lambda` | `v_lambda_star` | Viscosity time scale `v_lambda/t0` | 0 |
-| `nu_model` | `nu_model` | 0 Newtonian, 1 Carreau, 2 Carreau–Yasuda | 0 |
+| `nu_model` | `nu_model` | 0 Newtonian, 1 Carreau, 2 Carreau–Yasuda, 3 Powell–Eyring, 4 modified Powell–Eyring, 5 Cross, 6 simplified Cross, 7 modified Cross (see `f_viscosity`) | 0 |
 
 ### Thermal transport
 | Input | Variable | Definition | Default |

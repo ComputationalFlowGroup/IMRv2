@@ -6,48 +6,50 @@
 % f_call_params with a struct p holding every setting and dimensionless
 % number. Incompatible or out-of-range inputs raise an error; inputs that
 % are valid but suspicious (e.g. values that look dimensional) raise a
-% warning.
-function f_checkers(p)
-
-% model flags and options
-
-f_integer_in(p.radial, 1:6, 'radial', ['1 (RP), 2 (K-M pressure), ' ...
-    '3 (K-M enthalpy, Tait), 4 (Gilmore, Tait), 5 (K-M, Mie-Gruneisen), ' ...
-    '6 (Gilmore, Mie-Gruneisen)']);
-f_integer_in(p.bubtherm, 0:1, 'bubtherm', '0 or 1');
-f_integer_in(p.medtherm, 0:1, 'medtherm', '0 or 1');
-f_integer_in(p.stress, 0:5, 'stress', 'an integer in 0..5');
-f_integer_in(p.vapor, 0:1, 'vapor', '0 or 1');
-f_integer_in(p.masstrans, 0:1, 'masstrans', '0 or 1');
-f_integer_in(p.collapse, 0:1, 'collapse', '0 or 1');
-f_integer_in(p.nu_model, 0:2, 'nu_model', ['0 (Newtonian), 1 (Carreau), ' ...
-    'or 2 (Carreau-Yasuda); nu_model 3-7 are not yet implemented']);
-f_integer_in(p.wave_type, -3:3, 'wave_type', 'an integer in -3..3');
-f_integer_in(p.method, [15 23 45], 'method', '15 (ode15s), 23 (ode23tb), or 45 (ode45)');
-f_integer_in(p.spectral, 0:1, 'spectral', '0 or 1');
-f_integer_in(p.jacobian, 0:2, 'jacobian', '0, 1, or 2');
-f_integer_in(p.progdisplay, 0:1, 'progdisplay', '0 or 1');
-if ~(isnumeric(p.eps3) && isscalar(p.eps3) && p.eps3 >= 0 && p.eps3 <= 0.5)
-    error('INPUT ERROR: eps3 must be in [0, 0.5]');
-end
-
-% compatibility of the model conditions
-
-if p.medtherm == 1 && p.bubtherm == 0
-    error('INPUT ERROR: medtherm = 1 requires bubtherm = 1');
-end
-if p.masstrans == 1 && p.vapor == 0
-    error('INPUT ERROR: masstrans = 1 requires vapor = 1');
-end
-if p.masstrans == 1 && p.bubtherm == 0
-    error(['INPUT ERROR: masstrans = 1 requires bubtherm = 1 ' ...
-        '(isothermal vapor diffusion is not implemented)']);
-end
-if p.radial >= 5 && (p.bubtherm == 1 || p.medtherm == 1 || p.masstrans == 1)
-    error(['INPUT ERROR: the Mie-Gruneisen models (radial = 5, 6) support ' ...
-        'only the polytropic bubble; set bubtherm = medtherm = masstrans = 0']);
-end
-if p.collapse == 1 && (p.bubtherm ~= 1 || p.medtherm ~= 1 || ...
+% warning. Finally, the settings tied to the stress model (spectral, Nv,
+% Ca) are made consistent with it, and the adjusted struct is returned.
+function p = f_checkers(p)
+    
+    % model flags and options
+    
+    f_integer_in(p.radial, 1:6, 'radial', ['1 (RP), 2 (K-M pressure), ' ...
+        '3 (K-M enthalpy, Tait), 4 (Gilmore, Tait), 5 (K-M, Mie-Gruneisen), ' ...
+        '6 (Gilmore, Mie-Gruneisen)']);
+    f_integer_in(p.bubtherm, 0:1, 'bubtherm', '0 or 1');
+    f_integer_in(p.medtherm, 0:1, 'medtherm', '0 or 1');
+    f_integer_in(p.stress, 0:5, 'stress', 'an integer in 0..5');
+    f_integer_in(p.vapor, 0:1, 'vapor', '0 or 1');
+    f_integer_in(p.masstrans, 0:1, 'masstrans', '0 or 1');
+    f_integer_in(p.collapse, 0:1, 'collapse', '0 or 1');
+    f_integer_in(p.nu_model, 0:7, 'nu_model', ['0 (Newtonian), 1 (Carreau), ' ...
+        '2 (Carreau-Yasuda), 3 (Powell-Eyring), 4 (modified Powell-Eyring), ' ...
+        '5 (Cross), 6 (simplified Cross), or 7 (modified Cross)']);
+    f_integer_in(p.wave_type, -3:3, 'wave_type', 'an integer in -3..3');
+    f_integer_in(p.method, [15 23 45], 'method', '15 (ode15s), 23 (ode23tb), or 45 (ode45)');
+    f_integer_in(p.spectral, 0:1, 'spectral', '0 or 1');
+    f_integer_in(p.jacobian, 0:2, 'jacobian', '0, 1, or 2');
+    f_integer_in(p.progdisplay, 0:1, 'progdisplay', '0 or 1');
+    if ~(isnumeric(p.eps3) && isscalar(p.eps3) && p.eps3 >= 0 && p.eps3 <= 0.5)
+        error('INPUT ERROR: eps3 must be in [0, 0.5]');
+    end
+    
+    % compatibility of the model conditions
+    
+    if p.medtherm == 1 && p.bubtherm == 0
+        error('INPUT ERROR: medtherm = 1 requires bubtherm = 1');
+    end
+    if p.masstrans == 1 && p.vapor == 0
+        error('INPUT ERROR: masstrans = 1 requires vapor = 1');
+    end
+    if p.masstrans == 1 && p.bubtherm == 0
+        error(['INPUT ERROR: masstrans = 1 requires bubtherm = 1 ' ...
+            '(isothermal vapor diffusion is not implemented)']);
+    end
+    if p.radial >= 5 && (p.bubtherm == 1 || p.medtherm == 1 || p.masstrans == 1)
+        error(['INPUT ERROR: the Mie-Gruneisen models (radial = 5, 6) support ' ...
+            'only the polytropic bubble, set bubtherm = medtherm = masstrans = 0']);
+    end
+    if p.collapse == 1 && (p.bubtherm ~= 1 || p.medtherm ~= 1 || ...
         p.masstrans ~= 1 || p.vapor ~= 1)
     error('INPUT ERROR: collapse must have full model with vapor');
 end
@@ -57,7 +59,7 @@ end
 if p.stress >= 3 && p.medtherm == 1 && p.spectral == 0
     warning('IMR:dissipation', ['Medium heating for stress>=3 currently ' ...
         'uses the Kelvin-Voigt closed form (inconsistent for ' ...
-        'history-dependent stress); see docs.']);
+        'history-dependent stress), see docs.']);
 end
 
 % time span
@@ -123,8 +125,18 @@ if p.nu_model > 0
         warning('IMR:parameters', ['nu_model = %d with DRe = 0: the ' ...
             'non-Newtonian contribution is zero'], p.nu_model);
     end
-    if p.nu_model == 2 && ~(p.v_a > 0)
-        error('INPUT ERROR: nu_model = 2 (Carreau-Yasuda) requires v_a > 0');
+    if (p.nu_model == 2 || p.nu_model == 7) && ~(p.v_a > 0)
+        error('INPUT ERROR: nu_model = %d requires v_a > 0', p.nu_model);
+    end
+    if (p.nu_model == 5 || p.nu_model == 7) && ~(p.v_nc > 0)
+        error('INPUT ERROR: nu_model = %d requires v_nc > 0', p.nu_model);
+    end
+    if p.nu_model == 4 && p.v_nc > 1
+        error(['INPUT ERROR: nu_model = 4 (modified Powell-Eyring) requires ' ...
+            'v_nc <= 1, the zero-shear viscosity is unbounded otherwise']);
+    end
+    if p.nu_model == 4 && ~(p.v_lambda_star > 0)
+        error('INPUT ERROR: nu_model = 4 requires v_lambda > 0');
     end
 end
 
@@ -133,7 +145,7 @@ if p.vapor == 1
     f_nonnegative({'Pv'}, {p.Pv_sat});
     if p.Pv_star >= 1
         warning('IMR:parameters', ['Pv = %g is not below the far-field ' ...
-            'pressure; the liquid is boiling'], p.Pv_star);
+            'pressure, the liquid is boiling'], p.Pv_star);
     end
 end
 
@@ -178,6 +190,24 @@ elseif p.wave_type < 0
             'experimental waveform data [%g, %g]; the waveform is ' ...
             'extrapolated'], t(1), t(end), tb(1), tb(end));
     end
+end
+
+% settings consistent with the stress model
+
+if p.stress <= 4
+    % closed-form or single-mode stress models, no spectral stress
+    % representation
+    p.spectral = 0;
+    if p.stress == 3 || p.stress == 4
+        p.Nv = 1;
+    else
+        p.Nv = 0;
+    end
+else
+    % UCM and Oldroyd-B: Nv stress modes for the spectral representation,
+    % one otherwise, and no elastic contribution
+    p.Nv = (p.Nv - 1)*(p.spectral == 1) + 1;
+    p.Ca = Inf;
 end
 
 end
