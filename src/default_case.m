@@ -52,9 +52,9 @@ Lt              = 2;
 rtol            = 1e-8;
 % absolute tolerance of the time integrator
 atol            = 1e-8;
-% Jacobian for the stiff integrators (finite difference solver only)
-% 0 : dense numerical, 1 : sparsity pattern, 2 : analytic (falls back to
-% the sparsity pattern for configurations it does not cover)
+% Jacobian for the stiff integrators, both solvers
+% 0 : dense numerical, 1 : sparsity pattern (finite difference solver;
+% numerical in the spectral solver), 2 : analytic
 jacobian        = 2;
 
 % initial conditions

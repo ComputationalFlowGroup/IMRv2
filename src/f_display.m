@@ -14,7 +14,7 @@ elseif radial == 2
 elseif radial == 3
     eqn = 'Keller-Miksis enthalpy';
 elseif radial == 4
-    eqn = 'Keller-Miksis enthalpy';
+    eqn = 'Gilmore';
 elseif radial == 5
     eqn = 'Keller-Miksis in enthalpy with Mie-Gruneisen EoS';
 elseif radial == 6
@@ -59,7 +59,7 @@ elseif stress == 2
     else
         const = 'quadratic neo-Hookean Kelvin-Voigt';
     end
-elseif stress == 3 || stress == 4 || stress == 5
+elseif stress == 3 || stress == 4
     if Ca ~= Inf && LAM == 0
         const = 'linear Zener';
     elseif Ca == Inf && LAM == 0
@@ -69,18 +69,21 @@ elseif stress == 3 || stress == 4 || stress == 5
     else
         const = 'Kelvin-Voigt series';
     end
-elseif stress == 6
-    if Ca ~= Inf && LAM == 0
-        const = 'upper-convective Zener';
-    elseif Ca == Inf && LAM == 0
-        const = 'upper-convective Maxwell';
-    elseif Ca == Inf && LAM ~= 0
+    if stress == 4
+        const = [const ' (quadratic neo-Hookean)'];
+    end
+elseif stress == 5
+    if LAM == 0
+        const = 'upper-convected Maxwell';
+    else
         const = 'Oldroyd-B';
     end
-elseif stress == 7
-    const = 'Phan-Thien-Tanner';
-else
-    const = ['Giesekus(' num2str(eps3) ')'];
+    if spectral == 1
+        const = [const ' (spectral stress field)'];
+    end
+end
+if eps3 ~= 0
+    const = [const ', eps3 = ' num2str(eps3)];
 end
 
 if nu_model == 0

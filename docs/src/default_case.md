@@ -42,7 +42,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress | 25, 25, 150 |
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 |
-| `jacobian` | `jacobian` | Jacobian for the stiff integrators: 0 dense numerical, 1 sparsity pattern (FD solver), 2 analytic | 2 |
+| `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (FD solver; numerical in the spectral solver), 2 analytic | 2 |
 | `progdisplay` | `progdisplay` | Print progress (every right-hand-side call; slows runs) | 0 |
 
 ### Initial conditions
@@ -52,7 +52,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `req` | `Req` | `Req/R0` | 0.2 |
 | `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 |
 | `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed |
-| `stress0` | `Szero` | Initial stress state | computed |
+| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, one value for stress 3–4, `2*Nv` values for stress 5; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise) | computed |
 
 ### Acoustic options
 | Input | Variable | Definition | Default |

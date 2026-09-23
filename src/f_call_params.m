@@ -44,6 +44,7 @@ end
 % overrides defaults with the dimensionless inputs
 
 p0set = 0;
+stress0set = 0;
 tvecset = 0;
 tfinset = 0;
 wave_poly = [];
@@ -84,6 +85,7 @@ for n = 1:2:numel(varargin)
         case 'p0star',      P0_star = varargin{n+1};
         p0set = 1;
         case 'stress0',     Szero = varargin{n+1};
+        stress0set = 1;
         
         % output options
         case 'progdisplay', progdisplay = varargin{n+1};
@@ -244,12 +246,6 @@ else
     JdotA = 0;
 end
 
-if stress == 0 || stress == 1 || stress == 2 || stress == 3 || stress == 4
-    zeNO = 0;
-else
-    zeNO = 1;
-end
-
 % inertial Rayleigh collapse out of equilibrium initial conditions
 opts = optimset('display','off');
 if collapse
@@ -266,22 +262,29 @@ if collapse
     Rdotzero = 0;
 end
 
-% initial stress field for bubble collapse
+% initial stress state: none for stress 0-2, one state for stress 3-4,
+% and two states (Z1, Z2) or Nv Chebyshev coefficients of each of tau_rr
+% and tau_thetatheta (spectral stress representation) for stress 5
 if stress < 3
-    Szero = [];
+    nstress = 0;
 elseif stress == 3 || stress == 4
-    if collapse
-        if ~exist('Szero','var')
-            [Szero] = f_init_stress(Req_zero, Re8, Ca, De, We, Cstar, Pv_star);
-        end
-    else
-        Szero = 0;
+    nstress = 1;
+else
+    nstress = 2*Nv;
+end
+if stress0set
+    % a user-supplied 'stress0' is kept as given
+    Szero = Szero(:);
+    if numel(Szero) ~= nstress
+        error('INPUT ERROR: stress0 must have %d element(s) for stress = %d', ...
+            nstress, stress);
     end
-elseif stress == 5
+elseif (stress == 3 || stress == 4) && collapse
+    % stress at the maximum radius of the collapse
+    Szero = f_init_stress(Req_zero, Re8, Ca, De, We, Cstar, Pv_star);
+else
     % TODO initial max stress for UCM and Oldroyd-B
-    % two stress states (Z1, Z2), or Nv Chebyshev coefficients of each of
-    % tau_rr and tau_thetatheta with the spectral stress representation
-    Szero = zeros(2*Nv,1);
+    Szero = zeros(nstress,1);
 end
 
 % out parameters
@@ -306,7 +309,7 @@ acos_opts = [Cstar GAMa kappa nstate hugoniot_s];
 % dimensionless waveform parameters
 wave_opts = {[om ee tw dt mn wave_type], wave_poly, wave_dpoly};
 % dimensionless viscoelastic
-sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star zeNO iDRe];
+sigma_opts = [We Re8 DRe v_a v_nc Ca LAM De JdotA nu_model v_lambda_star iDRe];
 % dimensionless thermal
 thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionless mass transfer

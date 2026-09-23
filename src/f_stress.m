@@ -6,7 +6,7 @@
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
 % Jeffreys, linear Zener, UCM and Oldroyd-B
 function [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8,...
-    Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe)
+    Rdot,alphax,ivisco1,ivisco2,LAM,intfnu,dintfnu,iDRe)
 
 Z1dot = [];
 Z2dot = [];
@@ -71,11 +71,6 @@ elseif stress == 5
     % stress integral and derivative
     S = (Z1 + Z2)/R^3 - 4*LAM/Re8*Rdot/R;
     Sdot = (Z1dot+Z2dot)/R^3 - 3*Rdot/R^4*(Z1+Z2) + 4*LAM/Re8*Rdot^2/R^2;
-    
-elseif stress == -1
-    % this is to keep the code clean
-    % need to fix for spectral
-    Sdot = cdd*zeNO;
     
 else
     error('stress setting is not available');
