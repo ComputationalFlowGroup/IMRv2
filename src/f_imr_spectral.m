@@ -8,8 +8,8 @@ function varargout = f_imr_spectral(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
-        acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
-        = f_call_params(varargin{:});
+        acos_opts, wave_opts, sigma_opts, thermal_opts] ...
+        = f_call_params('spectral', varargin{:});
     
     % defaults
     
@@ -25,7 +25,6 @@ function varargout = f_imr_spectral(varargin)
     medtherm        = eqns_opts(3);
     stress          = eqns_opts(4);
     eps3            = eqns_opts(5);
-    masstrans       = eqns_opts(6);
     % if (stress == 4)
     %     ptt = 1;
     % else
@@ -43,6 +42,7 @@ function varargout = f_imr_spectral(varargin)
     Lt              = solve_opts(8);
     rtol            = solve_opts(9);
     atol            = solve_opts(10);
+    jacobian        = solve_opts(11);
     
     % dimensionless initial conditions
     Rzero           = init_opts(1);
@@ -108,26 +108,20 @@ function varargout = f_imr_spectral(varargin)
     chi             = thermal_opts(7);
     iota            = thermal_opts(8);
     
-    % dimensionaless mass transfer
-    Fom             = mass_opts(1);
-    iota = Fom*0 + iota;
-    % C0              = mass_opts(2);
-    % Rv_star         = mass_opts(3);
-    % Ra_star         = mass_opts(4);
-    % L_heat_star     = mass_opts(5);
-    % mv0             = mass_opts(6);
-    % ma0             = mass_opts(7);
-    
     % pre_process code
     
     % collocation point construction
     y = cos(pi*(0:Nt)'/(2*Nt));
     xi = cos(pi*(0:Mt)'/Mt);
-    % ze = cos(pi*(1:Nv)'/Nv);
     % collocation matrix construction
     [gA,gAI,~,~,gAPd,gAPdd] = f_dcdmtxe(Nt);
     [mA,~,~,~,mAPd,mAPdd] = f_dcdmtx(Mt);
-    % [gC,gCI,~,~,~,~] = f_dcdmtxe(Nt);
+    % combined operators from Chebyshev coefficients to the collocation
+    % values of the first and second derivatives
+    gDA = gAPd*gA;
+    gDDA = gAPdd*gA;
+    mDA = mAPd*mA;
+    mDDA = mAPdd*mA;
     Q = [gA(2:end,:) zeros(Nt,Mt+1);
     zeros(Mt,Nt+1) mA(2:end,:);
     2*(0:Nt).^2 iota*(0:Mt).^2];
@@ -143,10 +137,26 @@ function varargout = f_imr_spectral(varargin)
         w1 = QA0*(UA0\(LA0\(PA0*e1)));
         vw1 = vrow'*w1;
     end
-    % [sCA,sCI,sCAd,~,~,~] = f_dcdmtx(Nv);
-    % sCA = sCA(2:end,2:end) - 1;
-    % sCI = sCI(2:end,2:end);
-    % sCAd = sCAd(2:end,2:end);
+    % spectral stress representation (UCM, Oldroyd-B): tau_rr and
+    % tau_thetatheta are expanded in T_n(z) - 1, n = 1..Nv, which vanish at
+    % z = 1 (r -> Inf), with z = 1 - 2/(1 + (r/R - 1)/Lv) and collocation
+    % points z_j = cos(pi*j/Nv), j = 1..Nv (z = -1 is the bubble wall)
+    spectral_stress = (stress == 5 && spectral == 1);
+    if spectral_stress
+        ze = cos(pi*(1:Nv)'/Nv);
+        % r/R at the stress collocation points
+        yV = 2*Lv./(1-ze) - Lv + 1;
+        % coefficients -> values, values -> coefficients, coefficients ->
+        % dz derivative values
+        [sCA,sCI,sCAd,~,~,~] = f_dcdmtx(Nv);
+        sCA = sCA(2:end,2:end) - 1;
+        sCI = sCI(2:end,2:end);
+        sCAd = sCAd(2:end,2:end);
+        % dz/d(r/R) at the collocation points
+        dzdy = (1-ze).^2/(2*Lv);
+        % polymer viscosity and its relaxation coefficient
+        etap = (1-LAM)/Re8;
+    end
     
     % precomputations
     % LDR = LAM*De/Re8;
@@ -164,9 +174,12 @@ function varargout = f_imr_spectral(varargin)
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
     nn = sparse(nn);
     
-    % precomputations for viscous dissipation
+    % precomputations for viscous dissipation: stress basis at the
+    % medium collocation points
     zT = 1 - 2./(1 + (yT - 1)/Lv);
     ZZT = cos(acos(zT)*(1:Nv)) - 1;
+    % stress integral weights, S = 2*int_R^Inf (tau_rr - tau_tt)/r dr =
+    % 2*cdd'*(c - d) for the spectral stress coefficients c, d
     cdd = f_preStressInt(Lv,Nv);
     
     % index management
@@ -181,15 +194,10 @@ function varargout = f_imr_spectral(varargin)
     if medtherm == 0
         Mt = -1;
     end
-    % TODO add masstransfer back
-    % if masstrans == 0
-    %     Nm = -1;
-    % end
     ia = 4:(4+Nt);
     ib = (5+Nt):(5+Nt+Mt);
     ivisco1 = (6+Nt+Mt):(5+Nt+Mt+Nv);
     ivisco2 = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
-    % ie = (6+Nt+Mt+2*Nv):(5+Nt+Mt+2*Nv+Nm);
     
     % initial condition assembly
     
@@ -199,8 +207,6 @@ function varargout = f_imr_spectral(varargin)
     Tau0 = zeros(Nt+1,1);
     Tm0 = ones(Mt ~= -1);
     Tm1 = zeros(Mt,1);
-    
-    % TODO ADD THE MASS Transfer structure here
     
     % initial condition vector
     init = [Rzero;
@@ -212,10 +218,44 @@ function varargout = f_imr_spectral(varargin)
     Szero];
     
     % solver start
-    f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
+    f_display(radial, bubtherm, medtherm, 0, stress, spectral,...
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
     bubble = @SVBDODE;
-    [t,X] = f_odesolve(bubble, init, method, divisions, tspan, [], rtol, atol);
+    % analytic Jacobian for the stiff integrators
+    if jacobian == 2
+        jp = struct('ia',ia, 'ib',ib, 'iz',(6+Nt+Mt):numel(init), ...
+            'bubtherm',bubtherm, 'medtherm',medtherm, 'stress',stress, ...
+            'spectral_stress',spectral_stress, 'gA',gA, 'gDA',gDA, ...
+            'gDDA',gDDA, 'gAI',gAI, 'mA',mA, 'mDA',mDA, 'mDDA',mDDA, ...
+            'y',y, 'xi',xi, 'yT',yT, 'yT2',yT2, 'yT3',yT3, 'Lt',Lt, ...
+            'Foh',Foh, 'Br',Br, 'chi',chi, 'kappa',kappa, 'kapover',kapover, ...
+            'alpha_g',alpha_g, 'beta_g',beta_g, 'nn',nn, 'Pb_star',Pb_star, ...
+            'Pv_star',Pv_star, 'ZZT',ZZT, 'cdd',cdd, 'LAM',LAM, 'Re8',Re8, ...
+            'closure',@f_closure, 'closure_s',@f_closure_s, ...
+            'taugradu',@f_taugradu);
+        if bubtherm && medtherm
+            jp.LA0 = LA0;
+            jp.UA0 = UA0;
+            jp.PA0 = PA0;
+            jp.QA0 = QA0;
+            jp.w1 = w1;
+            jp.vw1 = vw1;
+            jp.vrow = vrow;
+        end
+        if spectral_stress
+            jp.sCA = sCA;
+            jp.sCI = sCI;
+            jp.sCAd = sCAd;
+            jp.dzdy = dzdy;
+            jp.yV = yV;
+            jp.De = De;
+            jp.etap = etap;
+        end
+        Sp = @(t,X) f_jacobian_spectral(t,X,jp);
+    else
+        Sp = [];
+    end
+    [t,X] = f_odesolve(bubble, init, method, divisions, tspan, Sp, rtol, atol);
     
     % post processing
     
@@ -233,22 +273,6 @@ function varargout = f_imr_spectral(varargin)
         end
     else
         T = R.^(-3*kappa);
-    end
-    % Z1 = X(:,ivisco1);
-    % Z2 = X(:,ivisco2);
-    % if masstrans
-    %     C = gC*e;
-    % end
-    
-    pA = f_pinfinity(t,pvarargin);
-    
-    % transform to real space
-    if spectral == 1
-        % trr = sCA*c;
-        % t00 = sCA*d;
-    else
-        %trr = c;
-        %t00 = d;
     end
     
     % outputs
@@ -295,14 +319,11 @@ function varargout = f_imr_spectral(varargin)
         
         % bubble equations of motion
         if bubtherm
-            % extract auxiliary temperature
+            % auxiliary temperature and its first and second derivatives
+            % from the Chebyshev coefficients
             theta = gA*X(ia);
-            % auxiliary temperature derivatives
-            
-            % first order derivative
-            dtheta = gAPd*theta;
-            % second order derivative
-            ddtheta = gAPdd*theta;
+            dtheta = gDA*X(ia);
+            ddtheta = gDDA*X(ia);
             % temperature and thermal diffusivity fields
             T = (alpha_g - 1 + sqrt(1+2*alpha_g*theta))/alpha_g;
             D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
@@ -323,14 +344,12 @@ function varargout = f_imr_spectral(varargin)
             
             % surrounding temperature
             if medtherm
-                % extract medium temperature
-                Tm = mA*X(ib);
-                
-                % material temperature equations
+                % material temperature equations, derivatives from the
+                % Chebyshev coefficients
                 advection = (1+xi).^2/(Lt*R).*...
                     (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
-                    Rdot/2*(1./yT2 - yT)).*(mAPd*Tm);
-                diffusion = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mAPdd*Tm);
+                    Rdot/2*(1./yT2 - yT)).*(mDA*X(ib));
+                diffusion = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mDDA*X(ib));
                 % stress dissipation
                 [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                     Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
@@ -361,8 +380,12 @@ function varargout = f_imr_spectral(varargin)
         [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
         
         % stress equation evolution
-        [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8, ...
-            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+        if spectral_stress
+            [S,Sdot,Z1dot,Z2dot] = f_spectral_stress(R,Rdot,X);
+        else
+            [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8, ...
+                Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+        end
         
         % bubble wall evolution / acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...
@@ -380,12 +403,78 @@ function varargout = f_imr_spectral(varargin)
     end
     % end of solver
     
-    % function Cw= CW(Tw,P)
-    %   % Calculates the concentration at the bubble wall
-    %   %Function of P and temp at the wall
-    %   thetha = Rv_star/Ra_star*(P./(Pv_star*exp(thetav*(1-1./Tw))) -1);
-    %   Cw = 1./(1+thetha);
-    % end
+    % UCM and Oldroyd-B stress fields in the spectral representation. The
+    % polymer stresses obey, along material points with a = R^2*Rdot/r^3,
+    %   D(tau_rr)/Dt = -tau_rr/De - 4*a*tau_rr - 4*etap*a/De
+    %   D(tau_tt)/Dt = -tau_tt/De + 2*a*tau_tt + 2*etap*a/De
+    % with etap = (1-LAM)/Re8; in the moving coordinate z the material
+    % derivative adds the advection dz/dt*d(tau)/dz, where
+    % dz/dt = dz/d(r/R)*(Rdot/R)*((r/R)^-2 - r/R). The solvent viscosity
+    % LAM/Re8 enters the stress integral directly.
+    function [S,Sdot,cdot,ddot] = f_spectral_stress(R,Rdot,X)
+        c = X(ivisco1);
+        d = X(ivisco2);
+        trr = sCA*c;
+        ttt = sCA*d;
+        av = (Rdot/R)./yV.^3;
+        dzdt = dzdy.*(Rdot/R).*(1./yV.^2 - yV);
+        trrdot = -dzdt.*(sCAd*c) - trr/De - 4*av.*trr - 4*etap*av/De;
+        tttdot = -dzdt.*(sCAd*d) - ttt/De + 2*av.*ttt + 2*etap*av/De;
+        cdot = sCI*trrdot;
+        ddot = sCI*tttdot;
+        S = 2*cdd'*(c - d) - 4*LAM/Re8*Rdot/R;
+        % the Rddot part of the solvent term is carried by JdotA
+        Sdot = 2*cdd'*(cdot - ddot) + 4*LAM/Re8*(Rdot/R)^2;
+    end
+    
+    % medium dissipation as a function of (R, Rdot), closed-form stress
+    % models
+    function tg = f_taugradu(Rv,Rdotv,X)
+        fnu_loc = 0;
+        if nu_model ~= 0
+            fnu_loc = f_viscosity(nu_model,Rdotv,Rv,v_a,v_nc,v_lambda_star);
+        end
+        tg = f_stress_dissipation(stress,spectral,Req,Rv,Rdotv, ...
+            Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
+            ivisco2,fnu_loc,DRe);
+        tg = tg.*ones(size(yT));
+    end
+    
+    % radial acceleration and stress evolution as a function of
+    % v = [R, Rdot, P, Pdot, Z], mirroring SVBDODE
+    function out = f_closure(t,v,X)
+        X(6+Nt+Mt:end) = v(5:end);
+        [~,intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
+        [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = f_stress(stress,X,Req,v(1), ...
+            Ca,De,Re8,v(2),alphax,ivisco1,ivisco2,LAM,zeNO,cdd, ...
+            intf_loc,dintf_loc,iDRe);
+        out = vertcat(f_rddot(t,v,S_loc,Sdot_loc,ddintf_loc), Z1dot_loc, Z2dot_loc);
+    end
+    
+    % radial acceleration as a function of v = [R, Rdot, P, Pdot, S, Sdot]
+    % for the spectral stress representation
+    function out = f_closure_s(t,v)
+        [~,~,~,ddintf_loc] = f_nu(v(1),v(2));
+        out = f_rddot(t,v,v(5),v(6),ddintf_loc);
+    end
+    
+    function [f_loc,intf_loc,dintf_loc,ddintf_loc] = f_nu(Rv,Rdotv)
+        f_loc = 0;
+        intf_loc = 0;
+        dintf_loc = 0;
+        ddintf_loc = 0;
+        if nu_model ~= 0
+            [f_loc,intf_loc,dintf_loc,ddintf_loc] = f_viscosity(nu_model, ...
+                Rdotv,Rv,v_a,v_nc,v_lambda_star);
+        end
+    end
+    
+    function Rddot_loc = f_rddot(t,v,S_loc,Sdot_loc,ddintf_loc)
+        [Pf8_loc,Pf8dot_loc] = f_pinfinity(t,pvarargin);
+        Rddot_loc = f_radial_eq(radial, v(3), v(4), Pf8_loc, Pf8dot_loc, ...
+            iWe, v(1), v(2), S_loc, Sdot_loc, Cstar, sam, no, GAMa, nstate, ...
+            nog, hugoniot_s, JdotA, ddintf_loc, iDRe);
+    end
     
 end
 

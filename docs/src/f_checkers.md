@@ -19,6 +19,8 @@
 | `stress = 3, 4, 5` with `De <= 0` | error |
 | `stress >= 3` with `medtherm = 1` (FD dissipation) | warning `IMR:dissipation` |
 | both `tvector` and `tfin` | error |
+| `masstrans = 1` in the spectral solver | error: use `f_imr_fd` |
+| `spectral = 1` (spectral stress representation) in the FD solver | error: `f_imr_spectral` only |
 
 ### Dimensionless numbers
 - `Re`, `We`, `Ca` positive; `Inf` is allowed (inviscid, no surface tension, no elasticity).

@@ -6,14 +6,14 @@ It loads a case file or the default case, applies the user's dimensionless overr
 
 ## Function Signature
 ```matlab
-[eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = f_call_params(varargin)
+[eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = f_call_params(solver, varargin)
 ```
 
 ---
 
 ## Inputs
 
-The function accepts **dimensionless parameter-value pairs** through `varargin`; the recognized names, their definitions and defaults are listed in [`default_case`](default_case.md). Dimensional (SI) values are not accepted: an unrecognized name (for example `mu`, `g`, `r0`, `dimout`) raises an error pointing to [`toolchain/f_dim2nondim.m`](../toolchain/f_dim2nondim.md), which converts physical properties into these inputs.
+The first argument names the calling solver, `'fd'` or `'spectral'` (used by `f_checkers` for solver-specific rules). The function then accepts **dimensionless parameter-value pairs** through `varargin`; the recognized names, their definitions and defaults are listed in [`default_case`](default_case.md). Dimensional (SI) values are not accepted: an unrecognized name (for example `mu`, `g`, `r0`, `dimout`) raises an error pointing to [`toolchain/f_dim2nondim.m`](../toolchain/f_dim2nondim.md), which converts physical properties into these inputs.
 
 - `casefile`: path to a custom (dimensionless) case `.m` file.
 - Model flags: `radial`, `bubtherm`, `medtherm`, `stress`, `eps3`, `vapor`, `masstrans`, `collapse`.

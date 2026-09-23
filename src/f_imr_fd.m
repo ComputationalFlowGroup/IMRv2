@@ -9,7 +9,7 @@ function varargout = f_imr_fd(varargin)
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
         acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
-        = f_call_params(varargin{:});
+        = f_call_params('fd', varargin{:});
     
     % defaults
     
@@ -156,6 +156,7 @@ function varargout = f_imr_fd(varargin)
     % boundary conditions coefficients
     coeff = [-1.5 , 2 ,-0.5 ];
     Rvg_ratio = Rv_star / Rg_star;
+    inv_alpha = 1/alpha_g;
     Rva_diff = Rv_star - Rg_star;
     grad_Tm_coeff = 2*chi*iota/deltaYm*coeff;
     grad_Trans_coeff = -coeff*chi/deltaY;
@@ -333,10 +334,9 @@ function varargout = f_imr_fd(varargin)
         elseif medtherm
             % temperature in the material
             Tm = X(imedtherm);
-            % closed-form wall temperature, no root finding
-            theta_bw = f_wall_thermal_bc(grad_Tm_coeff(2:3)*Tm(2:3) + ...
-                grad_Trans_coeff(2:3)*theta(end-1:-1:end-2), ...
-                grad_Tm_coeff(1), grad_Trans_coeff(1), alpha_g);
+            % closed-form wall temperature, fzero only as a fallback
+            theta_bw = f_wall_theta_exact(Tm);
+            theta_bw_guess = theta_bw;
             theta(end) = theta_bw;
         end
         
@@ -548,14 +548,90 @@ function varargout = f_imr_fd(varargin)
         end
     end
     
-    % bubble-wall theta at the state X (mass transfer), for the Jacobian
+    % bubble-wall theta at the state X, for the Jacobian
     function theta_bw = f_theta_bw_of_X(X)
         th_X = X(ibubtherm);
         Tm_X = X(imedtherm);
-        kv_X = X(imass);
-        theta_bw = f_wall_theta_newton([Tm_X(2), Tm_X(3), th_X(end-1), ...
-            th_X(end-2), kv_X(end), kv_X(end-1), kv_X(end-2), X(3)], ...
-            theta_bw_guess);
+        if masstrans
+            kv_X = X(imass);
+            theta_bw = f_wall_theta_newton([Tm_X(2), Tm_X(3), th_X(end-1), ...
+                th_X(end-2), kv_X(end), kv_X(end-1), kv_X(end-2), X(3)], ...
+                theta_bw_guess);
+        else
+            theta_bw = f_wall_theta_exact(Tm_X, th_X);
+        end
+    end
+    
+    % temperature boundary condition at the bubble wall, thermal only:
+    % residual of the heat flux balance (theta is the shared field unless
+    % given)
+    function theta_w = f_bubble_wall_thermal_bc(theta_bw, Tm_in, th_in)
+        Tm_trans = Tm_in(2:3);
+        T_trans = th_in(end-1:-1:end-2);
+        Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*theta_bw*alpha_g));
+        theta_w = grad_Tm_coeff * vertcat(Tw_prelim, Tm_trans) + ...
+            grad_Trans_coeff * vertcat(theta_bw, T_trans);
+    end
+    
+    % exact bubble-wall theta for the thermal-only balance. With
+    % u = sqrt(1+2*alpha_g*theta_bw), Tw = (alpha_g-1+u)/alpha_g is linear
+    % and theta_bw = (u^2-1)/(2*alpha_g) quadratic in u, so the residual is
+    % c2*u^2 + 2*c1*u + q = 0. Both roots are formed, u < 0 is discarded
+    % (u is a square root), and of two admissible roots the one closest to
+    % theta_bw_guess is kept; the sign of c2 depends on the grid spacing
+    % and the conductivity ratio, so no branch is hard-coded. c2 = 0 is the
+    % linear case. fzero is the fallback when no admissible root exists.
+    function theta_bw = f_wall_theta_exact(Tm_in, th_in)
+        if nargin < 2
+            th_in = theta;
+        end
+        c1 = grad_Tm_coeff(1);
+        c2 = grad_Trans_coeff(1);
+        K = grad_Tm_coeff(2:3)*Tm_in(2:3) + ...
+            grad_Trans_coeff(2:3)*th_in(end-1:-1:end-2);
+        q = 2*c1*(alpha_g - 1) - c2 + 2*alpha_g*K;
+        if abs(c2) < eps
+            uroots = -q/(2*c1);
+        else
+            disc = c1^2 - c2*q;
+            if disc >= 0
+                % cancellation-free pair of roots
+                sq = sqrt(disc);
+                if c1 >= 0
+                    qq = -(c1 + sq);
+                else
+                    qq = -(c1 - sq);
+                end
+                uroots = [qq/c2, q/qq];
+            else
+                uroots = [];
+            end
+        end
+        uroots = uroots(isfinite(uroots) & uroots >= 0);
+        if isempty(uroots)
+            try
+                theta_bw = fzero(@(x) f_bubble_wall_thermal_bc(x, Tm_in, th_in), ...
+                    theta_bw_guess, foptions);
+            catch
+                theta_bw = NaN;
+            end
+            if ~isfinite(theta_bw)
+                % no root exists (an unphysical trial state of the
+                % integrator): take the least-residual point of the
+                % quadratic so the step is rejected on its error estimate
+                % rather than aborting the run
+                if abs(c2) < eps
+                    u = 0;
+                else
+                    u = max(-c1/c2, 0);
+                end
+                theta_bw = (u^2 - 1)/(2*alpha_g);
+            end
+        else
+            thetas = (uroots.^2 - 1)/(2*alpha_g);
+            [~,k] = min(abs(thetas - theta_bw_guess));
+            theta_bw = thetas(k);
+        end
     end
     
     % finite difference matrices, second-order central in the interior and

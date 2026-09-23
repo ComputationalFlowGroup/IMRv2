@@ -1,87 +1,42 @@
 # `f_imr_spectral.m` Documentation
 
 ## Overview
-`f_imr_spectral` is a Chebyshev spectral collocation solver for Rayleigh–Plesset type equations, modeling bubble dynamics with optional thermal transport and viscoelastic material behavior.  
-It uses high-accuracy spectral differentiation matrices to discretize spatial derivatives and advance the solution robustly in time.
+`f_imr_spectral` is a Chebyshev spectral collocation solver for the bubble dynamics (Rayleigh–Plesset family) with optional heat transfer in the bubble and the surrounding medium and viscoelastic stress models, including a spectral representation of the UCM / Oldroyd-B stress field. All inputs and outputs are dimensionless (see `default_case`). Vapor mass transfer is not available in this solver (`f_checkers` rejects `masstrans = 1`); use `f_imr_fd`.
 
 ---
 
 ## Major Sections of the Code
 
 ### 1. Initialization
-- Calls `f_call_params(varargin{:})` to load all simulation parameters.
-- Unpacks solver settings, material properties, and initial conditions.
+- Calls `f_call_params('spectral', varargin{:})`, which reads and checks the inputs.
 
-### 2. Spectral Grid and Matrix Construction
-- Constructs a Chebyshev collocation grid between [-1,1].
-- Builds spectral differentiation matrices for first and second derivatives.
-- Scales matrices to the physical domain.
-- Enforces boundary conditions analytically within the spectral framework.
+### 2. Collocation grids and operators
+- Even Chebyshev expansion of the bubble temperature and a Chebyshev expansion of the medium temperature on the stretched coordinate (length `Lt`).
+- The combined operators from Chebyshev coefficients to collocation values of the first and second derivatives (`gDA`, `gDDA`, `mDA`, `mDDA`) are formed once.
+- The thermal boundary condition system has a single time-dependent row; it is factored once and updated with a Sherman–Morrison rank-one correction on every call.
 
-### 3. Time Integration Loop
-- Solves the resulting system using an implicit midpoint rule and Newton iteration.
-- Advances radius, wall velocity, and (optionally) stress and temperature fields at each timestep.
+### 3. Stress models
+- `stress = 0–4`: closed-form or single-state models through `f_stress`.
+- `stress = 5`, `spectral = 0`: UCM / Oldroyd-B through the two stress states `Z1`, `Z2`.
+- `stress = 5`, `spectral = 1`: UCM / Oldroyd-B with the polymer stresses `tau_rr` and `tau_tt` expanded in `T_n(z) - 1`, `n = 1..Nv`, on `z = 1 - 2/(1 + (r/R - 1)/Lv)` (collocation points `z_j = cos(pi*j/Nv)`). The stress integral is `S = 2*cdd'*(c - d) - 4*LAM/Re8*Rdot/R`, and the stress field also provides the medium heating `tau:grad(u)`. For a mild oscillation the representation converges exponentially in `Nv` and agrees with the two-state form to `1e-9`; strong collapses produce a steep stress layer at the wall that needs many modes, where the two-state form is the cheaper choice for `R(t)`.
 
-### 4. Output Assembly
-- Packages time histories of radius, velocity, stress, temperature, and mass transfer properties.
-- Returns output variables dynamically through `varargout`.
+### 4. Time integration
+- `f_odesolve` with the analytic Jacobian of `f_jacobian_spectral` when `jacobian = 2` (default).
+
+### 5. Output
+- Returns `[t, R, Rdot, P, T, Tm]` (dimensionless); the seventh output is empty.
 
 ---
 
 ## Inputs
 
-Inputs are passed through `varargin` to `f_call_params` and unpacked locally.
+Dimensionless name/value pairs, see `default_case`. Solver-specific notes:
 
-| Variable          | Description |
-|-------------------|-------------|
-| `radial`           | Radial dynamics model (1–4) |
-| `bubtherm`         | Enable bubble thermal model (0 or 1) |
-| `medtherm`         | Enable medium thermal model (0 or 1) |
-| `stress`           | Stress model type (0–7) |
-| `eps3`             | Include second-order strain term (0/1) |
-| `masstrans`        | Enable mass transfer (0/1) |
-| `method`           | Solver method (spectral here) |
-| `spectral`         | Spectral mode flag (should be 1) |
-| `divisions`, `Nv`, `Nt`, `Mt` | Spectral resolution settings |
-| `Lv`, `Lt`         | Physical domain lengths |
-| `Rzero`, `Uzero`   | Initial bubble radius and wall velocity (non-dimensional) |
-| `Pb_star`, `Pv_star` | Pressures |
-| `Req`              | Equilibrium radius |
-| `alphax`           | Strain-softening parameter |
-| `Szero`            | Initial stress tensor or value |
-| `tspan`            | Non-dimensional simulation times |
-| `tfin`             | Final simulation time |
-| `progdisplay`      | Display simulation progress (0/1) |
-| `Cstar`, `GAMa`, `kappa`, `nstate`, `hugoniot_s` | Acoustic medium properties |
-| `om`, `ee`, `tw`, `dt`, `mn`, `wave_type` | Driving waveform settings |
-| `wave_poly`, `wave_dpoly` | Waveform fits for custom shapes |
-| `We`, `Re8`, `DRe` | Dimensionless fluid dynamics numbers |
-| `v_a`, `v_nc`, `Ca`, `LAM`, `De`, `JdotA` | Viscoelastic material settings |
-| `nu_model`, `v_lambda_star`, `zeNO`, `iDRe` | Viscosity model settings |
-
----
-
-## Outputs
-
-Outputs are dynamically assigned through `varargout`, typically:
-
-| Output | Description |
-|--------|-------------|
-| `tspan` | Time vector (non-dimensional) |
-| `R`     | Bubble radius history |
-| `U`     | Wall velocity history |
-| `S`     | Stress field history (if stress model active) |
-| `T`     | Temperature profile (if thermal modeling active) |
-| `mass fields` | Mass diffusion or vapor concentration fields (if enabled) |
-| `Diagnostics` | Optional convergence/error data |
-
-The actual number and type of outputs depend on solver settings and model features selected at runtime.
-
----
-
-## Notes
-
-- **Spectral accuracy** requires sufficient resolution (`Nv`, `Mt`) to capture steep gradients or oscillations.
-- **Boundary conditions** are enforced analytically to prevent spurious oscillations.
-- **IMR (implicit midpoint rule)** provides stability even under strong collapse dynamics.
-- Requires helper functions such as `f_create_spectral_matrix.m`, `ode_imr_spectral.m`, and waveform data files if applicable.
+| Variable | Description |
+|----------|-------------|
+| `radial` | Radial dynamics model (1–6; 5 and 6 are Mie–Grüneisen and polytropic only) |
+| `stress` | Stress model (0–5) |
+| `spectral` | Spectral stress representation for `stress = 5` (0/1) |
+| `nv`, `lv` | Number of stress modes and stretching length of the stress coordinate |
+| `nt`, `mt`, `lt` | Thermal expansion orders and medium stretching length |
+| `jacobian` | 2 analytic Jacobian (default), otherwise numerical |

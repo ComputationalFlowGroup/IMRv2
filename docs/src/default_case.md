@@ -37,12 +37,12 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 |
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` |
 | `method` | `method` | 15 `ode15s`, 23 `ode23tb`, 45 `ode45` | 23 |
-| `spectral` | `spectral` | Spectral stress representation (0/1) | 0 |
+| `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `f_imr_spectral` only (0/1) | 0 |
 | `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 |
 | `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress | 25, 25, 150 |
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 |
-| `jacobian` | `jacobian` | FD solver Jacobian: 0 dense numerical, 1 sparsity pattern, 2 analytic | 2 |
+| `jacobian` | `jacobian` | Jacobian for the stiff integrators: 0 dense numerical, 1 sparsity pattern (FD solver), 2 analytic | 2 |
 | `progdisplay` | `progdisplay` | Print progress (every right-hand-side call; slows runs) | 0 |
 
 ### Initial conditions

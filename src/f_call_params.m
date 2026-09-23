@@ -7,20 +7,21 @@
 % function can receive an input file formatted similar to default_case.m,
 % otherwise the default case is read. The case can be altered with
 % name/value pairs when invoking either the finite difference or spectral
-% module. The inputs are checked by f_checkers.
+% module. The inputs are checked by f_checkers. The first argument names
+% the calling solver, 'fd' or 'spectral'.
 function [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
     acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = ...
-    f_call_params(varargin)
+    f_call_params(solver, varargin)
 
 disp('--- Inertial Microcavitation Rheometry forward solver ---');
 % check that all inputs are matched
-if mod(nargin,2) == 1
+if mod(numel(varargin),2) == 1
     error('input error: unmatched inputs');
 end
 
 % checking for the casefile, if any
 defaultread = true;
-for n = 1:2:nargin
+for n = 1:2:numel(varargin)
     if strcmpi(varargin{n},'casefile') == 1
         cfname = varargin{n+1};
         fprintf('Case file: using %s\n', cfname);
@@ -48,7 +49,7 @@ tfinset = 0;
 wave_poly = [];
 wave_dpoly = [];
 unknown = {};
-for n = 1:2:nargin
+for n = 1:2:numel(varargin)
     switch lower(varargin{n})
         % equation options
         case 'radial',      radial = varargin{n+1};
@@ -209,7 +210,7 @@ tvector = TVector;
 
 % compatibility of the conditions and dimensionless numbers; settings
 % tied to the stress model (spectral, Nv, Ca) come back adjusted
-chk = f_checkers(struct( ...
+chk = f_checkers(struct('solver',solver, ...
     'radial',radial, 'bubtherm',bubtherm, 'medtherm',medtherm, ...
     'stress',stress, 'eps3',eps3, 'vapor',vapor, 'masstrans',masstrans, ...
     'collapse',collapse, 'method',method, 'spectral',spectral, ...
@@ -240,9 +241,6 @@ elseif stress == 3 || stress == 4 || stress == 5
     % coefficient moved to the Keller-Miksis denominator carries LAM too
     JdotA = 4*LAM/Re8;
 else
-    JdotA = 0;
-end
-if spectral == 1
     JdotA = 0;
 end
 
@@ -281,7 +279,9 @@ elseif stress == 3 || stress == 4
     end
 elseif stress == 5
     % TODO initial max stress for UCM and Oldroyd-B
-    Szero = zeros((Nv - 1)*(spectral == 1) + 2,1);
+    % two stress states (Z1, Z2), or Nv Chebyshev coefficients of each of
+    % tau_rr and tau_thetatheta with the spectral stress representation
+    Szero = zeros(2*Nv,1);
 end
 
 % out parameters

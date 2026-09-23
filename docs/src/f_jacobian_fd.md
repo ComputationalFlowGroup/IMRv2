@@ -4,8 +4,8 @@
 `f_jacobian_fd(t, X, jp)` returns the analytic Jacobian of the finite difference right-hand side for `bubtherm = 1`, with or without medium heat transfer (`medtherm`) and vapor mass transfer (`masstrans`). `f_imr_fd` passes it to the stiff integrators when `jacobian = 2`.
 
 ## Method
-- The field equations are differentiated exactly. Every intermediate quantity (temperature, vapor concentration, bubble pressure `Pdot`, velocity field, fluxes) is carried as a pair of its value and its sparse derivative with respect to the state, and the chain rule is applied term by term.
-- The bubble-wall temperature enters through the wall balance: the closed form `f_wall_thermal_bc` without mass transfer, and the implicit function theorem on `f_wall_mass_bc` (`d(theta_w)/dx = -(dr/dx)/(dr/d(theta_w))`) with mass transfer.
+- The field equations are differentiated exactly with the value/derivative pairs of `f_dual_ops` (shared with `f_jacobian_spectral`). Every intermediate quantity (temperature, vapor concentration, bubble pressure `Pdot`, velocity field, fluxes) is carried as a pair of its value and its sparse derivative with respect to the state, and the chain rule is applied term by term.
+- The bubble-wall temperature enters through the wall balance: the exact quadratic root `f_wall_theta_exact` without mass transfer, and the implicit function theorem on `f_wall_mass_bc` (`d(theta_w)/dx = -(dr/dx)/(dr/d(theta_w))`) with mass transfer.
 - The low-dimensional closure (radial equation, stress model, non-Newtonian viscosity, medium dissipation) is differentiated by central differences of the closure alone and chained through `Pdot`.
 
 ## Inputs

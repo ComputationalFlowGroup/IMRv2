@@ -49,6 +49,14 @@ function p = f_checkers(p)
         error(['INPUT ERROR: the Mie-Gruneisen models (radial = 5, 6) support ' ...
             'only the polytropic bubble, set bubtherm = medtherm = masstrans = 0']);
     end
+    if strcmp(p.solver,'spectral') && p.masstrans == 1
+        error(['INPUT ERROR: masstrans = 1 is not available in the spectral ' ...
+            'solver, use f_imr_fd']);
+    end
+    if strcmp(p.solver,'fd') && p.spectral == 1 && p.stress == 5
+        error(['INPUT ERROR: the spectral stress representation (spectral = 1) ' ...
+            'is available in f_imr_spectral only']);
+    end
     if p.collapse == 1 && (p.bubtherm ~= 1 || p.medtherm ~= 1 || ...
         p.masstrans ~= 1 || p.vapor ~= 1)
     error('INPUT ERROR: collapse must have full model with vapor');
