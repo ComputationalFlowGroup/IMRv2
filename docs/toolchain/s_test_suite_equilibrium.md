@@ -7,7 +7,7 @@
 
 1. **Initialization**
    - Clears workspace.
-   - Adds paths: `toolchain/` and `src/forward_solver/`.
+   - Adds the paths `../toolchain/` and `../src/`, so it runs from `toolchain/`.
 
 2. **Preallocation**
    - Defines `num_tests` based on parameter loops.
@@ -17,7 +17,7 @@
 3. **Parameter and Initial Condition Setup**
    - Sets fixed test parameters:  
      `masstrans = 0`, `collapse = 0`,  
-     `Req = 100e-6`, `R0 = Req`, `T8 = 298.15`,  
+     `Req = 100e-6`, `R0 = Req`, `T8 = 298.15` (SI units, converted with `f_dim2nondim`),  
      `tfin = 1e-5`, `tvector = linspace(0, tfin, 100)`.
 
 4. **Nested Test Loop**

@@ -2,7 +2,7 @@
 
 ## Overview
 `f_approx_init_stress` computes an approximate initial Cauchy stress at the bubble maximum radius using analytical corrections for viscoelastic, compressibility, and compressive effects.  
-This provides a lower-fidelity but faster estimate compared to the numerical shooting method.
+This provides a lower-fidelity but faster estimate compared to the numerical shooting method. The solvers do not call it; it is kept as a standalone estimate.
 
 ## Major Sections
 1. **Constant Definitions**: Compute `trc` (time constant) and coefficient `B`.

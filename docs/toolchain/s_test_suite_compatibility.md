@@ -7,7 +7,7 @@
 
 1. **Initialization**
    - Clears workspace (`clc`, `clear`, `close`).
-   - Adds necessary paths: `toolchain/`, `src/forward_solver/`, and `tests/`.
+   - Adds the paths `../toolchain/`, `../src/` and `../tests/`, so it runs from `toolchain/`.
    - Loads test identifiers from `file_ids.mat`.
 
 2. **Preallocation**
@@ -20,7 +20,7 @@
      - `Gvec`: shear modulus values  
      - `alphaxvec`: strain-softening exponents  
      - `lambda1vec`: relaxation times  
-   - Sets error threshold (`threshold = 1e-4`) and counter (`count = 1`).
+   - Sets the error threshold `threshold = 1e-4`, `vapor = 1`, `masstrans = collapse = 0`, `R0 = 50e-6` and `Req = R0/10`, in SI units converted with `f_dim2nondim`.
 
 4. **Nested Test Loop**
    - Loops over combinations of:  
@@ -42,7 +42,7 @@
 
 | Name             | Description                                    |
 |------------------|------------------------------------------------|
-| `file_ids.mat`   | MAT-file defining `ids` (list of test case IDs)|
+| `file_ids.mat`   | MAT-file in `toolchain/` defining `ids` (list of test case IDs)|
 | `f_imr_fd`       | Finite difference solver function              |
 | `f_imr_spectral` | Spectral solver function                       |
 
@@ -57,5 +57,5 @@
 
 ## Notes
 
-- `num_tests` covers all combinations of radial, thermal, stress, and material parameters.
+- `num_tests` covers the valid combinations of radial, thermal, stress, and material parameters; `medtherm = 1` without `bubtherm` is skipped.
 - Tests use reduced mesh sizes (`Nt=70, Mt=70` for FD; `Nt=12, Mt=12` for spectral) for speed.

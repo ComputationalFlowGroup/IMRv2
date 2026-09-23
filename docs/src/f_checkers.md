@@ -15,10 +15,14 @@
 | `medtherm = 1` without `bubtherm` | error |
 | `masstrans = 1` without `vapor` or `bubtherm` | error |
 | Mie–Grüneisen (`radial = 5, 6`) with `bubtherm`, `medtherm` or `masstrans` | error: polytropic bubble only |
-| `collapse = 1` without the full model with vapor | error |
+| `collapse = 1` without `bubtherm`, `medtherm`, `vapor` and `masstrans` | error |
 | `stress = 3, 4, 5` with `De <= 0` | error |
 | `stress >= 3` with `medtherm = 1` (FD dissipation) | warning `IMR:dissipation` |
 | both `tvector` and `tfin` | error |
+| `tvector` not finite and strictly increasing, or starting below 0 | error |
+| `Nt < 3` with `bubtherm = 1`, or `Mt < 3` with `medtherm = 1` | error |
+| `divisions` not a nonnegative integer | error |
+| `vapor = 1` with `Pv >= 1` (boiling liquid) | warning `IMR:parameters` |
 | `masstrans = 1` in the spectral solver | error: use `f_imr_fd` |
 | `spectral = 1` (spectral stress representation) in the FD solver | error: `f_imr_spectral` only |
 
@@ -27,8 +31,8 @@
 - `De`, `LAM`, `alphax`, `kappa - 1` nonnegative; `LAM > 1` for stress models warns.
 - `Cstar`, `GAMa`, `nstate`, `hugoniot_s`, `Req`, `Lv`, `Lt`, tolerances positive.
 - The equilibrium gas pressure `P0_star = (1 + 1/(We*Req) - Pv)*Req^n` must be nonnegative.
-- Thermal (`chi`, `Foh`, `kmstar`, conductivity coefficients) and mass-transfer (`Fom`, `lheat`, `rv`, `ra`, `pv`, `thetav`) numbers are checked when the corresponding model is on.
-- Waveform: `tw > 0` for Gaussian, `om > 0` for histotripsy, measured-waveform coverage of `tvector`.
+- Thermal (`chi`, `Foh`, `kmstar`, conductivity coefficients) and mass-transfer (`Fom`, `lheat`, `rv`, `ra`, `pv`, `thetav`) numbers are checked when the corresponding model is on; `rv` and `ra` also with `collapse = 1`.
+- Waveform: `tw > 0` for Gaussian, `om > 0` and `mn >= 0` for histotripsy, `tw >= 0` for Heaviside, and a warning when `tvector` extends past the measured waveform data.
 - Non-Newtonian: `DRe`, `v_lambda`, `v_nc` nonnegative; `v_a > 0` for Carreau–Yasuda and modified Cross; `v_nc > 0` for Cross and modified Cross; `v_nc <= 1` and `v_lambda > 0` for modified Powell–Eyring; warning when `DRe = 0`.
 
 ### Dimensional-looking inputs
@@ -38,3 +42,5 @@ Warning `IMR:dimensional` when `Req < 1e-3`, the final time `< 1e-3`, `Cstar < 1
 After the checks, `f_checkers` adjusts and returns:
 - `stress <= 4`: `spectral = 0`; `Nv = 1` for stress 3, 4 (one stress state) and `Nv = 0` otherwise.
 - `stress = 5` (UCM, Oldroyd-B): `Nv` stress modes with the spectral representation, one otherwise, and `Ca = Inf` (no elastic contribution).
+
+The size of a user `stress0` is checked in `f_call_params`, not here. See [`compatibility`](../compatibility.md) for the resulting grid of features that run together.
