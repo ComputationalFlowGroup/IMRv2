@@ -24,7 +24,7 @@
    - Iterates over `radial` (1–4), `vapor` (0/1),  
      `bubtherm` (0/1), `medtherm` (0/1), `stress` (0–5).
    - Constructs `varin` parameter sets.
-   - Runs `m_imr_fd` and `m_imr_spectral` with fine meshes (`Nt=150,Mt=150` FD; `Nt=12,Mt=12` spectral).
+   - Runs `f_imr_fd` and `f_imr_spectral` with fine meshes (`Nt=150,Mt=150` FD; `Nt=12,Mt=12` spectral).
    - Computes equilibrium error: `abs(norm(R_test,2)/10 - 1)`.
    - Records failures if error exceeds `threshold`.
 
@@ -37,8 +37,8 @@
 
 | Name             | Description                                    |
 |------------------|------------------------------------------------|
-| `m_imr_fd`       | Finite difference solver function              |
-| `m_imr_spectral` | Spectral solver function                       |
+| `f_imr_fd`       | Finite difference solver function              |
+| `f_imr_spectral` | Spectral solver function                       |
 | Script parameters| Equilibrium test parameters (e.g., `Req`, `R0`)|
 
 ## Outputs

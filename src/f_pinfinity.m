@@ -3,21 +3,23 @@
 
 % brief This function the time-dependent external pressure in the
 % surrounding material that drives the bubble oscillations. The function
-% features wave types: histotripsy, Gaussian, and impulse
+% features wave types: experimentally-derived, impulse, Gaussian,
+% histotripsy, and Heaviside impulse. The time t may be a scalar or an
+% array. vararg is the cell {[om ee tw dt mn wave_type], poly, dpoly}.
 function [p8,p8dot] = f_pinfinity(t,vararg)
     
     % extracting input variables
-    om = vararg(1);
-    ee = vararg(2);
-    tw = vararg(3);
-    dt = vararg(4);
-    mn = vararg(5);
-    wave_type =  vararg(6);
+    om = vararg{1}(1);
+    ee = vararg{1}(2);
+    tw = vararg{1}(3);
+    dt = vararg{1}(4);
+    mn = vararg{1}(5);
+    wave_type = vararg{1}(6);
     
     if wave_type < 0
         % experimentally-derived incoming waveform
-        p8 = ppval(wave_poly,t);
-        p8dot = ppval(wave_dpoly,t);
+        p8 = ppval(vararg{2},t);
+        p8dot = ppval(vararg{3},t);
     elseif wave_type == 0
         % impulse wave
         [p8, p8dot] = impulse(t);
@@ -34,38 +36,30 @@ function [p8,p8dot] = f_pinfinity(t,vararg)
     
     % histotripsy waveform
     function [p,pdot] = histo(t)
-        if t < dt - pi/om
-            p = 0;
-        elseif t > dt + pi/om
-            p = 0;
-        else
-            p = ee*(0.5 + 0.5*cos(om*(t - dt))).^mn;
-        end
-        if t < dt - pi/om
-            pdot = 0;
-        elseif t > dt + pi/om
-            pdot = 0;
-        else
-            pdot = -ee*mn*(0.5+0.5*cos(om*(t-dt))).^(mn-1)*0.5*om.*sin(om*(t-dt));
-        end
+        on = (t >= dt - pi/om) & (t <= dt + pi/om);
+        p = zeros(size(t));
+        pdot = zeros(size(t));
+        p(on) = ee*(0.5 + 0.5*cos(om*(t(on) - dt))).^mn;
+        pdot(on) = -ee*mn*(0.5+0.5*cos(om*(t(on)-dt))).^(mn-1)*0.5*om.* ...
+            sin(om*(t(on)-dt));
     end
     
     % impulse waveform
-    function [p,pdot] = impulse(~)
-        p = ee;
-        pdot = 0;
+    function [p,pdot] = impulse(t)
+        p = ee*ones(size(t));
+        pdot = zeros(size(t));
     end
     
     % Gaussian waveform
     function [p,pdot] = gaussian(t)
-        p = - ee * exp(-((t-dt)^2) / tw^2);
-        pdot = ee * (2*(t-dt)/tw^2) * exp(-((t-dt)^2) / tw^2);
+        p = - ee * exp(-((t-dt).^2) / tw^2);
+        pdot = ee * (2*(t-dt)/tw^2) .* exp(-((t-dt).^2) / tw^2);
     end
     
-    % heaviside impulse
+    % heaviside impulse, the step at t = tw is measure-zero in time
     function [p,pdot] = heaviside_impulse(t)
-        p = -ee*(1-heaviside(t-tw));
-        pdot = 0;
+        p = -ee*(t < tw);
+        pdot = zeros(size(t));
     end
     
 end

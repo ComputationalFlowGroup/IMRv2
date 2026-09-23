@@ -4,7 +4,7 @@
 `f_odesolve` is a wrapper that selects and executes MATLAB's ODE solvers (`ode15s`, `ode23tb`, `ode45`) with user-defined time stepping and tolerance options.
 
 ## Major Sections
-1. **Options Configuration**: Sets `RelTol`, `AbsTol`, and `MaxStep` based on `divisions`.
+1. **Options Configuration**: Sets `RelTol`, `AbsTol`, and `MaxStep` based on `divisions`, and `JPattern` or `Jacobian` when `Sp` is given.
 2. **Solver Selection**: Routes to the correct solver based on `method` code:
    - 15 → `ode15s`
    - 23 → `ode23tb`
@@ -19,8 +19,10 @@
 | `init`     | Initial condition vector                     | –       |
 | `method`   | Solver choice (15, 23, or 45)                | –       |
 | `divisions`| Maximum number of time steps (0 = auto)      | –       |
-| `tspan`    | Two-element time span `[t0 tf]`              | –       |
-| `tfin`     | Final time (for step size calculation)       | –       |
+| `tspan`    | Time span or output time vector              | –       |
+| `Sp`       | Optional: Jacobian sparsity pattern (`JPattern`) or analytic Jacobian function handle | – |
+| `rtol`     | Optional: relative tolerance (default `1e-8`) | –      |
+| `atol`     | Optional: absolute tolerance (default `1e-8`) | –      |
 
 ## Outputs
 

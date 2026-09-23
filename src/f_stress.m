@@ -1,5 +1,5 @@
-% file f_stress_calc.m
-% brief contains function f_stress_calc
+% file f_stress.m
+% brief contains function f_stress
 
 % brief This function features the stress integral and its time derivative
 % solver. The solver accounts for the Kelvin-Voigt with neo-Hookean

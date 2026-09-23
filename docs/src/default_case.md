@@ -1,112 +1,113 @@
 # `default_case.m` Documentation
 
 ## Overview
-`default_case.m` defines the default simulation parameters for the Inertial Microcavitation Rheometry (IMR) solver.  
-It sets baseline flags for physics models, numerical solver options, initial conditions, material and environmental properties.  
-These defaults are used when no custom case file is specified.
+`default_case.m` defines the default simulation case. **Every quantity is dimensionless.** The solvers take no dimensional inputs and return no dimensional outputs; convert physical values beforehand, for example with [`toolchain/f_dim2nondim.m`](../toolchain/f_dim2nondim.md).
 
-## Major Sections
-1. **Physics Model Flags**:  
-   - `radial`, `bubtherm`, `medtherm`, `stress`, `eps3`, `vapor`, `masstrans`
+### Scalings
+| Quantity | Scale |
+|----------|-------|
+| length | initial radius `R0` |
+| pressure, stress | far-field pressure `P8` |
+| velocity | `Uc = sqrt(P8/rho8)` |
+| time | `t0 = R0/Uc` |
+| temperature | far-field temperature `T8` |
 
-2. **Solver Options**:  
-   - `TFin`, `TVector`, `method`, `spectral`, `divisions`, `Nt`, `Mt`, `Nv`, `Lv`, `Lt`
+The default values correspond to a 50 µm bubble in water at 1 atm and 298.15 K.
 
-3. **Initial Conditions**:  
-   - `collapse`, `R0`, `U0`, `Req`
+---
 
-4. **Output Options**:  
-   - `dimensionalout`, `progdisplay`
+## Parameters
 
-5. **Acoustic Properties**:  
-   - `rho8`, `GAM`, `nstate`, `hugoniot_s`, `P8`, `C8`
+The *input* column is the name used in the name/value call (case-insensitive).
 
-6. **Pressure Wave Options**:  
-   - `pA`, `omega`, `TW`, `DT`, `mn`, `wave_type`
+### Equation options
+| Input | Variable | Description | Default |
+|-------|----------|-------------|---------|
+| `radial` | `radial` | 1 Rayleigh–Plesset, 2 Keller–Miksis (pressure), 3 Keller–Miksis (enthalpy, Tait), 4 Gilmore (Tait), 5 Keller–Miksis (Mie–Grüneisen), 6 Gilmore (Mie–Grüneisen). Radial 5 and 6 support only the polytropic bubble. | 1 |
+| `bubtherm` | `bubtherm` | Thermal PDE in the bubble (0/1) | 0 |
+| `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1`) | 0 |
+| `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B | 0 |
+| `eps3` | `eps3` | Second-order strain term, in [0, 0.5] | 0 |
+| `vapor` | `vapor` | Vapor pressure (0/1) | 0 |
+| `masstrans` | `masstrans` | Vapor mass transfer (0/1, requires `bubtherm = vapor = 1`) | 0 |
 
-7. **Stress Model Parameters**:  
-   - `S`, `G`, `lambda1`, `lambda2`, `alphax`
+### Solver options
+| Input | Variable | Description | Default |
+|-------|----------|-------------|---------|
+| `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 |
+| `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` |
+| `method` | `method` | 15 `ode15s`, 23 `ode23tb`, 45 `ode45` | 23 |
+| `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `f_imr_spectral` only (0/1) | 0 |
+| `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 |
+| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress | 25, 25, 150 |
+| `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 |
+| `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 |
+| `jacobian` | `jacobian` | Jacobian for the stiff integrators: 0 dense numerical, 1 sparsity pattern (FD solver), 2 analytic | 2 |
+| `progdisplay` | `progdisplay` | Print progress (every right-hand-side call; slows runs) | 0 |
 
-8. **Thermal Properties**:  
-   - `kappa`, `ATg`, `BTg`, `ATv`, `BTv`, `T8`, `Km`, `Cp`
+### Initial conditions
+| Input | Variable | Definition | Default |
+|-------|----------|------------|---------|
+| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1) | 0 |
+| `req` | `Req` | `Req/R0` | 0.2 |
+| `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 |
+| `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed |
+| `stress0` | `Szero` | Initial stress state | computed |
 
-9. **Mass Transfer Properties**:  
-   - `D0`, `L_heat`, `Ru`, `Rv`, `Ra`
+### Acoustic options
+| Input | Variable | Definition | Default |
+|-------|----------|------------|---------|
+| `cstar` | `Cstar` | `C8/Uc` | 152.071 |
+| `gama` | `GAMa` | Tait parameter `GAM/P8` | 3009.26 |
+| `nstate` | `nstate` | Tait exponent | 7.15 |
+| `hugoniot_s` | `hugoniot_s` | Hugoniot slope (Mie–Grüneisen) | 1.65 |
 
-10. **Viscosity Variables**:  
-   - `mu8`, `muo`, `Dmu`, `v_a`, `v_nc`, `v_lambda`, `nu_model`
+### Pressure waveform
+| Input | Variable | Definition | Default |
+|-------|----------|------------|---------|
+| `wave_type` | `wave_type` | -1/-2/-3 measured waveforms (`d_hn`, `d_mn`, `d_ml`, already dimensionless), 0 impulse, 1 Gaussian, 2 histotripsy, 3 Heaviside | 0 |
+| `ee` | `ee` | Amplitude `pA/P8` | 0 |
+| `om` | `om` | Frequency `omega*t0` | 0 |
+| `tw` | `tw` | Width `TW/t0` | 0 |
+| `dt` | `dt` | Delay `DT/t0` | 0 |
+| `mn` | `mn` | Histotripsy power | 0 |
 
-11. **Derived Pressure Variables**:  
-   - `Pv`, `P0`
+### Stress and viscosity
+| Input | Variable | Definition | Default |
+|-------|----------|------------|---------|
+| `we` | `We` | Weber `P8*R0/(2*S)` (Inf: no surface tension) | 36.1875 |
+| `re` | `Re8` | Reynolds `P8*R0/(mu8*Uc)` (Inf: inviscid) | 623.366 |
+| `ca` | `Ca` | Cauchy `P8/G` (Inf: no elasticity) | 101.325 |
+| `de` | `De` | Deborah `lambda1*Uc/R0` | 0.019517 |
+| `lam` | `LAM` | `lambda2/lambda1` | 0.1 |
+| `alphax` | `alphax` | Strain-stiffening parameter | 0.25 |
+| `dre` | `DRe` | `P8*R0/((mu0-mu8)*Uc)`, 0 for no non-Newtonian contribution | 0 |
+| `v_a`, `v_nc` | `v_a`, `v_nc` | Carreau(-Yasuda) exponents | 0, 0 |
+| `v_lambda` | `v_lambda_star` | Viscosity time scale `v_lambda/t0` | 0 |
+| `nu_model` | `nu_model` | 0 Newtonian, 1 Carreau, 2 Carreau–Yasuda, 3 Powell–Eyring, 4 modified Powell–Eyring, 5 Cross, 6 simplified Cross, 7 modified Cross (see `f_viscosity`) | 0 |
 
-## Variables
+### Thermal transport
+| Input | Variable | Definition | Default |
+|-------|----------|------------|---------|
+| `kappa` | `kappa` | Ratio of specific heats | 1.47 |
+| `foh` | `Foh` | Thermal Fourier `Dm/(Uc*R0)` | 2.5339e-4 |
+| `br` | `Br` | Brinkman `Uc^2/(Cp*T8)` | 7.6394e-5 |
+| `alpha_g`, `beta_g` | | Gas conductivity `K = K8*(alpha_g*T + beta_g)` | 0.57610, 0.42634 |
+| `alpha_v`, `beta_v` | | Vapor conductivity coefficients | 0.36006, 0.63750 |
+| `chi` | `chi` | `T8*K8/(P8*R0*Uc)` | 0.16479 |
+| `kmstar` | `Km_star` | Medium to gas conductivity ratio `Km/K8` | 20.1276 |
 
-| Name            | Description                                                                                       | Units         | Default / Calculation        |
-|-----------------|---------------------------------------------------------------------------------------------------|---------------|------------------------------|
-| `radial`        | Select radial model: 1=Rayleigh–Plesset, 2=Keller–Miksis (pressure form), 3=Keller–Miksis (enthalpy), 4=Gilmore | –             | 1                            |
-| `bubtherm`      | Bubble thermal model: 0=off, 1=on                                                                  | –             | 0                            |
-| `medtherm`      | Medium thermal model: 0=off, 1=on                                                                  | –             | 0                            |
-| `stress`        | Constitutive model: 0=none, 1=NHKV, 2=quad. KV NH, 3=Maxwell/Jeffreys/Zener, 4=PTT, 5=Giesekus      | –             | 0                            |
-| `eps3`          | Second-order strain term: 0=off, (0,0.5]=on                                                        | –             | 0                            |
-| `vapor`         | Vapor pressure model: 0=ignore, 1=include                                                          | –             | 0                            |
-| `masstrans`     | Mass transfer: 0=off, 1=on                                                                         | –             | 0                            |
-| `TFin`          | Final simulation time                                                                              | s             | 20e-6                       |
-| `TVector`       | Time vector [0, TFin]                                                                              | s             | [0 TFin]                    |
-| `method`        | ODE solver: 23=ode23tb, 15=ode15s, 45=ode45                                                         | –             | 23                           |
-| `spectral`      | Force spectral collocation: 0=FD, 1=spectral                                                        | –             | 0                            |
-| `divisions`     | Max time steps (0=automatic)                                                                       | –             | 0                            |
-| `Nt`            | Number of points inside bubble (thermal PDE)                                                       | –             | 25                           |
-| `Mt`            | Number of points outside bubble (thermal PDE)                                                      | –             | 25                           |
-| `Nv`            | Number of points outside bubble (stress PDE)                                                       | –             | 150                          |
-| `Lv`            | Grid stretching factor (velocity domain)                                                           | –             | 3                            |
-| `Lt`            | Grid stretching factor (thermal domain)                                                            | –             | 2                            |
-| `collapse`      | Special collapse IC: 0=off, 1=on                                                                   | –             | 0                            |
-| `R0`            | Initial bubble radius                                                                              | m             | 50e-6                        |
-| `U0`            | Initial wall velocity                                                                              | m/s           | 0                            |
-| `Req`           | Equilibrium radius (pre-stress bubble)                                                             | m             | R0/5                         |
-| `dimensionalout`| Return outputs in physical units: 0=non-dim, 1=dim                                                   | –             | 0                            |
-| `progdisplay`   | Display progress: 0=off, 1=on                                                                      | –             | 0                            |
-| `rho8`          | Far-field density                                                                                  | kg/m³         | 1064                         |
-| `GAM`           | Mie–Grüneisen parameter (Pa)                                                                        | Pa            | 3049.13×1e5                  |
-| `nstate`        | EOS exponent                                                                                       | –             | 7.15                         |
-| `hugoniot_s`    | Hugoniot slope                                                                                     | –             | 10                           |
-| `P8`            | Far-field pressure                                                                                 | Pa            | 101325                       |
-| `C8`            | Far-field sound speed                                                                              | m/s           | 1484                         |
-| `pA`            | Pressure amplitude                                                                                 | Pa            | 0                            |
-| `omega`        | Driving frequency                                                                                  | rad/s         | 0                            |
-| `TW`            | Gaussian pulse width                                                                               | s             | 0                            |
-| `DT`            | Pulse delay                                                                                        | s             | 0                            |
-| `mn`            | Waveform power exponent                                                                            | –             | 0                            |
-| `wave_type`     | Waveform type: 0=impulse,1=Gaussian,2=histotripsy,3=heaviside                                       | –             | 0                            |
-| `S`             | Surface tension                                                                                     | N/m           | 0.072                        |
-| `G`             | Shear modulus                                                                                      | Pa            | 1e3                          |
-| `lambda1`       | Relaxation time                                                                                    | s             | 1e-7                         |
-| `lambda2`       | Retardation time                                                                                   | s             | 1e-8                         |
-| `alphax`        | Quadratic KV exponent                                                                              | –             | 0.25                         |
-| `kappa`         | Ratio of specific heats                                                                            | –             | 1.47                         |
-| `ATg`           | Thermal cond. coeff. (gas, W/m·K²)                                                                 | W/m·K²        | 5.28e-5                      |
-| `BTg`           | Thermal cond. coeff. (gas, W/m·K)                                                                  | W/m·K         | 1.165e-2                     |
-| `ATv`           | Thermal cond. coeff. (vapor, W/m·K²)                                                               | W/m·K²        | 3.30e-5                      |
-| `BTv`           | Thermal cond. coeff. (vapor, W/m·K)                                                                | W/m·K         | 1.742e-2                     |
-| `T8`            | Far-field temperature                                                                              | K             | 298.15                       |
-| `Km`            | Thermal conductivity (medium)                                                                     | W/m·K         | 0.55                         |
-| `Cp`            | Specific heat (medium)                                                                              | J/kg·K        | 4.181e3                      |
-| `D0`            | Mass diffusivity                                                                                   | m²/s          | 24.2e-6                      |
-| `L_heat`        | Latent heat of vaporization                                                                        | J/kg          | 2.26476×10^6                 |
-| `Ru`            | Universal gas constant                                                                             | J/mol·K       | 8.3144598                    |
-| `Rv`            | Vapor gas constant                                                                                 | J/kg·K        | Ru/18.01528e-3               |
-| `Ra`            | Air gas constant                                                                                   | J/kg·K        | Ru/28.966e-3                 |
-| `mu8`           | Infinite shear-rate viscosity                                                                      | Pa·s          | 8.3283e-4                    |
-| `muo`           | Zero-shear viscosity                                                                               | Pa·s          | 8.3283e-4                    |
-| `Dmu`           | Viscosity difference                                                                               | Pa·s          | 0                            |
-| `v_a`           | Viscosity power factor 1                                                                           | –             | 0                            |
-| `v_nc`          | Viscosity power factor 2                                                                           | –             | 0                            |
-| `v_lambda`      | Viscosity time scale                                                                               | s             | 0                            |
-| `nu_model`      | Viscosity model type                                                                               | 0=Newtonian...7=modified Cross | 0             |
-| `Pv`            | Vapor pressure from `f_pvsat(T8)`                                                                  | Pa            | computed                     |
-| `P0`            | Initial internal bubble pressure                                                                   | Pa            | (P8 + 2*S/Req - Pv*vapor)*(Req/R0)^3 |
+### Mass transfer and vapor pressure
+| Input | Variable | Definition | Default |
+|-------|----------|------------|---------|
+| `fom` | `Fom` | Mass Fourier `D0/(Uc*R0)` | 0.049597 |
+| `lheat` | `L_heat_star` | Latent heat `L_heat/Uc^2` | 23781.9 |
+| `rv`, `ra` | `Rv_star`, `Ra_star` | Gas constants `R/(P8/(rho8*T8))` | 1444.95, 898.681 |
+| `pv` | `Pv_sat` | Saturated vapor pressure at `T8`, `Pv/P8` | 0.030760 |
+| `thetav` | `thetav` | Vapor pressure exponent: `Pv(T)/P8 = pv*exp(thetav*(1 - 1/T))` | 17.4409 |
+
+---
 
 ## Notes
-- Modify any variable here to change the default simulation behavior.
-- `Pv` uses an empirical fit: see `f_pvsat.m`.
-- `Req` default ensures pre-stressed bubble based on `R0`.
+- All inputs are validated by [`f_checkers`](f_checkers.md); inputs that look dimensional raise the `IMR:dimensional` warning.
+- A custom case file (`casefile`) must follow this file's layout and be dimensionless.

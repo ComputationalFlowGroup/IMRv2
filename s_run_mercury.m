@@ -3,6 +3,7 @@ clear;
 close;
 
 addpath('src');
+addpath('toolchain');
 
 % equation options
 R0 = 2.447495043190468e-04;
@@ -45,6 +46,8 @@ varin = {'progdisplay',0,...
          'dt',dt,...
          'tw',tw,...
          'pA',pA};
+% dimensional (SI) values converted to the solver's dimensionless inputs
+varin = f_dim2nondim(varin{:});
 
 [t3,R3,U3,P3] = f_imr_fd(varin{:},'radial',radial,'Nt',50,'Mt',50);
 radial = 5;

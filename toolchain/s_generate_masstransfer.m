@@ -61,6 +61,8 @@ for idx_mass = 1:total_combinations
         'r0', R0, ...
         'req', Req, ...
         'masstrans', masstrans};
+    % dimensional (SI) values converted to the solver's dimensionless inputs
+    varin = f_dim2nondim(varin{:});
     
     futures(idx_mass) = parfeval(@f_imr_fd_wrapper, 1, varin);
 end

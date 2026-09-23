@@ -65,13 +65,21 @@ addpath(genpath('IMRv2'))
 savepath
 ```
 
-### Running an Example
+### Dimensionless inputs
 
-To run a basic simulation of bubble dynamics, execute the following command in MATLAB:
+The solvers `f_imr_fd` (finite difference) and `f_imr_spectral` (spectral) take and return **dimensionless** quantities only: lengths are scaled by the initial radius `R0`, pressures by the far-field pressure `P8`, velocities by `sqrt(P8/rho8)`, time by `R0/sqrt(P8/rho8)`, and temperatures by the far-field temperature `T8`. The inputs and their defaults are listed in `docs/src/default_case.md`, and `f_checkers` validates every run. To start from physical (SI) values, convert them with the side function `toolchain/f_dim2nondim.m`:
 
 ```matlab
-run_example.m
+addpath('src'); addpath('toolchain');
+[varin, ref] = f_dim2nondim('r0',50e-6,'req',5e-6,'mu',1e-2,'g',1e3, ...
+    'tvector',linspace(0,12e-6,100));
+[t, R] = f_imr_fd(varin{:}, 'radial', 2, 'stress', 1);
+plot(t*ref.t0, R*ref.R0);
 ```
+
+### Running an Example
+
+The scripts `s_run_fdmodel.m`, `s_run_full_model.m` and `s_run_mercury.m` in the repository root run example simulations.
 
 For additional examples, see the `examples/` directory.
 

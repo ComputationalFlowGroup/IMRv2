@@ -8,7 +8,8 @@ close;
 
 format long;
 
-addpath('../../src/forward_solver/');
+addpath('../../src/');
+addpath('../../toolchain/');
 
 % material parameter test cases
 tvector = linspace(0,350E-6,500);
@@ -49,6 +50,8 @@ varin = {'progdisplay',1,...
     'stress',stress,...
     'Nt',Nresolved,...
     'Mt',Nresolved};
+% dimensional (SI) values converted to the solver's dimensionless inputs
+varin = f_dim2nondim(varin{:});
 
 [tvec,Rvec] = f_imr_fd(varin{:});
 save("fd_Nt_1024_Mt_1024.mat","tvec","Rvec");

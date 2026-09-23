@@ -1,7 +1,7 @@
-# `f_stress_calc.m` Documentation
+# `f_stress.m` Documentation
 
 ## Overview
-`f_stress_calc` computes the stress integral and its time derivative for a range of viscoelastic models (Kelvin–Voigt, Maxwell, Jeffreys, Zener, Oldroyd-B).
+`f_stress` computes the stress integral and its time derivative for a range of viscoelastic models (Kelvin–Voigt, Maxwell, Jeffreys, Zener, Oldroyd-B).
 
 ## Major Sections
 1. **No Stress (Model 0)**
