@@ -16,7 +16,7 @@
 
 | Name         | Description                            | Units |
 |--------------|----------------------------------------|-------|
-| `stress`     | Model selector (0–5, -1)              | –     |
+| `stress`     | Model selector (0–5)                  | –     |
 | `X`          | State vector containing auxiliary vars | –     |
 | `Req`, `R`   | Equilibrium and current radius         | –     |
 | `Ca`, `De`   | Cauchy and Deborah numbers             | –     |
@@ -26,7 +26,6 @@
 | `ivisco1`    | Index of first viscous state variable  | –     |
 | `ivisco2`    | Index of second viscous state variable | –     |
 | `LAM`        | Dimensionless elastic modulus          | –     |
-| `zeNO`, `cdd`| Spectral coupling parameters           | –     |
 | `intfnu`, `dintfnu` | Non-Newtonian integrals        | –     |
 | `iDRe`       | Inverse Debye–Stokes number           | –     |
 
@@ -40,5 +39,5 @@
 | `Z2dot` | Second auxiliary stress derivative | –     |
 
 ## Notes
-- For spectral solvers, `zeNO` and coupling differ.
+- The spectral stress representation (`f_imr_spectral`, `stress = 5`, `spectral = 1`) does not use this function.
 - The placeholder model (-1) is for internal code consistency.

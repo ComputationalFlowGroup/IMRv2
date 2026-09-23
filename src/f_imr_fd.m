@@ -95,8 +95,7 @@ function varargout = f_imr_fd(varargin)
     JdotA           = sigma_opts(9);
     nu_model        = sigma_opts(10);
     v_lambda_star   = sigma_opts(11);
-    zeNO            = sigma_opts(12);
-    iDRe            = sigma_opts(13);
+    iDRe            = sigma_opts(12);
     iWe             = 1/We;
     
     % dimensionless thermal
@@ -182,8 +181,6 @@ function varargout = f_imr_fd(varargin)
     % precomputations for viscous dissipation
     % zT = 1 - 2./(1 + (yT - 1)/Lv);
     ZZT = 0;
-    % stress integral precomputation, only used by the spectral solver
-    cdd = 0;
     % stress spectra index management
     ivisco1 = (4+Nt+Mt+Nc):(3+Nt+Mt+Nc+Nv);
     ivisco2 = (4+Nt+Mt+Nc+Nv):(3+Nt+Mt+Nc+2*Nv);
@@ -454,7 +451,7 @@ function varargout = f_imr_fd(varargin)
         
         % stress equation evolution
         [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8, ...
-            Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+            Rdot,alphax,ivisco1,ivisco2,LAM,intfnu,dintfnu,iDRe);
         
         % bubble wall evolution / acceleration
         [Rddot] = f_radial_eq(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...
@@ -501,7 +498,7 @@ function varargout = f_imr_fd(varargin)
         end
         [Pf8_loc,Pf8dot_loc] = f_pinfinity(t,pvarargin);
         [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = f_stress(stress,X,Req,Rv, ...
-            Ca,De,Re8,Rdotv,alphax,ivisco1,ivisco2,LAM,zeNO,cdd, ...
+            Ca,De,Re8,Rdotv,alphax,ivisco1,ivisco2,LAM, ...
             intf_loc,dintf_loc,iDRe);
         Rddot_loc = f_radial_eq(radial, v(3), v(4), Pf8_loc, Pf8dot_loc, ...
             iWe, Rv, Rdotv, S_loc, Sdot_loc, Cstar, sam, no, GAMa, nstate, ...

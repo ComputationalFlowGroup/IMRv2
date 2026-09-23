@@ -56,7 +56,7 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 | `wave_poly`, `wave_dpoly` | Waveform spline fits (for `wave_type < 0`) |
 | `We`, `Re8`, `DRe` | Dimensionless fluid dynamics numbers |
 | `v_a`, `v_nc`, `Ca`, `LAM`, `De`, `JdotA` | Viscoelastic model parameters |
-| `nu_model`, `v_lambda_star`, `zeNO`, `iDRe` | Viscosity model settings (`nu_model` 0–2) |
+| `nu_model`, `v_lambda_star`, `iDRe` | Viscosity model settings (`nu_model` 0–7) |
 
 ---
 

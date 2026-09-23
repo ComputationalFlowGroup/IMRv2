@@ -1,0 +1,34 @@
+name: IMR test suite - operators
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  testsuite:
+
+    name: Test suite
+
+    runs-on: ubuntu-22.04
+
+    continue-on-error: true  # Does not stop other workflows
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v1
+        with:
+          release: R2023a
+          products: MATLAB
+
+      - name: Differentiation operator test
+        uses: matlab-actions/run-command@v1
+        with:
+          command: |
+            cd toolchain;
+            s_test_suite_diffmat;

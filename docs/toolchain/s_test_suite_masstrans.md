@@ -17,7 +17,7 @@
 
 3. **Test Parameter Setup**
    - Defines `tvector` for simulation.
-   - Fixes `masstrans = 1`, `vapor = 1`, `collapse = 1`.
+   - Fixes `masstrans = 1`, `vapor = 1`, `collapse = 0`.
    - Sets bubble geometry: `R0`, `Req`.
    - Defines model vectors: `radial`, `bubtherm`, `medtherm`, `stress`.
 

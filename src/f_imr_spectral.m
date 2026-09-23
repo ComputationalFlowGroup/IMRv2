@@ -94,8 +94,7 @@ function varargout = f_imr_spectral(varargin)
     JdotA           = sigma_opts(9);
     nu_model        = sigma_opts(10);
     v_lambda_star   = sigma_opts(11);
-    zeNO            = sigma_opts(12);
-    iDRe            = sigma_opts(13);
+    iDRe            = sigma_opts(12);
     iWe             = 1/We;
     
     % dimensionless thermal
@@ -271,8 +270,6 @@ function varargout = f_imr_spectral(varargin)
         if medtherm
             Tm = mA*b;
         end
-    else
-        T = R.^(-3*kappa);
     end
     
     % outputs
@@ -384,7 +381,7 @@ function varargout = f_imr_spectral(varargin)
             [S,Sdot,Z1dot,Z2dot] = f_spectral_stress(R,Rdot,X);
         else
             [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8, ...
-                Rdot,alphax,ivisco1,ivisco2,LAM,zeNO,cdd,intfnu,dintfnu,iDRe);
+                Rdot,alphax,ivisco1,ivisco2,LAM,intfnu,dintfnu,iDRe);
         end
         
         % bubble wall evolution / acceleration
@@ -446,7 +443,7 @@ function varargout = f_imr_spectral(varargin)
         X(6+Nt+Mt:end) = v(5:end);
         [~,intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
         [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = f_stress(stress,X,Req,v(1), ...
-            Ca,De,Re8,v(2),alphax,ivisco1,ivisco2,LAM,zeNO,cdd, ...
+            Ca,De,Re8,v(2),alphax,ivisco1,ivisco2,LAM, ...
             intf_loc,dintf_loc,iDRe);
         out = vertcat(f_rddot(t,v,S_loc,Sdot_loc,ddintf_loc), Z1dot_loc, Z2dot_loc);
     end
