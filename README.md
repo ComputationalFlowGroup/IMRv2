@@ -87,7 +87,7 @@ For additional examples, see the `examples/` directory.
 
 Comprehensive documentation, including a user guide, can be found in the `docs/` folder and on the IMRv2 website.
 
-`docs/compatibility.md` lists which model options work in each solver.
+`docs/compatibility.md` has grids of which features can run together in each solver.
 
 ## Citation
 
