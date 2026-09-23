@@ -10,12 +10,23 @@ Legend:
 
 A ✗ on the diagonal means the solver does not have that feature at all, so its whole row is ✗.
 
+The radial models fall into two groups with the same compatibility:
+
+| Radial | Model | Liquid | Group |
+|---|---|---|---|
+| 1 | Rayleigh–Plesset | Incompressible | 1–4 |
+| 2 | Keller–Miksis, pressure form | Constant sound speed | 1–4 |
+| 3 | Keller–Miksis, enthalpy form | Tait equation of state | 1–4 |
+| 4 | Gilmore | Tait equation of state | 1–4 |
+| 5 | Keller–Miksis, enthalpy form | Mie–Grüneisen equation of state | 5–6 |
+| 6 | Gilmore | Mie–Grüneisen equation of state | 5–6 |
+
 ### `f_imr_fd`
 
 | | Feature | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |
 |---:|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 1 | Radial 1–4 (RP, K–M, Gilmore; Tait) | – | · | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
-| 2 | Radial 5–6 (Mie–Grüneisen) |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | ✓ |
+| 1 | Radial 1–4 | – | · | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
+| 2 | Radial 5–6 |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | ✓ |
 | 3 | Vapor pressure |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
 | 4 | Bubble heat transfer |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
 | 5 | Medium heat transfer |  |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
@@ -32,8 +43,8 @@ A ✗ on the diagonal means the solver does not have that feature at all, so its
 
 | | Feature | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |
 |---:|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 1 | Radial 1–4 (RP, K–M, Gilmore; Tait) | – | · | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
-| 2 | Radial 5–6 (Mie–Grüneisen) |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| 1 | Radial 1–4 | – | · | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| 2 | Radial 5–6 |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
 | 3 | Vapor pressure |  |  | – | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
 | 4 | Bubble heat transfer |  |  |  | – | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
 | 5 | Medium heat transfer |  |  |  |  | – | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
@@ -70,7 +81,7 @@ The spectral solver is blocked only because `f_checkers` requires mass transfer 
 
 ## How this was checked
 
-Every cell comes from running both solvers with GNU Octave on `main` as of the merge of PR #4. Each run pairs the two features on a Keller–Miksis base case, or radial 5 for the Mie–Grüneisen models, and each ran in its own Octave process. A ✓ means the run finished with a finite `R(t)`.
+Every cell comes from running both solvers with GNU Octave on `main` as of the merge of PR #4. Each run pairs the two features on a Keller–Miksis base case, radial 2, and each ran in its own Octave process. Radial 1, 3, 4, 5 and 6 were each paired with every non-radial feature, and each gave the same result as the rest of its group. A ✓ means the run finished with a finite `R(t)`.
 
 A separate sweep ran both solvers over every radial model, thermal configuration and stress model: 504 runs, plus 36 more for the remaining thermal combinations. Every non-Newtonian viscosity model, driving waveform, integrator and Jacobian option was also run on a thermal case in both solvers.
 
