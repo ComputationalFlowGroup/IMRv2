@@ -36,7 +36,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 |-------|----------|-------------|---------|
 | `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 |
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` |
-| `method` | `method` | 15 `ode15s`, 23 `ode23tb`, 45 `ode45` | 23 |
+| `method` | `method` | Stiff time integrator: 15 `ode15s`, 23 `ode23tb` | 23 |
 | `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `f_imr_spectral` only (0/1) | 0 |
 | `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 |
 | `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is used only by the spectral stress representation | 25, 25, 150 |

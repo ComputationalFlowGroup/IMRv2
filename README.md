@@ -54,7 +54,7 @@ Both solvers include:
 - **Stress models:** neo-Hookean and quadratic neo-Hookean Kelvin–Voigt; linear Maxwell, Jeffreys and Zener; UCM and Oldroyd-B.
 - **Viscosity:** Newtonian and seven non-Newtonian models (Carreau, Carreau–Yasuda, Powell–Eyring, modified Powell–Eyring, Cross, simplified Cross, modified Cross).
 - **Driving pressure:** impulse, Gaussian, histotripsy, Heaviside, and three measured waveforms.
-- **Time integration:** `ode15s`, `ode23tb` or `ode45`, with an analytic Jacobian for the stiff integrators where one is implemented.
+- **Time integration:** the stiff integrators `ode15s` and `ode23tb`, with an analytic Jacobian where one is implemented.
 
 [`docs/compatibility.md`](docs/compatibility.md) shows which of these run together in each solver.
 

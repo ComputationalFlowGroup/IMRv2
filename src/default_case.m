@@ -32,7 +32,7 @@ masstrans       = 0;
 TFin            = 3.903439778613622;
 % time span vector
 TVector         = linspace(0,TFin,128);
-% ode45 setting for the time stepper
+% stiff time integrator: 15 ode15s, 23 ode23tb
 method          = 23;
 % force spectral collocation solution
 spectral        = 0;

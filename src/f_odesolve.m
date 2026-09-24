@@ -2,10 +2,12 @@
 % brief contains function f_odesolve
 
 % brief This function computes time marching for the ODE and PDE system of
-% equations computed as part of the IMR solver. The function features known
-% integration functions: ODE15, ODE23tb (most stable), and ODE45. Optional
-% inputs: Sp, either a Jacobian sparsity pattern (JPattern) or an analytic
-% Jacobian function handle, and the relative and absolute tolerances.
+% equations computed as part of the IMR solver with the stiff integrators
+% ode15s and ode23tb (most stable); the thermal, mass transfer and stress
+% fields make the system stiff, so non-stiff integrators are not offered.
+% Optional inputs: Sp, either a Jacobian sparsity pattern (JPattern) or an
+% analytic Jacobian function handle, and the relative and absolute
+% tolerances.
 function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, Sp, rtol, atol)
     
     if nargin < 6
@@ -36,8 +38,6 @@ function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, Sp, rtol, at
         [t,X] = ode15s(bubble,tspan,init,options);
     elseif method == 23
         [t,X] = ode23tb(bubble,tspan,init,options);
-    elseif method == 45
-        [t,X] = ode45(bubble,tspan,init,options);
     else
         error('f_odesolve not set for the run, check casefile');
     end

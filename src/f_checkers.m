@@ -25,7 +25,7 @@ function p = f_checkers(p)
         '2 (Carreau-Yasuda), 3 (Powell-Eyring), 4 (modified Powell-Eyring), ' ...
         '5 (Cross), 6 (simplified Cross), or 7 (modified Cross)']);
     f_integer_in(p.wave_type, -3:3, 'wave_type', 'an integer in -3..3');
-    f_integer_in(p.method, [15 23 45], 'method', '15 (ode15s), 23 (ode23tb), or 45 (ode45)');
+    f_integer_in(p.method, [15 23], 'method', '15 (ode15s) or 23 (ode23tb)');
     f_integer_in(p.spectral, 0:1, 'spectral', '0 or 1');
     f_integer_in(p.jacobian, 0:2, 'jacobian', '0, 1, or 2');
     f_integer_in(p.scheme, 0:1, 'scheme', '0 (finite difference) or 1 (Chebyshev)');
