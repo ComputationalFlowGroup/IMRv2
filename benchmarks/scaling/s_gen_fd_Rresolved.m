@@ -53,5 +53,5 @@ varin = {'progdisplay',1,...
 % dimensional (SI) values converted to the solver's dimensionless inputs
 varin = f_dim2nondim(varin{:});
 
-[tvec,Rvec] = f_imr_fd(varin{:});
+[tvec,Rvec] = f_imr_nodal(varin{:});
 save("fd_Nt_1024_Mt_1024.mat","tvec","Rvec");

@@ -1,7 +1,7 @@
 # `s_test_suite_compatibility.m` Documentation
 
 ## Overview
-`s_test_suite_compatibility.m` verifies that the finite difference (`f_imr_fd`) and spectral (`f_imr_spectral`) solvers produce compatible results under various model configurations, including thermal effects.
+`s_test_suite_compatibility.m` verifies that the finite difference (`f_imr_nodal`) and spectral (`f_imr_spectral`) solvers produce compatible results under various model configurations, including thermal effects.
 
 ## Major Sections
 
@@ -29,7 +29,7 @@
    - For each combination:
      1. Constructs `varin` parameter-value pairs.
      2. Loads reference results: `Rf` and `Rs` from test MAT files.
-     3. Runs `f_imr_fd` and compares output `Rf_test`; computes L2 error.
+     3. Runs `f_imr_nodal` and compares output `Rf_test`; computes L2 error.
      4. Runs `f_imr_spectral` and compares output `Rs_test`; computes L2 error.
      5. Records failures where error exceeds `threshold`.
 
@@ -43,7 +43,7 @@
 | Name             | Description                                    |
 |------------------|------------------------------------------------|
 | `file_ids.mat`   | MAT-file in `toolchain/` defining `ids` (list of test case IDs)|
-| `f_imr_fd`       | Finite difference solver function              |
+| `f_imr_nodal`       | Finite difference solver function              |
 | `f_imr_spectral` | Spectral solver function                       |
 
 ## Outputs

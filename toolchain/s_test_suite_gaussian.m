@@ -62,7 +62,7 @@ for radial = 1:4
                         'pA',pA};
                     % dimensional (SI) values converted to the solver's dimensionless inputs
                     varin = f_dim2nondim(varin{:});
-                    [~,Rf_test] = f_imr_fd(varin{:},'Nt',50,'Mt',50);
+                    [~,Rf_test] = f_imr_nodal(varin{:},'Nt',50,'Mt',50);
                     errors_fd(count) = abs(1-Rf_test(end));
                     fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
                     [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);

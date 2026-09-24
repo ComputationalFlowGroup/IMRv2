@@ -77,7 +77,7 @@ for k = 1:total_valid
     varin = f_dim2nondim(varin{:});
     
     load(filenames_fd{k});
-    [~,Rf_test] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
+    [~,Rf_test] = f_imr_nodal(varin{:},'Nt',70,'Mt',70);
     errors_fd(k) = norm(abs(Rf./Rf_test - 1),2);
     fprintf('Finite test %d: L2 norm error = %.6e\n', k, errors_fd(k));
     if (errors_fd(k) > threshold)

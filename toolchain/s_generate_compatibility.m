@@ -118,7 +118,7 @@ function [Rf, Rs, jobID] = f_generate_goldendata_wrapper(jobID, P)
         'stress',P.stress};
     % dimensional (SI) values converted to the solver's dimensionless inputs
     args = f_dim2nondim(args{:});
-    [~, Rf] = f_imr_fd(args{:}, 'Nt', 70, 'Mt', 70);
+    [~, Rf] = f_imr_nodal(args{:}, 'Nt', 70, 'Mt', 70);
     [~, Rs] = f_imr_spectral(args{:}, 'Nt', 12, 'Mt', 12);
 end
 

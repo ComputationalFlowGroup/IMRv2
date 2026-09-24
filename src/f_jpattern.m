@@ -2,13 +2,20 @@
 % brief contains function f_jpattern
 
 % brief This function builds a conservative Jacobian sparsity pattern for
-% the finite difference solver from its state-vector index bookkeeping.
+% the nodal solver from its state-vector index bookkeeping.
 % State layout: [R, Rdot, P, theta(ith), Tm(itm), kv(ikv), Z(iz)]. The
 % pattern is a superset of the true Jacobian: the bubble pressure equation
 % and the wall boundary condition feed every field row, so all field rows
-% couple to (R, Rdot, P) and to the wall stencil columns, while the field
-% operators themselves are tridiagonal.
-function Sp = f_jpattern(n, ith, itm, ikv, iz)
+% couple to (R, Rdot, P) and to the wall stencil columns, while the finite
+% difference operators (scheme = 0) are tridiagonal. The Chebyshev
+% operators (scheme = 1) couple every node of a field, and the wall rows
+% couple every node of both fields, so the pattern is dense.
+function Sp = f_jpattern(n, ith, itm, ikv, iz, scheme)
+    
+    if scheme == 1
+        Sp = sparse(ones(n));
+        return
+    end
     
     % wall stencil columns: last three bubble points and first three
     % material points

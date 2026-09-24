@@ -59,7 +59,7 @@ for idx = 1:total_comb
         'Mt',Mt};
     % dimensional (SI) values converted to the solver's dimensionless inputs
     varin = f_dim2nondim(varin{:});
-    [tvec, Rvec] = f_imr_fd(varin{:});
+    [tvec, Rvec] = f_imr_nodal(varin{:});
     filename = strcat('fd_Nt_',num2str(Nt),'_Mt_',num2str(Mt));
     save(filename,"tvec","Rvec");
 end

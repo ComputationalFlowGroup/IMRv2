@@ -1,25 +1,33 @@
-# `f_imr_fd.m` Documentation
+# `f_imr_nodal.m` Documentation
 
 ## Overview
-`f_imr_fd` is a second-order accurate finite difference solver of the PDEs for thermal transport (inside the bubble and in the surrounding medium) and vapor mass transfer, coupled to the radial (Rayleigh–Plesset family) bubble dynamics and viscoelastic stress models.
-It uses a non-dimensionalized formulation and integrates the semi-discrete system in time with MATLAB's ODE solvers through `f_odesolve`.
+`f_imr_nodal` solves the PDEs for thermal transport (inside the bubble and in the surrounding medium) and vapor mass transfer, coupled to the radial (Rayleigh–Plesset family) bubble dynamics and viscoelastic stress models. The fields are carried as node values. The `scheme` input selects the spatial discretization, and the differentiation matrices from [`f_diff_mat`](f_diff_mat.md) are the only difference between the two:
+
+| `scheme` | Discretization | Available models |
+|---|---|---|
+| 0 (default) | Second-order finite differences, uniform bubble grid | All, including mass transfer and collapse |
+| 1 | Chebyshev collocation | All except mass transfer, and so collapse |
+
+It uses a non-dimensionalized formulation and integrates the semi-discrete system in time with MATLAB's ODE solvers through `f_odesolve`. The solver was `f_imr_fd` before the Chebyshev scheme was added; `scheme = 0` reproduces `f_imr_fd` bit for bit.
 
 ---
 
 ## Major Sections of the Code
 
 ### 1. Initialization
-- Calls `f_call_params('fd', varargin{:})`, which reads the inputs and checks them with `f_checkers`.
+- Calls `f_call_params('nodal', varargin{:})`, which reads the inputs and checks them with `f_checkers`.
 - Unpacks solver settings, physical properties, initial conditions, and waveform settings.
 
-### 2. Mesh and Finite Difference Matrix Setup
-- Builds a uniform grid inside the bubble and a stretched grid (length scale `Lt`) in the medium.
-- Builds sparse first- and second-derivative matrices (`f_finite_diff_mat`, via `spdiags`): second-order central differences in the interior, a second-order one-sided closure at the bubble wall, and the symmetry condition at the bubble center.
+### 2. Grids and Differentiation Matrices
+- `f_diff_mat` returns the node positions `y = r/R` in the bubble and `xi` in the medium, with the first- and second-derivative matrices for the chosen `scheme`. The medium coordinate is mapped to the radius with the stretching length `Lt`.
+- Finite differences: uniform grids, second-order central differences in the interior, a second-order one-sided row at the bubble wall, and the symmetry condition at the bubble center.
+- Chebyshev: Chebyshev points, with the bubble operators built for even functions so that the symmetry condition at the center holds exactly.
+- The bubble-wall heat flux balance uses the wall rows of the first-derivative matrices: three-point one-sided stencils for finite differences, and every node of each field for Chebyshev.
 
 ### 3. Time Integration
 - Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s`, `ode23tb`, or `ode45`).
 - The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a warm-started Newton iteration on the transcendental balance of `f_wall_mass_bc` (with `fzero` as a fallback).
-- The stiff integrators receive the analytic Jacobian of `f_jacobian_fd` for `bubtherm = 1` (with or without medium heat and mass transfer), or the sparsity pattern from `f_jpattern` otherwise; see the `jacobian` option.
+- The stiff integrators receive the analytic Jacobian of `f_jacobian_nodal` for `bubtherm = 1` (with or without medium heat and mass transfer), or the sparsity pattern from `f_jpattern` otherwise (dense for Chebyshev); see the `jacobian` option.
 
 ### 4. Output Assembly
 - Returns `[t, R, Rdot, P, T, Tm, kv]` through `varargout`. All outputs are dimensionless.
@@ -38,6 +46,7 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 | `stress`           | Stress model selection (0–5) |
 | `eps3`             | Second-order strain term, in [0, 0.5] |
 | `masstrans`        | Enable mass transfer (0/1, requires `bubtherm = 1` and `vapor = 1`) |
+| `scheme`           | Differentiation matrices: 0 finite difference (default), 1 Chebyshev |
 | `method`           | Time integrator (15 = `ode15s`, 23 = `ode23tb`, 45 = `ode45`) |
 | `reltol`, `abstol` | Integrator tolerances (default `1e-8`) |
 | `jacobian`         | Jacobian for the stiff integrators: 0 dense numerical, 1 sparsity pattern, 2 analytic (default). The analytic Jacobian needs `bubtherm = 1`; otherwise 2 falls back to the sparsity pattern. |
@@ -76,8 +85,16 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 
 ## Notes
 
-- The spatial discretization is second-order accurate.
+- The finite difference discretization is second-order accurate; the Chebyshev discretization converges spectrally.
 - Medium heating for `stress >= 3` currently uses the Kelvin–Voigt closed form for the dissipation; `f_checkers` warns (`IMR:dissipation`) when this applies.
 - Collapse (`collapse = 1`) requires bubble and medium heat transfer, vapor and mass transfer.
 - See [`compatibility`](../compatibility.md) for which features run together.
 - Mesh resolution must be tuned carefully for high Weissenberg numbers or sharp waveforms.
+
+## Verification of the Chebyshev scheme
+
+Measured in GNU Octave (`ode15s` standing in for `ode23tb`), on thermal cases with `Req = 0.5` and `t` in [0, 3]:
+- `scheme = 0` gives bit-identical `R(t)` to `f_imr_fd` over 98 cases: radial 1–4, stress 0–5, polytropic, bubble, bubble and medium, and full mass-transfer models, plus a non-Newtonian and a Gaussian-waveform case.
+- `scheme = 1` and `f_imr_spectral` converge toward each other with resolution over 32 cases (radial 1–4, stress 0/1/3/5, with and without medium heat transfer). The largest relative deviation in `R(t)` over the cases is `2.8e-3`, `4.8e-4` and `2.6e-4` at `Nt = Mt = 12, 20, 30`; the median is `1.4e-4`, `1.0e-5` and `3.4e-6`.
+- Against Richardson-extrapolated finite differences (`Nt = Mt = 200, 400`) for Keller–Miksis with neo-Hookean Kelvin–Voigt stress, `scheme = 1` at `Nt = Mt = 25` is within `1e-4` with bubble heat transfer only, where finite differences at 200 points are `2.4e-3` away. With medium heat transfer it reaches `2e-4` at 40 points, the same as `f_imr_spectral`.
+- The analytic Jacobian matches a central-difference Jacobian to a scaled error of `3e-9` for `scheme = 0` and `4e-10` for `scheme = 1`.

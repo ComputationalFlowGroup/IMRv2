@@ -13,11 +13,11 @@ It loads a case file or the default case, applies the user's dimensionless overr
 
 ## Inputs
 
-The first argument names the calling solver, `'fd'` or `'spectral'` (used by `f_checkers` for solver-specific rules). The function then accepts **dimensionless parameter-value pairs** through `varargin`; the recognized names, their definitions and defaults are listed in [`default_case`](default_case.md). Dimensional (SI) values are not accepted: an unrecognized name (for example `mu`, `g`, `r0`, `dimout`) raises an error pointing to [`toolchain/f_dim2nondim.m`](../toolchain/f_dim2nondim.md), which converts physical properties into these inputs.
+The first argument names the calling solver, `'nodal'` or `'spectral'` (used by `f_checkers` for solver-specific rules). The function then accepts **dimensionless parameter-value pairs** through `varargin`; the recognized names, their definitions and defaults are listed in [`default_case`](default_case.md). Dimensional (SI) values are not accepted: an unrecognized name (for example `mu`, `g`, `r0`, `dimout`) raises an error pointing to [`toolchain/f_dim2nondim.m`](../toolchain/f_dim2nondim.md), which converts physical properties into these inputs.
 
 - `casefile`: path to a custom (dimensionless) case `.m` file.
 - Model flags: `radial`, `bubtherm`, `medtherm`, `stress`, `eps3`, `vapor`, `masstrans`, `collapse`.
-- Solver: `method`, `spectral`, `divisions`, `nt`, `mt`, `nv`, `lv`, `lt`, `reltol`, `abstol`, `jacobian`, `tfin`, `tvector`, `progdisplay`.
+- Solver: `method`, `spectral`, `scheme`, `divisions`, `nt`, `mt`, `nv`, `lv`, `lt`, `reltol`, `abstol`, `jacobian`, `tfin`, `tvector`, `progdisplay`.
 - Initial conditions: `req`, `rdotzero`, `p0star`, `stress0`.
 - Acoustics: `cstar`, `gama`, `nstate`, `hugoniot_s`.
 - Waveform: `wave_type`, `ee`, `om`, `tw`, `dt`, `mn`.
@@ -51,7 +51,7 @@ The function returns the following grouped outputs:
 
 - `f_call_params` must be called before running the forward solver.
 - Critical inputs must be matched correctly; otherwise, the function throws errors.
-- Defaults from `default_case.m` are loaded if no `casefile` is specified.
+- Defaults from `default_case.m` are loaded if no `casefile` is specified. A case file without `scheme` gets `scheme = 0`.
 - `f_checkers.m` and `f_init_stress.m` are required for full execution.
 - A user `stress0` must have 0 entries for stress 0–2, 1 for stress 3–4, and `2*Nv` for stress 5 (2 with `spectral = 0`).
 - With `collapse = 1`, the equilibrium radius is recomputed from the vapor and gas content (printed as `New equilibrium radius`), and the initial wall velocity is set to zero.

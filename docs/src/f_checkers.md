@@ -6,7 +6,7 @@
 ## Checks
 
 ### Model flags
-- `radial` in 1–6, `stress` in 0–5, `nu_model` in 0–7, `wave_type` in -3–3, `method` in {15, 23, 45}, `jacobian` in 0–2.
+- `radial` in 1–6, `stress` in 0–5, `nu_model` in 0–7, `wave_type` in -3–3, `method` in {15, 23, 45}, `jacobian` in 0–2, `scheme` in 0–1.
 - `bubtherm`, `medtherm`, `vapor`, `masstrans`, `collapse`, `spectral`, `progdisplay` are 0 or 1; `eps3` in [0, 0.5].
 
 ### Compatibility of the conditions
@@ -23,8 +23,10 @@
 | `Nt < 3` with `bubtherm = 1`, or `Mt < 3` with `medtherm = 1` | error |
 | `divisions` not a nonnegative integer | error |
 | `vapor = 1` with `Pv >= 1` (boiling liquid) | warning `IMR:parameters` |
-| `masstrans = 1` in the spectral solver | error: use `f_imr_fd` |
-| `spectral = 1` (spectral stress representation) in the FD solver | error: `f_imr_spectral` only |
+| `masstrans = 1` in the spectral solver | error: use `f_imr_nodal` |
+| `spectral = 1` (spectral stress representation) in the nodal solver | error: `f_imr_spectral` only |
+| `scheme = 1` with `masstrans = 1` in the nodal solver | error: use `scheme = 0` |
+| `scheme ~= 0` in the spectral solver | error: `scheme` is for `f_imr_nodal` |
 
 ### Dimensionless numbers
 - `Re`, `We`, `Ca` positive; `Inf` is allowed (inviscid, no surface tension, no elasticity).

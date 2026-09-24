@@ -53,9 +53,12 @@ rtol            = 1e-8;
 % absolute tolerance of the time integrator
 atol            = 1e-8;
 % Jacobian for the stiff integrators, both solvers
-% 0 : dense numerical, 1 : sparsity pattern (finite difference solver;
-% numerical in the spectral solver), 2 : analytic
+% 0 : dense numerical, 1 : sparsity pattern (nodal solver; numerical in
+% the spectral solver), 2 : analytic
 jacobian        = 2;
+% differentiation matrices of the nodal solver f_imr_nodal
+% 0 : finite difference, 1 : Chebyshev
+scheme          = 0;
 
 % initial conditions
 

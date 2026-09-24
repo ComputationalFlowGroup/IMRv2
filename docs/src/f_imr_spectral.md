@@ -1,7 +1,7 @@
 # `f_imr_spectral.m` Documentation
 
 ## Overview
-`f_imr_spectral` is a Chebyshev spectral collocation solver for the bubble dynamics (Rayleigh–Plesset family) with optional heat transfer in the bubble and the surrounding medium and viscoelastic stress models, including a spectral representation of the UCM / Oldroyd-B stress field. All inputs and outputs are dimensionless (see `default_case`). Vapor mass transfer is not available in this solver (`f_checkers` rejects `masstrans = 1`); use `f_imr_fd`. Because `f_checkers` requires mass transfer for collapse, collapse is not available either. See [`compatibility`](../compatibility.md).
+`f_imr_spectral` is a Chebyshev spectral collocation solver for the bubble dynamics (Rayleigh–Plesset family) with optional heat transfer in the bubble and the surrounding medium and viscoelastic stress models, including a spectral representation of the UCM / Oldroyd-B stress field. All inputs and outputs are dimensionless (see `default_case`). Vapor mass transfer is not available in this solver (`f_checkers` rejects `masstrans = 1`); use `f_imr_nodal`. Because `f_checkers` requires mass transfer for collapse, collapse is not available either. See [`compatibility`](../compatibility.md).
 
 ---
 

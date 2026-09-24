@@ -64,7 +64,7 @@ for idx_mass = 1:total_combinations
         'masstrans', masstrans};
     % dimensional (SI) values converted to the solver's dimensionless inputs
     varin = f_dim2nondim(varin{:});
-    [~,Rm_test] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
+    [~,Rm_test] = f_imr_nodal(varin{:},'Nt',70,'Mt',70);
     load(filenames_mass{idx_mass});
     errors_fd(idx_mass) = norm(abs(Rm_test./Rm - 1),2);
     fprintf('Test %d: L2 norm error = %.6e\n', idx_mass, errors_fd(idx_mass));

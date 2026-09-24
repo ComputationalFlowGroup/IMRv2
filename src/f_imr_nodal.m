@@ -1,15 +1,18 @@
-% file f_imr_fd.m
-% brief contains function f_imr_fd
+% file f_imr_nodal.m
+% brief contains function f_imr_nodal
 
-% brief This function features a second-order accurate finite difference
-% solver of the PDEs involving thermal transport and viscoelasticity
-% coupled to the radial (Rayleigh-Plesset family) dynamics
-function varargout = f_imr_fd(varargin)
+% brief This function features the nodal solver of the PDEs involving
+% thermal transport, vapor mass transfer and viscoelasticity coupled to the
+% radial (Rayleigh-Plesset family) dynamics. The fields are carried as node
+% values, and the spatial discretization is selected by the differentiation
+% matrices of f_diff_mat: scheme = 0 second-order finite differences,
+% scheme = 1 Chebyshev collocation. Everything else is shared.
+function varargout = f_imr_nodal(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
         acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
-        = f_call_params('fd', varargin{:});
+        = f_call_params('nodal', varargin{:});
     
     % defaults
     
@@ -26,11 +29,6 @@ function varargout = f_imr_fd(varargin)
     stress          = eqns_opts(4);
     eps3            = eqns_opts(5);
     masstrans       = eqns_opts(6);
-    % if (stress == 4)
-    %     ptt = 1;
-    % else
-    %     ptt = 0;
-    % end
     
     % solver options
     method          = solve_opts(1);
@@ -44,6 +42,7 @@ function varargout = f_imr_fd(varargin)
     rtol            = solve_opts(9);
     atol            = solve_opts(10);
     jacobian        = solve_opts(11);
+    scheme          = solve_opts(12);
     
     % dimensionless initial conditions
     Rzero           = init_opts(1);
@@ -118,23 +117,15 @@ function varargout = f_imr_fd(varargin)
     
     % pre_process
     
-    % creates finite difference matrices
-    dmatrix_Tkv  = f_finite_diff_mat(Nt,1,0);
-    ddmatrix_Tkv = f_finite_diff_mat(Nt,2,0);
-    dmatrix_Tm   = f_finite_diff_mat(Mt,1,medtherm);
-    ddmatrix_Tm  = f_finite_diff_mat(Mt,2,medtherm);
-    
-    % inside the bubble
-    N = Nt-1;
-    deltaY = 1/N;
-    i = 1:1:N+1;
-    y = ((i-1)*deltaY)';
+    % node positions and differentiation matrices: y = r/R in [0, 1] from
+    % the bubble center to the wall, xi in [1, -1] from the bubble wall to
+    % infinity in the medium
+    [y, dmatrix_Tkv] = f_diff_mat(Nt,1,0,scheme);
+    [~, ddmatrix_Tkv] = f_diff_mat(Nt,2,0,scheme);
+    [xi, dmatrix_Tm] = f_diff_mat(Mt,1,1,scheme);
+    [~, ddmatrix_Tm] = f_diff_mat(Mt,2,1,scheme);
     
     % outside the bubble
-    Nm = Mt-1;
-    deltaYm = -2/Nm;
-    j = 1:1:Nm+1;
-    xi   = (1+(j-1)*deltaYm)';
     yT   = ((2./(xi+1)-1)*Lt+1);
     yT2  = yT.^2;
     yT3  = yT.^3;
@@ -152,14 +143,30 @@ function varargout = f_imr_fd(varargin)
     % with Pv(1) = Pv_star
     C1_pv = Pv_star*exp(thetav);
     C2_pv = -thetav;
-    % boundary conditions coefficients
-    coeff = [-1.5 , 2 ,-0.5 ];
     Rvg_ratio = Rv_star / Rg_star;
     inv_alpha = 1/alpha_g;
     Rva_diff = Rv_star - Rg_star;
-    grad_Tm_coeff = 2*chi*iota/deltaYm*coeff;
-    grad_Trans_coeff = -coeff*chi/deltaY;
-    grad_C_coeff = -coeff*Fom*L_heat_star/deltaY;
+    % bubble-wall flux balance coefficients: the wall gradient rows of the
+    % medium (first entry at the wall) and of the bubble (first entry at
+    % the wall, then inward), with the node indices of the other entries
+    if scheme == 0
+        % second-order one-sided stencils
+        coeff = [-1.5 , 2 ,-0.5 ];
+        deltaY = 1/(Nt-1);
+        deltaYm = -2/(Mt-1);
+        grad_Tm_coeff = 2*chi*iota/deltaYm*coeff;
+        grad_Trans_coeff = -coeff*chi/deltaY;
+        grad_C_coeff = -coeff*Fom*L_heat_star/deltaY;
+        iwall_m = [2 3];
+        iwall_b = [Nt-1 Nt-2];
+    else
+        % Chebyshev: the wall rows couple every node
+        grad_Tm_coeff = 2*chi*iota*full(dmatrix_Tm(1,:));
+        grad_Trans_coeff = chi*full(dmatrix_Tkv(end,end:-1:1));
+        grad_C_coeff = [];
+        iwall_m = 2:Mt;
+        iwall_b = Nt-1:-1:1;
+    end
     
     % index management
     if masstrans
@@ -221,13 +228,19 @@ function varargout = f_imr_fd(varargin)
     foptions = optimset('TolFun',1e-12);
     % constants of the bubble-wall heat (and mass) flux balance
     wallc = struct('grad_Tm',grad_Tm_coeff, 'grad_Tr',grad_Trans_coeff, ...
-        'grad_C',grad_C_coeff, 'alpha_g',alpha_g, 'alpha_v',alpha_v, ...
+        'grad_C',grad_C_coeff, 'iwall_m',iwall_m, 'iwall_b',iwall_b, ...
+        'alpha_g',alpha_g, 'alpha_v',alpha_v, ...
         'C1',C1_pv, 'C2',C2_pv, 'Rvg',Rvg_ratio, 'Rva',Rva_diff, ...
         'Rg',Rg_star);
     
     % solver start
+    if scheme == 0
+        scheme_name = 'nodal, finite difference';
+    else
+        scheme_name = 'nodal, Chebyshev';
+    end
     f_display(radial, bubtherm, medtherm, masstrans, stress, spectral,...
-        nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'finite difference');
+        nu_model, eps3, Pv_star, Re8, De, Ca, LAM, scheme_name);
     bubble = @SVBDODE;
     % Jacobian for the stiff integrators: analytic where implemented,
     % otherwise the sparsity pattern
@@ -243,10 +256,10 @@ function varargout = f_imr_fd(varargin)
             'Rvg',Rvg_ratio, 'C1_pv',C1_pv, 'C2_pv',C2_pv, 'wall',wallc, ...
             'closure',@f_closure, 'taugradu',@f_taugradu, ...
             'theta_bw',@f_theta_bw_of_X);
-        Sp = @(t,X) f_jacobian_fd(t,X,jp);
+        Sp = @(t,X) f_jacobian_nodal(t,X,jp);
     elseif jacobian >= 1
         Sp = f_jpattern(numel(init), ibubtherm, imedtherm, imass, ...
-            (4+Nt+Mt+Nc):numel(init));
+            (4+Nt+Mt+Nc):numel(init), scheme);
     else
         Sp = [];
     end
@@ -563,8 +576,8 @@ function varargout = f_imr_fd(varargin)
     % residual of the heat flux balance (theta is the shared field unless
     % given)
     function theta_w = f_bubble_wall_thermal_bc(theta_bw, Tm_in, th_in)
-        Tm_trans = Tm_in(2:3);
-        T_trans = th_in(end-1:-1:end-2);
+        Tm_trans = Tm_in(iwall_m);
+        T_trans = th_in(iwall_b);
         Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*theta_bw*alpha_g));
         theta_w = grad_Tm_coeff * vertcat(Tw_prelim, Tm_trans) + ...
             grad_Trans_coeff * vertcat(theta_bw, T_trans);
@@ -584,8 +597,8 @@ function varargout = f_imr_fd(varargin)
         end
         c1 = grad_Tm_coeff(1);
         c2 = grad_Trans_coeff(1);
-        K = grad_Tm_coeff(2:3)*Tm_in(2:3) + ...
-            grad_Trans_coeff(2:3)*th_in(end-1:-1:end-2);
+        K = grad_Tm_coeff(2:end)*Tm_in(iwall_m) + ...
+            grad_Trans_coeff(2:end)*th_in(iwall_b);
         q = 2*c1*(alpha_g - 1) - c2 + 2*alpha_g*K;
         if abs(c2) < eps
             uroots = -q/(2*c1);
@@ -629,59 +642,6 @@ function varargout = f_imr_fd(varargin)
             [~,k] = min(abs(thetas - theta_bw_guess));
             theta_bw = thetas(k);
         end
-    end
-    
-    % finite difference matrices, second-order central in the interior and
-    % second-order one-sided at the bubble wall
-    % nodes: Number of nodes
-    % order: order of differentiation ( 1st derivative vs 2nd derivative)
-    % Tm_check: 0 not for external temp , 1 used for external temp
-    function [dmatrix] = f_finite_diff_mat(nodes,order,Tm_check)
-        
-        % coordinate creation
-        N = nodes-1;
-        if Tm_check == 0
-            deltaY = 1/N;
-        else
-            deltaY = -2/N;
-        end
-        K = (1:N+1)';
-        y = (K-1)*deltaY;
-        % interior rows 2..N; spdiags stores diagonal d of an n-by-n matrix
-        % in column j of the band, so A(i,i+d) = band(i+d)
-        interior = (K >= 2) & (K <= N);
-        sub = zeros(nodes,1);
-        dia = zeros(nodes,1);
-        sup = zeros(nodes,1);
-        
-        if order == 1
-            sup(vertcat(false, interior(1:end-1))) = 0.5;
-            sub(vertcat(interior(2:end), false)) = -0.5;
-            dmatrix = spdiags([sub dia sup], -1:1, nodes, nodes);
-            if Tm_check == 0
-                dmatrix(end,end-2:end) = [0.5 -2 1.5];
-            end
-            dmatrix = dmatrix / deltaY;
-            
-        elseif order == 2
-            if Tm_check == 0
-                % rows i = 2..N: 1 - deltaY/y(i), -2, 1 + deltaY/y(i)
-                ii = find(interior);
-                sup(ii+1) = 1 + deltaY./y(ii);
-                dia(ii) = -2;
-                sub(ii-1) = 1 - deltaY./y(ii);
-                % symmetry condition at the bubble center
-                dia(1) = -6;
-                sup(2) = 6;
-            else
-                sup(vertcat(false, interior(1:end-1))) = 1;
-                dia(interior) = -2;
-                sub(vertcat(interior(2:end), false)) = 1;
-            end
-            dmatrix = spdiags([sub dia sup], -1:1, nodes, nodes);
-            dmatrix = dmatrix / (deltaY^2);
-        end
-        
     end
     
 end

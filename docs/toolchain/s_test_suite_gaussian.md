@@ -10,8 +10,8 @@
 
 ## Test loop
 - Loops over `radial` 1–4, `bubtherm` 0/1, `medtherm` 0/1, `vapor` 0/1 and `stress` 1–5, skipping `medtherm = 1` without `bubtherm`.
-- Runs `f_imr_fd` with `Nt = Mt = 50` and `f_imr_spectral` with `Nt = Mt = 12`.
-- The error is the departure of the final radius from equilibrium: `|1 - R(end)|` for the finite difference solver and `|R(1) - R(end)|` for the spectral solver.
+- Runs `f_imr_nodal` with `Nt = Mt = 50` and `f_imr_spectral` with `Nt = Mt = 12`.
+- The error is the departure of the final radius from equilibrium: `|1 - R(end)|` for the nodal solver (finite difference scheme) and `|R(1) - R(end)|` for the spectral solver.
 - A test fails when the error exceeds `threshold = 1e-2`.
 
 ## Outputs

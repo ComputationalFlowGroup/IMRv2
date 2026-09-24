@@ -1,7 +1,7 @@
 # `f_dual_ops.m` Documentation
 
 ## Overview
-`d = f_dual_ops(n)` returns the operations used by the analytic Jacobians [`f_jacobian_fd`](f_jacobian_fd.md) and [`f_jacobian_spectral`](f_jacobian_spectral.md). A quantity is carried as a struct with its value `v` and its sparse derivative `J = dv/dX` with respect to the `n`-dimensional state `X`, so composing the operations applies the chain rule exactly.
+`d = f_dual_ops(n)` returns the operations used by the analytic Jacobians [`f_jacobian_nodal`](f_jacobian_nodal.md) and [`f_jacobian_spectral`](f_jacobian_spectral.md). A quantity is carried as a struct with its value `v` and its sparse derivative `J = dv/dX` with respect to the `n`-dimensional state `X`, so composing the operations applies the chain rule exactly.
 
 ## Operations
 | Field | Result |

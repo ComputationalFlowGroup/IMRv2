@@ -28,6 +28,7 @@ function p = f_checkers(p)
     f_integer_in(p.method, [15 23 45], 'method', '15 (ode15s), 23 (ode23tb), or 45 (ode45)');
     f_integer_in(p.spectral, 0:1, 'spectral', '0 or 1');
     f_integer_in(p.jacobian, 0:2, 'jacobian', '0, 1, or 2');
+    f_integer_in(p.scheme, 0:1, 'scheme', '0 (finite difference) or 1 (Chebyshev)');
     f_integer_in(p.progdisplay, 0:1, 'progdisplay', '0 or 1');
     if ~(isnumeric(p.eps3) && isscalar(p.eps3) && p.eps3 >= 0 && p.eps3 <= 0.5)
         error('INPUT ERROR: eps3 must be in [0, 0.5]');
@@ -51,9 +52,17 @@ function p = f_checkers(p)
     end
     if strcmp(p.solver,'spectral') && p.masstrans == 1
         error(['INPUT ERROR: masstrans = 1 is not available in the spectral ' ...
-            'solver, use f_imr_fd']);
+            'solver, use f_imr_nodal']);
     end
-    if strcmp(p.solver,'fd') && p.spectral == 1 && p.stress == 5
+    if strcmp(p.solver,'spectral') && p.scheme ~= 0
+        error(['INPUT ERROR: scheme selects the differentiation matrices of ' ...
+            'f_imr_nodal; f_imr_spectral takes no scheme']);
+    end
+    if strcmp(p.solver,'nodal') && p.scheme == 1 && p.masstrans == 1
+        error(['INPUT ERROR: masstrans = 1 is not available yet with the ' ...
+            'Chebyshev scheme (scheme = 1) of f_imr_nodal, use scheme = 0']);
+    end
+    if strcmp(p.solver,'nodal') && p.spectral == 1 && p.stress == 5
         error(['INPUT ERROR: the spectral stress representation (spectral = 1) ' ...
             'is available in f_imr_spectral only']);
     end

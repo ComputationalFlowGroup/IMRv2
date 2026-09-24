@@ -1,13 +1,13 @@
 # `f_dim2nondim.m` Documentation
 
 ## Overview
-`f_dim2nondim` is a side function that converts dimensional (SI) physical properties into the dimensionless inputs taken by `f_imr_fd` and `f_imr_spectral`. The solvers never call it: they accept only dimensionless inputs.
+`f_dim2nondim` is a side function that converts dimensional (SI) physical properties into the dimensionless inputs taken by `f_imr_nodal` and `f_imr_spectral`. The solvers never call it: they accept only dimensionless inputs.
 
 ```matlab
 addpath('src'); addpath('toolchain');
 [varin, ref] = f_dim2nondim('r0',50e-6,'req',5e-6,'mu',1e-2,'g',1e3, ...
     'tvector',linspace(0,12e-6,100));
-[t, R] = f_imr_fd(varin{:}, 'radial', 2, 'stress', 1);
+[t, R] = f_imr_nodal(varin{:}, 'radial', 2, 'stress', 1);
 plot(t*ref.t0, R*ref.R0);   % restore dimensions yourself
 ```
 

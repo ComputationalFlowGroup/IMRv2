@@ -64,7 +64,7 @@ for idx_mass = 1:total_combinations
     % dimensional (SI) values converted to the solver's dimensionless inputs
     varin = f_dim2nondim(varin{:});
     
-    futures(idx_mass) = parfeval(@f_imr_fd_wrapper, 1, varin);
+    futures(idx_mass) = parfeval(@f_imr_nodal_wrapper, 1, varin);
 end
 
 % save results in the correct order
@@ -77,10 +77,10 @@ end
 delete(gcp('nocreate'));
 
 % deterministic setup per worker
-function Rm = f_imr_fd_wrapper(varin)
+function Rm = f_imr_nodal_wrapper(varin)
     % fixed RNG seed
     rng(12345, 'twister');
-    [~, Rm] = f_imr_fd(varin{:}, 'Nt', 70, 'Mt', 70);
+    [~, Rm] = f_imr_nodal(varin{:}, 'Nt', 70, 'Mt', 70);
 end
 
 
