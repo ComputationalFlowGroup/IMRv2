@@ -7,25 +7,25 @@
 
 1. **Initialization**
    - Clears workspace.
-   - Adds paths: `src/forward_solver/` and `tests/`.
+   - Adds the paths `../toolchain/`, `../src/` and `../tests/`, so it runs from `toolchain/`.
    - Loads `file_ids.mat`.
 
 2. **Preallocation**
    - Computes `num_tests`.
    - Initializes `errors_fd` and `failed_tests`.
-   - Sets `threshold = 1e-5`, `count = 1`.
+   - Sets `threshold = 5e-5`.
 
 3. **Test Parameter Setup**
    - Defines `tvector` for simulation.
    - Fixes `masstrans = 1`, `vapor = 1`, `collapse = 0`.
-   - Sets bubble geometry: `R0`, `Req`.
-   - Defines model vectors: `radial`, `bubtherm`, `medtherm`, `stress`.
+   - Sets the bubble geometry `R0 = 200e-6`, `Req = 35e-6` (SI units, converted with `f_dim2nondim`).
+   - Loops over `radial` 1–4 and `stress` 0–5 with `bubtherm = medtherm = 1`.
 
 4. **Loop Over Test Cases**
    - Iterates over all combinations.
    - Builds `varin` parameters.
    - Loads reference `Rm` from test files.
-   - Executes `f_imr_fd(...,'Nt',30,'Mt',70)`, computes L2 error.
+   - Executes `f_imr_fd(...,'Nt',70,'Mt',70)`, computes L2 error.
    - Records failures above `threshold`.
 
 5. **Summary**
@@ -47,4 +47,4 @@
 ## Notes
 
 - Script does not exit on failure to allow further analysis.
-- Uses moderate resolution (`Nt=30`, `Mt=70`) for faster execution.
+- Uses `Nt = Mt = 70`.

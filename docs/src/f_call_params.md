@@ -53,4 +53,6 @@ The function returns the following grouped outputs:
 - Critical inputs must be matched correctly; otherwise, the function throws errors.
 - Defaults from `default_case.m` are loaded if no `casefile` is specified.
 - `f_checkers.m` and `f_init_stress.m` are required for full execution.
+- A user `stress0` must have 0 entries for stress 0–2, 1 for stress 3–4, and `2*Nv` for stress 5 (2 with `spectral = 0`).
+- With `collapse = 1`, the equilibrium radius is recomputed from the vapor and gas content (printed as `New equilibrium radius`), and the initial wall velocity is set to zero.
 

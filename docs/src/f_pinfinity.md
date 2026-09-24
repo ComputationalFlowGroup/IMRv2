@@ -1,11 +1,11 @@
 # `f_pinfinity.m` Documentation
 
 ## Overview
-`f_pinfinity` calculates the time-dependent external pressure (`p8`) and its derivative (`p8dot`) that drive bubble dynamics, supporting multiple waveform types.
+`f_pinfinity` calculates the time-dependent far-field pressure `p8` and its time derivative `p8dot` that drive the bubble. All quantities are dimensionless.
 
 ## Major Sections
 1. **Input Unpacking**: Extracts waveform parameters from `vararg`.
-2. **Custom Waveform Handling**: If `wave_type < 0`, uses polynomial fits (`wave_poly`, `wave_dpoly`).
+2. **Measured Waveforms**: If `wave_type < 0`, evaluates the piecewise polynomials `wave_poly` and `wave_dpoly` built from `d_hn`, `d_mn` or `d_ml`.
 3. **Predefined Waveforms**:
    - **Impulse** (`wave_type = 0`)
    - **Gaussian** (`wave_type = 1`)
@@ -17,16 +17,17 @@
 
 | Name        | Description                                     | Units   |
 |-------------|-------------------------------------------------|---------|
-| `t`         | Current time                                   | s       |
-| `vararg`    | Vector `[om, ee, tw, dt, mn, wave_type]`       | –       |
+| `t`         | Time, scalar or array                          | –       |
+| `vararg`    | Cell `{[om, ee, tw, dt, mn, wave_type], wave_poly, wave_dpoly}` | –       |
 
 ## Outputs
 
 | Name     | Description                                 | Units   |
 |----------|---------------------------------------------|---------|
-| `p8`     | External pressure at time `t`               | Pa      |
-| `p8dot`  | Time derivative of external pressure        | Pa/s    |
+| `p8`     | Far-field pressure at time `t`, `p/P8`      | –       |
+| `p8dot`  | Time derivative of `p8`                     | –       |
 
 ## Notes
-- `wave_poly` and `wave_dpoly` must be defined in the caller’s workspace for custom waveforms.
-- Gaussian and histotripsy waveforms depend on `ee` (amplitude), `om` (frequency), `tw` (width), `dt` (delay), and `mn` (exponent).
+- The solvers pass `wave_poly` and `wave_dpoly` in `vararg`; `f_call_params` builds them for `wave_type < 0`.
+- Gaussian and histotripsy waveforms depend on `ee` (amplitude `pA/P8`), `om` (frequency `omega*t0`), `tw` (width `TW/t0`), `dt` (delay `DT/t0`), and `mn` (histotripsy power).
+- The default `ee = 0` means no driving pressure.

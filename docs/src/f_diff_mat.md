@@ -1,7 +1,7 @@
 # `f_diff_mat.m` Documentation
 
 ## Overview
-`[y, D] = f_diff_mat(nodes, order, tm_check, scheme)` returns the node positions and the differentiation matrix used by the nodal thermal solver, for either spatial discretization. Swapping `scheme` is the only difference between the finite difference and Chebyshev versions of the solver.
+`[y, D] = f_diff_mat(nodes, order, tm_check, scheme)` returns the node positions and the differentiation matrix for either spatial discretization. It is the operator module of the planned nodal thermal solver `f_imr_nodal`, where swapping `scheme` will be the only difference between the finite difference and Chebyshev versions. No solver calls it yet; `f_imr_fd` still builds its own copy of the finite difference operators.
 
 | Argument | Meaning |
 |---|---|
@@ -11,7 +11,7 @@
 | `scheme` | 0 finite differences (uniform grid), 1 Chebyshev collocation |
 
 ## Finite differences (`scheme = 0`)
-Identical to `f_finite_diff_mat` in `f_imr_fd`: second-order central differences in the interior, `(1 ± dy/y)/dy^2` for the Laplacian, `(-6, 6)/dy^2` at the center, the one-sided `(0.5, -2, 1.5)/dy` wall row for the interior first derivative, and zero boundary rows otherwise. Node positions are `y = (0:N)/N` (interior) and `xi = 1 - 2*(0:N)/N` (exterior).
+Identical to `f_finite_diff_mat` in `f_imr_fd`: second-order central differences in the interior, `(1 ± dy/y)/dy^2` for the Laplacian, `(-6, 6)/dy^2` at the center, the one-sided `(0.5, -2, 1.5)/dy` wall row for the interior first derivative, and zero boundary rows otherwise. With `N = nodes - 1`, the node positions are `y = (0:N)/N` (interior) and `xi = 1 - 2*(0:N)/N` (exterior), so each grid has `nodes` points.
 
 ## Chebyshev (`scheme = 1`)
 - Interior: the operators are built on the doubled Chebyshev grid of `2*nodes - 1` points on [-1, 1] and folded onto the half `y >= 0` for even functions, ordered from the center `y = 0` to the wall `y = 1`. The first-derivative row at the center is zero exactly (`f'(0) = 0`). The order-2 operator is the spherical Laplacian, with `(2/y) d/dy` added at every node except the center and `3 d2/dy2` at the center, built on the doubled grid before folding.

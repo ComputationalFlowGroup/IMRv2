@@ -38,8 +38,8 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` |
 | `method` | `method` | 15 `ode15s`, 23 `ode23tb`, 45 `ode45` | 23 |
 | `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `f_imr_spectral` only (0/1) | 0 |
-| `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 |
-| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress | 25, 25, 150 |
+| `divisions` | `divisions` | Minimum number of time steps (0 automatic); with `divisions > 0` the integrator uses its default absolute tolerance | 0 |
+| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is used only by the spectral stress representation | 25, 25, 150 |
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 |
 | `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (FD solver; numerical in the spectral solver), 2 analytic | 2 |
@@ -48,11 +48,11 @@ The *input* column is the name used in the name/value call (case-insensitive).
 ### Initial conditions
 | Input | Variable | Definition | Default |
 |-------|----------|------------|---------|
-| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1) | 0 |
+| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `f_imr_fd`. | 0 |
 | `req` | `Req` | `Req/R0` | 0.2 |
 | `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 |
 | `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed |
-| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, one value for stress 3–4, `2*Nv` values for stress 5; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise) | computed |
+| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, one value for stress 3–4, `2*Nv` values for stress 5 with `spectral = 1` and 2 values with `spectral = 0`; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise) | computed |
 
 ### Acoustic options
 | Input | Variable | Definition | Default |
@@ -82,7 +82,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `lam` | `LAM` | `lambda2/lambda1` | 0.1 |
 | `alphax` | `alphax` | Strain-stiffening parameter | 0.25 |
 | `dre` | `DRe` | `P8*R0/((mu0-mu8)*Uc)`, 0 for no non-Newtonian contribution | 0 |
-| `v_a`, `v_nc` | `v_a`, `v_nc` | Carreau(-Yasuda) exponents | 0, 0 |
+| `v_a`, `v_nc` | `v_a`, `v_nc` | Exponents of the non-Newtonian models (see `f_viscosity`) | 0, 0 |
 | `v_lambda` | `v_lambda_star` | Viscosity time scale `v_lambda/t0` | 0 |
 | `nu_model` | `nu_model` | 0 Newtonian, 1 Carreau, 2 Carreau–Yasuda, 3 Powell–Eyring, 4 modified Powell–Eyring, 5 Cross, 6 simplified Cross, 7 modified Cross (see `f_viscosity`) | 0 |
 
@@ -111,3 +111,4 @@ The *input* column is the name used in the name/value call (case-insensitive).
 ## Notes
 - All inputs are validated by [`f_checkers`](f_checkers.md); inputs that look dimensional raise the `IMR:dimensional` warning.
 - A custom case file (`casefile`) must follow this file's layout and be dimensionless.
+- See [`compatibility`](../compatibility.md) for which features run together in each solver.

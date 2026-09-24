@@ -9,7 +9,7 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 ## Major Sections of the Code
 
 ### 1. Initialization
-- Calls `f_call_params(varargin{:})` to set up all problem parameters.
+- Calls `f_call_params('fd', varargin{:})`, which reads the inputs and checks them with `f_checkers`.
 - Unpacks solver settings, physical properties, initial conditions, and waveform settings.
 
 ### 2. Mesh and Finite Difference Matrix Setup
@@ -36,13 +36,13 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 | `bubtherm`         | Enable bubble thermal model (0 or 1) |
 | `medtherm`         | Enable medium thermal model (0 or 1) |
 | `stress`           | Stress model selection (0–5) |
-| `eps3`             | Include second-order strain term (0/1) |
-| `masstrans`        | Enable mass transfer (0/1, requires `bubtherm = 1`) |
+| `eps3`             | Second-order strain term, in [0, 0.5] |
+| `masstrans`        | Enable mass transfer (0/1, requires `bubtherm = 1` and `vapor = 1`) |
 | `method`           | Time integrator (15 = `ode15s`, 23 = `ode23tb`, 45 = `ode45`) |
 | `reltol`, `abstol` | Integrator tolerances (default `1e-8`) |
-| `jacobian`         | Jacobian for the stiff integrators (0 = dense numerical, 1 = sparsity pattern, 2 = analytic where implemented, default) |
-| `spectral`         | Enable spectral stress representation (should be 0 here) |
-| `divisions`, `Nv`, `Nt`, `Mt` | Maximum step control and grid sizes |
+| `jacobian`         | Jacobian for the stiff integrators: 0 dense numerical, 1 sparsity pattern, 2 analytic (default). The analytic Jacobian needs `bubtherm = 1`; otherwise 2 falls back to the sparsity pattern. |
+| `spectral`         | Spectral stress representation; `f_checkers` rejects `spectral = 1` with stress 5 in this solver |
+| `divisions`, `Nv`, `Nt`, `Mt` | Minimum number of time steps, and grid sizes |
 | `Lt`               | Grid stretching length in the medium |
 | `Rzero`, `Uzero`   | Initial radius and velocity (non-dimensional) |
 | `Pb_star`, `Pv_star` | Non-dimensional pressures |
@@ -68,14 +68,16 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 | `R`    | Bubble radius history |
 | `Rdot` | Wall velocity history |
 | `P`    | Bubble pressure history |
-| `T`    | Bubble temperature field (if `bubtherm = 1`) |
+| `T`    | Bubble temperature field (if `bubtherm = 1`, otherwise empty) |
 | `Tm`   | Medium temperature field (if `medtherm = 1`, otherwise the far-field value) |
-| `kv`   | Vapor concentration field (if `masstrans = 1`) |
+| `kv`   | Vapor concentration field (if `masstrans = 1`, otherwise empty) |
 
 ---
 
 ## Notes
 
 - The spatial discretization is second-order accurate.
-- Medium heating for `stress >= 3` currently uses the Kelvin–Voigt closed form for the dissipation; `f_call_params` warns (`IMR:dissipation`) when this applies.
+- Medium heating for `stress >= 3` currently uses the Kelvin–Voigt closed form for the dissipation; `f_checkers` warns (`IMR:dissipation`) when this applies.
+- Collapse (`collapse = 1`) requires bubble and medium heat transfer, vapor and mass transfer.
+- See [`compatibility`](../compatibility.md) for which features run together.
 - Mesh resolution must be tuned carefully for high Weissenberg numbers or sharp waveforms.

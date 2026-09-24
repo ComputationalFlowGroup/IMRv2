@@ -39,6 +39,24 @@ IMR offers several key capabilities for modeling and analyzing inertial microcav
 - **MATLAB Integration**: Provides scripts and functions for simulation control, data analysis, and visualization.
 - **Experimental Validation Support**: Facilitates comparison between simulation results and experimental observations.
 
+### Solvers and models
+
+| Solver | Discretization | Notes |
+|---|---|---|
+| `f_imr_fd` | Finite differences | All models, including vapor mass transfer and collapse |
+| `f_imr_spectral` | Chebyshev spectral collocation | No mass transfer or collapse; the only solver with the spectral UCM / Oldroyd-B stress field |
+
+Both solvers include:
+
+- **Radial models:** Rayleigh–Plesset (incompressible), Keller–Miksis in pressure form (constant sound speed), Keller–Miksis in enthalpy form and Gilmore with the Tait equation of state, and the same two with the Mie–Grüneisen equation of state.
+- **Heat transfer:** polytropic bubble, heat transfer in the bubble, and heat transfer in the bubble and the surrounding medium.
+- **Stress models:** neo-Hookean and quadratic neo-Hookean Kelvin–Voigt; linear Maxwell, Jeffreys and Zener; UCM and Oldroyd-B.
+- **Viscosity:** Newtonian and seven non-Newtonian models (Carreau, Carreau–Yasuda, Powell–Eyring, modified Powell–Eyring, Cross, simplified Cross, modified Cross).
+- **Driving pressure:** impulse, Gaussian, histotripsy, Heaviside, and three measured waveforms.
+- **Time integration:** `ode15s`, `ode23tb` or `ode45`, with an analytic Jacobian for the stiff integrators where one is implemented.
+
+[`docs/compatibility.md`](docs/compatibility.md) shows which of these run together in each solver.
+
 ## Getting Started
 
 ### Prerequisites
@@ -48,6 +66,8 @@ IMR is implemented in **MATLAB** and requires the following dependencies:
 - MATLAB (version R2021a or newer recommended)
 - Optimization Toolbox (optional but recommended for parameter fitting)
 - Image Processing Toolbox (for analyzing high-speed video data)
+
+The solvers use base MATLAB only. Most runs also work in GNU Octave, but Octave lacks `ode23tb`, the default integrator, and differs from MATLAB in a few places; see the notes at the end of [`docs/compatibility.md`](docs/compatibility.md).
 
 ### Installation
 
@@ -85,7 +105,24 @@ For additional examples, see the `examples/` directory.
 
 ## Documentation
 
-Comprehensive documentation, including a user guide, can be found in the `docs/` folder and on the IMRv2 website.
+- [`docs/compatibility.md`](docs/compatibility.md): which features run together in each solver.
+- [`docs/src/default_case.md`](docs/src/default_case.md): every input, its dimensionless definition and its default.
+- `docs/src/`: one page per solver and physics function, starting with [`f_imr_fd`](docs/src/f_imr_fd.md) and [`f_imr_spectral`](docs/src/f_imr_spectral.md).
+- `docs/toolchain/`: the unit conversion [`f_dim2nondim`](docs/toolchain/f_dim2nondim.md) and the test suites.
+
+## Testing
+
+The test suites live in `toolchain/` and are run from that folder. Each exits with code 0 when it passes.
+
+| Suite | Checks |
+|---|---|
+| `s_test_suite_compatibility` | Both solvers against stored results, over radial, thermal and stress models |
+| `s_test_suite_equilibrium` | A bubble at equilibrium stays there, in both solvers |
+| `s_test_suite_gaussian` | A bubble returns to equilibrium after a Gaussian pressure pulse |
+| `s_test_suite_masstrans` | The finite difference solver with mass transfer against stored results |
+| `s_test_suite_diffmat` | The differentiation operators of `f_diff_mat` |
+
+`toolchain/s_format.m` formats the code and `toolchain/s_lint.m` runs the MATLAB linter; the CI workflows in `.github/workflows` run all of these.
 
 ## Citation
 
@@ -103,7 +140,7 @@ If you use IMRv2 in your research, please cite:
 }
 ```
 
-For additional references, see the **IMR Bibliography** section above.
+For the numerical methods, see the two papers listed under Features.
 
 ## License
 
