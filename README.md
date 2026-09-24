@@ -6,15 +6,13 @@
 
 <p align="center">
   <a href="https://doi.org/10.1016/j.jmps.2017.12.006"><img src="https://zenodo.org/badge/doi/10.1016/j.jmps.2017.12.006.svg" alt="DOI"/></a>
-  <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPLv3"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPLv3"/></a>
   <a href="docs/compatibility.md"><img src="https://img.shields.io/badge/Model%20compatibility-grid-2ea44f" alt="Model compatibility grid"/></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/Contributions-welcome-brightgreen" alt="Contributions welcome"/></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/test_equilibrium.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/test_equilibrium.yml/badge.svg" alt="Base tests"/></a>
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/test_comparison.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/test_comparison.yml/badge.svg" alt="Comparison tests"/></a>
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/test_masstrans.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/test_masstrans.yml/badge.svg" alt="Mass transfer tests"/></a>
+  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/tests.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/tests.yml/badge.svg" alt="Test suites"/></a>
   <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/format.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/format.yml/badge.svg" alt="Format check"/></a>
   <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/spellcheck.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/spellcheck.yml/badge.svg" alt="Spellcheck"/></a>
 </p>
@@ -140,7 +138,7 @@ The test suites live in `toolchain/` and are run from that folder:
 
 Each suite prints whether it passed. All but `s_test_suite_masstrans` also exit with code 0 on success.
 
-`toolchain/s_format.m` formats the code and `toolchain/s_lint.m` runs the MATLAB linter. The CI workflows in `.github/workflows` run these, the spelling check and the suites on every pull request. [`CONTRIBUTING.md`](CONTRIBUTING.md#3-run-the-checks) shows how to run them locally.
+`toolchain/s_format.m` formats the code and `toolchain/s_lint.m` runs the MATLAB linter. The CI workflows in `.github/workflows` run these, the spelling check and the suites on every pull request; the test suites run as one workflow, `tests.yml`, which passes only when every suite passes. [`CONTRIBUTING.md`](CONTRIBUTING.md#3-run-the-checks) shows how to run them locally.
 
 ## Contributing
 

@@ -2,6 +2,8 @@
 
 Thank you for helping improve IMR. This guide walks you through a contribution from start to finish: fork the repository, make your change, run the same checks that the continuous integration (CI) runs, and open a pull request.
 
+IMR is released under the [GNU General Public License v3.0](LICENSE). By submitting a contribution, you agree that it is licensed under the same license, and you confirm that you have the right to contribute it. For example, do not copy code from sources whose license is incompatible with the GPL.
+
 If you are planning a large change, such as a new physical model, a new solver option or a change to stored results, open an issue first or ask on the IMR Slack workspace. Agreeing on the approach early saves rework later.
 
 ## Contents
@@ -200,12 +202,9 @@ git push -u origin my-change
    | Code Spellcheck | `codespell` on `src/` and `toolchain/` |
    | Format check | `s_format`, then fails on any diff |
    | Neatness Check | `s_lint` |
-   | IMR test suite - base tests | Equilibrium and Gaussian suites |
-   | IMR test suite - comparison | Compatibility suite |
-   | IMR test suite - mass transfer | Mass-transfer suite |
-   | IMR test suite - operators | Differentiation-operator suite |
+   | IMR test suites | The five test suites, one job each |
 
-   The workflows are marked `continue-on-error`, so a failed job may not turn the pull request red. Open each job's log and confirm it passed.
+   The spelling, format and lint workflows are marked `continue-on-error`, so a failure there may not turn the pull request red; open their logs and confirm they passed. The test suites workflow fails if any suite fails, except `s_test_suite_masstrans`, which does not set an exit code: read the last line of its log.
 
 ## 6. Review and updates
 
