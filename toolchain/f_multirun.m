@@ -1,21 +1,27 @@
-function [] = f_multirun()
+% file f_multirun.m
+% brief contains function f_multirun
+
+% brief This function sweeps the material parameters of the Newtonian,
+% neo-Hookean Kelvin-Voigt, UCM and Oldroyd-B models with the nodal solver
+% and returns every radius history as [t, R] (dimensionless). The
+% parameters are given in SI units and converted with f_dim2nondim.
+function [newtonian, neohook, voigt, ucm, oldb] = f_multirun()
     
-    close;
-    clc;
-    %
     N = 8^4;
-    addpath('./src/spectral/')
+    root = fileparts(fileparts(mfilename('fullpath')));
+    addpath(fullfile(root,'src'));
+    addpath(fullfile(root,'toolchain'));
     % Newtonian model
     mu_range1 = logspace(-6,-1,N);
     parfor i = 1:N
-        [t,R] = f_imrv2('voigt',1,'mu',mu_range1(i),'g',0)
+        [t,R] = f_run('stress',1,'mu',mu_range1(i),'g',0);
         newtonian{i} = [t,R];
     end
     % Neo-Hookean model
     G_range1 = logspace(-6,-1,N);
     parfor i = 1:N
         disp(i/N)
-        [t,R] = f_imrv2('neohook',1,'g',G_range1(i))
+        [t,R] = f_run('stress',1,'g',G_range1(i));
         neohook{i} = [t,R];
     end
     
@@ -36,8 +42,8 @@ function [] = f_multirun()
     end
     cell2param = reshape(gridPoints2,[1,numel(gridPoints2)]);
     parfor i = 1:N
-        percent = i/N
-        [t,R] = f_imrv2('voigt',1,'mu',cell2param{i}(1),'g',cell2param{i}(2));
+        disp(i/N);
+        [t,R] = f_run('stress',1,'mu',cell2param{i}(1),'g',cell2param{i}(2));
         voigt{i} = [t,R];
     end
     voigt = reshape(voigt,[length(mu_range2), length(G_range2)]);
@@ -59,8 +65,8 @@ function [] = f_multirun()
     end
     cell3param = reshape(gridPoints3,[1,numel(gridPoints3)]);
     parfor i = 1:N
-        percent = i/N
-        [t,R] = f_imrv2('oldb',1,'mu',cell3param{i}(1),'g',cell3param{i}(2),...
+        disp(i/N);
+        [t,R] = f_run('stress',5,'mu',cell3param{i}(1),'g',cell3param{i}(2),...
             'lambda1',cell3param{i}(3)*cell3param{i}(1)/cell3param{i}(2),'lambda2',0);
         ucm{i} = [t,R];
     end
@@ -89,12 +95,18 @@ function [] = f_multirun()
     end
     cell4param = reshape(gridPoints4,[1,numel(gridPoints4)]);
     parfor i = 1:N
-        percent = i/N
-        [t,R] = f_imrv2('oldb',1,'mu',cell4param{i}(1),'g',cell4param{i}(2),...
+        disp(i/N);
+        [t,R] = f_run('stress',5,'mu',cell4param{i}(1),'g',cell4param{i}(2),...
             'lambda1',cell4param{i}(3)*cell4param{i}(1)/cell4param{i}(2),...
             'lambda2',cell4param{i}(4)*cell4param{i}(1)/cell4param{i}(2));
         oldb{i} = [t,R];
     end
     oldb = reshape(oldb,[length(mu_range4), length(G_range4), ...
         length(lambda1_range4), length(lambda2_range4)]);
+end
+
+% one run of the nodal solver from SI inputs
+function [t,R] = f_run(varargin)
+    varin = f_dim2nondim(varargin{:});
+    [t,R] = f_imr_nodal(varin{:});
 end

@@ -21,7 +21,8 @@ function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, Sp, rtol, at
     if divisions == 0
         options = odeset('RelTol',rtol,'AbsTol',atol);
     else
-        options = odeset('MaxStep',tspan(end)/divisions,'RelTol',rtol);
+        options = odeset('MaxStep',tspan(end)/divisions,'RelTol',rtol, ...
+            'AbsTol',atol);
     end
     if ~isempty(Sp)
         if isa(Sp,'function_handle')
