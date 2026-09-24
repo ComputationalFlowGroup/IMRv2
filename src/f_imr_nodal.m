@@ -230,9 +230,9 @@ function varargout = f_imr_nodal(varargin)
     % mass-transfer wall closure: fixed bracket on the wall vapor mass
     % fraction and fixed iteration counts, so the cost per call is constant
     kv_bracket = [1e-13, 1 - 1e-13];
-    n_bisect = 20;
+    n_grid = 32;
+    n_rounds = 3;
     n_polish = 3;
-    h_polish = eps^(1/3);
     % constants of the bubble-wall heat (and mass) flux balance
     wallc = struct('grad_Tm',grad_Tm_coeff, 'grad_Tr',grad_Trans_coeff, ...
         'grad_C',grad_C_coeff, 'iwall_m',iwall_m, 'iwall_b',iwall_b, ...
@@ -548,9 +548,11 @@ function varargout = f_imr_nodal(varargin)
     % vapor mass fraction kv_w, confined to (0, 1). For a trial kv_w the
     % saturation condition gives the wall temperature and the Kirchhoff
     % transform gives theta_w in closed form (f_wall_mass_residual), so the
-    % fixed bracket kv_bracket needs no initial guess. n_bisect halvings are
-    % followed by n_polish Newton steps with a central-difference
-    % derivative; there is no adaptive termination.
+    % fixed bracket kv_bracket needs no initial guess. n_rounds rounds of
+    % n_grid residual evaluations, one vectorized call each, narrow the
+    % bracket to the grid interval with the sign change (the first round
+    % includes the bracket ends); n_polish Newton steps with the analytic
+    % derivative follow. There is no adaptive termination.
     function [theta_w, kv_w] = f_wall_mass_closure(Tm_in, th_in, kv_in, Pw, Rw, tw)
         % mixture coefficients from the stored wall value kv_in(end), not the
         % trial kv_w. Since kvdot(end) = 0 the stored value is the initial
@@ -575,53 +577,62 @@ function varargout = f_imr_nodal(varargin)
         
         lo = kv_bracket(1);
         hi = kv_bracket(2);
-        r_lo = f_wall_mass_residual(lo, wp);
-        r_hi = f_wall_mass_residual(hi, wp);
-        if ~(isfinite(r_lo) && isfinite(r_hi)) || sign(r_lo) == sign(r_hi)
-            error(['f_imr_nodal: the mass-transfer wall balance does not ' ...
-                'change sign on kv_w in [%g, 1 - %g] at t = %g (R = %g, ' ...
-                'P = %g, stored kv(end) = %g, residuals %g and %g). This ' ...
-                'indicates a physical or indexing problem in the state, ' ...
-                'not a solver problem.'], lo, 1 - hi, tw, Rw, Pw, ...
-                kv_in(end), r_lo, r_hi);
-        end
-        for k = 1:n_bisect
-            kv_mid = (lo + hi)/2;
-            r_mid = f_wall_mass_residual(kv_mid, wp);
-            if sign(r_mid) == sign(r_lo)
-                lo = kv_mid;
-                r_lo = r_mid;
-            else
-                hi = kv_mid;
+        for k = 1:n_rounds
+            kv_grid = linspace(lo, hi, n_grid);
+            r_grid = f_wall_mass_residual(kv_grid, wp);
+            if k == 1
+                r_lo = r_grid(1);
+                r_hi = r_grid(end);
+                if ~(isfinite(r_lo) && isfinite(r_hi)) || sign(r_lo) == sign(r_hi)
+                    error(['f_imr_nodal: the mass-transfer wall balance does ' ...
+                        'not change sign on kv_w in [%g, 1 - %g] at t = %g ' ...
+                        '(R = %g, P = %g, stored kv(end) = %g, residuals %g ' ...
+                        'and %g). This indicates a physical or indexing ' ...
+                        'problem in the state, not a solver problem.'], lo, ...
+                        1 - hi, tw, Rw, Pw, kv_in(end), r_lo, r_hi);
+                end
             end
+            ic = find(sign(r_grid(1:end-1)) ~= sign(r_grid(2:end)), 1);
+            lo = kv_grid(ic);
+            hi = kv_grid(ic+1);
         end
         kv_w = (lo + hi)/2;
         for k = 1:n_polish
-            h = h_polish*min(kv_w, 1 - kv_w);
-            dres = (f_wall_mass_residual(kv_w + h, wp) - ...
-                f_wall_mass_residual(kv_w - h, wp))/(2*h);
-            kv_w = kv_w - f_wall_mass_residual(kv_w, wp)/dres;
-            % stay inside the bisection bracket
-            kv_w = min(max(kv_w, lo), hi);
+            [res, ~, ~, dres] = f_wall_mass_residual(kv_w, wp);
+            % stay inside the final grid interval
+            kv_w = min(max(kv_w - res/dres, lo), hi);
         end
         [~, theta_w] = f_wall_mass_residual(kv_w, wp);
     end
     
-    % mass-transfer wall balance as a function of the wall vapor mass
-    % fraction kv_w, wp = [P, alpha_m, beta_m, flux_fixed, carrier_fixed].
-    % It is the balance of f_wall_mass_bc multiplied through by
+    % mass-transfer wall balance and its derivative as functions of the wall
+    % vapor mass fraction kv_w (elementwise, kv_w may be a vector),
+    % wp = [P, alpha_m, beta_m, flux_fixed, carrier_fixed]. It is the balance
+    % of f_wall_mass_bc multiplied through by
     % (kv_w*Rva_diff + Rg_star)*Tw*(1 - kv_w) > 0, which has the same root
     % and no reciprocal that vanishes as kv_w -> 1
-    function [r, theta_w, Tw] = f_wall_mass_residual(kv_w, wp)
+    function [r, theta_w, Tw, dr] = f_wall_mass_residual(kv_w, wp)
         Pw = wp(1);
         % vapor partial pressure, and the wall temperature from inverting
         % Pv(Tw) = C1_pv*exp(C2_pv/Tw) (C2_pv < 0)
-        ps = Pw*kv_w*Rvg_ratio/(kv_w*Rvg_ratio + 1 - kv_w);
-        Tw = C2_pv/log(ps/C1_pv);
-        theta_w = 0.5*wp(2)*(Tw^2 - 1) + wp(3)*(Tw - 1);
-        denom = (kv_w*Rva_diff + Rg_star)*Tw*(1 - kv_w);
-        r = denom*(grad_Tm_coeff(1)*Tw + grad_Trans_coeff(1)*theta_w + wp(4)) ...
-            + Pw*(grad_C_coeff(1)*kv_w + wp(5));
+        q = kv_w*Rvg_ratio + 1 - kv_w;
+        ps = Pw*kv_w*Rvg_ratio./q;
+        lg = log(ps/C1_pv);
+        Tw = C2_pv./lg;
+        theta_w = 0.5*wp(2)*(Tw.^2 - 1) + wp(3)*(Tw - 1);
+        mix = kv_w*Rva_diff + Rg_star;
+        denom = mix.*Tw.*(1 - kv_w);
+        thermal = grad_Tm_coeff(1)*Tw + grad_Trans_coeff(1)*theta_w + wp(4);
+        r = denom.*thermal + Pw*(grad_C_coeff(1)*kv_w + wp(5));
+        if nargout > 3
+            % d/d(kv_w) through ps, Tw and theta_w
+            dps = Pw*Rvg_ratio./q.^2;
+            dTw = -C2_pv./lg.^2.*dps./ps;
+            dth = (wp(2)*Tw + wp(3)).*dTw;
+            ddenom = Rva_diff*Tw.*(1 - kv_w) + mix.*dTw.*(1 - kv_w) - mix.*Tw;
+            dthermal = grad_Tm_coeff(1)*dTw + grad_Trans_coeff(1)*dth;
+            dr = ddenom.*thermal + denom.*dthermal + Pw*grad_C_coeff(1);
+        end
     end
     
     % bubble-wall theta at the state X, for the Jacobian
