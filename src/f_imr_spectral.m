@@ -52,7 +52,7 @@ function varargout = f_imr_spectral(varargin)
     Req             = init_opts(5);
     alphax          = init_opts(6);
     
-    % dimensionaless initial stress
+    % dimensionless initial stress
     Szero           = init_stress;
     
     % time span options
@@ -557,14 +557,23 @@ function [A,B,D,E,C,F] = f_dcdmtxe(N)
     
 end
 
-% prestress integrals, numeric quadrature; the (cos-1) zero at x = 1 tames
-% the (1-x)^-2 endpoint
+% prestress integrals, fixed Gauss-Legendre quadrature in theta; the (cos-1)
+% zero at x = 1 tames the (1-x)^-2 endpoint
 function cdd = f_preStressInt(L,N)
     
-    cdd = zeros(N,1);
-    for n = 1:N
-        g = @(x) (cos(n*acos(x))-1)./((L*(2./(1-x)-1)+1).*(1-x).^2);
-        cdd(n) = 2*L*integral(g,-1,1,'AbsTol',1e-12,'RelTol',1e-12);
-    end
+    % with x = cos(theta) the integrands of
+    % 2*L*int_{-1}^{1} (T_n(x) - 1)/((L*(1+x) + 1 - x)*(1 - x)) dx become
+    % smooth, (cos(n*theta) - 1)*sin(theta)/(((L+1) + (L-1)*cos(theta))*
+    % (1 - cos(theta))), so one Gauss-Legendre rule on [0, pi] with N + 64
+    % points gives every n to round-off
+    M = N + 64;
+    k = (1:M-1)';
+    beta = k./sqrt(4*k.^2 - 1);
+    [V,D] = eig(diag(beta,1) + diag(beta,-1));
+    [x,i] = sort(diag(D));
+    th = pi/2*(x + 1);
+    w = pi*V(1,i)'.^2;
+    w = w.*sin(th)./(((L + 1) + (L - 1)*cos(th)).*(1 - cos(th)));
+    cdd = 2*L*((cos((1:N)'*th') - 1)*w);
     
 end
