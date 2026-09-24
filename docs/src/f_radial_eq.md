@@ -11,8 +11,8 @@
 5. **Keller–Miksis with Mie–Grüneisen EoS (Model 5)**
 6. **Gilmore with Mie–Grüneisen EoS (Model 6)**
 7. **EOS Helper Functions**:
-   - `f_mie_gruneisen_eos_scalar`
-   - `f_mie_rho_from_p_scalar`
+   - `f_mie_gruneisen_eos_scalar`: sound speed `C`, enthalpy `hB` and `hH = 1/rho` at the wall pressure
+   - `f_mie_mu`: density strain `mu = rho - 1` at a pressure
 
 ## Inputs
 
@@ -47,4 +47,5 @@
 
 ## Notes
 - EOS helper functions perform scalar EOS and density calculations.
+- Mie–Grüneisen enthalpy: with `s = hugoniot_s` and `A = p/Cstar^2 = g(mu) = mu*(1 + nog*mu)/(1 - s*mu)^2`, `h(P) = int_1^P dp/(1 + mu)` is integrated by parts, `h = [p/(1 + mu)] + Cstar^2*int g/(1 + mu)^2 dmu`, and the partial fractions of `g/(1 + mu)^2` (poles at `mu = -1` and `mu = 1/s`) give it in closed form. The differences are written so that they hold for `s = 0` and near `P = 1`. Against an adaptive `integral` at `1e-12` the closed form agrees to `2.4e-13` relative to `|P - 1|` over 396 states (`Cstar` 5–1000, `nog` 0.5–2.5, `s` 0–2, `P` from -0.5 to `1e4`). It replaces an adaptive `integral` on every right-hand-side call, and radial 5 and 6 runs take about half the time, with `R(t)` unchanged to `1e-13`.
 - `f_checkers` allows radial 5 and 6 only with the polytropic bubble, and radial 3 and 4 without medium heat transfer: the enthalpy forms take the liquid at the far-field temperature.
