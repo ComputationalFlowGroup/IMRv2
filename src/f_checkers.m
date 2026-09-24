@@ -53,7 +53,7 @@ function p = f_checkers(p)
     if p.radial >= 3 && p.medtherm == 1
         error(['INPUT ERROR: the enthalpy forms (radial = 3, 4) take ' ...
             'the liquid at the far-field temperature, so medium heat ' ...
-            'transfer (medtherm = 1) is not available; use radial = 1 or 2']);
+            'transfer (medtherm = 1) is not available. Use radial = 1 or 2']);
     end
     if strcmp(p.solver,'spectral') && p.masstrans == 1
         error(['INPUT ERROR: masstrans = 1 is not available in the spectral ' ...
@@ -61,7 +61,7 @@ function p = f_checkers(p)
     end
     if strcmp(p.solver,'spectral') && p.scheme ~= 0
         error(['INPUT ERROR: scheme selects the differentiation matrices of ' ...
-            'f_imr_nodal; f_imr_spectral takes no scheme']);
+            'f_imr_nodal. f_imr_spectral takes no scheme']);
     end
     if strcmp(p.solver,'nodal') && p.spectral == 1 && p.stress == 5
         error(['INPUT ERROR: the spectral stress representation (spectral = 1) ' ...
