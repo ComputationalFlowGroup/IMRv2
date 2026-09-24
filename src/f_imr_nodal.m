@@ -286,15 +286,19 @@ function varargout = f_imr_nodal(varargin)
             % the wall entries of the state are not integrated (their time
             % derivatives are zero), so the wall state is recovered from the
             % wall closure at every output time, as the right-hand side does
+            % (the loop index is named it_out because a nested function shares
+            % any variable name that the parent also uses)
             kv_w = zeros(numel(t),1);
             theta_bw_guess = theta(1,end);
-            for k = 1:numel(t)
+            for it_out = 1:numel(t)
                 if masstrans
-                    [theta(k,end), kv_w(k)] = f_wall_mass_closure(Tm(k,:)', ...
-                        theta(k,:)', X(k,imass)', P(k), R(k), t(k));
+                    [theta(it_out,end), kv_w(it_out)] = f_wall_mass_closure( ...
+                        Tm(it_out,:)', theta(it_out,:)', X(it_out,imass)', ...
+                        P(it_out), R(it_out), t(it_out));
                 else
-                    theta(k,end) = f_wall_theta_exact(Tm(k,:)', theta(k,:)');
-                    theta_bw_guess = theta(k,end);
+                    theta(it_out,end) = f_wall_theta_exact(Tm(it_out,:)', ...
+                        theta(it_out,:)');
+                    theta_bw_guess = theta(it_out,end);
                 end
             end
         end
@@ -606,10 +610,10 @@ function varargout = f_imr_nodal(varargin)
         
         lo = kv_bracket(1);
         hi = kv_bracket(2);
-        for k = 1:n_rounds
+        for kr = 1:n_rounds
             kv_grid = linspace(lo, hi, n_grid);
             r_grid = f_wall_mass_residual(kv_grid, wp);
-            if k == 1
+            if kr == 1
                 r_lo = r_grid(1);
                 r_hi = r_grid(end);
                 if ~(isfinite(r_lo) && isfinite(r_hi)) || sign(r_lo) == sign(r_hi)
@@ -626,7 +630,7 @@ function varargout = f_imr_nodal(varargin)
             hi = kv_grid(ic+1);
         end
         kv_w = (lo + hi)/2;
-        for k = 1:n_polish
+        for kp = 1:n_polish
             [res, ~, ~, dres] = f_wall_mass_residual(kv_w, wp);
             % stay inside the final grid interval
             kv_w = min(max(kv_w - res/dres, lo), hi);
@@ -743,8 +747,8 @@ function varargout = f_imr_nodal(varargin)
             end
         else
             thetas = (uroots.^2 - 1)/(2*alpha_g);
-            [~,k] = min(abs(thetas - theta_bw_guess));
-            theta_bw = thetas(k);
+            [~,kmin] = min(abs(thetas - theta_bw_guess));
+            theta_bw = thetas(kmin);
         end
     end
     
