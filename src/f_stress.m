@@ -37,19 +37,19 @@ elseif stress == 2
 elseif stress == 3
     % extract stress auxiliary variable
     Z1 = X(ivisco1);
-    S = Z1/R^3 - 4*LAM/Re8*Rdot/R - 6*LAM*intfnu*iDRe;
+    S = Z1/R^3 - 4*LAM/Re8*Rdot/R - 6*intfnu*iDRe;
     % elastic shift Ze
     Ze = -0.5*(R^3/Ca)*(5 - Rst^4 - 4*Rst);
     % stress auxiliary variable integral derivative
     Z1dot = -(Z1 - Ze)/De + 4*(LAM - 1)/(Re8*De)*R^2*Rdot;
     % stress integral derivative
-    Sdot = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*(Rdot/R)^2;
+    Sdot = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
     
     % linear Maxwell, Jeffreys, Zener -- quadratic neo-Hookean
 elseif stress == 4
     % extract stress auxiliary variable
     Z1 = X(ivisco1);
-    S = Z1/R^3 - 4*LAM/Re8*Rdot/R;
+    S = Z1/R^3 - 4*LAM/Re8*Rdot/R - 6*intfnu*iDRe;
     strainhard = (3*alphax - 1) / (2*Ca);
     % simplified Ze equation with decimal fractions
     Ze = R^3 * (strainhard * (5 - Rst^4 - 4*Rst) + ...
@@ -58,9 +58,9 @@ elseif stress == 4
     % stress auxiliary derivative
     Z1dot = -(Z1-Ze)/De + 4*(LAM-1)/(Re8*De)*R^2*Rdot ;
     % stress integral derivative
-    Sdot = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*Rdot^2/R^2;
+    Sdot = Z1dot/R^3 - 3*Rdot/R^4*Z1 + 4*LAM/Re8*Rdot^2/R^2 - 6*dintfnu*iDRe;
     
-    % upper-convected Maxwell, OldRoyd-B
+    % upper-convected Maxwell, Oldroyd-B
 elseif stress == 5
     % extract stress sub-integrals
     Z1 = X(ivisco1);
@@ -69,8 +69,9 @@ elseif stress == 5
     Z1dot = -(1/De - 2*Rdot/R)*Z1 + 2*(LAM-1)/(Re8*De)*R^2*Rdot;
     Z2dot = -(1/De +   Rdot/R)*Z2 + 2*(LAM-1)/(Re8*De)*R^2*Rdot;
     % stress integral and derivative
-    S = (Z1 + Z2)/R^3 - 4*LAM/Re8*Rdot/R;
-    Sdot = (Z1dot+Z2dot)/R^3 - 3*Rdot/R^4*(Z1+Z2) + 4*LAM/Re8*Rdot^2/R^2;
+    S = (Z1 + Z2)/R^3 - 4*LAM/Re8*Rdot/R - 6*intfnu*iDRe;
+    Sdot = (Z1dot+Z2dot)/R^3 - 3*Rdot/R^4*(Z1+Z2) + 4*LAM/Re8*Rdot^2/R^2 ...
+        - 6*dintfnu*iDRe;
     
 else
     error('stress setting is not available');

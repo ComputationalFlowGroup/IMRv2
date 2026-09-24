@@ -14,9 +14,10 @@
 % fixed Gauss-Legendre rule on panels that halve toward u = 0, where the
 % integrand varies on the scale u ~ xR^(-1/3) at high shear rates.
 % Outputs: f at the wall, intf (enters the stress integral as
-% -6*intf/DRe), and the Rdot part (dintf) and Rddot coefficient (ddintf)
-% of d(intf)/dt.
-function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
+% -6*intf/DRe), the Rdot part (dintf) and Rddot coefficient (ddintf) of
+% d(intf)/dt, and, when the radial positions yq = r/R are given, f at those
+% positions from the local shear rate gammadot_R*(R/r)^3 (fq).
+function [f,intf,dintf,ddintf,fq] = f_viscosity(nu_model,Rdot,R,a,nc,lambda,yq)
     
     persistent uq wq
     if isempty(uq)
@@ -46,6 +47,11 @@ function [f,intf,dintf,ddintf] = f_viscosity(nu_model,Rdot,R,a,nc,lambda)
     % into the Rdot part (dintf) and the Rddot coefficient (ddintf)
     dintf = -dgammadot*I2 + h;
     ddintf = -ddgammadot*I2;
+    
+    % viscosity factor at given radial positions
+    if nargin > 6
+        fq = f_model(xR*yq.^-3);
+    end
     
     % f(x) for the selected model, x = lambda*|gammadot| >= 0
     function fx = f_model(x)

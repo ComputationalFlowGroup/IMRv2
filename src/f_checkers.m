@@ -137,6 +137,10 @@ f_positive({'Cstar','GAMa','nstate','hugoniot_s'}, ...
 f_dimensional_hint(p.Cstar < 1, 'Cstar (= C8/Uc)', p.Cstar);
 
 % non-Newtonian viscosity
+if p.nu_model > 0 && p.stress == 0
+    error(['INPUT ERROR: nu_model = %d needs a viscous stress model; ' ...
+        'stress = 0 has no viscous stress, use stress = 1 to 5'], p.nu_model);
+end
 if p.nu_model > 0
     f_nonnegative({'DRe','v_lambda','v_nc'}, {p.DRe, p.v_lambda_star, p.v_nc});
     if p.DRe == 0

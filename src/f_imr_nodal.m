@@ -17,7 +17,7 @@ function varargout = f_imr_nodal(varargin)
     % defaults
     
     % non-Newtonian viscosity parameters
-    fnu             = 0;
+    fnu_m           = 0;
     intfnu          = 0;
     dintfnu         = 0;
     ddintfnu        = 0;
@@ -278,15 +278,39 @@ function varargout = f_imr_nodal(varargin)
     P    = X(:,3);
     if bubtherm
         theta = X(:,ibubtherm);
-        T = f_theta_of_T(theta,kv0);
         if medtherm
             Tm = X(:,imedtherm);
+            % the wall entries of the state are not integrated (their time
+            % derivatives are zero), so the wall state is recovered from the
+            % wall closure at every output time, as the right-hand side does
+            kv_w = zeros(numel(t),1);
+            theta_bw_guess = theta(1,end);
+            for k = 1:numel(t)
+                if masstrans
+                    [theta(k,end), kv_w(k)] = f_wall_mass_closure(Tm(k,:)', ...
+                        theta(k,:)', X(k,imass)', P(k), R(k), t(k));
+                else
+                    theta(k,end) = f_wall_theta_exact(Tm(k,:)', theta(k,:)');
+                    theta_bw_guess = theta(k,end);
+                end
+            end
         end
     end
     if masstrans
+        % T with the stored kv(end), as in the right-hand side, then the
+        % wall vapor concentration
         kv = X(:,imass);
-        kv(:,end) = f_kv_of_T(T(:,end),P);
         T = f_theta_of_T(theta,kv);
+        if medtherm
+            kv(:,end) = kv_w;
+        else
+            kv(:,end) = f_kv_of_T(T(:,end),P);
+        end
+    elseif bubtherm
+        T = f_theta_of_T(theta,kv0);
+    end
+    if medtherm
+        Tm(:,1) = T(:,end);
     end
     
     % outputs assembly
@@ -444,8 +468,9 @@ function varargout = f_imr_nodal(varargin)
         
         % viscous forces/Reynolds number
         if nu_model ~= 0
-            [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...
-                R,v_a,v_nc,v_lambda_star);
+            % fnu_m: viscosity factor at the medium grid points
+            [~,intfnu,dintfnu,ddintfnu,fnu_m] = f_viscosity(nu_model, ...
+                Rdot,R,v_a,v_nc,v_lambda_star,yT);
         end
         
         % surrounding temperature
@@ -462,7 +487,7 @@ function varargout = f_imr_nodal(varargin)
             % stress dissipation
             [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                 Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
-                ivisco2,fnu,DRe);
+                ivisco2,fnu_m,DRe);
             % surrounding temperature evolution equation
             Tmdot = advection + diffusion + taugradu;
             % sets boundary condition on temperature
@@ -499,7 +524,8 @@ function varargout = f_imr_nodal(varargin)
     function tg = f_taugradu(Rv,Rdotv,X)
         fnu_loc = 0;
         if nu_model ~= 0
-            fnu_loc = f_viscosity(nu_model,Rdotv,Rv,v_a,v_nc,v_lambda_star);
+            [~,~,~,~,fnu_loc] = f_viscosity(nu_model,Rdotv,Rv,v_a,v_nc, ...
+                v_lambda_star,yT);
         end
         tg = f_stress_dissipation(stress,spectral,Req,Rv,Rdotv, ...
             Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...

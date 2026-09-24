@@ -198,9 +198,16 @@ end
 Pb_star = P0_star + Pv_star;
 % medium to gas conductivity ratio over the grid stretching length
 iota = Km_star/Lt;
-% non-Newtonian viscosity contribution
+% non-Newtonian viscosity contribution, (mu0 - mu8)*f/DRe. It modifies the
+% instantaneous viscous stress: the whole viscosity for stress 1 and 2 and
+% the solvent part, the fraction LAM, for stress 3 to 5 (whose viscous
+% term is 4*LAM/Re8*Rdot/R); iDRe carries that fraction so that the stress
+% integral, its time derivative and the Rddot coefficient of the radial
+% equations use the same factor
 if DRe == 0
     iDRe = 0;
+elseif stress >= 3
+    iDRe = LAM/DRe;
 else
     iDRe = 1/DRe;
 end
