@@ -21,7 +21,7 @@
      `tfin = 1e-5`, `tvector = linspace(0, tfin, 100)`.
 
 4. **Nested Test Loop**
-   - Iterates over `radial` (1–4), `vapor` (0/1),  
+   - Iterates over `radial` (1–4), `vapor` (0/1), skipping `medtherm = 1` with radial 3–4,  
      `bubtherm` (0/1), `medtherm` (0/1), `stress` (0–5).
    - Constructs `varin` parameter sets.
    - Runs `f_imr_nodal` and `f_imr_spectral` with fine meshes (`Nt=150,Mt=150` FD; `Nt=12,Mt=12` spectral).

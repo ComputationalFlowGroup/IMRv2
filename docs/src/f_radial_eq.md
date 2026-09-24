@@ -47,4 +47,4 @@
 
 ## Notes
 - EOS helper functions perform scalar EOS and density calculations.
-- `f_checkers` allows radial 5 and 6 only with the polytropic bubble.
+- `f_checkers` allows radial 5 and 6 only with the polytropic bubble, and radial 3 and 4 without medium heat transfer: the enthalpy forms take the liquid at the far-field temperature.

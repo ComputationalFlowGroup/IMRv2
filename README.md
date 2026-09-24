@@ -50,7 +50,7 @@ IMR offers several key capabilities for modeling and analyzing inertial microcav
 Both solvers include:
 
 - **Radial models:** Rayleigh–Plesset (incompressible), Keller–Miksis in pressure form (constant sound speed), Keller–Miksis in enthalpy form and Gilmore with the Tait equation of state, and the same two with the Mie–Grüneisen equation of state.
-- **Heat transfer:** polytropic bubble, heat transfer in the bubble, and heat transfer in the bubble and the surrounding medium.
+- **Heat transfer:** polytropic bubble, heat transfer in the bubble, and heat transfer in the bubble and the surrounding medium. Medium heat transfer needs radial 1 or 2, since the enthalpy forms (radial 3–6) take the liquid at the far-field temperature.
 - **Stress models:** neo-Hookean and quadratic neo-Hookean Kelvin–Voigt; linear Maxwell, Jeffreys and Zener; UCM and Oldroyd-B.
 - **Viscosity:** Newtonian and seven non-Newtonian models (Carreau, Carreau–Yasuda, Powell–Eyring, modified Powell–Eyring, Cross, simplified Cross, modified Cross).
 - **Driving pressure:** impulse, Gaussian, histotripsy, Heaviside, and three measured waveforms.

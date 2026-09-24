@@ -39,7 +39,9 @@ for radial = 1:4
         for medtherm = 0:1
             for vapor = 0:1
                 for stress = 1:5
-                    if bubtherm == 0 && medtherm == 1
+                    % no medium heat transfer without bubble heat transfer,
+                    % nor with the enthalpy forms (radial 3, 4)
+                    if (bubtherm == 0 || radial >= 3) && medtherm == 1
                         count = count + 2;
                         continue;
                     end

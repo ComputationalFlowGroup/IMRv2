@@ -19,7 +19,7 @@
    - Defines `tvector` for simulation.
    - Fixes `masstrans = 1`, `vapor = 1`, `collapse = 0`.
    - Sets the bubble geometry `R0 = 200e-6`, `Req = 35e-6` (SI units, converted with `f_dim2nondim`).
-   - Loops over `radial` 1–4 and `stress` 0–5 with `bubtherm = medtherm = 1`.
+   - Loops over `radial` 1–4 and `stress` 0–5 with `bubtherm = medtherm = 1`, skipping radial 3–4, which do not allow medium heat transfer (their stored results are kept but not compared).
 
 4. **Loop Over Test Cases**
    - Iterates over all combinations.

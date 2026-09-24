@@ -24,7 +24,7 @@
 
 4. **Nested Test Loop**
    - Loops over combinations of:  
-     `radial` (1–4), `bubtherm` (0/1), `medtherm` (0/1), `stress` (0–5),  
+     `radial` (1–4), `bubtherm` (0/1), `medtherm` (0/1), `stress` (0–5), skipping `medtherm = 1` with radial 3–4 (their stored results are kept but not compared),  
      `mu`, `G`, `alphax`, `lambda1` indices.
    - For each combination:
      1. Constructs `varin` parameter-value pairs.

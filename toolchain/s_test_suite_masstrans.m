@@ -50,6 +50,11 @@ for idx_mass = 1:total_combinations
     radial   = radial_vec(radial_idx);
     bubtherm = bubtherm_vec(bubtherm_idx);
     medtherm = medtherm_vec(medtherm_idx);
+    % the enthalpy forms (radial 3, 4) take the liquid at the far-field
+    % temperature, so medium heat transfer is rejected
+    if radial >= 3 && medtherm == 1
+        continue;
+    end
     stress   = stress_vec(stress_idx);
     
     varin = {'radial', radial, ...

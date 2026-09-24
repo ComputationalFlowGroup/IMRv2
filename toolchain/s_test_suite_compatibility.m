@@ -56,6 +56,12 @@ failed_tests = zeros(size(errors_sp));
 for k = 1:total_valid
     idx_full = valid_idx(k);
     [lambda1_i, alphax_i, G_i, mu_i, stress_i, med_i, bub_i, rad_i] = ind2sub(dims, idx_full);
+    % the enthalpy forms (radial 3, 4) take the liquid at the far-field
+    % temperature, so medium heat transfer is rejected; the stored result
+    % for this index is kept but not compared
+    if radial_vec(rad_i) >= 3 && medtherm_vec(med_i) == 1
+        continue;
+    end
     
     varin = { ...
         'radial',   radial_vec(rad_i), ...

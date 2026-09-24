@@ -23,9 +23,9 @@ The *input* column is the name used in the name/value call (case-insensitive).
 ### Equation options
 | Input | Variable | Description | Default |
 |-------|----------|-------------|---------|
-| `radial` | `radial` | 1 Rayleigh–Plesset, 2 Keller–Miksis (pressure), 3 Keller–Miksis (enthalpy, Tait), 4 Gilmore (Tait), 5 Keller–Miksis (Mie–Grüneisen), 6 Gilmore (Mie–Grüneisen). Radial 5 and 6 support only the polytropic bubble. | 1 |
+| `radial` | `radial` | 1 Rayleigh–Plesset, 2 Keller–Miksis (pressure), 3 Keller–Miksis (enthalpy, Tait), 4 Gilmore (Tait), 5 Keller–Miksis (Mie–Grüneisen), 6 Gilmore (Mie–Grüneisen). Radial 3–6 do not allow medium heat transfer, and radial 5 and 6 support only the polytropic bubble. | 1 |
 | `bubtherm` | `bubtherm` | Thermal PDE in the bubble (0/1) | 0 |
-| `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1`) | 0 |
+| `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1` and `radial` 1 or 2) | 0 |
 | `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B | 0 |
 | `eps3` | `eps3` | Second-order strain term, in [0, 0.5] | 0 |
 | `vapor` | `vapor` | Vapor pressure (0/1) | 0 |

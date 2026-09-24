@@ -10,61 +10,66 @@ Legend:
 
 A ✗ on the diagonal means the solver does not have that feature at all, so its whole row is ✗.
 
-The radial models fall into two groups with the same compatibility:
+The radial models fall into three groups with the same compatibility:
 
 | Radial | Model | Liquid | Group |
 |---|---|---|---|
-| 1 | Rayleigh–Plesset | Incompressible | 1–4 |
-| 2 | Keller–Miksis, pressure form | Constant sound speed | 1–4 |
-| 3 | Keller–Miksis, enthalpy form | Tait equation of state | 1–4 |
-| 4 | Gilmore | Tait equation of state | 1–4 |
+| 1 | Rayleigh–Plesset | Incompressible | 1–2 |
+| 2 | Keller–Miksis, pressure form | Constant sound speed | 1–2 |
+| 3 | Keller–Miksis, enthalpy form | Tait equation of state | 3–4 |
+| 4 | Gilmore | Tait equation of state | 3–4 |
 | 5 | Keller–Miksis, enthalpy form | Mie–Grüneisen equation of state | 5–6 |
 | 6 | Gilmore | Mie–Grüneisen equation of state | 5–6 |
 
+The enthalpy forms (radial 3–6) describe the liquid with an equation of state in pressure only, at the far-field temperature. Medium heat transfer would change the liquid temperature, so it is not available with them, and neither is collapse, which requires it. Bubble heat transfer and mass transfer remain available with radial 3–4: without medium heat transfer the wall stays at the far-field temperature, and the wall vapor fraction is the saturated value at that temperature and the bubble pressure. The liquid then acts as an infinite heat reservoir, which is consistent with the equation of state but neglects the evaporative cooling and condensation heating of the wall. Radial 5–6 remain limited to the polytropic bubble.
+
 ### `f_imr_nodal`, either scheme (finite difference or Chebyshev)
 
-| | Feature | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |
-|---:|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 1 | Radial 1–4 | – | · | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
-| 2 | Radial 5–6 |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | ✓ |
-| 3 | Vapor pressure |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
-| 4 | Bubble heat transfer |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
-| 5 | Medium heat transfer |  |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
-| 6 | Mass transfer |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
-| 7 | Kelvin–Voigt stress (1, 2) |  |  |  |  |  |  | – | · | · | · | ✓ | ✓ | ✓ |
-| 8 | Maxwell / Jeffreys / Zener (3, 4) |  |  |  |  |  |  |  | – | · | · | ✓ | ✓ | ✓ |
-| 9 | UCM / Oldroyd-B, two states (5) |  |  |  |  |  |  |  |  | – | · | ✓ | ✓ | ✓ |
-| 10 | UCM / Oldroyd-B, stress field (5, `spectral = 1`) |  |  |  |  |  |  |  |  |  | ✗ | ✗ | ✗ | ✗ |
-| 11 | Non-Newtonian viscosity |  |  |  |  |  |  |  |  |  |  | – | ✓ | ✓ |
-| 12 | Collapse |  |  |  |  |  |  |  |  |  |  |  | – | ✓ |
-| 13 | Pressure waveform |  |  |  |  |  |  |  |  |  |  |  |  | – |
+| | Feature | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
+|---:|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 1 | Radial 1–2 | – | · | · | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
+| 2 | Radial 3–4 |  | – | · | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | ✓ |
+| 3 | Radial 5–6 |  |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | ✓ |
+| 4 | Vapor pressure |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
+| 5 | Bubble heat transfer |  |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
+| 6 | Medium heat transfer |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
+| 7 | Mass transfer |  |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
+| 8 | Kelvin–Voigt stress (1, 2) |  |  |  |  |  |  |  | – | · | · | · | ✓ | ✓ | ✓ |
+| 9 | Maxwell / Jeffreys / Zener (3, 4) |  |  |  |  |  |  |  |  | – | · | · | ✓ | ✓ | ✓ |
+| 10 | UCM / Oldroyd-B, two states (5) |  |  |  |  |  |  |  |  |  | – | · | ✓ | ✓ | ✓ |
+| 11 | UCM / Oldroyd-B, stress field (5, `spectral = 1`) |  |  |  |  |  |  |  |  |  |  | ✗ | ✗ | ✗ | ✗ |
+| 12 | Non-Newtonian viscosity |  |  |  |  |  |  |  |  |  |  |  | – | ✓ | ✓ |
+| 13 | Collapse |  |  |  |  |  |  |  |  |  |  |  |  | – | ✓ |
+| 14 | Pressure waveform |  |  |  |  |  |  |  |  |  |  |  |  |  | – |
 
 ### `f_imr_spectral`
 
-| | Feature | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |
-|---:|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 1 | Radial 1–4 | – | · | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
-| 2 | Radial 5–6 |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
-| 3 | Vapor pressure |  |  | – | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
-| 4 | Bubble heat transfer |  |  |  | – | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
-| 5 | Medium heat transfer |  |  |  |  | – | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
-| 6 | Mass transfer |  |  |  |  |  | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| 7 | Kelvin–Voigt stress (1, 2) |  |  |  |  |  |  | – | · | · | · | ✓ | ✗ | ✓ |
-| 8 | Maxwell / Jeffreys / Zener (3, 4) |  |  |  |  |  |  |  | – | · | · | ✓ | ✗ | ✓ |
-| 9 | UCM / Oldroyd-B, two states (5) |  |  |  |  |  |  |  |  | – | · | ✓ | ✗ | ✓ |
-| 10 | UCM / Oldroyd-B, stress field (5, `spectral = 1`) |  |  |  |  |  |  |  |  |  | – | ✓ | ✗ | ✓ |
-| 11 | Non-Newtonian viscosity |  |  |  |  |  |  |  |  |  |  | – | ✗ | ✓ |
-| 12 | Collapse |  |  |  |  |  |  |  |  |  |  |  | ✗ | ✗ |
-| 13 | Pressure waveform |  |  |  |  |  |  |  |  |  |  |  |  | – |
+| | Feature | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
+|---:|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 1 | Radial 1–2 | – | · | · | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| 2 | Radial 3–4 |  | – | · | ✓ | ✓ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| 3 | Radial 5–6 |  |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| 4 | Vapor pressure |  |  |  | – | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| 5 | Bubble heat transfer |  |  |  |  | – | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| 6 | Medium heat transfer |  |  |  |  |  | – | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ |
+| 7 | Mass transfer |  |  |  |  |  |  | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| 8 | Kelvin–Voigt stress (1, 2) |  |  |  |  |  |  |  | – | · | · | · | ✓ | ✗ | ✓ |
+| 9 | Maxwell / Jeffreys / Zener (3, 4) |  |  |  |  |  |  |  |  | – | · | · | ✓ | ✗ | ✓ |
+| 10 | UCM / Oldroyd-B, two states (5) |  |  |  |  |  |  |  |  |  | – | · | ✓ | ✗ | ✓ |
+| 11 | UCM / Oldroyd-B, stress field (5, `spectral = 1`) |  |  |  |  |  |  |  |  |  |  | – | ✓ | ✗ | ✓ |
+| 12 | Non-Newtonian viscosity |  |  |  |  |  |  |  |  |  |  |  | – | ✗ | ✓ |
+| 13 | Collapse |  |  |  |  |  |  |  |  |  |  |  |  | ✗ | ✗ |
+| 14 | Pressure waveform |  |  |  |  |  |  |  |  |  |  |  |  |  | – |
 
-The finite difference and Chebyshev schemes of `f_imr_nodal` were run separately and gave the same grid.
+The finite difference and Chebyshev schemes of `f_imr_nodal` were run separately and gave the same grid. One run is worth knowing about: Rayleigh–Plesset (radial 1) with collapse on 12 Chebyshev points compressed the bubble to `R = 0.005` and `P = 3.6e6`, above the ceiling `C1_pv` of the saturation curve. The wall closure then stops with its sign-change error, since no wall vapor fraction satisfies the saturation condition there. Rayleigh–Plesset has no acoustic damping, so strong collapses are best run with radial 2.
 
 ## Requirements
 
 Some features switch on others. A ✓ means the pair runs with these requirements met:
 - **Medium heat transfer** requires bubble heat transfer.
 - **Mass transfer** requires vapor pressure and bubble heat transfer.
-- **Collapse** requires bubble and medium heat transfer, vapor pressure and mass transfer.
+- **Collapse** requires bubble and medium heat transfer, vapor pressure and mass transfer, so only radial 1–2.
+- **Medium heat transfer** is not available with the enthalpy forms, radial 3–6.
 
 Other rules:
 - **Stress 3, 4 and 5** require `De > 0`.
@@ -79,7 +84,7 @@ Collapse only sets the initial state in `f_call_params`: the equilibrium radius,
 
 ## How this was checked
 
-Every cell comes from running the solvers with GNU Octave, `f_imr_nodal` in both schemes. Each run pairs the two features on a Keller–Miksis base case, radial 2, and each ran in its own Octave process. Radial 1, 3, 4, 5 and 6 were each paired with every non-radial feature, and each gave the same result as the rest of its group. A ✓ means the run finished with a finite `R(t)`.
+Every cell comes from running the solvers with GNU Octave, `f_imr_nodal` in both schemes. Each run pairs the two features on a Keller–Miksis base case, radial 2, and each ran in its own Octave process. Radial 1–6 were each paired with every non-radial feature in all three solver modes, and each gave the same result as the rest of its group, apart from the Rayleigh–Plesset collapse run described above. A ✓ means the run finished with a finite `R(t)`.
 
 A separate sweep ran both solvers over every radial model, thermal configuration and stress model: 504 runs, plus 36 more for the remaining thermal combinations. Every non-Newtonian viscosity model, driving waveform, integrator and Jacobian option was also run on a thermal case in both solvers.
 

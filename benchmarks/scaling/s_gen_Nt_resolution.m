@@ -24,7 +24,9 @@ G = 1E3;
 alphax = 0.5;
 lambda1 = 1E-3;
 lambda2 = 0;
-radial = 3;
+% Keller-Miksis in pressure: the enthalpy forms (radial 3-6) do not allow
+% medium heat transfer; the stored results were generated with radial = 3
+radial = 2;
 stress = 2;
 maxNumCompThreads(16);
 % define parameter vectors and limits

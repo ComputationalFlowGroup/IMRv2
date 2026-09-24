@@ -15,6 +15,7 @@
 | `medtherm = 1` without `bubtherm` | error |
 | `masstrans = 1` without `vapor` or `bubtherm` | error |
 | Mie–Grüneisen (`radial = 5, 6`) with `bubtherm`, `medtherm` or `masstrans` | error: polytropic bubble only |
+| Enthalpy forms (`radial = 3, 4`) with `medtherm = 1` | error: the liquid is taken at the far-field temperature |
 | `collapse = 1` without `bubtherm`, `medtherm`, `vapor` and `masstrans` | error |
 | `stress = 3, 4, 5` with `De <= 0` | error |
 | `stress >= 3` with `medtherm = 1` (FD dissipation) | warning `IMR:dissipation` |
