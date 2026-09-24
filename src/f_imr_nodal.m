@@ -533,8 +533,10 @@ function varargout = f_imr_nodal(varargin)
         kv_w = 1./(1+theta_var);
     end
     
-    % warm-started Newton iteration on the full (thermal and mass transfer)
-    % wall balance, with fzero as the fallback if it does not converge;
+    % bubble-wall theta from the full (thermal and mass transfer) wall
+    % balance: a warm-started Newton iteration, accepted when it converges
+    % inside the physical bracket, and otherwise a safeguarded
+    % Newton-bisection search on that bracket;
     % vrest = [Tm(iwall_m), theta(iwall_b), kv(end), kv(iwall_b), P]
     function theta_bw = f_wall_theta_newton(vrest, theta_bw)
         theta_start = theta_bw;
@@ -551,9 +553,71 @@ function varargout = f_imr_nodal(varargin)
                 break;
             end
         end
-        if ~converged
+        [theta_lo, theta_hi] = f_wall_theta_bracket(vrest);
+        if ~converged || theta_bw < theta_lo || theta_bw > theta_hi
+            theta_bw = f_wall_theta_safe(vrest, theta_start, theta_lo, theta_hi);
+        end
+    end
+    
+    % bracket of the wall theta: the wall vapor concentration kv_w lies in
+    % (0, 1), and inverting the saturation condition gives the wall
+    % temperature in closed form, Pv(Tw) = P*kv*Rvg/(kv*Rvg + 1 - kv) with
+    % Pv(Tw) = C1_pv*exp(C2_pv/Tw); theta follows with the mixture
+    % coefficient of f_wall_mass_bc. Tw, and so theta, increase with kv.
+    function [theta_lo, theta_hi] = f_wall_theta_bracket(vrest)
+        kvE = vrest(numel(iwall_m) + numel(iwall_b) + 1);
+        Pw = vrest(end);
+        alpha_m = kvE*alpha_v + (1 - kvE)*alpha_g;
+        kv_ends = [1e-13, 1 - 1e-13];
+        ps = Pw*kv_ends*Rvg_ratio./(kv_ends*Rvg_ratio + 1 - kv_ends);
+        % the saturation curve is bounded by C1_pv as Tw -> Inf
+        ps = min(ps, C1_pv*(1 - 1e-12));
+        Tw_ends = C2_pv./log(ps/C1_pv);
+        u = alpha_m*(Tw_ends - 1) + 1;
+        thetas = (u.^2 - 1)/(2*alpha_m);
+        theta_lo = thetas(1);
+        theta_hi = thetas(2);
+    end
+    
+    % safeguarded Newton-bisection on [theta_lo, theta_hi]: a Newton step
+    % that leaves the bracket is replaced by bisection, so the search
+    % always converges when the residual changes sign on the bracket
+    function theta_bw = f_wall_theta_safe(vrest, theta_start, theta_lo, theta_hi)
+        r_lo = f_wall_mass_bc([theta_lo, vrest], wallc);
+        r_hi = f_wall_mass_bc([theta_hi, vrest], wallc);
+        if ~(isfinite(r_lo) && isfinite(r_hi)) || sign(r_lo) == sign(r_hi)
+            % no sign change on the bracket: last resort
             theta_bw = fzero(@(x) f_wall_mass_bc([x, vrest], wallc), ...
                 theta_start, foptions);
+            return
+        end
+        if theta_start > theta_lo && theta_start < theta_hi
+            theta_bw = theta_start;
+        else
+            theta_bw = (theta_lo + theta_hi)/2;
+        end
+        for iter = 1:200
+            [res,dres] = f_wall_mass_bc([theta_bw, vrest], wallc);
+            if res == 0
+                return
+            end
+            if sign(res) == sign(r_lo)
+                theta_lo = theta_bw;
+                r_lo = res;
+            else
+                theta_hi = theta_bw;
+            end
+            theta_new = theta_bw - res/dres(1);
+            outside = theta_new <= theta_lo || theta_new >= theta_hi;
+            if ~isfinite(theta_new) || outside
+                theta_new = (theta_lo + theta_hi)/2;
+            end
+            tol = 1e-14*max(1,abs(theta_new));
+            if abs(theta_new - theta_bw) <= tol || theta_hi - theta_lo <= tol
+                theta_bw = theta_new;
+                return
+            end
+            theta_bw = theta_new;
         end
     end
     

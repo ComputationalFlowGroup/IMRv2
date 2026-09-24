@@ -25,8 +25,8 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 - The bubble-wall heat flux balance, with or without mass transfer, uses the wall rows of the first-derivative matrices: three-point one-sided stencils for finite differences, and every node of each field for Chebyshev.
 
 ### 3. Time Integration
-- Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s`, `ode23tb`, or `ode45`).
-- The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a warm-started Newton iteration on the transcendental balance of `f_wall_mass_bc` (with `fzero` as a fallback).
+- Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s` or `ode23tb`).
+- The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a warm-started Newton iteration on the transcendental balance of `f_wall_mass_bc`, with a bracketed Newton–bisection search on the wall vapor concentration as the fallback (see [`f_wall_bc`](f_wall_bc.md)).
 - The stiff integrators receive the analytic Jacobian of `f_jacobian_nodal` for `bubtherm = 1` (with or without medium heat and mass transfer), or the sparsity pattern from `f_jpattern` otherwise (dense for Chebyshev); see the `jacobian` option.
 
 ### 4. Output Assembly
@@ -47,7 +47,7 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 | `eps3`             | Second-order strain term, in [0, 0.5] |
 | `masstrans`        | Enable mass transfer (0/1, requires `bubtherm = 1` and `vapor = 1`) |
 | `scheme`           | Differentiation matrices: 0 finite difference (default), 1 Chebyshev |
-| `method`           | Time integrator (15 = `ode15s`, 23 = `ode23tb`, 45 = `ode45`) |
+| `method`           | Stiff time integrator (15 = `ode15s`, 23 = `ode23tb`) |
 | `reltol`, `abstol` | Integrator tolerances (default `1e-8`) |
 | `jacobian`         | Jacobian for the stiff integrators: 0 dense numerical, 1 sparsity pattern, 2 analytic (default). The analytic Jacobian needs `bubtherm = 1`; otherwise 2 falls back to the sparsity pattern. |
 | `spectral`         | Spectral stress representation; `f_checkers` rejects `spectral = 1` with stress 5 in this solver |
