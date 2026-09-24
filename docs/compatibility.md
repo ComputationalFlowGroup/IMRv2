@@ -3,6 +3,7 @@
 These grids show which features can run together in each solver: `f_imr_nodal`, with either differentiation scheme, and `f_imr_spectral`. Every feature appears on both axes, and only the upper triangle is filled in.
 
 Legend:
+
 - **✓** the two features run together.
 - **✗** they cannot run together. `f_checkers` rejects the run with an `INPUT ERROR`.
 - **–** the diagonal, where a feature is paired with itself.
@@ -66,12 +67,14 @@ The finite difference and Chebyshev schemes of `f_imr_nodal` were run separately
 ## Requirements
 
 Some features switch on others. A ✓ means the pair runs with these requirements met:
+
 - **Medium heat transfer** requires bubble heat transfer.
 - **Mass transfer** requires vapor pressure and bubble heat transfer.
 - **Collapse** requires bubble and medium heat transfer, vapor pressure and mass transfer, so only radial 1–2.
 - **Medium heat transfer** is not available with the enthalpy forms, radial 3–6.
 
 Other rules:
+
 - **Non-Newtonian viscosity** requires a stress model with a viscous term, stress 1–5; `f_checkers` rejects it with stress 0. It enters every stress model the same way, `-6*intfnu*iDRe` in the stress integral, scaled by `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, and the medium heating uses the local non-Newtonian viscosity.
 - **Stress 3, 4 and 5** require `De > 0`.
 - **Collapse with stress 3 or 4** starts from the stress of a growth from `Req` to `R = 1` ([`f_init_stress`](src/f_init_stress.md)), including the quadratic term for stress 4. If no subsonic growth reaches `R = 1` (very small `Req`), the run stops and asks for `stress0`.
@@ -91,6 +94,7 @@ Every cell comes from running the solvers with GNU Octave, `f_imr_nodal` in both
 A separate sweep ran both solvers over every radial model, thermal configuration and stress model: 504 runs, plus 36 more for the remaining thermal combinations. Every non-Newtonian viscosity model, driving waveform, integrator and Jacobian option was also run on a thermal case in both solvers.
 
 Octave needs two stand-ins for MATLAB behavior:
+
 - **No `ode23tb`.** `ode15s` with a dense Jacobian stood in for it.
 - **A different `fzero`.** Octave's `fzero` throws an error where MATLAB's returns `NaN`, which breaks the collapse initial state. A stand-in with MATLAB's interval search was used.
 

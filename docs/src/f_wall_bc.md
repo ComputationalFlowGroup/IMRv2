@@ -9,12 +9,13 @@ Without mass transfer the wall heat flux balance `c1*Tw + c2*theta_w + K = 0`, w
 With vapor mass transfer the balance adds the latent heat flux, which depends on the saturated wall vapor mass fraction through `Pv(Tw) = C1_pv*exp(C2_pv/Tw)` (`C2_pv < 0`). The balance is transcendental, so it has no closed-form root. The closure solves it for the wall vapor mass fraction `kv_w`, which is confined to `(0, 1)`, rather than for `theta_w`, which has no natural bounds.
 
 For a trial `kv_w`, `f_wall_mass_residual` evaluates, in order:
+
 1. the vapor partial pressure `ps = P*kv_w*Rvg/(kv_w*Rvg + 1 - kv_w)`;
 2. the wall temperature from inverting the saturation relation, `Tw = C2_pv/log(ps/C1_pv)`, with the solver's own constants (consistent with `f_pvsat`);
 3. the wall Kirchhoff temperature by the forward transform, `theta_w = 0.5*alpha_m*(Tw^2 - 1) + beta_m*(Tw - 1)`;
 4. the flux balance multiplied through by `D = (kv_w*Rva + Rg)*Tw*(1 - kv_w)`, which is positive on the bracket:
-   `r = D*(grad_Tm(1)*Tw + grad_Tr(1)*theta_w + flux_fixed) + P*(grad_C(1)*kv_w + carrier_fixed)`.
-   This has the same root as the balance of `f_wall_mass_bc` and no reciprocal that vanishes as `kv_w -> 1`.
+    `r = D*(grad_Tm(1)*Tw + grad_Tr(1)*theta_w + flux_fixed) + P*(grad_C(1)*kv_w + carrier_fixed)`.
+    This has the same root as the balance of `f_wall_mass_bc` and no reciprocal that vanishes as `kv_w -> 1`.
 
 **Hoisted per call.** The contributions of the other nodes of the wall rows do not depend on `kv_w`, so they are computed once: `flux_fixed = grad_Tm(2:end)*Tm(iwall_m) + grad_Tr(2:end)*theta(iwall_b)` and `carrier_fixed = grad_C(2:end)*kv(iwall_b)`. The order matters: `Tm(iwall_m)` runs outward from the wall (`Tm(2:3)` for finite differences), while `theta(iwall_b)` and `kv(iwall_b)` run inward (`theta(end-1:-1:end-2)` and `kv(end-1:-1:end-2)`), matching the coefficient order.
 

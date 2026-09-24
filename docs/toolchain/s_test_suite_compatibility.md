@@ -6,37 +6,38 @@
 ## Major Sections
 
 1. **Initialization**
-   - Clears workspace (`clc`, `clear`, `close`).
-   - Adds the paths `../toolchain/`, `../src/` and `../tests/`, so it runs from `toolchain/`.
-   - Loads test identifiers from `file_ids.mat`.
+    - Clears workspace (`clc`, `clear`, `close`).
+    - Adds the paths `../toolchain/`, `../src/` and `../tests/`, so it runs from `toolchain/`.
+    - Loads test identifiers from `file_ids.mat`.
 
 2. **Preallocation**
-   - Computes `num_tests` as the product of parameter combinations.
-   - Initializes `errors_fd`, `errors_sp`, and `failed_tests` arrays.
+    - Computes `num_tests` as the product of parameter combinations.
+    - Initializes `errors_fd`, `errors_sp`, and `failed_tests` arrays.
 
 3. **Parameter Setup**
-   - Defines parameter vectors:  
-     - `muvec`: viscosity values  
-     - `Gvec`: shear modulus values  
-     - `alphaxvec`: strain-softening exponents  
-     - `lambda1vec`: relaxation times  
-   - Sets the error threshold `threshold = 1e-4`, `vapor = 1`, `masstrans = collapse = 0`, `R0 = 50e-6` and `Req = R0/10`, in SI units converted with `f_dim2nondim`.
+    - Defines parameter vectors:  
+        - `muvec`: viscosity values  
+        - `Gvec`: shear modulus values  
+        - `alphaxvec`: strain-softening exponents  
+        - `lambda1vec`: relaxation times  
+    - Sets the error threshold `threshold = 1e-4`, `vapor = 1`, `masstrans = collapse = 0`, `R0 = 50e-6` and `Req = R0/10`, in SI units converted with `f_dim2nondim`.
 
 4. **Nested Test Loop**
-   - Loops over combinations of:  
-     `radial` (1–4), `bubtherm` (0/1), `medtherm` (0/1), `stress` (0–5), skipping `medtherm = 1` with radial 3–4 (their stored results are kept but not compared),  
-     `mu`, `G`, `alphax`, `lambda1` indices.
-   - For each combination:
-     1. Constructs `varin` parameter-value pairs.
-     2. Loads reference results: `Rf` and `Rs` from test MAT files.
-     3. Runs `f_imr_nodal` and compares output `Rf_test`; computes L2 error.
-     4. Runs `f_imr_spectral` and compares output `Rs_test`; computes L2 error.
-     5. Records failures where error exceeds `threshold`.
+    - Loops over combinations of:  
+        `radial` (1–4), `bubtherm` (0/1), `medtherm` (0/1), `stress` (0–5), skipping `medtherm = 1` with radial 3–4 (their stored results are kept but not compared),  
+        `mu`, `G`, `alphax`, `lambda1` indices.
+
+    - For each combination:
+        1. Constructs `varin` parameter-value pairs.
+        2. Loads reference results: `Rf` and `Rs` from test MAT files.
+        3. Runs `f_imr_nodal` and compares output `Rf_test`; computes L2 error.
+        4. Runs `f_imr_spectral` and compares output `Rs_test`; computes L2 error.
+        5. Records failures where error exceeds `threshold`.
 
 5. **Summary and Exit**
-   - Truncates and cleans `failed_tests`.
-   - If all tests passed, prints success and calls `exit(0)`.
-   - Otherwise, prints failed test indices and raises an error.
+    - Truncates and cleans `failed_tests`.
+    - If all tests passed, prints success and calls `exit(0)`.
+    - Otherwise, prints failed test indices and raises an error.
 
 ## Inputs
 
@@ -49,11 +50,11 @@
 ## Outputs
 
 - **Console output**:
-  - L2 norm error for each finite-difference and spectral test.
-  - Summary line: pass or fail with indices.
+    - L2 norm error for each finite-difference and spectral test.
+    - Summary line: pass or fail with indices.
 - **Exit code**:
-  - `0` if all tests pass.
-  - Error thrown (non-zero) if any test fails.
+    - `0` if all tests pass.
+    - Error thrown (non-zero) if any test fails.
 
 ## Notes
 

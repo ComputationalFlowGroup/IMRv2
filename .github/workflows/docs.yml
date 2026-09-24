@@ -1,0 +1,72 @@
+name: Documentation website
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# one run per branch at a time; a deployment in progress is allowed to finish
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+  build:
+
+    name: Build (strict)
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install MkDocs
+        run: pip install -r docs/requirements.txt
+
+      # --strict turns every warning (broken link or anchor, page missing from
+      # the nav) into an error
+      - name: Build the site
+        run: mkdocs build --strict
+
+      - name: Upload the site for GitHub Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+
+    name: Deploy to GitHub Pages
+
+    # only the main repository publishes; forks and pull requests just build
+    if: github.repository == 'InertialMicrocavitationRheometry/IMRv2' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

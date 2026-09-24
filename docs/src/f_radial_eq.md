@@ -11,8 +11,8 @@
 5. **Keller–Miksis with Mie–Grüneisen EoS (Model 5)**
 6. **Gilmore with Mie–Grüneisen EoS (Model 6)**
 7. **EOS Helper Functions**:
-   - `f_mie_gruneisen_eos_scalar`: sound speed `C`, enthalpy `hB` and `hH = 1/rho` at the wall pressure
-   - `f_mie_mu`: density strain `mu = rho - 1` at a pressure
+    - `f_mie_gruneisen_eos_scalar`: sound speed `C`, enthalpy `hB` and `hH = 1/rho` at the wall pressure
+    - `f_mie_mu`: density strain `mu = rho - 1` at a pressure
 
 ## Inputs
 

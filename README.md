@@ -8,6 +8,7 @@
   <a href="https://doi.org/10.1016/j.jmps.2017.12.006"><img src="https://zenodo.org/badge/doi/10.1016/j.jmps.2017.12.006.svg" alt="DOI"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg" alt="License: GPL-3.0-or-later"/></a>
   <a href="docs/compatibility.md"><img src="https://img.shields.io/badge/Model%20compatibility-grid-2ea44f" alt="Model compatibility grid"/></a>
+  <a href="https://inertialmicrocavitationrheometry.github.io/IMRv2/"><img src="https://img.shields.io/badge/Docs-website-blue" alt="Documentation website"/></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/Contributions-welcome-brightgreen" alt="Contributions welcome"/></a>
 </p>
 
@@ -19,7 +20,9 @@
 
 # Inertial Microcavitation Rheometry (IMR)
 
+<!-- site:intro:start -->
 IMR characterizes soft materials at high strain rates. It simulates a cavitation bubble in a viscoelastic material and matches the simulated bubble radius to high-speed video of the bubble, which gives the bubble pressure and the stress field in the material.
+<!-- site:intro:end -->
 
 ## Contents
 
@@ -33,6 +36,7 @@ IMR characterizes soft materials at high strain rates. It simulates a cavitation
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
+<!-- site:features:start -->
 ## Features
 
 ### Solvers
@@ -57,9 +61,13 @@ Not every combination is available. The [model compatibility grid](docs/compatib
 ### Methods
 
 The numerical methods are described in:
+
 - Estrada et al., "High Strain-rate Soft Material Characterization via Inertial Cavitation," [Journal of the Mechanics and Physics of Solids, 2017](https://doi.org/10.1016/j.jmps.2017.12.006).
 - Warnez and Johnsen, "Numerical modeling of bubble dynamics in viscoelastic media with relaxation," [Physics of Fluids, 2015](https://doi.org/10.1063/1.4928860).
 
+<!-- site:features:end -->
+
+<!-- site:getting-started:start -->
 ## Getting started
 
 ### Requirements
@@ -115,7 +123,11 @@ plot(t*ref.t0, R*ref.R0);
 - `s_run_fdmodel.m`, `s_run_full_model.m` and `s_run_mercury.m` in the repository root run example simulations.
 - The `examples/` folder has more.
 
+<!-- site:getting-started:end -->
+
 ## Documentation
+
+The documentation is published as a website at <https://inertialmicrocavitationrheometry.github.io/IMRv2/>, with navigation and search. The same pages are in `docs/`:
 
 | Page | Contents |
 |---|---|
@@ -140,11 +152,12 @@ The test suites live in `toolchain/` and are run from that folder:
 
 Each suite prints whether it passed. All but `s_test_suite_masstrans` also exit with code 0 on success.
 
-`toolchain/s_format.m` formats the code and `toolchain/s_lint.m` runs the MATLAB linter. The CI workflows in `.github/workflows` run these, the spelling check and the suites on every pull request; the test suites run as one workflow, `tests.yml`, which passes only when every suite passes. [`CONTRIBUTING.md`](CONTRIBUTING.md#3-run-the-checks) shows how to run them locally.
+`toolchain/s_format.m` formats the code and `toolchain/s_lint.m` runs the MATLAB linter; `mkdocs build --strict` builds the documentation website. The CI workflows in `.github/workflows` run these, the spelling check and the suites on every pull request; the test suites run as one workflow, `tests.yml`, which passes only when every suite passes. [`CONTRIBUTING.md`](CONTRIBUTING.md#3-run-the-checks) shows how to run them locally.
 
 ## Contributing
 
 Contributions are welcome, from bug reports to new models. [`CONTRIBUTING.md`](CONTRIBUTING.md) covers:
+
 - forking the repository,
 - the code conventions,
 - running the spelling, format, lint and test checks,
@@ -152,6 +165,7 @@ Contributions are welcome, from bug reports to new models. [`CONTRIBUTING.md`](C
 
 For bugs and feature requests, open an issue on GitHub.
 
+<!-- site:about:start -->
 ## Citation
 
 If you use IMR in your research, please cite:
@@ -168,7 +182,7 @@ If you use IMR in your research, please cite:
 }
 ```
 
-For the numerical methods, also see the two papers under [Methods](#methods).
+For the numerical methods, also see the two papers listed under Methods.
 
 If you use the measured pressure waveforms (`wave_type = -1, -2, -3`), please also cite the paper they come from:
 
@@ -188,6 +202,7 @@ If you use the measured pressure waveforms (`wave_type = -1, -2, -3`), please al
 ## Developers and contact
 
 IMR is developed by researchers at several institutions (alphabetical):
+
 - [Spencer Bryngelson](https://comp-physics.group/) (Georgia Tech)
 - [Jon Estrada](https://me.engin.umich.edu/people/faculty/jon-estrada/) (University of Michigan)
 - [Christian Franck](https://directory.engr.wisc.edu/me/Faculty/Franck_Christian/) (University of Wisconsin-Madison)
@@ -206,8 +221,9 @@ IMR is free software: you can redistribute it and/or modify it under the terms o
 
 IMR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-The full license text is in [`LICENSE`](LICENSE). Each source file carries the same terms in a short header, `SPDX-License-Identifier: GPL-3.0-or-later`.
+The full license text is in [`LICENSE`](https://github.com/InertialMicrocavitationRheometry/IMRv2/blob/main/LICENSE). Each source file carries the same terms in a short header, `SPDX-License-Identifier: GPL-3.0-or-later`.
 
 ## Acknowledgments
 
 IMR development has been supported by the National Science Foundation (NSF), the Department of Defense (DOD), and other research institutions.
+<!-- site:about:end -->
