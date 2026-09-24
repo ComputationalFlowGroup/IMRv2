@@ -9,3 +9,4 @@ s_run_merc.m
 *.out
 *.err
 site/
+!docs/requirements.txt
