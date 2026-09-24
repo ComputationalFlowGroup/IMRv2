@@ -18,52 +18,39 @@ if DRe == 0
 else
     visc = 1/Re8 + fnu/DRe;
 end
-% current amplification factor
-Rst = Req/R;
-% incompressible condition
-x2 = (yT3-1+Rst.^3).^(2/3);
-% inversion square of the reference coordinate
-ix2 = x2.^-1;
-% fourth power of the reference coordinate
-x4 = x2.^2;
-
-% no stress
-if stress == 0
-    taugradu = 0;
-    
-    % Kelvin-Voigt neo-Hookean solid
-elseif stress == 1
-    taugradu = 12*Br*visc.*(Rdot/R)^2.*iyT6 + ...
-        2*Br/Ca*iyT3.*(Rdot/R).*(yT2.*ix2 - iyT4.*x4);
-    
-    % Kelvin-Voigt quadratic neo-Hookean solid
-elseif stress == 2
-    taugradu = 12*Br*visc.*(Rdot/R)^2.*iyT6 + ...
-        2*Br/Ca*iyT3.*(Rdot/R).*(yT2.*ix2 - iyT4.*x4) .* ...
-        (1+alphax*(x4.*iyT4 + 2*yT2.*ix2 - 3));
-    
-    % SLS with neo-Hookean solid
-elseif stress == 3
-    taugradu = 12*Br*visc.*(Rdot/R)^2.*iyT6 + ...
-        2*Br/Ca*iyT3.*(Rdot/R).*(yT2.*ix2 - iyT4.*x4);
-    
-    % SLS with quadratic neo-Hookean solid
-elseif stress == 4
-    taugradu = 12*Br*visc.*(Rdot/R)^2.*iyT6 + ...
-        2*Br/Ca*iyT3.*(Rdot/R).*(yT2.*ix2 - iyT4.*x4) .* ...
-        (1+alphax*(x4.*iyT4 + 2*yT2.*ix2 - 3));
-    
-    % UCM and Oldroyd-B, Kelvin-Voigt closed form
-elseif stress == 5
-    taugradu = 12*Br*visc.*(Rdot/R)^2.*iyT6 + ...
-        2*Br/Ca*iyT3.*(Rdot/R).*(yT2.*ix2 - iyT4.*x4);
-    
-end
-
-% spectral solution approach to compute the mechanical dissipation
+% spectral solution approach to compute the mechanical dissipation from
+% the stress field
 if spectral == 1
     taugradu = -2*Br*Rdot./(R*yT3).* ...
         (ZZT*(X(ivisco1)-X(ivisco2)));
+    
+    % no stress
+elseif stress == 0
+    taugradu = 0;
+    
+else
+    % current amplification factor
+    Rst = Req/R;
+    % incompressible condition
+    x2 = (yT3-1+Rst.^3).^(2/3);
+    % inversion square of the reference coordinate
+    ix2 = x2.^-1;
+    % fourth power of the reference coordinate
+    x4 = x2.^2;
+    
+    % neo-Hookean elasticity: Kelvin-Voigt (1), Maxwell, Jeffreys, Zener
+    % (3), and UCM and Oldroyd-B in the Kelvin-Voigt closed form (5)
+    if stress == 1 || stress == 3 || stress == 5
+        taugradu = 12*Br*visc.*(Rdot/R)^2.*iyT6 + ...
+            2*Br/Ca*iyT3.*(Rdot/R).*(yT2.*ix2 - iyT4.*x4);
+        
+        % quadratic neo-Hookean elasticity: Kelvin-Voigt (2) and Maxwell,
+        % Jeffreys, Zener (4)
+    elseif stress == 2 || stress == 4
+        taugradu = 12*Br*visc.*(Rdot/R)^2.*iyT6 + ...
+            2*Br/Ca*iyT3.*(Rdot/R).*(yT2.*ix2 - iyT4.*x4) .* ...
+            (1+alphax*(x4.*iyT4 + 2*yT2.*ix2 - 3));
+    end
 end
 
 end

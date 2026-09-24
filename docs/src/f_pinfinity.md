@@ -11,7 +11,7 @@
     - **Gaussian** (`wave_type = 1`)
     - **Histotripsy** (`wave_type = 2`)
     - **Heaviside Impulse** (`wave_type = 3`)
-4. **Inner Functions**: Define `impulse`, `gaussian`, `histo`, and `heaviside_impulse`.
+Each waveform is evaluated inline, without nested function calls, since the solvers call `f_pinfinity` on every right-hand-side evaluation; the Gaussian evaluates its exponential once for `p8` and `p8dot`. For the impulse (`wave_type = 0`) the solvers skip the call, because the pressure is the constant `ee`.
 
 ## Inputs
 

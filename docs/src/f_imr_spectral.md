@@ -14,6 +14,7 @@
 - Even Chebyshev expansion of the bubble temperature and a Chebyshev expansion of the medium temperature on the stretched coordinate (length `Lt`).
 - The combined operators from Chebyshev coefficients to collocation values of the first and second derivatives (`gDA`, `gDDA`, `mDA`, `mDDA`) are formed once.
 - The thermal boundary condition system has a single time-dependent row; it is factored once and updated with a Sherman–Morrison rank-one correction on every call.
+- The constant factors of the medium temperature equation and of the spectral stress transport are formed once, with the same arithmetic as in the right-hand side, so results are bit-identical. With `wave_type = 0` the far-field pressure is the constant `ee` and `f_pinfinity` is not called.
 
 ### 3. Stress models
 - `stress = 0–4`: closed-form or single-state models through `f_stress`.

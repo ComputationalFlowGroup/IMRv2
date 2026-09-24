@@ -91,6 +91,8 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 - Collapse (`collapse = 1`) requires bubble and medium heat transfer, vapor and mass transfer.
 - See [`compatibility`](../compatibility.md) for which features run together.
 - Mesh resolution must be tuned carefully for high Weissenberg numbers or sharp waveforms.
+- Cost per right-hand-side call: the constant factors of the medium equation and of the bubble temperature map are computed once, with the same arithmetic as before, so results are bit-identical; with `wave_type = 0` the far-field pressure is the constant `ee` and `f_pinfinity` is not called. In GNU Octave this made a right-hand-side call 11–31% cheaper and most runs 8–17% faster.
+- A nested function shares every variable name that the solver function also uses, so the nested functions use their own loop variable names (the output loop is `it_out`).
 
 ## Verification of the Chebyshev scheme
 

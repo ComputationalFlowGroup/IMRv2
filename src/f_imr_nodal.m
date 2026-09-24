@@ -84,6 +84,9 @@ function varargout = f_imr_nodal(varargin)
     wave_dpoly      = wave_opts{3};
     
     pvarargin = {[om,ee,tw,dt,mn,wave_type], wave_poly, wave_dpoly};
+    % the impulse waveform is the constant pressure ee (f_pinfinity returns
+    % exactly ee and 0), so the right-hand side skips the call
+    wave_const = (wave_type == 0);
     
     % dimensionless viscoelastic
     We              = sigma_opts(1);
@@ -135,6 +138,12 @@ function varargout = f_imr_nodal(varargin)
     iyT3 = yT.^-3;
     iyT4 = yT.^-4;
     iyT6 = yT.^-6;
+    % constant factors of the medium temperature equation, formed with the
+    % same operations as in the right-hand side, so results are unchanged
+    xi1_sq = (1+xi).^2;
+    xi1_p4 = (xi+1).^4;
+    om_yT3 = 1-yT3;
+    xi_adv = (xi+1)/(2*Lt)-1./yT;
     
     % precomputations move these to f_call_params
     %LDR = LAM*De/Re8;
@@ -142,6 +151,11 @@ function varargout = f_imr_nodal(varargin)
     no = (nstate-1)/nstate;
     nog = (nstate-1)/2;
     kapover = (kappa-1)/kappa;
+    % Kirchhoff map T(theta) of the bubble without mass transfer, whose
+    % mixture coefficient is the constant kv0 (as in f_theta_of_T)
+    alpha_m0 = kv0.*alpha_v + (1-kv0).*alpha_g;
+    alpha_m0m1 = alpha_m0 - 1;
+    om_kv0 = 1-kv0;
     % dimensionless saturated vapor pressure, Pv(T) = C1_pv*exp(C2_pv/T)
     % with Pv(1) = Pv_star
     C1_pv = Pv_star*exp(thetav);
@@ -386,11 +400,12 @@ function varargout = f_imr_nodal(varargin)
             theta(end) = theta_bw;
         end
         
-        % bubble temperature
+        % bubble temperature, f_theta_of_T written out
         if masstrans
-            T = f_theta_of_T(theta,kv);
+            alpha_T = kv.*alpha_v + (1-kv).*alpha_g;
+            T = (alpha_T - 1 + sqrt(1+2*theta.*alpha_T)) ./ alpha_T;
         elseif bubtherm
-            T = f_theta_of_T(theta,kv0);
+            T = (alpha_m0m1 + sqrt(1+2*theta.*alpha_m0)) ./ alpha_m0;
         end
         
         % bubble equations of motion
@@ -411,26 +426,30 @@ function varargout = f_imr_nodal(varargin)
             % vapor concentration gradients inside the bubble
             dkv     = dmatrix_Tkv*kv;
             ddkv    = ddmatrix_Tkv*kv;
-            Rmix    = kv*Rv_star + (1-kv)*Rg_star;
-            RDkv    = (Rva_diff./Rmix).*dkv;
+            om_kv   = 1-kv;
+            Rmix    = kv*Rv_star + om_kv*Rg_star;
+            wRmix   = Rva_diff./Rmix;
+            RDkv    = wRmix.*dkv;
             
             % bubble pressure equation
             Pdot = 3/R*(chi*(kappa-1)*dtheta(end)/R - kappa*P*Rdot +...
-                + kappa*P*Fom*Rv_star*dkv(end)/(T(end)*R*Rmix(end)*(1-kv(end))));
+                + kappa*P*Fom*Rv_star*dkv(end)/(T(end)*R*Rmix(end)*om_kv(end)));
             
             % bubble wall velocity equation
             Uvel = (chi/R*(kappa-1).*dtheta-y*R*Pdot/3)/(kappa*P) + Fom/R*RDkv;
             
             % mixture thermal conductivity
-            alpha_mix  = kv.*alpha_v + (1-kv).*alpha_g;
+            alpha_mix  = kv.*alpha_v + om_kv.*alpha_g;
             Kstar_g = alpha_g*T+beta_g;
             Kstar_v = alpha_v*T+beta_v;
-            Kstar   = kv.*Kstar_v + (1-kv).*Kstar_g;
+            Kstar   = kv.*Kstar_v + om_kv.*Kstar_g;
             
             % temperature evolution inside the bubble
             nonlinear_term = (chi*ddtheta./R^2+Pdot).*(kapover*Kstar.*T/P);
-            advection_term = -dtheta.*(Uvel-y*Rdot)/R;
-            mass_diffusion = (Fom/(R^2)).*(Rva_diff./Rmix).*dkv.*dtheta;
+            % gas velocity relative to the moving grid
+            u_rel = Uvel-y*Rdot;
+            advection_term = -dtheta.*u_rel/R;
+            mass_diffusion = (Fom/(R^2)).*wRmix.*dkv.*dtheta;
             thetadot = advection_term + nonlinear_term + mass_diffusion;
             % temperature at bubble wall, handled by flux boundary bc
             thetadot(end) = 0;
@@ -438,7 +457,7 @@ function varargout = f_imr_nodal(varargin)
             % water vapor evolution inside the bubble
             nonlinear_diffusion = ...
                 dkv.*(dtheta./(sqrt(1+2*alpha_mix.*theta).*T)+RDkv);
-            advection_term =  (Uvel-Rdot.*y)/R.*dkv;
+            advection_term = u_rel/R.*dkv;
             kvdot = Fom/R^2*(ddkv - nonlinear_diffusion) - advection_term;
             % concentration at bubble wall, handled by flux boundary bc
             kvdot(end) = 0;
@@ -447,7 +466,7 @@ function varargout = f_imr_nodal(varargin)
             % mixture thermal conductivity
             Kstar_g = alpha_g*T+beta_g;
             Kstar_v = alpha_v*T+beta_v;
-            Kstar   = kv0.*Kstar_v + (1-kv0).*Kstar_g;
+            Kstar   = kv0.*Kstar_v + om_kv0.*Kstar_g;
             
             % bubble temperature gradients
             dtheta  = dmatrix_Tkv*theta;
@@ -488,9 +507,9 @@ function varargout = f_imr_nodal(varargin)
             dTm = dmatrix_Tm*Tm;
             ddTm = ddmatrix_Tm*Tm;
             % material temperature equations
-            advection = (1+xi).^2./(Lt*R).*(Rdot./yT2.*(1-yT3)/2 +...
-                Foh/R.*((xi+1)/(2*Lt)-1./yT)).*dTm;
-            diffusion = Foh/R^2.*(xi+1).^4/Lt^2.*ddTm/4;
+            advection = xi1_sq./(Lt*R).*(Rdot./yT2.*om_yT3/2 +...
+                Foh/R.*xi_adv).*dTm;
+            diffusion = Foh/R^2.*xi1_p4/Lt^2.*ddTm/4;
             % stress dissipation
             [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                 Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
@@ -503,7 +522,12 @@ function varargout = f_imr_nodal(varargin)
         end
         
         % pressure waveform
-        [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
+        if wave_const
+            Pf8 = ee;
+            Pf8dot = 0;
+        else
+            [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
+        end
         
         % stress equation evolution
         [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8, ...
@@ -553,7 +577,12 @@ function varargout = f_imr_nodal(varargin)
             [~,intf_loc,dintf_loc,ddintf_loc] = f_viscosity(nu_model, ...
                 Rdotv,Rv,v_a,v_nc,v_lambda_star);
         end
-        [Pf8_loc,Pf8dot_loc] = f_pinfinity(t,pvarargin);
+        if wave_const
+            Pf8_loc = ee;
+            Pf8dot_loc = 0;
+        else
+            [Pf8_loc,Pf8dot_loc] = f_pinfinity(t,pvarargin);
+        end
         [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = f_stress(stress,X,Req,Rv, ...
             Ca,De,Re8,Rdotv,alphax,ivisco1,ivisco2,LAM, ...
             intf_loc,dintf_loc,iDRe);
