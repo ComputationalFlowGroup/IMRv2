@@ -52,7 +52,7 @@ function varargout = f_imr_nodal(varargin)
     Req             = init_opts(5);
     alphax          = init_opts(6);
     
-    % dimensionaless initial stress
+    % dimensionless initial stress
     Szero           = init_stress;
     
     % time span options
@@ -107,7 +107,7 @@ function varargout = f_imr_nodal(varargin)
     chi             = thermal_opts(7);
     iota            = thermal_opts(8);
     
-    % dimensionaless mass transfer
+    % dimensionless mass transfer
     Fom             = mass_opts(1);
     kv0             = mass_opts(2);
     Rv_star         = mass_opts(3);
@@ -230,8 +230,8 @@ function varargout = f_imr_nodal(varargin)
     % mass-transfer wall closure: fixed bracket on the wall vapor mass
     % fraction and fixed iteration counts, so the cost per call is constant
     kv_bracket = [1e-13, 1 - 1e-13];
-    n_grid = 32;
-    n_rounds = 3;
+    n_grid = 64;
+    n_rounds = 2;
     n_polish = 3;
     % constants of the bubble-wall heat (and mass) flux balance
     wallc = struct('grad_Tm',grad_Tm_coeff, 'grad_Tr',grad_Trans_coeff, ...
