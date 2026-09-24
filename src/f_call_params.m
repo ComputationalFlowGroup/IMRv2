@@ -293,7 +293,8 @@ if stress0set
     end
 elseif (stress == 3 || stress == 4) && collapse
     % stress at the maximum radius of the collapse
-    Szero = f_init_stress(Req_zero, Re8, Ca, De, We, Cstar, Pv_star);
+    Szero = f_init_stress(Req_zero, Re8, Ca, De, We, Cstar, Pv_star, ...
+        alphax*(stress == 4));
 else
     % TODO initial max stress for UCM and Oldroyd-B
     Szero = zeros(nstress,1);

@@ -54,5 +54,6 @@ The function returns the following grouped outputs:
 - Defaults from `default_case.m` are loaded if no `casefile` is specified. A case file without `scheme` gets `scheme = 0`.
 - `f_checkers.m` and `f_init_stress.m` are required for full execution.
 - A user `stress0` must have 0 entries for stress 0–2, 1 for stress 3–4, and `2*Nv` for stress 5 (2 with `spectral = 0`).
-- With `collapse = 1`, the equilibrium radius is recomputed from the vapor and gas content (printed as `New equilibrium radius`), and the initial wall velocity is set to zero.
+- With `collapse = 1`, the equilibrium radius is recomputed from the vapor and gas content (printed as `New equilibrium radius`), and the initial wall velocity is set to zero. The recomputed value reproduces the input `Req` (checked for `Req` 0.05–0.9 and `Pv` 0.03 and 0.3), so the initial bubble pressure built from the input `Req` is consistent with it.
+- With `collapse = 1` and stress 3 or 4, the initial stress comes from [`f_init_stress`](f_init_stress.md), with `alphax` for stress 4 (quadratic) and 0 for stress 3, unless `stress0` is given.
 
