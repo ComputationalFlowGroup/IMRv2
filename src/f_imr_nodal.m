@@ -163,7 +163,7 @@ function varargout = f_imr_nodal(varargin)
         % Chebyshev: the wall rows couple every node
         grad_Tm_coeff = 2*chi*iota*full(dmatrix_Tm(1,:));
         grad_Trans_coeff = chi*full(dmatrix_Tkv(end,end:-1:1));
-        grad_C_coeff = [];
+        grad_C_coeff = Fom*L_heat_star*full(dmatrix_Tkv(end,end:-1:1));
         iwall_m = 2:Mt;
         iwall_b = Nt-1:-1:1;
     end
@@ -337,8 +337,8 @@ function varargout = f_imr_nodal(varargin)
             % temperature in the material
             Tm = X(imedtherm);
             % warm-started Newton on the transcendental wall balance
-            theta_bw = f_wall_theta_newton([Tm(2), Tm(3), theta(end-1), ...
-                theta(end-2), kv(end), kv(end-1), kv(end-2), P], theta_bw_guess);
+            theta_bw = f_wall_theta_newton([Tm(iwall_m)', theta(iwall_b)', ...
+                kv(end), kv(iwall_b)', P], theta_bw_guess);
             theta_bw_guess = theta_bw;
             theta(end) = theta_bw;
         elseif medtherm
@@ -535,8 +535,7 @@ function varargout = f_imr_nodal(varargin)
     
     % warm-started Newton iteration on the full (thermal and mass transfer)
     % wall balance, with fzero as the fallback if it does not converge;
-    % vrest = [Tm(2), Tm(3), theta(end-1), theta(end-2), kv(end),
-    % kv(end-1), kv(end-2), P]
+    % vrest = [Tm(iwall_m), theta(iwall_b), kv(end), kv(iwall_b), P]
     function theta_bw = f_wall_theta_newton(vrest, theta_bw)
         theta_start = theta_bw;
         converged = false;
@@ -564,9 +563,8 @@ function varargout = f_imr_nodal(varargin)
         Tm_X = X(imedtherm);
         if masstrans
             kv_X = X(imass);
-            theta_bw = f_wall_theta_newton([Tm_X(2), Tm_X(3), th_X(end-1), ...
-                th_X(end-2), kv_X(end), kv_X(end-1), kv_X(end-2), X(3)], ...
-                theta_bw_guess);
+            theta_bw = f_wall_theta_newton([Tm_X(iwall_m)', th_X(iwall_b)', ...
+                kv_X(end), kv_X(iwall_b)', X(3)], theta_bw_guess);
         else
             theta_bw = f_wall_theta_exact(Tm_X, th_X);
         end

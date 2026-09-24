@@ -25,7 +25,6 @@
 | `vapor = 1` with `Pv >= 1` (boiling liquid) | warning `IMR:parameters` |
 | `masstrans = 1` in the spectral solver | error: use `f_imr_nodal` |
 | `spectral = 1` (spectral stress representation) in the nodal solver | error: `f_imr_spectral` only |
-| `scheme = 1` with `masstrans = 1` in the nodal solver | error: use `scheme = 0` |
 | `scheme ~= 0` in the spectral solver | error: `scheme` is for `f_imr_nodal` |
 
 ### Dimensionless numbers

@@ -58,10 +58,6 @@ function p = f_checkers(p)
         error(['INPUT ERROR: scheme selects the differentiation matrices of ' ...
             'f_imr_nodal; f_imr_spectral takes no scheme']);
     end
-    if strcmp(p.solver,'nodal') && p.scheme == 1 && p.masstrans == 1
-        error(['INPUT ERROR: masstrans = 1 is not available yet with the ' ...
-            'Chebyshev scheme (scheme = 1) of f_imr_nodal, use scheme = 0']);
-    end
     if strcmp(p.solver,'nodal') && p.spectral == 1 && p.stress == 5
         error(['INPUT ERROR: the spectral stress representation (spectral = 1) ' ...
             'is available in f_imr_spectral only']);

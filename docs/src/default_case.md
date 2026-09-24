@@ -43,7 +43,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 |
 | `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (nodal solver; numerical in the spectral solver), 2 analytic | 2 |
-| `scheme` | `scheme` | Differentiation matrices of `f_imr_nodal`: 0 finite difference, 1 Chebyshev (no mass transfer yet). `f_imr_spectral` takes no scheme | 0 |
+| `scheme` | `scheme` | Differentiation matrices of `f_imr_nodal`: 0 finite difference, 1 Chebyshev. `f_imr_spectral` takes no scheme | 0 |
 | `progdisplay` | `progdisplay` | Print progress (every right-hand-side call; slows runs) | 0 |
 
 ### Initial conditions

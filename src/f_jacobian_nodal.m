@@ -38,11 +38,12 @@ function J = f_jacobian_nodal(t, X, jp)
         if jp.masstrans
             theta_bw = jp.theta_bw(X);
             wc = jp.wall;
-            [~,dr] = f_wall_mass_bc([theta_bw, Tm.v(2), Tm.v(3), th.v(end-1), ...
-                th.v(end-2), kvs.v(end), kvs.v(end-1), kvs.v(end-2), P.v], wc);
-            cols = [itm(2) itm(3) ith(end-1) ith(end-2) ikv(end) ...
-                ikv(end-1) ikv(end-2) 3];
-            row = sparse(1, cols, -dr(2:9)/dr(1), 1, n);
+            im = wc.iwall_m;
+            ib = wc.iwall_b;
+            [~,dr] = f_wall_mass_bc([theta_bw, Tm.v(im)', th.v(ib)', ...
+                kvs.v(end), kvs.v(ib)', P.v], wc);
+            cols = [itm(im) ith(ib) ikv(end) ikv(ib) 3];
+            row = sparse(1, cols, -dr(2:end)/dr(1), 1, n);
         else
             gTm = jp.wall.grad_Tm;
             gTr = jp.wall.grad_Tr;

@@ -44,7 +44,7 @@ IMR offers several key capabilities for modeling and analyzing inertial microcav
 | Solver | Discretization | Notes |
 |---|---|---|
 | `f_imr_nodal`, `scheme = 0` (default) | Finite differences on node values | All models, including vapor mass transfer and collapse |
-| `f_imr_nodal`, `scheme = 1` | Chebyshev collocation on node values | No mass transfer or collapse yet |
+| `f_imr_nodal`, `scheme = 1` | Chebyshev collocation on node values | All models, including vapor mass transfer and collapse |
 | `f_imr_spectral` | Chebyshev spectral collocation | No mass transfer or collapse; the only solver with the spectral UCM / Oldroyd-B stress field |
 
 Both solvers include:

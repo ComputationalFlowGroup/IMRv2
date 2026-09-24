@@ -6,7 +6,7 @@
 | `scheme` | Discretization | Available models |
 |---|---|---|
 | 0 (default) | Second-order finite differences, uniform bubble grid | All, including mass transfer and collapse |
-| 1 | Chebyshev collocation | All except mass transfer, and so collapse |
+| 1 | Chebyshev collocation | All, including mass transfer and collapse |
 
 It uses a non-dimensionalized formulation and integrates the semi-discrete system in time with MATLAB's ODE solvers through `f_odesolve`. The solver was `f_imr_fd` before the Chebyshev scheme was added; `scheme = 0` reproduces `f_imr_fd` bit for bit.
 
@@ -22,7 +22,7 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 - `f_diff_mat` returns the node positions `y = r/R` in the bubble and `xi` in the medium, with the first- and second-derivative matrices for the chosen `scheme`. The medium coordinate is mapped to the radius with the stretching length `Lt`.
 - Finite differences: uniform grids, second-order central differences in the interior, a second-order one-sided row at the bubble wall, and the symmetry condition at the bubble center.
 - Chebyshev: Chebyshev points, with the bubble operators built for even functions so that the symmetry condition at the center holds exactly.
-- The bubble-wall heat flux balance uses the wall rows of the first-derivative matrices: three-point one-sided stencils for finite differences, and every node of each field for Chebyshev.
+- The bubble-wall heat flux balance, with or without mass transfer, uses the wall rows of the first-derivative matrices: three-point one-sided stencils for finite differences, and every node of each field for Chebyshev.
 
 ### 3. Time Integration
 - Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s`, `ode23tb`, or `ode45`).
@@ -97,4 +97,5 @@ Measured in GNU Octave (`ode15s` standing in for `ode23tb`), on thermal cases wi
 - `scheme = 0` gives bit-identical `R(t)` to `f_imr_fd` over 98 cases: radial 1–4, stress 0–5, polytropic, bubble, bubble and medium, and full mass-transfer models, plus a non-Newtonian and a Gaussian-waveform case.
 - `scheme = 1` and `f_imr_spectral` converge toward each other with resolution over 32 cases (radial 1–4, stress 0/1/3/5, with and without medium heat transfer). The largest relative deviation in `R(t)` over the cases is `2.8e-3`, `4.8e-4` and `2.6e-4` at `Nt = Mt = 12, 20, 30`; the median is `1.4e-4`, `1.0e-5` and `3.4e-6`.
 - Against Richardson-extrapolated finite differences (`Nt = Mt = 200, 400`) for Keller–Miksis with neo-Hookean Kelvin–Voigt stress, `scheme = 1` at `Nt = Mt = 25` is within `1e-4` with bubble heat transfer only, where finite differences at 200 points are `2.4e-3` away. With medium heat transfer it reaches `2e-4` at 40 points, the same as `f_imr_spectral`.
-- The analytic Jacobian matches a central-difference Jacobian to a scaled error of `3e-9` for `scheme = 0` and `4e-10` for `scheme = 1`.
+- With mass transfer (Keller–Miksis, neo-Hookean Kelvin–Voigt, bubble and medium heat transfer), `scheme = 1` converges with resolution: against its own solution at 80 points the largest deviation is `1.2e-2`, `3.6e-3`, `2.6e-4` and `5.5e-5` at 20, 30, 40 and 60 points for `Req = 0.5`, and `4.9e-2`, `2.0e-2`, `2.5e-3` and `1.1e-4` for `Req = 0.4`. At 40 points it is within `1e-3` of Richardson-extrapolated finite differences (`Nt = Mt = 200, 400`), the uncertainty of that reference.
+- The analytic Jacobian matches a central-difference Jacobian to a scaled error of `3e-9` for `scheme = 0` and `4e-10` for `scheme = 1`, with and without mass transfer.

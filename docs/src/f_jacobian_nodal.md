@@ -13,4 +13,4 @@
 - `jp`: struct set up by `f_imr_nodal` with the state indices, differentiation matrices, grids, dimensionless constants, the wall-balance constants, and handles to the closure, the medium dissipation and the wall solve.
 
 ## Verification
-Against a central-difference Jacobian of the right-hand side over radial 1–4, stress 0/1/3/5, viscosity models 0/1/5, with and without medium heat and mass transfer, the maximum scaled difference is below `3e-9` for finite differences and `4e-10` for Chebyshev (mass transfer is finite difference only).
+Against a central-difference Jacobian of the right-hand side over radial 1–4, stress 0/1/3/5, viscosity models 0/1/5, with and without medium heat and mass transfer, the maximum scaled difference is below `3e-9` for finite differences and `4e-10` for Chebyshev.
