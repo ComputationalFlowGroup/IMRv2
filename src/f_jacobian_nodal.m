@@ -36,7 +36,7 @@ function J = f_jacobian_nodal(t, X, jp)
     if jp.medtherm
         Tm = d.var(X, itm);
         if jp.masstrans
-            theta_bw = jp.theta_bw(X);
+            theta_bw = jp.theta_bw(t,X);
             wc = jp.wall;
             im = wc.iwall_m;
             ib = wc.iwall_b;
@@ -49,7 +49,7 @@ function J = f_jacobian_nodal(t, X, jp)
             gTr = jp.wall.grad_Tr;
             % same root as the solver; for c2*u^2 + 2*c1*u + q(K) = 0 the
             % implicit derivative is d(theta_w)/dK = -u/(c2*u + c1)
-            theta_bw = jp.theta_bw(X);
+            theta_bw = jp.theta_bw(t,X);
             u = sqrt(1 + 2*jp.alpha_g*theta_bw);
             dK = -u/(gTr(1)*u + gTm(1));
             row = sparse(1, [itm(jp.wall.iwall_m) ith(jp.wall.iwall_b)], ...

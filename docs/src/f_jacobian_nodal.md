@@ -5,7 +5,7 @@
 
 ## Method
 - The field equations are differentiated exactly with the value/derivative pairs of `f_dual_ops` (shared with `f_jacobian_spectral`). Every intermediate quantity (temperature, vapor concentration, bubble pressure `Pdot`, velocity field, fluxes) is carried as a pair of its value and its sparse derivative with respect to the state, and the chain rule is applied term by term.
-- The bubble-wall temperature enters through the wall balance: the exact quadratic root `f_wall_theta_exact` without mass transfer, whose derivative covers every node in the wall rows (three per field for finite differences, all of them for Chebyshev), and the implicit function theorem on `f_wall_mass_bc` (`d(theta_w)/dx = -(dr/dx)/(dr/d(theta_w))`) with mass transfer.
+- The bubble-wall temperature enters through the wall balance: the exact quadratic root `f_wall_theta_exact` without mass transfer, whose derivative covers every node in the wall rows (three per field for finite differences, all of them for Chebyshev), and, with mass transfer, the implicit function theorem on `f_wall_mass_bc` (`d(theta_w)/dx = -(dr/dx)/(dr/d(theta_w))`) at the root found by the bracketed closure `f_wall_mass_closure`.
 - The low-dimensional closure (radial equation, stress model, non-Newtonian viscosity, medium dissipation) is differentiated by central differences of the closure alone and chained through `Pdot`.
 
 ## Inputs

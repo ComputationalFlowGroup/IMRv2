@@ -6,7 +6,9 @@
 % temperature Tw, the saturated vapor concentration kvw(Tw, P), and the
 % latent heat flux; through the saturated vapor pressure
 % Pv(Tw) = C1*exp(C2/Tw) it is transcendental in Tw and has no closed-form
-% root, so the solver finds theta_w by Newton iteration on this residual.
+% root. f_imr_nodal solves the balance for the wall vapor mass fraction
+% (f_wall_mass_closure); this theta_w form and its gradient give the
+% implicit derivative of theta_w in f_jacobian_nodal.
 % Inputs: v = [theta_w, Tm(iwall_m), theta(iwall_b), kv(end), kv(iwall_b),
 % P], where iwall_m and iwall_b are the other nodes of the wall rows of the
 % medium and bubble first-derivative matrices (two each for finite

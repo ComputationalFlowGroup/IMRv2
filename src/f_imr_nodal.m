@@ -224,8 +224,15 @@ function varargout = f_imr_nodal(varargin)
     kv0vec;
     Szero];
     
+    % thermal-only wall closure: previous wall value and fzero fallback
     theta_bw_guess = -0.0001;
     foptions = optimset('TolFun',1e-12);
+    % mass-transfer wall closure: fixed bracket on the wall vapor mass
+    % fraction and fixed iteration counts, so the cost per call is constant
+    kv_bracket = [1e-13, 1 - 1e-13];
+    n_bisect = 20;
+    n_polish = 3;
+    h_polish = eps^(1/3);
     % constants of the bubble-wall heat (and mass) flux balance
     wallc = struct('grad_Tm',grad_Tm_coeff, 'grad_Tr',grad_Trans_coeff, ...
         'grad_C',grad_C_coeff, 'iwall_m',iwall_m, 'iwall_b',iwall_b, ...
@@ -336,10 +343,8 @@ function varargout = f_imr_nodal(varargin)
         if medtherm && masstrans
             % temperature in the material
             Tm = X(imedtherm);
-            % warm-started Newton on the transcendental wall balance
-            theta_bw = f_wall_theta_newton([Tm(iwall_m)', theta(iwall_b)', ...
-                kv(end), kv(iwall_b)', P], theta_bw_guess);
-            theta_bw_guess = theta_bw;
+            % bracketed closure on the wall vapor mass fraction
+            [theta_bw, kv_bw] = f_wall_mass_closure(Tm, theta, kv, P, R, t);
             theta(end) = theta_bw;
         elseif medtherm
             % temperature in the material
@@ -359,8 +364,14 @@ function varargout = f_imr_nodal(varargin)
         
         % bubble equations of motion
         if bubtherm && masstrans
-            % vapor concentration at the boundary
-            kv(end) = f_kv_of_T(T(end),P);
+            % vapor concentration at the boundary. With the medium, the
+            % converged closure value; it is set after T so that T(end), like
+            % the closure, uses the mixture coefficient of the stored kv(end)
+            if medtherm
+                kv(end) = kv_bw;
+            else
+                kv(end) = f_kv_of_T(T(end),P);
+            end
             
             % temperature field gradients inside the bubble
             dtheta  = dmatrix_Tkv*theta;
@@ -533,102 +544,93 @@ function varargout = f_imr_nodal(varargin)
         kv_w = 1./(1+theta_var);
     end
     
-    % bubble-wall theta from the full (thermal and mass transfer) wall
-    % balance: a warm-started Newton iteration, accepted when it converges
-    % inside the physical bracket, and otherwise a safeguarded
-    % Newton-bisection search on that bracket;
-    % vrest = [Tm(iwall_m), theta(iwall_b), kv(end), kv(iwall_b), P]
-    function theta_bw = f_wall_theta_newton(vrest, theta_bw)
-        theta_start = theta_bw;
-        converged = false;
-        for iter = 1:10
-            [res,dres] = f_wall_mass_bc([theta_bw, vrest], wallc);
-            step = res/dres(1);
-            theta_bw = theta_bw - step;
-            if ~isfinite(theta_bw)
-                break;
-            end
-            if abs(step) <= 1e-14*max(1,abs(theta_bw))
-                converged = true;
-                break;
-            end
-        end
-        [theta_lo, theta_hi] = f_wall_theta_bracket(vrest);
-        if ~converged || theta_bw < theta_lo || theta_bw > theta_hi
-            theta_bw = f_wall_theta_safe(vrest, theta_start, theta_lo, theta_hi);
-        end
-    end
-    
-    % bracket of the wall theta: the wall vapor concentration kv_w lies in
-    % (0, 1), and inverting the saturation condition gives the wall
-    % temperature in closed form, Pv(Tw) = P*kv*Rvg/(kv*Rvg + 1 - kv) with
-    % Pv(Tw) = C1_pv*exp(C2_pv/Tw); theta follows with the mixture
-    % coefficient of f_wall_mass_bc. Tw, and so theta, increase with kv.
-    function [theta_lo, theta_hi] = f_wall_theta_bracket(vrest)
-        kvE = vrest(numel(iwall_m) + numel(iwall_b) + 1);
-        Pw = vrest(end);
-        alpha_m = kvE*alpha_v + (1 - kvE)*alpha_g;
-        kv_ends = [1e-13, 1 - 1e-13];
-        ps = Pw*kv_ends*Rvg_ratio./(kv_ends*Rvg_ratio + 1 - kv_ends);
-        % the saturation curve is bounded by C1_pv as Tw -> Inf
-        ps = min(ps, C1_pv*(1 - 1e-12));
-        Tw_ends = C2_pv./log(ps/C1_pv);
-        u = alpha_m*(Tw_ends - 1) + 1;
-        thetas = (u.^2 - 1)/(2*alpha_m);
-        theta_lo = thetas(1);
-        theta_hi = thetas(2);
-    end
-    
-    % safeguarded Newton-bisection on [theta_lo, theta_hi]: a Newton step
-    % that leaves the bracket is replaced by bisection, so the search
-    % always converges when the residual changes sign on the bracket
-    function theta_bw = f_wall_theta_safe(vrest, theta_start, theta_lo, theta_hi)
-        r_lo = f_wall_mass_bc([theta_lo, vrest], wallc);
-        r_hi = f_wall_mass_bc([theta_hi, vrest], wallc);
+    % bubble-wall state with vapor mass transfer. The unknown is the wall
+    % vapor mass fraction kv_w, confined to (0, 1). For a trial kv_w the
+    % saturation condition gives the wall temperature and the Kirchhoff
+    % transform gives theta_w in closed form (f_wall_mass_residual), so the
+    % fixed bracket kv_bracket needs no initial guess. n_bisect halvings are
+    % followed by n_polish Newton steps with a central-difference
+    % derivative; there is no adaptive termination.
+    function [theta_w, kv_w] = f_wall_mass_closure(Tm_in, th_in, kv_in, Pw, Rw, tw)
+        % mixture coefficients from the stored wall value kv_in(end), not the
+        % trial kv_w. Since kvdot(end) = 0 the stored value is the initial
+        % kv0. Deliberate carry-over of the existing behavior, to be
+        % revisited separately.
+        alpha_m = kv_in(end)*alpha_v + (1 - kv_in(end))*alpha_g;
+        % the transform normalizes the conductivity to 1 at T = 1:
+        % K = alpha_m*T + beta_m with beta_m = 1 - alpha_m, so that
+        % theta = 0.5*alpha_m*(T^2 - 1) + beta_m*(T - 1) is the exact inverse
+        % of T = (alpha_m - 1 + sqrt(1 + 2*alpha_m*theta))/alpha_m
+        beta_m = 1 - alpha_m;
+        % contractions of the wall rows with the other nodes, independent of
+        % kv_w. Order matters: Tm(iwall_m) runs outward from the wall
+        % (Tm(2:3) for finite differences), while theta(iwall_b) and
+        % kv(iwall_b) run inward from the wall (theta(end-1:-1:end-2) and
+        % kv(end-1:-1:end-2) for finite differences), matching the order
+        % of the coefficients in grad_Tm_coeff, grad_Trans_coeff, grad_C_coeff
+        flux_fixed = grad_Tm_coeff(2:end)*Tm_in(iwall_m) + ...
+            grad_Trans_coeff(2:end)*th_in(iwall_b);
+        carrier_fixed = grad_C_coeff(2:end)*kv_in(iwall_b);
+        wp = [Pw, alpha_m, beta_m, flux_fixed, carrier_fixed];
+        
+        lo = kv_bracket(1);
+        hi = kv_bracket(2);
+        r_lo = f_wall_mass_residual(lo, wp);
+        r_hi = f_wall_mass_residual(hi, wp);
         if ~(isfinite(r_lo) && isfinite(r_hi)) || sign(r_lo) == sign(r_hi)
-            % no sign change on the bracket: last resort
-            theta_bw = fzero(@(x) f_wall_mass_bc([x, vrest], wallc), ...
-                theta_start, foptions);
-            return
+            error(['f_imr_nodal: the mass-transfer wall balance does not ' ...
+                'change sign on kv_w in [%g, 1 - %g] at t = %g (R = %g, ' ...
+                'P = %g, stored kv(end) = %g, residuals %g and %g). This ' ...
+                'indicates a physical or indexing problem in the state, ' ...
+                'not a solver problem.'], lo, 1 - hi, tw, Rw, Pw, ...
+                kv_in(end), r_lo, r_hi);
         end
-        if theta_start > theta_lo && theta_start < theta_hi
-            theta_bw = theta_start;
-        else
-            theta_bw = (theta_lo + theta_hi)/2;
-        end
-        for iter = 1:200
-            [res,dres] = f_wall_mass_bc([theta_bw, vrest], wallc);
-            if res == 0
-                return
-            end
-            if sign(res) == sign(r_lo)
-                theta_lo = theta_bw;
-                r_lo = res;
+        for k = 1:n_bisect
+            kv_mid = (lo + hi)/2;
+            r_mid = f_wall_mass_residual(kv_mid, wp);
+            if sign(r_mid) == sign(r_lo)
+                lo = kv_mid;
+                r_lo = r_mid;
             else
-                theta_hi = theta_bw;
+                hi = kv_mid;
             end
-            theta_new = theta_bw - res/dres(1);
-            outside = theta_new <= theta_lo || theta_new >= theta_hi;
-            if ~isfinite(theta_new) || outside
-                theta_new = (theta_lo + theta_hi)/2;
-            end
-            tol = 1e-14*max(1,abs(theta_new));
-            if abs(theta_new - theta_bw) <= tol || theta_hi - theta_lo <= tol
-                theta_bw = theta_new;
-                return
-            end
-            theta_bw = theta_new;
         end
+        kv_w = (lo + hi)/2;
+        for k = 1:n_polish
+            h = h_polish*min(kv_w, 1 - kv_w);
+            dres = (f_wall_mass_residual(kv_w + h, wp) - ...
+                f_wall_mass_residual(kv_w - h, wp))/(2*h);
+            kv_w = kv_w - f_wall_mass_residual(kv_w, wp)/dres;
+            % stay inside the bisection bracket
+            kv_w = min(max(kv_w, lo), hi);
+        end
+        [~, theta_w] = f_wall_mass_residual(kv_w, wp);
+    end
+    
+    % mass-transfer wall balance as a function of the wall vapor mass
+    % fraction kv_w, wp = [P, alpha_m, beta_m, flux_fixed, carrier_fixed].
+    % It is the balance of f_wall_mass_bc multiplied through by
+    % (kv_w*Rva_diff + Rg_star)*Tw*(1 - kv_w) > 0, which has the same root
+    % and no reciprocal that vanishes as kv_w -> 1
+    function [r, theta_w, Tw] = f_wall_mass_residual(kv_w, wp)
+        Pw = wp(1);
+        % vapor partial pressure, and the wall temperature from inverting
+        % Pv(Tw) = C1_pv*exp(C2_pv/Tw) (C2_pv < 0)
+        ps = Pw*kv_w*Rvg_ratio/(kv_w*Rvg_ratio + 1 - kv_w);
+        Tw = C2_pv/log(ps/C1_pv);
+        theta_w = 0.5*wp(2)*(Tw^2 - 1) + wp(3)*(Tw - 1);
+        denom = (kv_w*Rva_diff + Rg_star)*Tw*(1 - kv_w);
+        r = denom*(grad_Tm_coeff(1)*Tw + grad_Trans_coeff(1)*theta_w + wp(4)) ...
+            + Pw*(grad_C_coeff(1)*kv_w + wp(5));
     end
     
     % bubble-wall theta at the state X, for the Jacobian
-    function theta_bw = f_theta_bw_of_X(X)
+    function theta_bw = f_theta_bw_of_X(t, X)
         th_X = X(ibubtherm);
         Tm_X = X(imedtherm);
         if masstrans
             kv_X = X(imass);
-            theta_bw = f_wall_theta_newton([Tm_X(iwall_m)', th_X(iwall_b)', ...
-                kv_X(end), kv_X(iwall_b)', X(3)], theta_bw_guess);
+            theta_bw = f_wall_mass_closure(Tm_X, th_X, kv_X, X(3), X(1), t);
         else
             theta_bw = f_wall_theta_exact(Tm_X, th_X);
         end
