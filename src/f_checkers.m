@@ -1,6 +1,9 @@
 % file f_checkers.m
 % brief contains function f_checkers
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function checks the compatibility of the model conditions and
 % the ranges of the dimensionless numbers before a run. It is called by
 % f_call_params with a struct p holding every setting and dimensionless

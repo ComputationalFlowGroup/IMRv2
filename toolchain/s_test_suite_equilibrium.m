@@ -1,6 +1,9 @@
 % file s_test_suite_equilibrium.m
 % brief contains script to test for equilibrium conditions
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This script runs both the finite difference and spectral codes to
 % test that initial equilibrium conditions are satisfied
 clc;

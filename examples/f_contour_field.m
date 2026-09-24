@@ -1,3 +1,6 @@
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 fig_tend = 30;
 tickrange= 0:5:fig_tend;
 lR = length(R);

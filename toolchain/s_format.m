@@ -2,6 +2,9 @@
 % brief contains script to run formatting throughout the toolchain and src
 % folders
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This script formats the toolchain and src code
 close;
 clear;

@@ -1,5 +1,9 @@
-% file s_resolution_check.m
+% file s_gen_NMt_resolution.m
 % brief contains script to check resolution capability of IMR
+
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 clc;
 clear;
 close;

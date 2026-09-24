@@ -1,3 +1,6 @@
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 clc;
 clear;
 close;

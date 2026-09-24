@@ -1,6 +1,9 @@
 % file f_approx_init_stress.m
 % brief contains function f_approx_init_stress
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes the stress value at the bubble maximum
 % radius. The implementation is the approximate/analytical model as opposed
 % to the numerical model that performs a shooting method to determine the

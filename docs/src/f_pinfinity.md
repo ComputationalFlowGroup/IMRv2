@@ -5,7 +5,7 @@
 
 ## Major Sections
 1. **Input Unpacking**: Extracts waveform parameters from `vararg`.
-2. **Measured Waveforms**: If `wave_type < 0`, evaluates the piecewise polynomials `wave_poly` and `wave_dpoly` built from `d_hn`, `d_mn` or `d_ml`.
+2. **Measured Waveforms**: If `wave_type < 0`, evaluates the piecewise polynomials `wave_poly` and `wave_dpoly` built from `d_hn`, `d_mn` or `d_ml`. These are the measured waveforms of [Hersey, Rodriguez and Johnsen (2023)](https://doi.org/10.1121/10.0017342); see [`docs/waveform`](../waveform/README.md).
 3. **Predefined Waveforms**:
    - **Impulse** (`wave_type = 0`)
    - **Gaussian** (`wave_type = 1`)

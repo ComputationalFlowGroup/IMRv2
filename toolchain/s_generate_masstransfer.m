@@ -1,6 +1,9 @@
 % file s_generate_masstransfer.m
 % brief contains script to generate golden data for IMR mass transfer cases
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This script generates the golden data for cases using mass transfer
 clc;
 clear;

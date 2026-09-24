@@ -1,6 +1,9 @@
 % file f_odesolve.m
 % brief contains function f_odesolve
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes time marching for the ODE and PDE system of
 % equations computed as part of the IMR solver with the stiff integrators
 % ode15s and ode23tb (most stable); the thermal, mass transfer and stress

@@ -1,6 +1,9 @@
 % file f_call_params.m
 % brief contains function f_call_params
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function sets up the simulation environment. All inputs are
 % dimensionless (see default_case.m for the scalings); dimensional values
 % must be converted beforehand, e.g. with toolchain/f_dim2nondim.m. The
@@ -161,7 +164,9 @@ if tfinset && ~tvecset
     TVector = [0 TFin];
 end
 
-% loading the (dimensionless) experimental waveform data
+% loading the (dimensionless) experimental waveform data, measured
+% waveforms from Hersey, Rodriguez and Johnsen, J. Acoust. Soc. Am. 153(3),
+% 1836-1845 (2023), doi:10.1121/10.0017342 (see docs/waveform)
 if wave_type < 0
     % waveform files live next to this function in src/
     srcdir = fileparts(mfilename('fullpath'));

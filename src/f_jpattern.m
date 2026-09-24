@@ -1,6 +1,9 @@
 % file f_jpattern.m
 % brief contains function f_jpattern
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function builds a conservative Jacobian sparsity pattern for
 % the nodal solver from its state-vector index bookkeeping.
 % State layout: [R, Rdot, P, theta(ith), Tm(itm), kv(ikv), Z(iz)]. The

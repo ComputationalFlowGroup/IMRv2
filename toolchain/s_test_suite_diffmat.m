@@ -1,6 +1,9 @@
 % file s_test_suite_diffmat.m
 % brief contains script to test the differentiation operators
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This script checks the operators returned by f_diff_mat: the finite
 % difference stencils (scheme 0) against their defining values, and the
 % Chebyshev operators (scheme 1) for spectral accuracy on smooth test

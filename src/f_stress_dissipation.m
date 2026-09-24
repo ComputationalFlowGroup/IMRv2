@@ -1,6 +1,9 @@
 % file f_stress_dissipation.m
 % brief contains function f_stress_dissipation
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes the stress dissipation term, \tau : \nabla u.
 % The solver accounts for the Kelvin-Voigt with neo-Hookean
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear

@@ -2,7 +2,7 @@
 
 Thank you for helping improve IMR. This guide walks you through a contribution from start to finish: fork the repository, make your change, run the same checks that the continuous integration (CI) runs, and open a pull request.
 
-IMR is released under the [GNU General Public License v3.0](LICENSE). By submitting a contribution, you agree that it is licensed under the same license, and you confirm that you have the right to contribute it. For example, do not copy code from sources whose license is incompatible with the GPL.
+IMR is released under the [GNU General Public License](LICENSE), version 3 or (at your option) any later version (`GPL-3.0-or-later`). By submitting a contribution, you agree that it is licensed under the same terms, and you confirm that you have the right to contribute it. For example, do not copy code from sources whose license is incompatible with the GPL.
 
 If you are planning a large change, such as a new physical model, a new solver option or a change to stored results, open an issue first or ask on the IMR Slack workspace. Agreeing on the approach early saves rework later.
 
@@ -69,15 +69,21 @@ GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has
   3. Validate it in `src/f_checkers.m`, raising an `INPUT ERROR` for invalid values.
   4. Document it in `docs/src/default_case.md`.
 - **Option vectors: append, never insert.** `f_call_params` passes settings to the solvers in positional vectors, such as `eqns_opts`, `solve_opts`, `init_opts` and `sigma_opts`. Add a new entry at the end of a vector. Inserting one in the middle shifts every later position and silently breaks the code that unpacks it.
-- **File headers.** Start every `.m` file with the same header as the existing files:
+- **File headers.** Start every `.m` file with the same header as the existing files: the file name, a one-line summary, the license block, then the description. The license block is a separate comment block, so it stays out of MATLAB's `help` text, which shows only the first block.
 
   ```matlab
   % file f_example.m
   % brief contains function f_example
 
+  % Copyright (C) Mauro Rodriguez
+  % SPDX-License-Identifier: GPL-3.0-or-later
+
   % brief This function computes ... (one or two sentences on what it does)
   function out = f_example(in)
   ```
+
+  Shell scripts carry the same two license lines as `#` comments after the `#!` line.
+- **Avoid semicolons inside strings and comments.** To keep one statement per line, `s_format` splits every line that contains more than one `;` at the first one. It does not know about strings or comments, so a line such as `error(['... not available; use radial = 1']);` is split inside the string, which breaks the code. Use a comma or a full stop instead.
 
 - **Comments.** Explain why the code does something, especially for numerical choices such as tolerances, brackets and quadrature rules.
 - **Keep changes focused.** One topic per pull request. Unrelated clean-ups go in their own pull request.

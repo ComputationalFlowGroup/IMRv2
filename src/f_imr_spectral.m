@@ -1,6 +1,9 @@
 % file f_imr_spectral.m
 % brief contains function f_imr_spectral
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function features a Chebyshev spectral collocation solver of
 % the PDEs involving thermal transport and viscoelasticity coupled to the
 % radial (Rayleigh-Plesset family) dynamics

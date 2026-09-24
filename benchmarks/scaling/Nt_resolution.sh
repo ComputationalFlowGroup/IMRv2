@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (C) Mauro Rodriguez
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # Request an hour of runtime:
 #SBATCH --time=23:59:00
 #SBATCH -p batch

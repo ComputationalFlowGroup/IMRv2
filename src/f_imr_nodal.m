@@ -1,6 +1,9 @@
 % file f_imr_nodal.m
 % brief contains function f_imr_nodal
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function features the nodal solver of the PDEs involving
 % thermal transport, vapor mass transfer and viscoelasticity coupled to the
 % radial (Rayleigh-Plesset family) dynamics. The fields are carried as node

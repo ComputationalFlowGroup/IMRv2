@@ -1,6 +1,9 @@
 % file f_pinfinity.m
 % brief contains function f_pinfinity
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes the time-dependent external pressure in the
 % surrounding material that drives the bubble oscillations. The function
 % features wave types: experimentally-derived, impulse, Gaussian,

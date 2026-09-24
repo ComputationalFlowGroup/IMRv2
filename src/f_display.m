@@ -1,6 +1,9 @@
 % file f_display.m
 % brief contains function f_display
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function features the display output on the command window
 function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
     spectral, nu_model, eps3, Pv_star, Re8, De, Ca, LAM, mode)

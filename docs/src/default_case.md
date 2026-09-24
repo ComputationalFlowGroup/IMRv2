@@ -66,7 +66,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 ### Pressure waveform
 | Input | Variable | Definition | Default |
 |-------|----------|------------|---------|
-| `wave_type` | `wave_type` | -1/-2/-3 measured waveforms (`d_hn`, `d_mn`, `d_ml`, already dimensionless), 0 impulse, 1 Gaussian, 2 histotripsy, 3 Heaviside | 0 |
+| `wave_type` | `wave_type` | -1/-2/-3 measured waveforms (`d_hn`, `d_mn`, `d_ml`, already dimensionless, from [Hersey et al. 2023](https://doi.org/10.1121/10.0017342)), 0 impulse, 1 Gaussian, 2 histotripsy, 3 Heaviside | 0 |
 | `ee` | `ee` | Amplitude `pA/P8` | 0 |
 | `om` | `om` | Frequency `omega*t0` | 0 |
 | `tw` | `tw` | Width `TW/t0` | 0 |

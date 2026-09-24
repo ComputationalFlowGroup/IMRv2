@@ -1,6 +1,9 @@
 % file f_init_stress.m
 % brief contains function f_init_stress
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes the stress value at the bubble maximum
 % radius by a shooting method on the initial wall velocity. The model does
 % not contain heat or mass transfer. alphax is the strain-stiffening

@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://doi.org/10.1016/j.jmps.2017.12.006"><img src="https://zenodo.org/badge/doi/10.1016/j.jmps.2017.12.006.svg" alt="DOI"/></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPLv3"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg" alt="License: GPL-3.0-or-later"/></a>
   <a href="docs/compatibility.md"><img src="https://img.shields.io/badge/Model%20compatibility-grid-2ea44f" alt="Model compatibility grid"/></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/Contributions-welcome-brightgreen" alt="Contributions welcome"/></a>
 </p>
@@ -30,7 +30,8 @@ IMR characterizes soft materials at high strain rates. It simulates a cavitation
 - [Contributing](#contributing)
 - [Citation](#citation)
 - [Developers and contact](#developers-and-contact)
-- [License and acknowledgments](#license-and-acknowledgments)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 ## Features
 
@@ -48,7 +49,7 @@ IMR characterizes soft materials at high strain rates. It simulates a cavitation
 - **Heat transfer:** polytropic bubble, heat transfer in the bubble, and heat transfer in the bubble and the surrounding medium. Medium heat transfer needs radial 1 or 2, since the enthalpy forms (radial 3–6) take the liquid at the far-field temperature.
 - **Stress:** neo-Hookean and quadratic neo-Hookean Kelvin–Voigt; linear Maxwell, Jeffreys and Zener; UCM and Oldroyd-B.
 - **Viscosity:** Newtonian and seven non-Newtonian models (Carreau, Carreau–Yasuda, Powell–Eyring, modified Powell–Eyring, Cross, simplified Cross, modified Cross).
-- **Driving pressure:** impulse, Gaussian, histotripsy, Heaviside, and three measured waveforms.
+- **Driving pressure:** impulse, Gaussian, histotripsy, Heaviside, and three measured waveforms from [Hersey, Rodriguez and Johnsen (2023)](https://doi.org/10.1121/10.0017342).
 - **Time integration:** the stiff integrators `ode15s` and `ode23tb`, with an analytic Jacobian where one is implemented.
 
 Not every combination is available. The [model compatibility grid](docs/compatibility.md) shows which features run together in each solver.
@@ -122,6 +123,7 @@ plot(t*ref.t0, R*ref.R0);
 | [`docs/src/default_case.md`](docs/src/default_case.md) | Every input, its dimensionless definition and its default |
 | [`docs/src/f_imr_nodal.md`](docs/src/f_imr_nodal.md), [`docs/src/f_imr_spectral.md`](docs/src/f_imr_spectral.md) | The two solvers; `docs/src/` has one page per physics function |
 | [`docs/toolchain/`](docs/toolchain) | The unit conversion `f_dim2nondim` and the test suites |
+| [`docs/waveform/`](docs/waveform/README.md) | Source and files of the measured pressure waveforms |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute: fork, change, check, pull request |
 
 ## Testing
@@ -168,6 +170,21 @@ If you use IMR in your research, please cite:
 
 For the numerical methods, also see the two papers under [Methods](#methods).
 
+If you use the measured pressure waveforms (`wave_type = -1, -2, -3`), please also cite the paper they come from:
+
+```bibtex
+@article{Hersey_2023,
+  title   = {Dynamics of an oscillating microbubble in a blood-like Carreau fluid},
+  author  = {E. Hersey and M. Rodriguez and E. Johnsen},
+  journal = {Journal of the Acoustical Society of America},
+  year    = {2023},
+  volume  = {153},
+  number  = {3},
+  pages   = {1836–1845},
+  doi     = {10.1121/10.0017342}
+}
+```
+
 ## Developers and contact
 
 IMR is developed by researchers at several institutions (alphabetical):
@@ -181,8 +198,16 @@ IMR is developed by researchers at several institutions (alphabetical):
 
 For questions, contact [Mauro Rodriguez](mailto:mrodri97@brown.edu) or ask to join the IMR Slack workspace.
 
-## License and acknowledgments
+## License
 
-IMR is released under the [GNU General Public License v3.0](LICENSE).
+Copyright (C) Mauro Rodriguez
+
+IMR is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+IMR is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+The full license text is in [`LICENSE`](LICENSE). Each source file carries the same terms in a short header, `SPDX-License-Identifier: GPL-3.0-or-later`.
+
+## Acknowledgments
 
 IMR development has been supported by the National Science Foundation (NSF), the Department of Defense (DOD), and other research institutions.

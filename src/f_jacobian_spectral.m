@@ -1,6 +1,9 @@
 % file f_jacobian_spectral.m
 % brief contains function f_jacobian_spectral
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes the analytic Jacobian of the spectral
 % right-hand side (f_imr_spectral). The thermal fields, the thermal
 % boundary condition solve, the bubble pressure and the spectral stress

@@ -1,6 +1,9 @@
 % file f_viscosity.m
 % brief contains function f_viscosity
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes the non-Newtonian viscosity integrals for
 % the Carreau, Carreau-Yasuda, Powell-Eyring, modified Powell-Eyring,
 % Cross, simplified Cross, and modified Cross models. The viscosity is

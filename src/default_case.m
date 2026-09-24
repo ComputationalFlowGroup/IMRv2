@@ -1,6 +1,9 @@
 % file default_case.m
 % brief contains the default (dimensionless) simulation case
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief All quantities are dimensionless. Lengths are scaled by the initial
 % radius R0, pressures by the far-field pressure P8, velocities by
 % Uc = sqrt(P8/rho8), time by t0 = R0/Uc, and temperatures by the far-field

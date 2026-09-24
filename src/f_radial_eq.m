@@ -1,6 +1,9 @@
 % file f_radial_eq.m
 % brief contains function f_radial_eq
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function features the spherical radial bubble dynamics
 % equations used to compute the bubble wall acceleration. The radial models
 % Rayleigh-Plesset, Keller-Miksis in pressure and enthalpy, and Gilmore are
