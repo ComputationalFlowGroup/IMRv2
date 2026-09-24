@@ -26,7 +26,7 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 
 ### 3. Time Integration
 - Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s` or `ode23tb`).
-- The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a bracketed solve for the wall vapor mass fraction with a fixed cost per call (see [`f_wall_bc`](f_wall_bc.md)).
+- The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a solve for the wall vapor mass fraction: Newton from the previous root, with a fixed-cost bracketed solve as the fallback (see [`f_wall_bc`](f_wall_bc.md)).
 - The stiff integrators receive the analytic Jacobian of `f_jacobian_nodal` for `bubtherm = 1` (with or without medium heat and mass transfer), or the sparsity pattern from `f_jpattern` otherwise (dense for Chebyshev); see the `jacobian` option.
 
 ### 4. Output Assembly
