@@ -34,6 +34,7 @@ Compared with the previous version, which called `integral` twice at `1e-8`, the
 | Name     | Description |
 |----------|-------------|
 | `f`      | Viscosity factor at the bubble wall |
-| `intf`   | `-I1`; enters the stress integral as `-6*intf/DRe` |
+| `intf`   | `-I1`; enters the stress integral as `-6*intf*iDRe` (see [`f_stress`](f_stress.md)) |
 | `dintf`  | `Rdot` part of `d(intf)/dt`, `-d(gammadot_R*R^3)/dt*I2 + h` with the Leibniz term `h = f*gammadot_R*Rdot/R` |
 | `ddintf` | `Rddot` coefficient of `d(intf)/dt`, `2*R^2*I2` |
+| `fq`     | Optional: viscosity factor `f(x_R*yq^-3)` at the radii `r/R = yq` (seventh input). The solvers pass the medium grid and use it for the viscous dissipation. |

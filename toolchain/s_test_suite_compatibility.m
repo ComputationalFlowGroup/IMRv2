@@ -2,7 +2,8 @@
 % brief contains script to test for compatibility conditions
 
 % brief This script runs both the finite difference and spectral codes to
-% test to ensure compatibility between including thermal conditions
+% check that they run with each combination of radial, thermal and stress
+% models
 clc;
 clear;
 close;

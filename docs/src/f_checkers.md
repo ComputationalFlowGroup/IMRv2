@@ -18,6 +18,7 @@
 | Enthalpy forms (`radial = 3, 4`) with `medtherm = 1` | error: the liquid is taken at the far-field temperature |
 | `collapse = 1` without `bubtherm`, `medtherm`, `vapor` and `masstrans` | error |
 | `stress = 3, 4, 5` with `De <= 0` | error |
+| `nu_model > 0` with `stress = 0` | error: the non-Newtonian viscosity needs a viscous stress model (stress 1–5) |
 | `stress >= 3` with `medtherm = 1` (FD dissipation) | warning `IMR:dissipation` |
 | both `tvector` and `tfin` | error |
 | `tvector` not finite and strictly increasing, or starting below 0 | error |

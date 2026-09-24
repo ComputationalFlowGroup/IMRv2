@@ -26,7 +26,7 @@
 | `ivisco2`    | Index of the second stress state in `X` | –     |
 | `LAM`        | Ratio of retardation to relaxation time, `lambda2/lambda1` | –     |
 | `intfnu`, `dintfnu` | Non-Newtonian stress integral and the `Rdot` part of its time derivative, from `f_viscosity` | –     |
-| `iDRe`       | `1/DRe`, the inverse non-Newtonian Reynolds number | –     |
+| `iDRe`       | Scaling of the non-Newtonian stress: `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5 (0 when `DRe = 0`), set by `f_call_params` | –     |
 
 ## Outputs
 
@@ -39,4 +39,4 @@
 
 ## Notes
 - The spectral stress representation (`f_imr_spectral`, `stress = 5`, `spectral = 1`) does not use this function.
-- The non-Newtonian contribution enters as `-6*intfnu*iDRe`.
+- The non-Newtonian contribution enters every stress model with a viscous term (stress 1–5) as `-6*intfnu*iDRe` in `S` and `-6*dintfnu*iDRe` in `Sdot`, so that `Sdot` is the time derivative of `S` (the `Rddot` part is carried by `ddintfnu` in [`f_radial_eq`](f_radial_eq.md)). For stress 3–5 the non-Newtonian viscosity takes the place of the solvent viscosity `LAM/Re8`, which gives the `LAM/DRe` scaling. `f_checkers` rejects `nu_model > 0` with stress 0.

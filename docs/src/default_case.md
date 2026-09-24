@@ -27,7 +27,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `bubtherm` | `bubtherm` | Thermal PDE in the bubble (0/1) | 0 |
 | `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1` and `radial` 1 or 2) | 0 |
 | `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B | 0 |
-| `eps3` | `eps3` | Second-order strain term, in [0, 0.5] | 0 |
+| `eps3` | `eps3` | Second-order strain term, in [0, 0.5]; currently unused by the stress models | 0 |
 | `vapor` | `vapor` | Vapor pressure (0/1) | 0 |
 | `masstrans` | `masstrans` | Vapor mass transfer (0/1, requires `bubtherm = vapor = 1`) | 0 |
 

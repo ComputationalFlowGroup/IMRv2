@@ -72,9 +72,11 @@ Some features switch on others. A ✓ means the pair runs with these requirement
 - **Medium heat transfer** is not available with the enthalpy forms, radial 3–6.
 
 Other rules:
+- **Non-Newtonian viscosity** requires a stress model with a viscous term, stress 1–5; `f_checkers` rejects it with stress 0. It enters every stress model the same way, `-6*intfnu*iDRe` in the stress integral, scaled by `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, and the medium heating uses the local non-Newtonian viscosity.
 - **Stress 3, 4 and 5** require `De > 0`.
+- **Collapse with stress 3 or 4** starts from the stress of a growth from `Req` to `R = 1` ([`f_init_stress`](src/f_init_stress.md)), including the quadratic term for stress 4. If no subsonic growth reaches `R = 1` (very small `Req`), the run stops and asks for `stress0`.
 - **Stress 5** sets `Ca = Inf`, so it has no elastic contribution.
-- **Medium heating with stress 3 to 5** uses the Kelvin–Voigt closed form, which is inconsistent for history-dependent stress, and `f_checkers` warns. The stress field option (feature 10) computes the heating from the stress field itself.
+- **Medium heating with stress 3 to 5** uses the Kelvin–Voigt closed form, which is inconsistent for history-dependent stress, and `f_checkers` warns. The stress field option (feature 11) computes the heating from the stress field itself.
 
 ## Why the spectral solver cannot collapse
 
@@ -84,7 +86,7 @@ Collapse only sets the initial state in `f_call_params`: the equilibrium radius,
 
 ## How this was checked
 
-Every cell comes from running the solvers with GNU Octave, `f_imr_nodal` in both schemes. Each run pairs the two features on a Keller–Miksis base case, radial 2, and each ran in its own Octave process. Radial 1–6 were each paired with every non-radial feature in all three solver modes, and each gave the same result as the rest of its group, apart from the Rayleigh–Plesset collapse run described above. A ✓ means the run finished with a finite `R(t)`.
+Every cell comes from running the solvers with GNU Octave, `f_imr_nodal` in both schemes. Each run pairs the two features on a Keller–Miksis base case, radial 2, and each ran in its own Octave process. Each radial model (1–6) was paired with every other feature, and every member of a feature group was run: stress 1 and 2, and stress 3 and 4 (with `alphax = 0.3` for the quadratic models). Non-Newtonian runs use Kelvin–Voigt stress unless the other feature sets a stress model. That makes 555 runs over the three solver modes. A ✓ means every run of the cell finished with a finite `R(t)`, and every ✗ is an `INPUT ERROR` from `f_checkers`. The one other failure is the Rayleigh–Plesset collapse run described above. The grid was last regenerated after the non-Newtonian, dissipation and collapse initial-stress fixes and gave the same cells as before.
 
 A separate sweep ran both solvers over every radial model, thermal configuration and stress model: 504 runs, plus 36 more for the remaining thermal combinations. Every non-Newtonian viscosity model, driving waveform, integrator and Jacobian option was also run on a thermal case in both solvers.
 

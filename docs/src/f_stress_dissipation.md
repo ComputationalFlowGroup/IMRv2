@@ -22,7 +22,7 @@
 | `iyT3`, `iyT4`, `iyT6` | Inverses of grid powers        | –     |
 | `X`, `ZZT`     | State vector and the matrix from stress coefficients to medium grid values | –     |
 | `ivisco1`, `ivisco2` | Indices of the stress coefficients in `X` | –     |
-| `fnu`, `DRe`   | Non-Newtonian viscosity factor at the wall, and the non-Newtonian Reynolds number | –     |
+| `fnu`, `DRe`   | Non-Newtonian viscosity factor on the medium grid (from the `fq` output of `f_viscosity`; scalar 0 for Newtonian runs), and the non-Newtonian Reynolds number | –     |
 
 ## Outputs
 
@@ -31,4 +31,5 @@
 | `taugradu`  | Mechanical dissipation (`τ:∇u`)        | –     |
 
 ## Notes
+- The viscous part uses the local viscosity `visc = 1/Re8 + fnu/DRe` (`1/Re8` when `DRe = 0`), with `fnu` evaluated at the local shear rate `gammadot_R*(R/r)^3` of each medium grid point.
 - The stress-field branch uses `ZZT*(X(ivisco1)-X(ivisco2))`, the difference of the `tau_rr` and `tau_tt` fields on the medium grid.

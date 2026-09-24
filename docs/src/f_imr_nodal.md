@@ -8,7 +8,7 @@
 | 0 (default) | Second-order finite differences, uniform bubble grid | All, including mass transfer and collapse |
 | 1 | Chebyshev collocation | All, including mass transfer and collapse |
 
-It uses a non-dimensionalized formulation and integrates the semi-discrete system in time with MATLAB's ODE solvers through `f_odesolve`. The solver was `f_imr_fd` before the Chebyshev scheme was added; `scheme = 0` reproduces `f_imr_fd` bit for bit.
+It uses a non-dimensionalized formulation and integrates the semi-discrete system in time with MATLAB's ODE solvers through `f_odesolve`. The solver was `f_imr_fd` before the Chebyshev scheme was added. Without mass transfer, `scheme = 0` reproduces `f_imr_fd` bit for bit; with mass transfer, the bracketed wall closure moves `R(t)` by integrator-tolerance amounts.
 
 ---
 
@@ -31,6 +31,7 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 
 ### 4. Output Assembly
 - Returns `[t, R, Rdot, P, T, Tm, kv]` through `varargout`. All outputs are dimensionless.
+- The wall entries of the state are not integrated (their time derivatives are zero), so the wall values of `T`, `Tm` and `kv` are recovered at every output time from the same wall closure as the right-hand side. `T(:,end)` and `Tm(:,1)` are both the wall temperature.
 
 ---
 
@@ -44,7 +45,7 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 | `bubtherm`         | Enable bubble thermal model (0 or 1) |
 | `medtherm`         | Enable medium thermal model (0 or 1) |
 | `stress`           | Stress model selection (0–5) |
-| `eps3`             | Second-order strain term, in [0, 0.5] |
+| `eps3`             | Second-order strain term, in [0, 0.5]; currently unused by the stress models |
 | `masstrans`        | Enable mass transfer (0/1, requires `bubtherm = 1` and `vapor = 1`) |
 | `scheme`           | Differentiation matrices: 0 finite difference (default), 1 Chebyshev |
 | `method`           | Stiff time integrator (15 = `ode15s`, 23 = `ode23tb`) |
@@ -94,7 +95,7 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 ## Verification of the Chebyshev scheme
 
 Measured in GNU Octave (`ode15s` standing in for `ode23tb`), on thermal cases with `Req = 0.5` and `t` in [0, 3]:
-- `scheme = 0` gives bit-identical `R(t)` to `f_imr_fd` over 98 cases: radial 1–4, stress 0–5, polytropic, bubble, bubble and medium, and full mass-transfer models, plus a non-Newtonian and a Gaussian-waveform case.
+- `scheme = 0` gave bit-identical `R(t)` to `f_imr_fd` over 98 cases: radial 1–4, stress 0–5, polytropic, bubble, bubble and medium, and full mass-transfer models, plus a non-Newtonian and a Gaussian-waveform case. This held before the bracketed mass-transfer wall closure; with it, the cases without mass transfer stay bit-identical and the mass-transfer cases differ at the integrator tolerance.
 - `scheme = 1` and `f_imr_spectral` converge toward each other with resolution over 32 cases (radial 1–4, stress 0/1/3/5, with and without medium heat transfer). The largest relative deviation in `R(t)` over the cases is `2.8e-3`, `4.8e-4` and `2.6e-4` at `Nt = Mt = 12, 20, 30`; the median is `1.4e-4`, `1.0e-5` and `3.4e-6`.
 - Against Richardson-extrapolated finite differences (`Nt = Mt = 200, 400`) for Keller–Miksis with neo-Hookean Kelvin–Voigt stress, `scheme = 1` at `Nt = Mt = 25` is within `1e-4` with bubble heat transfer only, where finite differences at 200 points are `2.4e-3` away. With medium heat transfer it reaches `2e-4` at 40 points, the same as `f_imr_spectral`.
 - With mass transfer (Keller–Miksis, neo-Hookean Kelvin–Voigt, bubble and medium heat transfer), `scheme = 1` converges with resolution: against its own solution at 80 points the largest deviation is `1.2e-2`, `3.6e-3`, `2.6e-4` and `5.5e-5` at 20, 30, 40 and 60 points for `Req = 0.5`, and `4.9e-2`, `2.0e-2`, `2.5e-3` and `1.1e-4` for `Req = 0.4`. At 40 points it is within `1e-3` of Richardson-extrapolated finite differences (`Nt = Mt = 200, 400`), the uncertainty of that reference.
