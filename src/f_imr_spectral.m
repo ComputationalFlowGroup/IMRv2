@@ -14,7 +14,7 @@ function varargout = f_imr_spectral(varargin)
     % defaults
     
     % non-Newtonian viscosity parameters
-    fnu             = 0;
+    fnu_m           = 0;
     intfnu          = 0;
     dintfnu         = 0;
     ddintfnu        = 0;
@@ -52,7 +52,7 @@ function varargout = f_imr_spectral(varargin)
     Req             = init_opts(5);
     alphax          = init_opts(6);
     
-    % dimensionaless initial stress
+    % dimensionless initial stress
     Szero           = init_stress;
     
     % time span options
@@ -310,8 +310,9 @@ function varargout = f_imr_spectral(varargin)
         
         % updating the viscous forces/Reynolds number
         if nu_model ~= 0
-            [fnu,intfnu,dintfnu,ddintfnu] = f_viscosity(nu_model,Rdot, ...
-                R,v_a,v_nc,v_lambda_star);
+            % fnu_m: viscosity factor at the medium grid points
+            [~,intfnu,dintfnu,ddintfnu,fnu_m] = f_viscosity(nu_model, ...
+                Rdot,R,v_a,v_nc,v_lambda_star,yT);
         end
         
         % bubble equations of motion
@@ -350,7 +351,7 @@ function varargout = f_imr_spectral(varargin)
                 % stress dissipation
                 [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                     Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
-                    ivisco2,fnu,DRe);
+                    ivisco2,fnu_m,DRe);
                 % surrounding temperature evolution equation
                 Tmdot = advection + diffusion + taugradu;
                 
@@ -419,9 +420,10 @@ function varargout = f_imr_spectral(varargin)
         tttdot = -dzdt.*(sCAd*d) - ttt/De + 2*av.*ttt + 2*etap*av/De;
         cdot = sCI*trrdot;
         ddot = sCI*tttdot;
-        S = 2*cdd'*(c - d) - 4*LAM/Re8*Rdot/R;
-        % the Rddot part of the solvent term is carried by JdotA
-        Sdot = 2*cdd'*(cdot - ddot) + 4*LAM/Re8*(Rdot/R)^2;
+        S = 2*cdd'*(c - d) - 4*LAM/Re8*Rdot/R - 6*intfnu*iDRe;
+        % the Rddot parts of the solvent and non-Newtonian terms are carried
+        % by JdotA and ddintfnu in the radial equation
+        Sdot = 2*cdd'*(cdot - ddot) + 4*LAM/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
     end
     
     % medium dissipation as a function of (R, Rdot), closed-form stress
@@ -429,7 +431,8 @@ function varargout = f_imr_spectral(varargin)
     function tg = f_taugradu(Rv,Rdotv,X)
         fnu_loc = 0;
         if nu_model ~= 0
-            fnu_loc = f_viscosity(nu_model,Rdotv,Rv,v_a,v_nc,v_lambda_star);
+            [~,~,~,~,fnu_loc] = f_viscosity(nu_model,Rdotv,Rv,v_a,v_nc, ...
+                v_lambda_star,yT);
         end
         tg = f_stress_dissipation(stress,spectral,Req,Rv,Rdotv, ...
             Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
@@ -449,10 +452,13 @@ function varargout = f_imr_spectral(varargin)
     end
     
     % radial acceleration as a function of v = [R, Rdot, P, Pdot, S, Sdot]
-    % for the spectral stress representation
+    % for the spectral stress representation, where S and Sdot are the
+    % field and solvent parts; the non-Newtonian part is added here from
+    % (R, Rdot)
     function out = f_closure_s(t,v)
-        [~,~,~,ddintf_loc] = f_nu(v(1),v(2));
-        out = f_rddot(t,v,v(5),v(6),ddintf_loc);
+        [~,intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
+        out = f_rddot(t,v,v(5) - 6*intf_loc*iDRe, v(6) - 6*dintf_loc*iDRe, ...
+            ddintf_loc);
     end
     
     function [f_loc,intf_loc,dintf_loc,ddintf_loc] = f_nu(Rv,Rdotv)
@@ -551,14 +557,23 @@ function [A,B,D,E,C,F] = f_dcdmtxe(N)
     
 end
 
-% prestress integrals, numeric quadrature; the (cos-1) zero at x = 1 tames
-% the (1-x)^-2 endpoint
+% prestress integrals, fixed Gauss-Legendre quadrature in theta; the (cos-1)
+% zero at x = 1 tames the (1-x)^-2 endpoint
 function cdd = f_preStressInt(L,N)
     
-    cdd = zeros(N,1);
-    for n = 1:N
-        g = @(x) (cos(n*acos(x))-1)./((L*(2./(1-x)-1)+1).*(1-x).^2);
-        cdd(n) = 2*L*integral(g,-1,1,'AbsTol',1e-12,'RelTol',1e-12);
-    end
+    % with x = cos(theta) the integrands of
+    % 2*L*int_{-1}^{1} (T_n(x) - 1)/((L*(1+x) + 1 - x)*(1 - x)) dx become
+    % smooth, (cos(n*theta) - 1)*sin(theta)/(((L+1) + (L-1)*cos(theta))*
+    % (1 - cos(theta))), so one Gauss-Legendre rule on [0, pi] with N + 64
+    % points gives every n to round-off
+    M = N + 64;
+    k = (1:M-1)';
+    beta = k./sqrt(4*k.^2 - 1);
+    [V,D] = eig(diag(beta,1) + diag(beta,-1));
+    [x,i] = sort(diag(D));
+    th = pi/2*(x + 1);
+    w = pi*V(1,i)'.^2;
+    w = w.*sin(th)./(((L + 1) + (L - 1)*cos(th)).*(1 - cos(th)));
+    cdd = 2*L*((cos((1:N)'*th') - 1)*w);
     
 end

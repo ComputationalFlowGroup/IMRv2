@@ -46,7 +46,7 @@ varin = {'progdisplay',0,...
 % dimensional (SI) values converted to the solver's dimensionless inputs
 varin = f_dim2nondim(varin{:});
 
-[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
+[tfd,Rfd,Rfddot,Pfd,Tfd,Tmfd,kvfd] = f_imr_nodal(varin{:},'Nt',70,'Mt',70);
 % [tsp,Rsp,Rspdot,Psp,Tsp,Tmsp,kvsp] = f_imr_spectral(varin{:},'Nt',10,'Mt',10);
 
 figure(1)

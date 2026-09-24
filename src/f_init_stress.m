@@ -2,11 +2,31 @@
 % brief contains function f_init_stress
 
 % brief This function computes the stress value at the bubble maximum
-% radius by using shooting method to determine the initial stress. The
-% model does not contain heat or mass transfer.
-function [S0] = f_init_stress(Req, Re, Ca, De, We, CL, Pv_star)
-    sopts = optimset('TolFun', 1e-8);
-    Rdotic = fminsearch(@(Rdoti) abs(1-f_maxwell_growth_iter(Rdoti, Req, Re, Ca, De, We, CL)),1, sopts);
+% radius by a shooting method on the initial wall velocity. The model does
+% not contain heat or mass transfer. alphax is the strain-stiffening
+% parameter of the quadratic neo-Hookean model (0 for neo-Hookean).
+function [S0] = f_init_stress(Req, Re, Ca, De, We, CL, Pv_star, alphax)
+    if nargin < 8
+        alphax = 0;
+    end
+    % the maximum radius grows with the initial wall velocity and equals
+    % Req at rest, so bracket the root of Rmax - 1 by doubling. The
+    % Keller-Miksis growth is singular at Rdot = CL, so the bracket stays
+    % below the sound speed
+    f_res = @(Rdoti) f_maxwell_growth_iter(Rdoti, Req, Re, Ca, De, We, CL) - 1;
+    Rdot_max = (1 - 1e-6)*CL;
+    lo = 0;
+    hi = min(1, Rdot_max);
+    while f_res(hi) < 0
+        if hi == Rdot_max
+            error(['f_init_stress: no initial wall velocity below the ' ...
+                'sound speed grows the bubble from Req = %g to R = 1; ' ...
+                'give the initial stress with ''stress0'''], Req);
+        end
+        lo = hi;
+        hi = min(2*hi, Rdot_max);
+    end
+    Rdotic = fzero(f_res, [lo, hi], optimset('TolX', 1e-10));
     tf_nd = 2;
     tspan = [0, tf_nd];
     opts = odeset('RelTol',1e-6,'AbsTol',1e-6);
@@ -62,8 +82,14 @@ function [S0] = f_init_stress(Req, Re, Ca, De, We, CL, Pv_star)
                 (Sdot-3*Rdot*R^2*S/R^3)/R^3) ...
                 - 1.5*(1-Rdot/(3*CL))*Rdot^2)/((1-Rdot/CL)*R + 4/Re/CL);
         else % SLS or Maxwell
-            Sdot = 1/De*(-4*Rdot/(Re*R)-2*De/Ca*Rdot/R*((Req/R)^4+Req/R)- ...
-                (S+1/2*1/Ca*(5-(Req/R)^4-4*Req/R)));
+            % elastic stress of the (quadratic) neo-Hookean model and its
+            % rate; alphax = 0 gives the neo-Hookean model
+            Rst = Req/R;
+            Se = (3*alphax - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + ...
+                (2*alphax/Ca)*(27/40 + Rst^8/8 + Rst^5/5 + Rst^2 - 2/Rst);
+            dSe = (Rdot/R)*((3*alphax - 1)/(2*Ca))*(4*Rst^4 + 4*Rst) - ...
+                (2*alphax/Ca)*(Rdot/R)*(Rst^8 + Rst^5 + 2*Rst^2 + 2/Rst);
+            Sdot = -4*Rdot/(Re*R*De) + dSe - (S - Se)/De;
             Rddot = ((1+Rdot/CL)...
                 *(Pb - 1 + S -1/(We*R)) + R/CL*(Pbdot + 1/We*Rdot/R^2 + Sdot) ...
                 - 1.5*(1-Rdot/(3*CL))*Rdot^2)/((1-Rdot/CL)*R + 4/Re/CL);

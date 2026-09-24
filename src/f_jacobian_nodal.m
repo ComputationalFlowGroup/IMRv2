@@ -1,8 +1,8 @@
-% file f_jacobian_fd.m
-% brief contains function f_jacobian_fd
+% file f_jacobian_nodal.m
+% brief contains function f_jacobian_nodal
 
-% brief This function computes the analytic Jacobian of the finite
-% difference right-hand side (f_imr_fd) for bubtherm = 1, with or without
+% brief This function computes the analytic Jacobian of the nodal
+% right-hand side (f_imr_nodal) for bubtherm = 1, with or without
 % medium heat transfer and vapor mass transfer. The field equations are
 % differentiated exactly: every intermediate quantity is carried as a
 % pair (value v, sparse derivative J = dv/dX), so the chain rule through
@@ -12,8 +12,9 @@
 % low-dimensional closure (radial model, stress model, viscosity, medium
 % dissipation) is differentiated by central differences of the closure
 % alone. The struct jp holds the state indices, operators, constants and
-% the closure handles set up by f_imr_fd.
-function J = f_jacobian_fd(t, X, jp)
+% the closure handles set up by f_imr_nodal, for either differentiation
+% scheme.
+function J = f_jacobian_nodal(t, X, jp)
     
     n = numel(X);
     ith = jp.ith;
@@ -35,23 +36,24 @@ function J = f_jacobian_fd(t, X, jp)
     if jp.medtherm
         Tm = d.var(X, itm);
         if jp.masstrans
-            theta_bw = jp.theta_bw(X);
+            theta_bw = jp.theta_bw(t,X);
             wc = jp.wall;
-            [~,dr] = f_wall_mass_bc([theta_bw, Tm.v(2), Tm.v(3), th.v(end-1), ...
-                th.v(end-2), kvs.v(end), kvs.v(end-1), kvs.v(end-2), P.v], wc);
-            cols = [itm(2) itm(3) ith(end-1) ith(end-2) ikv(end) ...
-                ikv(end-1) ikv(end-2) 3];
-            row = sparse(1, cols, -dr(2:9)/dr(1), 1, n);
+            im = wc.iwall_m;
+            ib = wc.iwall_b;
+            [~,dr] = f_wall_mass_bc([theta_bw, Tm.v(im)', th.v(ib)', ...
+                kvs.v(end), kvs.v(ib)', P.v], wc);
+            cols = [itm(im) ith(ib) ikv(end) ikv(ib) 3];
+            row = sparse(1, cols, -dr(2:end)/dr(1), 1, n);
         else
             gTm = jp.wall.grad_Tm;
             gTr = jp.wall.grad_Tr;
             % same root as the solver; for c2*u^2 + 2*c1*u + q(K) = 0 the
             % implicit derivative is d(theta_w)/dK = -u/(c2*u + c1)
-            theta_bw = jp.theta_bw(X);
+            theta_bw = jp.theta_bw(t,X);
             u = sqrt(1 + 2*jp.alpha_g*theta_bw);
             dK = -u/(gTr(1)*u + gTm(1));
-            row = sparse(1, [itm(2) itm(3) ith(end-1) ith(end-2)], ...
-                dK*[gTm(2) gTm(3) gTr(2) gTr(3)], 1, n);
+            row = sparse(1, [itm(jp.wall.iwall_m) ith(jp.wall.iwall_b)], ...
+                dK*[gTm(2:end) gTr(2:end)], 1, n);
         end
         th = d.set(th, nth, struct('v',theta_bw,'J',row));
     end

@@ -2,7 +2,7 @@
 % brief contains function f_diff_mat
 
 % brief This function returns the node positions and the differentiation
-% matrix of the nodal thermal solver for either spatial discretization.
+% matrix of the nodal solver f_imr_nodal for either spatial discretization.
 %   [y, D] = f_diff_mat(nodes, order, tm_check, scheme)
 % order    : 1 for d/dy, 2 for the second-derivative operator
 % tm_check : 0 for the interior (bubble) grid on y = r/R in [0, 1], where
@@ -11,7 +11,7 @@
 %            1 for the exterior (medium) grid on xi in [1, -1]
 % scheme   : 0 finite differences (uniform grid, second-order stencils),
 %            1 Chebyshev collocation
-% The finite difference operators are those of f_imr_fd: central
+% The finite difference operators are second-order: central
 % differences in the interior, (1 +- dy/y) for the Laplacian, (-6, 6)/dy^2
 % at the center, the one-sided (0.5, -2, 1.5)/dy wall row for the first
 % derivative, and zero boundary rows otherwise. The Chebyshev interior
@@ -32,7 +32,7 @@ function [y, D] = f_diff_mat(nodes, order, tm_check, scheme)
     
 end
 
-% finite difference operators, identical to f_finite_diff_mat in f_imr_fd
+% finite difference operators
 function [y, dmatrix] = f_finite_diff(nodes, order, Tm_check)
     
     % coordinate creation

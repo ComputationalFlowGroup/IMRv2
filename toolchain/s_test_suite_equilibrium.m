@@ -33,7 +33,9 @@ for radial = 1:4
         for medtherm = 0:1
             for vapor = 0:1
                 for stress = 0:5
-                    if bubtherm == 0 && medtherm == 1
+                    % no medium heat transfer without bubble heat transfer,
+                    % nor with the enthalpy forms (radial 3, 4)
+                    if (bubtherm == 0 || radial >= 3) && medtherm == 1
                         count = count + 2;
                         continue;
                     end
@@ -50,7 +52,7 @@ for radial = 1:4
                         't8',T8};
                     % dimensional (SI) values converted to the solver's dimensionless inputs
                     varin = f_dim2nondim(varin{:});
-                    [~,Rf_test] = f_imr_fd(varin{:},'Nt',150,'Mt',150);
+                    [~,Rf_test] = f_imr_nodal(varin{:},'Nt',150,'Mt',150);
                     [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);
                     errors_fd(count) = abs(norm(Rf_test,2)/10-1);
                     errors_sp(count) = abs(norm(Rs_test,2)/10-1);

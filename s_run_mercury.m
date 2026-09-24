@@ -49,11 +49,11 @@ varin = {'progdisplay',0,...
 % dimensional (SI) values converted to the solver's dimensionless inputs
 varin = f_dim2nondim(varin{:});
 
-[t3,R3,U3,P3] = f_imr_fd(varin{:},'radial',radial,'Nt',50,'Mt',50);
+[t3,R3,U3,P3] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
 radial = 5;
-[t4,R4,U4,P4] = f_imr_fd(varin{:},'radial',radial,'Nt',50,'Mt',50);
+[t4,R4,U4,P4] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
 % radial = 6;
-% [t5,R5,U5,P5] = f_imr_fd(varin{:},'radial',radial,'Nt',50,'Mt',50);
+% [t5,R5,U5,P5] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
 figure(1)
 hold on;
 plot(t3,R3,'b-')

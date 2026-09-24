@@ -25,9 +25,10 @@ function p = f_checkers(p)
         '2 (Carreau-Yasuda), 3 (Powell-Eyring), 4 (modified Powell-Eyring), ' ...
         '5 (Cross), 6 (simplified Cross), or 7 (modified Cross)']);
     f_integer_in(p.wave_type, -3:3, 'wave_type', 'an integer in -3..3');
-    f_integer_in(p.method, [15 23 45], 'method', '15 (ode15s), 23 (ode23tb), or 45 (ode45)');
+    f_integer_in(p.method, [15 23], 'method', '15 (ode15s) or 23 (ode23tb)');
     f_integer_in(p.spectral, 0:1, 'spectral', '0 or 1');
     f_integer_in(p.jacobian, 0:2, 'jacobian', '0, 1, or 2');
+    f_integer_in(p.scheme, 0:1, 'scheme', '0 (finite difference) or 1 (Chebyshev)');
     f_integer_in(p.progdisplay, 0:1, 'progdisplay', '0 or 1');
     if ~(isnumeric(p.eps3) && isscalar(p.eps3) && p.eps3 >= 0 && p.eps3 <= 0.5)
         error('INPUT ERROR: eps3 must be in [0, 0.5]');
@@ -49,11 +50,20 @@ function p = f_checkers(p)
         error(['INPUT ERROR: the Mie-Gruneisen models (radial = 5, 6) support ' ...
             'only the polytropic bubble, set bubtherm = medtherm = masstrans = 0']);
     end
+    if p.radial >= 3 && p.medtherm == 1
+        error(['INPUT ERROR: the enthalpy forms (radial = 3, 4) take ' ...
+            'the liquid at the far-field temperature, so medium heat ' ...
+            'transfer (medtherm = 1) is not available; use radial = 1 or 2']);
+    end
     if strcmp(p.solver,'spectral') && p.masstrans == 1
         error(['INPUT ERROR: masstrans = 1 is not available in the spectral ' ...
-            'solver, use f_imr_fd']);
+            'solver, use f_imr_nodal']);
     end
-    if strcmp(p.solver,'fd') && p.spectral == 1 && p.stress == 5
+    if strcmp(p.solver,'spectral') && p.scheme ~= 0
+        error(['INPUT ERROR: scheme selects the differentiation matrices of ' ...
+            'f_imr_nodal; f_imr_spectral takes no scheme']);
+    end
+    if strcmp(p.solver,'nodal') && p.spectral == 1 && p.stress == 5
         error(['INPUT ERROR: the spectral stress representation (spectral = 1) ' ...
             'is available in f_imr_spectral only']);
     end
@@ -127,6 +137,10 @@ f_positive({'Cstar','GAMa','nstate','hugoniot_s'}, ...
 f_dimensional_hint(p.Cstar < 1, 'Cstar (= C8/Uc)', p.Cstar);
 
 % non-Newtonian viscosity
+if p.nu_model > 0 && p.stress == 0
+    error(['INPUT ERROR: nu_model = %d needs a viscous stress model; ' ...
+        'stress = 0 has no viscous stress, use stress = 1 to 5'], p.nu_model);
+end
 if p.nu_model > 0
     f_nonnegative({'DRe','v_lambda','v_nc'}, {p.DRe, p.v_lambda_star, p.v_nc});
     if p.DRe == 0

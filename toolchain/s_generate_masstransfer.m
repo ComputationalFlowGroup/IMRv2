@@ -40,10 +40,15 @@ if isempty(gcp('nocreate'))
     parpool('local',12);
 end
 
-% parallel dispatch
-futures(total_combinations) = parallel.FevalFuture;
+% parallel dispatch; the enthalpy forms (radial 3, 4) take the liquid at
+% the far-field temperature, so their medium heat transfer cases are not
+% run (their file indices are kept so the others map to the same files)
+[~, med_v, ~, rad_v] = ind2sub(dims, 1:total_combinations);
+run_idx = find(~(radial_vec(rad_v) >= 3 & medtherm_vec(med_v) == 1));
+futures(numel(run_idx)) = parallel.FevalFuture;
 
-for idx_mass = 1:total_combinations
+for q = 1:numel(run_idx)
+    idx_mass = run_idx(q);
     [stress_idx, medtherm_idx, bubtherm_idx, radial_idx] = ind2sub(dims, idx_mass);
     
     radial   = radial_vec(radial_idx);
@@ -64,12 +69,13 @@ for idx_mass = 1:total_combinations
     % dimensional (SI) values converted to the solver's dimensionless inputs
     varin = f_dim2nondim(varin{:});
     
-    futures(idx_mass) = parfeval(@f_imr_fd_wrapper, 1, varin);
+    futures(q) = parfeval(@f_imr_nodal_wrapper, 1, varin);
 end
 
 % save results in the correct order
-for idx_mass = 1:total_combinations
-    [completedIdx, result] = fetchNext(futures);
+for q = 1:numel(run_idx)
+    [completedQ, result] = fetchNext(futures);
+    completedIdx = run_idx(completedQ);
     f_savefile_fd(filenames_mass{completedIdx}, result);
     fprintf('Saved result %d to %s\n', completedIdx, filenames_mass{completedIdx});
 end
@@ -77,10 +83,10 @@ end
 delete(gcp('nocreate'));
 
 % deterministic setup per worker
-function Rm = f_imr_fd_wrapper(varin)
+function Rm = f_imr_nodal_wrapper(varin)
     % fixed RNG seed
     rng(12345, 'twister');
-    [~, Rm] = f_imr_fd(varin{:}, 'Nt', 70, 'Mt', 70);
+    [~, Rm] = f_imr_nodal(varin{:}, 'Nt', 70, 'Mt', 70);
 end
 
 

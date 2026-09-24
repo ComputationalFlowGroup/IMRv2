@@ -32,7 +32,7 @@ masstrans       = 0;
 TFin            = 3.903439778613622;
 % time span vector
 TVector         = linspace(0,TFin,128);
-% ode45 setting for the time stepper
+% stiff time integrator: 15 ode15s, 23 ode23tb
 method          = 23;
 % force spectral collocation solution
 spectral        = 0;
@@ -53,9 +53,12 @@ rtol            = 1e-8;
 % absolute tolerance of the time integrator
 atol            = 1e-8;
 % Jacobian for the stiff integrators, both solvers
-% 0 : dense numerical, 1 : sparsity pattern (finite difference solver;
-% numerical in the spectral solver), 2 : analytic
+% 0 : dense numerical, 1 : sparsity pattern (nodal solver; numerical in
+% the spectral solver), 2 : analytic
 jacobian        = 2;
+% differentiation matrices of the nodal solver f_imr_nodal
+% 0 : finite difference, 1 : Chebyshev
+scheme          = 0;
 
 % initial conditions
 

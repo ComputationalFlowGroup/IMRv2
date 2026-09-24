@@ -2,14 +2,14 @@
 % brief contains function f_dim2nondim
 
 % brief This side function converts dimensional (SI) physical properties
-% into the dimensionless inputs taken by the IMR solvers (f_imr_fd,
+% into the dimensionless inputs taken by the IMR solvers (f_imr_nodal,
 % f_imr_spectral). It is not called by the solvers: the solvers accept only
 % dimensionless inputs, and this helper is provided for users who start
 % from dimensional values.
 %
 % Usage:
 %   [varin, ref] = f_dim2nondim('r0',50e-6,'req',5e-6,'mu',1e-2,'g',1e3);
-%   [t, R] = f_imr_fd(varin{:}, 'radial', 2, 'Nt', 50);
+%   [t, R] = f_imr_nodal(varin{:}, 'radial', 2, 'Nt', 50);
 %   % t*ref.t0 is the time in s, R*ref.R0 the radius in m
 %
 % Dimensional inputs (SI units) and their defaults:

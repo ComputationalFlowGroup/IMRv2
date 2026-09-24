@@ -8,7 +8,7 @@
 % otherwise the default case is read. The case can be altered with
 % name/value pairs when invoking either the finite difference or spectral
 % module. The inputs are checked by f_checkers. The first argument names
-% the calling solver, 'fd' or 'spectral'.
+% the calling solver, 'nodal' or 'spectral'.
 function [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
     acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = ...
     f_call_params(solver, varargin)
@@ -39,6 +39,10 @@ end
 if defaultread
     disp('Case file: Using default case file');
     run('default_case.m');
+end
+% case files written before the nodal solver have no scheme setting
+if ~exist('scheme','var')
+    scheme = 0;
 end
 
 % overrides defaults with the dimensionless inputs
@@ -73,6 +77,7 @@ for n = 1:2:numel(varargin)
         case 'reltol',      rtol = varargin{n+1};
         case 'abstol',      atol = varargin{n+1};
         case 'jacobian',    jacobian = varargin{n+1};
+        case 'scheme',      scheme = varargin{n+1};
         case 'tfin',        TFin = varargin{n+1};
         tfinset = 1;
         case 'tvector',     TVector = varargin{n+1};
@@ -193,9 +198,16 @@ end
 Pb_star = P0_star + Pv_star;
 % medium to gas conductivity ratio over the grid stretching length
 iota = Km_star/Lt;
-% non-Newtonian viscosity contribution
+% non-Newtonian viscosity contribution, (mu0 - mu8)*f/DRe. It modifies the
+% instantaneous viscous stress: the whole viscosity for stress 1 and 2 and
+% the solvent part, the fraction LAM, for stress 3 to 5 (whose viscous
+% term is 4*LAM/Re8*Rdot/R); iDRe carries that fraction so that the stress
+% integral, its time derivative and the Rddot coefficient of the radial
+% equations use the same factor
 if DRe == 0
     iDRe = 0;
+elseif stress >= 3
+    iDRe = LAM/DRe;
 else
     iDRe = 1/DRe;
 end
@@ -217,7 +229,7 @@ chk = f_checkers(struct('solver',solver, ...
     'stress',stress, 'eps3',eps3, 'vapor',vapor, 'masstrans',masstrans, ...
     'collapse',collapse, 'method',method, 'spectral',spectral, ...
     'divisions',divisions, 'Nv',Nv, 'Nt',Nt, 'Mt',Mt, 'Lv',Lv, 'Lt',Lt, ...
-    'rtol',rtol, 'atol',atol, 'jacobian',jacobian, ...
+    'rtol',rtol, 'atol',atol, 'jacobian',jacobian, 'scheme',scheme, ...
     'tflag',tfinset + tvecset, 'tvector',tvector, 'progdisplay',progdisplay, ...
     'Req',Req_zero, 'Rdotzero',Rdotzero, 'P0_star',P0_star, ...
     'Pv_star',Pv_star, 'Pv_sat',Pv_sat, 'thetav',thetav, ...
@@ -281,7 +293,8 @@ if stress0set
     end
 elseif (stress == 3 || stress == 4) && collapse
     % stress at the maximum radius of the collapse
-    Szero = f_init_stress(Req_zero, Re8, Ca, De, We, Cstar, Pv_star);
+    Szero = f_init_stress(Req_zero, Re8, Ca, De, We, Cstar, Pv_star, ...
+        alphax*(stress == 4));
 else
     % TODO initial max stress for UCM and Oldroyd-B
     Szero = zeros(nstress,1);
@@ -292,7 +305,8 @@ end
 % equation settings
 eqns_opts = [radial bubtherm medtherm stress eps3 masstrans];
 % solver options
-solve_opts = [method spectral divisions Nv Nt Mt Lv Lt rtol atol jacobian];
+solve_opts = [method spectral divisions Nv Nt Mt Lv Lt rtol atol jacobian ...
+    scheme];
 % dimensionless initial conditions
 init_opts = [Rzero Rdotzero Pb_star Pv_star Req_zero alphax];
 % dimensionless initial stress

@@ -25,7 +25,9 @@ G = 1E3;
 alphax = 0.5;
 lambda1 = 1E-3;
 lambda2 = 0;
-radial = 3;
+% Keller-Miksis in pressure: the enthalpy forms (radial 3-6) do not allow
+% medium heat transfer; the stored results were generated with radial = 3
+radial = 2;
 stress = 2;
 maxNumCompThreads(16);
 
@@ -53,5 +55,5 @@ varin = {'progdisplay',1,...
 % dimensional (SI) values converted to the solver's dimensionless inputs
 varin = f_dim2nondim(varin{:});
 
-[tvec,Rvec] = f_imr_fd(varin{:});
+[tvec,Rvec] = f_imr_nodal(varin{:});
 save("fd_Nt_1024_Mt_1024.mat","tvec","Rvec");

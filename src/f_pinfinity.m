@@ -1,7 +1,7 @@
 % file f_pinfinity.m
 % brief contains function f_pinfinity
 
-% brief This function the time-dependent external pressure in the
+% brief This function computes the time-dependent external pressure in the
 % surrounding material that drives the bubble oscillations. The function
 % features wave types: experimentally-derived, impulse, Gaussian,
 % histotripsy, and Heaviside impulse. The time t may be a scalar or an

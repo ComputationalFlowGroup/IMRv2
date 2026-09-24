@@ -23,11 +23,11 @@ The *input* column is the name used in the name/value call (case-insensitive).
 ### Equation options
 | Input | Variable | Description | Default |
 |-------|----------|-------------|---------|
-| `radial` | `radial` | 1 Rayleigh–Plesset, 2 Keller–Miksis (pressure), 3 Keller–Miksis (enthalpy, Tait), 4 Gilmore (Tait), 5 Keller–Miksis (Mie–Grüneisen), 6 Gilmore (Mie–Grüneisen). Radial 5 and 6 support only the polytropic bubble. | 1 |
+| `radial` | `radial` | 1 Rayleigh–Plesset, 2 Keller–Miksis (pressure), 3 Keller–Miksis (enthalpy, Tait), 4 Gilmore (Tait), 5 Keller–Miksis (Mie–Grüneisen), 6 Gilmore (Mie–Grüneisen). Radial 3–6 do not allow medium heat transfer, and radial 5 and 6 support only the polytropic bubble. | 1 |
 | `bubtherm` | `bubtherm` | Thermal PDE in the bubble (0/1) | 0 |
-| `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1`) | 0 |
+| `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1` and `radial` 1 or 2) | 0 |
 | `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B | 0 |
-| `eps3` | `eps3` | Second-order strain term, in [0, 0.5] | 0 |
+| `eps3` | `eps3` | Second-order strain term, in [0, 0.5]; currently unused by the stress models | 0 |
 | `vapor` | `vapor` | Vapor pressure (0/1) | 0 |
 | `masstrans` | `masstrans` | Vapor mass transfer (0/1, requires `bubtherm = vapor = 1`) | 0 |
 
@@ -36,19 +36,20 @@ The *input* column is the name used in the name/value call (case-insensitive).
 |-------|----------|-------------|---------|
 | `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 |
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` |
-| `method` | `method` | 15 `ode15s`, 23 `ode23tb`, 45 `ode45` | 23 |
+| `method` | `method` | Stiff time integrator: 15 `ode15s`, 23 `ode23tb` | 23 |
 | `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `f_imr_spectral` only (0/1) | 0 |
-| `divisions` | `divisions` | Minimum number of time steps (0 automatic); with `divisions > 0` the integrator uses its default absolute tolerance | 0 |
+| `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 |
 | `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is used only by the spectral stress representation | 25, 25, 150 |
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 |
-| `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (FD solver; numerical in the spectral solver), 2 analytic | 2 |
+| `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (nodal solver; numerical in the spectral solver), 2 analytic | 2 |
+| `scheme` | `scheme` | Differentiation matrices of `f_imr_nodal`: 0 finite difference, 1 Chebyshev. `f_imr_spectral` takes no scheme | 0 |
 | `progdisplay` | `progdisplay` | Print progress (every right-hand-side call; slows runs) | 0 |
 
 ### Initial conditions
 | Input | Variable | Definition | Default |
 |-------|----------|------------|---------|
-| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `f_imr_fd`. | 0 |
+| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `f_imr_nodal`. | 0 |
 | `req` | `Req` | `Req/R0` | 0.2 |
 | `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 |
 | `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed |

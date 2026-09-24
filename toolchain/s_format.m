@@ -2,7 +2,7 @@
 % brief contains script to run formatting throughout the toolchain and src
 % folders
 
-% brief This script runs formats the toolchain and src code
+% brief This script formats the toolchain and src code
 close;
 clear;
 clc;

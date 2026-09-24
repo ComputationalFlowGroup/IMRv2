@@ -1,7 +1,7 @@
 # `s_test_suite_masstrans.m` Documentation
 
 ## Overview
-`s_test_suite_masstrans.m` validates the finite difference solver’s mass transfer implementation under various model settings.
+`s_test_suite_masstrans.m` validates the mass transfer implementation of the nodal solver (`f_imr_nodal`, finite difference scheme) under various model settings.
 
 ## Major Sections
 
@@ -19,13 +19,13 @@
    - Defines `tvector` for simulation.
    - Fixes `masstrans = 1`, `vapor = 1`, `collapse = 0`.
    - Sets the bubble geometry `R0 = 200e-6`, `Req = 35e-6` (SI units, converted with `f_dim2nondim`).
-   - Loops over `radial` 1–4 and `stress` 0–5 with `bubtherm = medtherm = 1`.
+   - Loops over `radial` 1–4 and `stress` 0–5 with `bubtherm = medtherm = 1`, skipping radial 3–4, which do not allow medium heat transfer (their stored results are kept but not compared).
 
 4. **Loop Over Test Cases**
    - Iterates over all combinations.
    - Builds `varin` parameters.
    - Loads reference `Rm` from test files.
-   - Executes `f_imr_fd(...,'Nt',70,'Mt',70)`, computes L2 error.
+   - Executes `f_imr_nodal(...,'Nt',70,'Mt',70)`, computes L2 error.
    - Records failures above `threshold`.
 
 5. **Summary**
@@ -37,7 +37,7 @@
 | Name            | Description                          |
 |-----------------|--------------------------------------|
 | `file_ids.mat`  | Test case identifiers                |
-| `f_imr_fd`      | Finite difference solver function    |
+| `f_imr_nodal`      | Finite difference solver function    |
 
 ## Outputs
 

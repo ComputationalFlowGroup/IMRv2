@@ -91,21 +91,30 @@ function [C, hB, hH] = f_mie_gruneisen_eos_scalar(pval)
     %   hH  - 1 / ρ(P) (for dot{h} = hH * dot{P})
     hH = 1/(1 + mu);
     
-    % compute enthalpy numerically: h(P) = ∫_{Pinf}^{P} (1/ρ(p')) dp'
-    integrand = @(pp) f_mie_rho_from_p_scalar(pp);
-    % enthalpy: h(P) = ∫_{Pinf}^P (1/ρ(p')) dp'
-    hB = integral(integrand, 1, pval, 'AbsTol', 1e-8, 'RelTol', 1e-8);
+    % enthalpy h(P) = ∫_1^P dp/ρ in closed form. With p = Cstar^2*g(mu),
+    % g = mu*(1 + nog*mu)/(1 - s*mu)^2, integration by parts gives
+    % h = [p/(1 + mu)] + Cstar^2*∫ g/(1 + mu)^2 dmu, and the partial
+    % fractions of g/(1 + mu)^2 have poles at mu = -1 and mu = 1/s. The
+    % differences are written so that they hold for s = 0 and near P = 1.
+    s = hugoniot_s;
+    mu1 = f_mie_mu(1);
+    dmu = mu - mu1;
+    A1 = -(2*nog + s - 1)/(1 + s)^3;
+    A2 = (nog - 1)/(1 + s)^2;
+    B2 = (s + nog)/(1 + s)^2;
+    G = A1*(log1p(dmu/(1 + mu1)) - log1p(-s*dmu/(1 - s*mu1))) + ...
+        A2*dmu/((1 + mu)*(1 + mu1)) + B2*dmu/((1 - s*mu)*(1 - s*mu1));
+    hB = pval/(1 + mu) - 1/(1 + mu1) + Cstar^2*G;
     
 end
 
-% function to compute rho(p) from Mie–Grüneisen EOS (scalar p)
-function rho = f_mie_rho_from_p_scalar(p)
-    A = p ./ Cstar^2;
-    a = A*hugoniot_s.^2 - nog;
+% density strain mu = rho - 1 of the Mie-Gruneisen EoS at pressure p
+function mu = f_mie_mu(p)
+    A = p/Cstar^2;
+    a = A*hugoniot_s^2 - nog;
     b = -2*A*hugoniot_s - 1;
-    
-    d = b.^2 - 4.*a.*A;
-    rho = 1 ./ (1 + 2.*A ./ (-b + sqrt(d)));
+    d = b^2 - 4*a*A;
+    mu = 2*A/(-b + sqrt(d));
 end
 
 end

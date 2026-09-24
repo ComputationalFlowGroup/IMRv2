@@ -53,9 +53,14 @@ if isempty(gcp('nocreate'))
     parpool('local',10);
 end
 
-% dispatch
-futures(total_valid, 1) = parallel.FevalFuture;
-for k = 1:total_valid
+% dispatch; the enthalpy forms (radial 3, 4) take the liquid at the
+% far-field temperature, so their medium heat transfer cases are not run
+% (their file indices are kept so the others map to the same files)
+[~,~,~,~,~,med_v,~,rad_v] = ind2sub(dims, valid_idx);
+run_k = find(~(radial_vec(rad_v) >= 3 & medtherm_vec(med_v) == 1));
+futures(numel(run_k), 1) = parallel.FevalFuture;
+for q = 1:numel(run_k)
+    k = run_k(q);
     idx_full = valid_idx(k);
     [lambda1_i, alphax_i, G_i, mu_i, stress_i, med_i, bub_i, rad_i] = ind2sub(dims, idx_full);
     
@@ -75,13 +80,14 @@ for k = 1:total_valid
         'Req',      Req, ...
         'R0',       R0);
     
-    futures(k) = parfeval(@f_generate_goldendata_wrapper, 3, k, params);
+    futures(q) = parfeval(@f_generate_goldendata_wrapper, 3, k, params);
 end
 
 % collect & save
-for i = 1:total_valid
+for i = 1:numel(run_k)
     try
-        [jobID, Rf, Rs] = fetchNext(futures);
+        [q, Rf, Rs] = fetchNext(futures);
+        jobID = run_k(q);
         diff = norm(abs(Rf./Rs - 1), 2);
         if norm(abs(Rf./Rs - 1), 2) < threshold
             f_savefile_fd(filenames_fd{jobID}, Rf);
@@ -90,7 +96,7 @@ for i = 1:total_valid
         else
             error('Mismatch at idx %d, diff :: %.5E\n', i, diff);
         end
-    catch
+    catch ME
         fprintf('✗ Job %d failed: %s\n', i, ME.message);
         error('stopping');
     end
@@ -118,7 +124,7 @@ function [Rf, Rs, jobID] = f_generate_goldendata_wrapper(jobID, P)
         'stress',P.stress};
     % dimensional (SI) values converted to the solver's dimensionless inputs
     args = f_dim2nondim(args{:});
-    [~, Rf] = f_imr_fd(args{:}, 'Nt', 70, 'Mt', 70);
+    [~, Rf] = f_imr_nodal(args{:}, 'Nt', 70, 'Mt', 70);
     [~, Rs] = f_imr_spectral(args{:}, 'Nt', 12, 'Mt', 12);
 end
 

@@ -2,7 +2,8 @@
 % brief contains script to test for compatibility conditions
 
 % brief This script runs both the finite difference and spectral codes to
-% test to ensure compatibility between including thermal conditions
+% check that they run with each combination of radial, thermal and stress
+% models
 clc;
 clear;
 close;
@@ -56,6 +57,12 @@ failed_tests = zeros(size(errors_sp));
 for k = 1:total_valid
     idx_full = valid_idx(k);
     [lambda1_i, alphax_i, G_i, mu_i, stress_i, med_i, bub_i, rad_i] = ind2sub(dims, idx_full);
+    % the enthalpy forms (radial 3, 4) take the liquid at the far-field
+    % temperature, so medium heat transfer is rejected; the stored result
+    % for this index is kept but not compared
+    if radial_vec(rad_i) >= 3 && medtherm_vec(med_i) == 1
+        continue;
+    end
     
     varin = { ...
         'radial',   radial_vec(rad_i), ...
@@ -77,7 +84,7 @@ for k = 1:total_valid
     varin = f_dim2nondim(varin{:});
     
     load(filenames_fd{k});
-    [~,Rf_test] = f_imr_fd(varin{:},'Nt',70,'Mt',70);
+    [~,Rf_test] = f_imr_nodal(varin{:},'Nt',70,'Mt',70);
     errors_fd(k) = norm(abs(Rf./Rf_test - 1),2);
     fprintf('Finite test %d: L2 norm error = %.6e\n', k, errors_fd(k));
     if (errors_fd(k) > threshold)

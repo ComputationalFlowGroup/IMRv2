@@ -19,6 +19,6 @@
 #SBATCH -o forsim-%j.out
 #SBATCH -e forsim-%j.err
 
-# Run a matlab function called 'foo.m' in the same directory as this batch script.
-matlab-threaded -nodisplay -r "f_multirun_official(); exit"
+# Run f_multirun, in the same directory as this batch script, and save its results.
+matlab-threaded -nodisplay -r "[newtonian, neohook, voigt, ucm, oldb] = f_multirun(); save('multirun.mat'); exit"
 

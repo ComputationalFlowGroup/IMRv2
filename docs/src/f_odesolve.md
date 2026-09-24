@@ -1,14 +1,13 @@
 # `f_odesolve.m` Documentation
 
 ## Overview
-`f_odesolve` is a wrapper that selects and executes MATLAB's ODE solvers (`ode15s`, `ode23tb`, `ode45`) with user-defined time stepping and tolerance options.
+`f_odesolve` is a wrapper that selects and executes MATLAB's stiff ODE solvers (`ode15s`, `ode23tb`) with user-defined time stepping and tolerance options.
 
 ## Major Sections
-1. **Options Configuration**: Sets `RelTol` and `AbsTol`, or `RelTol` and `MaxStep` when `divisions > 0`, and `JPattern` or `Jacobian` when `Sp` is given.
+1. **Options Configuration**: Sets `RelTol` and `AbsTol`, plus `MaxStep` when `divisions > 0`, and `JPattern` or `Jacobian` when `Sp` is given.
 2. **Solver Selection**: Routes to the correct solver based on `method` code:
    - 15 → `ode15s`
    - 23 → `ode23tb`
-   - 45 → `ode45`
 3. **Execution**: Calls the selected solver and returns results.
 
 ## Inputs
@@ -17,7 +16,7 @@
 |------------|----------------------------------------------|---------|
 | `bubble`   | Function handle for ODE system               | –       |
 | `init`     | Initial condition vector                     | –       |
-| `method`   | Solver choice (15, 23, or 45)                | –       |
+| `method`   | Solver choice (15 or 23)                     | –       |
 | `divisions`| Minimum number of time steps (0 = automatic) | –       |
 | `tspan`    | Time span or output time vector              | –       |
 | `Sp`       | Optional: Jacobian sparsity pattern (`JPattern`) or analytic Jacobian function handle | – |
@@ -33,4 +32,4 @@
 
 ## Notes
 - Throws an error for unsupported `method` codes.
-- `MaxStep` is set to `tspan(end)/divisions` when `divisions > 0`. In that case `atol` is not passed on, so the integrator uses its default absolute tolerance.
+- `MaxStep` is set to `tspan(end)/divisions` when `divisions > 0`.
