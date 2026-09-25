@@ -75,7 +75,7 @@ GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has
     % file f_example.m
     % brief contains function f_example
 
-    % Copyright (C) Mauro Rodriguez
+    % Copyright (C) The IMR developers (see README.md)
     % SPDX-License-Identifier: GPL-3.0-or-later
 
     % brief This function computes ... (one or two sentences on what it does)

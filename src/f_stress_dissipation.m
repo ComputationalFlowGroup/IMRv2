@@ -1,7 +1,7 @@
 % file f_stress_dissipation.m
 % brief contains function f_stress_dissipation
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function computes the stress dissipation term, \tau : \nabla u.

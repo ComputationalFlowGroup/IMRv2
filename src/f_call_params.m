@@ -1,7 +1,7 @@
 % file f_call_params.m
 % brief contains function f_call_params
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function sets up the simulation environment. All inputs are

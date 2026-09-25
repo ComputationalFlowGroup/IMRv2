@@ -1,7 +1,7 @@
 % file s_test_suite_compatibility.m
 % brief contains script to test for compatibility conditions
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script runs both the finite difference and spectral codes to

@@ -1,7 +1,7 @@
 % file f_multirun.m
 % brief contains function f_multirun
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function sweeps the material parameters of the Newtonian,

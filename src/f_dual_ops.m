@@ -1,7 +1,7 @@
 % file f_dual_ops.m
 % brief contains function f_dual_ops
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function returns the operations used by the analytic

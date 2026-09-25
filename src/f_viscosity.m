@@ -1,7 +1,7 @@
 % file f_viscosity.m
 % brief contains function f_viscosity
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function computes the non-Newtonian viscosity integrals for

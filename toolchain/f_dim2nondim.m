@@ -1,7 +1,7 @@
 % file f_dim2nondim.m
 % brief contains function f_dim2nondim
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This side function converts dimensional (SI) physical properties

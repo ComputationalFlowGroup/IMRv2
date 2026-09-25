@@ -1,7 +1,7 @@
 % file s_test_suite_masstrans.m
 % brief contains script to test for mass transfer condition
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script runs the finite difference codes to

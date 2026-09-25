@@ -1,7 +1,7 @@
 % file f_imr_spectral.m
 % brief contains function f_imr_spectral
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function features a Chebyshev spectral collocation solver of

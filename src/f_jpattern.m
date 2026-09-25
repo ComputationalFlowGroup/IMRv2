@@ -1,7 +1,7 @@
 % file f_jpattern.m
 % brief contains function f_jpattern
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function builds a conservative Jacobian sparsity pattern for

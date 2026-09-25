@@ -1,7 +1,7 @@
 % file f_checkers.m
 % brief contains function f_checkers
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function checks the compatibility of the model conditions and

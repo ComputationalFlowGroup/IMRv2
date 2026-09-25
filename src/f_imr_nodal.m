@@ -1,7 +1,7 @@
 % file f_imr_nodal.m
 % brief contains function f_imr_nodal
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function features the nodal solver of the PDEs involving

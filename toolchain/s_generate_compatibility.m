@@ -1,7 +1,7 @@
 % file s_generate_compatibility.m
 % brief contains script to generate golden data for IMR compatibility cases
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script generates the golden data for compatibility cases
