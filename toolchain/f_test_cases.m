@@ -148,10 +148,12 @@ function cases = f_test_cases(suite)
         % UCM / Oldroyd-B with the stress field (spectral solver only)
         specs(end+1,:) = {'r2_s5_field', [km, {'stress', 5, 'spectral', 1, ...
             'Nv', 40}]};
-        % collapse, which needs the full model with mass transfer
+        % collapse, which needs the full model with mass transfer, with the
+        % soft material: with the stiff one the quadratic model's collapse
+        % is too violent to converge with resolution
         for stress = [0 1 3 4]
             specs(end+1,:) = {sprintf('r2_collapse_s%d', stress), [common, ...
-                coll, mats{2}, f_thermal(thermal(5,:)), {'radial', 2, ...
+                coll, mats{1}, f_thermal(thermal(5,:)), {'radial', 2, ...
                 'stress', stress}]}; %#ok<AGROW>
             specs{end,2}{find(strcmp(specs{end,2}, 'collapse'), 1) + 1} = 1;
         end

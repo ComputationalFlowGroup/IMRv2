@@ -29,7 +29,7 @@ From [`f_test_cases('regression')`](f_test_cases.md). Only the combinations the 
     - The seven non-Newtonian viscosity models.
     - The Gaussian, histotripsy and Heaviside waveforms.
     - The UCM / Oldroyd-B stress field (`spectral = 1`, spectral solver only).
-    - Collapse with stress 0, 1, 3 and 4, up to the first collapse and rebound (20 µs). This is nodal solver only, since collapse needs mass transfer.
+    - Collapse with stress 0, 1, 3 and 4, with the soft material, up to the first collapse and rebound (20 µs). This is nodal solver only, since collapse needs mass transfer.
 
 ## Check
 
@@ -58,3 +58,9 @@ Regenerate them only when a change of results is intended and agreed (see Contri
 - **Cross-mode report.** For the cases the modes share, it reports the largest relative difference between them, and lists any case above `1e-2`. This is a sanity check on the new results, not a test: the grids differ, and violent runs may differ more.
 
 A new case added to `f_test_cases` fails the suite until its result is stored.
+
+## Checked in GNU Octave
+
+The generator and the suite were run end to end in GNU Octave, with `ode15s` standing in for `ode23tb`, into a scratch folder. Octave results are not committed, since MATLAB's would differ. The generator completed all 615 cases, and the suite then passed all 615 against them.
+
+In the cross-mode report, Chebyshev and the spectral solver agree with finite differences to about 2% on the cases without mass transfer. The mass-transfer cases differ by up to 11% between the two nodal schemes. At `Nt = Mt = 20` (Chebyshev) and 70 (finite differences), neither nodal scheme is resolved for mass transfer: the convergence study in the `f_imr_nodal` documentation needs about 40 Chebyshev points. The suite checks that results are reproduced, not that they are accurate, so these grids are adequate.
