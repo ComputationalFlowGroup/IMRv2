@@ -38,3 +38,6 @@ Compared with the previous version, which called `integral` twice at `1e-8`, the
 | `dintf`  | `Rdot` part of `d(intf)/dt`, `-d(gammadot_R*R^3)/dt*I2 + h` with the Leibniz term `h = f*gammadot_R*Rdot/R` |
 | `ddintf` | `Rddot` coefficient of `d(intf)/dt`, `2*R^2*I2` |
 | `fq`     | Optional: viscosity factor `f(x_R*yq^-3)` at the radii `r/R = yq` (seventh input). The solvers pass the medium grid and use it for the viscous dissipation. |
+
+## Notes
+- `R` and `Rdot` may be row vectors (the batched right-hand side of [`f_imr_nodal`](f_imr_nodal.md#batched-right-hand-side)), giving one output column per state. With one state the result is the same as before bit for bit.

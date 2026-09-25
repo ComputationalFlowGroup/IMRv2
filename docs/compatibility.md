@@ -98,4 +98,4 @@ Octave needs two stand-ins for MATLAB behavior:
 - **No `ode23tb`.** `ode15s` with a dense Jacobian stood in for it.
 - **A different `fzero`.** Octave's `fzero` throws an error where MATLAB's returns `NaN`, which breaks the collapse initial state. A stand-in with MATLAB's interval search was used.
 
-One Octave-only problem remains: `f_imr_nodal` with `method = 15` crashes Octave's `ode15s` on the sparse Jacobian. MATLAB is not affected.
+One Octave-only problem remains: Octave's `ode15s` can crash on a sparse Jacobian function whose number of nonzeros changes between calls, as the analytic Jacobian's does when an entry happens to be zero. That hits `f_imr_nodal` with `jacobian = 2` on violent runs. The batched finite-difference Jacobian (`jacobian = 3`) is dense and avoids it. MATLAB is not affected.

@@ -54,7 +54,7 @@ IMR characterizes soft materials at high strain rates. It simulates a cavitation
 - **Stress:** neo-Hookean and quadratic neo-Hookean Kelvin–Voigt; linear Maxwell, Jeffreys and Zener; UCM and Oldroyd-B.
 - **Viscosity:** Newtonian and seven non-Newtonian models (Carreau, Carreau–Yasuda, Powell–Eyring, modified Powell–Eyring, Cross, simplified Cross, modified Cross).
 - **Driving pressure:** impulse, Gaussian, histotripsy, Heaviside, and three measured waveforms from [Hersey, Rodriguez and Johnsen (2023)](https://doi.org/10.1121/10.0017342).
-- **Time integration:** the stiff integrators `ode15s` and `ode23tb`, with an analytic Jacobian where one is implemented.
+- **Time integration:** the stiff integrators `ode15s` and `ode23tb`, and CVODES (compiled SUNDIALS code, MATLAB R2024a or later), with an analytic Jacobian where one is implemented or a finite-difference Jacobian from one batched right-hand-side call (`jacobian = 3`, nodal solver).
 
 Not every combination is available. The [model compatibility grid](docs/compatibility.md) shows which features run together in each solver.
 
