@@ -1,6 +1,9 @@
 % file f_imr_spectral.m
 % brief contains function f_imr_spectral
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function features a Chebyshev spectral collocation solver of
 % the PDEs involving thermal transport and viscoelasticity coupled to the
 % radial (Rayleigh-Plesset family) dynamics
@@ -81,6 +84,9 @@ function varargout = f_imr_spectral(varargin)
     wave_dpoly      = wave_opts{3};
     
     pvarargin = {[om,ee,tw,dt,mn,wave_type], wave_poly, wave_dpoly};
+    % the impulse waveform is the constant pressure ee (f_pinfinity returns
+    % exactly ee and 0), so the right-hand side skips the call
+    wave_const = (wave_type == 0);
     
     % dimensionless viscoelastic
     We              = sigma_opts(1);
@@ -153,6 +159,10 @@ function varargout = f_imr_spectral(varargin)
         sCAd = sCAd(2:end,2:end);
         % dz/d(r/R) at the collocation points
         dzdy = (1-ze).^2/(2*Lv);
+        % constant factors of the stress transport, formed with the same
+        % operations as in f_spectral_stress, so results are unchanged
+        yV3 = yV.^3;
+        yV_adv = 1./yV.^2 - yV;
         % polymer viscosity and its relaxation coefficient
         etap = (1-LAM)/Re8;
     end
@@ -169,6 +179,13 @@ function varargout = f_imr_spectral(varargin)
     iyT3 = yT.^-3;
     iyT4 = yT.^-4;
     iyT6 = yT.^-6;
+    % constant factors of the medium temperature equation, formed with the
+    % same operations as in the right-hand side, so results are unchanged
+    xi1_sq = (1+xi).^2;
+    xi_adv = (1+xi)/(2*Lt) - 1./yT;
+    yT_adv = 1./yT2 - yT;
+    diff_m = Foh/4*(1+xi).^4;
+    alpha_gm1 = alpha_g - 1;
     % yV = 2*Lv./(1-ze) - Lv + 1;
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
     nn = sparse(nn);
@@ -323,7 +340,7 @@ function varargout = f_imr_spectral(varargin)
             dtheta = gDA*X(ia);
             ddtheta = gDDA*X(ia);
             % temperature and thermal diffusivity fields
-            T = (alpha_g - 1 + sqrt(1+2*alpha_g*theta))/alpha_g;
+            T = (alpha_gm1 + sqrt(1+2*alpha_g*theta))/alpha_g;
             D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
             
             % bubble pressure equation
@@ -344,10 +361,9 @@ function varargout = f_imr_spectral(varargin)
             if medtherm
                 % material temperature equations, derivatives from the
                 % Chebyshev coefficients
-                advection = (1+xi).^2/(Lt*R).*...
-                    (Foh/R*((1+xi)/(2*Lt) - 1./yT) + ...
-                    Rdot/2*(1./yT2 - yT)).*(mDA*X(ib));
-                diffusion = Foh/4*(1+xi).^4/(Lt^2*R^2).*(mDDA*X(ib));
+                advection = xi1_sq/(Lt*R).*...
+                    (Foh/R*xi_adv + Rdot/2*yT_adv).*(mDA*X(ib));
+                diffusion = diff_m/(Lt^2*R^2).*(mDDA*X(ib));
                 % stress dissipation
                 [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                     Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
@@ -375,7 +391,12 @@ function varargout = f_imr_spectral(varargin)
         end
         
         % pressure waveform
-        [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
+        if wave_const
+            Pf8 = ee;
+            Pf8dot = 0;
+        else
+            [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
+        end
         
         % stress equation evolution
         if spectral_stress
@@ -414,8 +435,8 @@ function varargout = f_imr_spectral(varargin)
         d = X(ivisco2);
         trr = sCA*c;
         ttt = sCA*d;
-        av = (Rdot/R)./yV.^3;
-        dzdt = dzdy.*(Rdot/R).*(1./yV.^2 - yV);
+        av = (Rdot/R)./yV3;
+        dzdt = dzdy.*(Rdot/R).*yV_adv;
         trrdot = -dzdt.*(sCAd*c) - trr/De - 4*av.*trr - 4*etap*av/De;
         tttdot = -dzdt.*(sCAd*d) - ttt/De + 2*av.*ttt + 2*etap*av/De;
         cdot = sCI*trrdot;
@@ -473,7 +494,12 @@ function varargout = f_imr_spectral(varargin)
     end
     
     function Rddot_loc = f_rddot(t,v,S_loc,Sdot_loc,ddintf_loc)
-        [Pf8_loc,Pf8dot_loc] = f_pinfinity(t,pvarargin);
+        if wave_const
+            Pf8_loc = ee;
+            Pf8dot_loc = 0;
+        else
+            [Pf8_loc,Pf8dot_loc] = f_pinfinity(t,pvarargin);
+        end
         Rddot_loc = f_radial_eq(radial, v(3), v(4), Pf8_loc, Pf8dot_loc, ...
             iWe, v(1), v(2), S_loc, Sdot_loc, Cstar, sam, no, GAMa, nstate, ...
             nog, hugoniot_s, JdotA, ddintf_loc, iDRe);

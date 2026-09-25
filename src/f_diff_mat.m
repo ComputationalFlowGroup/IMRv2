@@ -1,6 +1,9 @@
 % file f_diff_mat.m
 % brief contains function f_diff_mat
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function returns the node positions and the differentiation
 % matrix of the nodal solver f_imr_nodal for either spatial discretization.
 %   [y, D] = f_diff_mat(nodes, order, tm_check, scheme)

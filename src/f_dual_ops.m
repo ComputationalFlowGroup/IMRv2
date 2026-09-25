@@ -1,6 +1,9 @@
 % file f_dual_ops.m
 % brief contains function f_dual_ops
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function returns the operations used by the analytic
 % Jacobians (f_jacobian_nodal, f_jacobian_spectral). A quantity is carried as
 % a struct with its value v and its sparse derivative J = dv/dX with

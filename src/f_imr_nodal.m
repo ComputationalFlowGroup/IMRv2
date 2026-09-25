@@ -1,6 +1,9 @@
 % file f_imr_nodal.m
 % brief contains function f_imr_nodal
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function features the nodal solver of the PDEs involving
 % thermal transport, vapor mass transfer and viscoelasticity coupled to the
 % radial (Rayleigh-Plesset family) dynamics. The fields are carried as node
@@ -81,6 +84,9 @@ function varargout = f_imr_nodal(varargin)
     wave_dpoly      = wave_opts{3};
     
     pvarargin = {[om,ee,tw,dt,mn,wave_type], wave_poly, wave_dpoly};
+    % the impulse waveform is the constant pressure ee (f_pinfinity returns
+    % exactly ee and 0), so the right-hand side skips the call
+    wave_const = (wave_type == 0);
     
     % dimensionless viscoelastic
     We              = sigma_opts(1);
@@ -132,6 +138,12 @@ function varargout = f_imr_nodal(varargin)
     iyT3 = yT.^-3;
     iyT4 = yT.^-4;
     iyT6 = yT.^-6;
+    % constant factors of the medium temperature equation, formed with the
+    % same operations as in the right-hand side, so results are unchanged
+    xi1_sq = (1+xi).^2;
+    xi1_p4 = (xi+1).^4;
+    om_yT3 = 1-yT3;
+    xi_adv = (xi+1)/(2*Lt)-1./yT;
     
     % precomputations move these to f_call_params
     %LDR = LAM*De/Re8;
@@ -139,6 +151,11 @@ function varargout = f_imr_nodal(varargin)
     no = (nstate-1)/nstate;
     nog = (nstate-1)/2;
     kapover = (kappa-1)/kappa;
+    % Kirchhoff map T(theta) of the bubble without mass transfer, whose
+    % mixture coefficient is the constant kv0 (as in f_theta_of_T)
+    alpha_m0 = kv0.*alpha_v + (1-kv0).*alpha_g;
+    alpha_m0m1 = alpha_m0 - 1;
+    om_kv0 = 1-kv0;
     % dimensionless saturated vapor pressure, Pv(T) = C1_pv*exp(C2_pv/T)
     % with Pv(1) = Pv_star
     C1_pv = Pv_star*exp(thetav);
@@ -228,11 +245,15 @@ function varargout = f_imr_nodal(varargin)
     theta_bw_guess = -0.0001;
     foptions = optimset('TolFun',1e-12);
     % mass-transfer wall closure: fixed bracket on the wall vapor mass
-    % fraction and fixed iteration counts, so the cost per call is constant
+    % fraction and fixed iteration counts for the bracketed solve, which a
+    % Newton warm start from the previous root replaces when it converges
     kv_bracket = [1e-13, 1 - 1e-13];
     n_grid = 64;
     n_rounds = 2;
     n_polish = 3;
+    kv_w_guess = NaN;
+    n_warm = 6;
+    warm_tol = 1e-10;
     % constants of the bubble-wall heat (and mass) flux balance
     wallc = struct('grad_Tm',grad_Tm_coeff, 'grad_Tr',grad_Trans_coeff, ...
         'grad_C',grad_C_coeff, 'iwall_m',iwall_m, 'iwall_b',iwall_b, ...
@@ -283,15 +304,20 @@ function varargout = f_imr_nodal(varargin)
             % the wall entries of the state are not integrated (their time
             % derivatives are zero), so the wall state is recovered from the
             % wall closure at every output time, as the right-hand side does
+            % (the loop index is named it_out because a nested function shares
+            % any variable name that the parent also uses)
             kv_w = zeros(numel(t),1);
             theta_bw_guess = theta(1,end);
-            for k = 1:numel(t)
+            kv_w_guess = NaN;
+            for it_out = 1:numel(t)
                 if masstrans
-                    [theta(k,end), kv_w(k)] = f_wall_mass_closure(Tm(k,:)', ...
-                        theta(k,:)', X(k,imass)', P(k), R(k), t(k));
+                    [theta(it_out,end), kv_w(it_out)] = f_wall_mass_closure( ...
+                        Tm(it_out,:)', theta(it_out,:)', X(it_out,imass)', ...
+                        P(it_out), R(it_out), t(it_out));
                 else
-                    theta(k,end) = f_wall_theta_exact(Tm(k,:)', theta(k,:)');
-                    theta_bw_guess = theta(k,end);
+                    theta(it_out,end) = f_wall_theta_exact(Tm(it_out,:)', ...
+                        theta(it_out,:)');
+                    theta_bw_guess = theta(it_out,end);
                 end
             end
         end
@@ -379,11 +405,12 @@ function varargout = f_imr_nodal(varargin)
             theta(end) = theta_bw;
         end
         
-        % bubble temperature
+        % bubble temperature, f_theta_of_T written out
         if masstrans
-            T = f_theta_of_T(theta,kv);
+            alpha_T = kv.*alpha_v + (1-kv).*alpha_g;
+            T = (alpha_T - 1 + sqrt(1+2*theta.*alpha_T)) ./ alpha_T;
         elseif bubtherm
-            T = f_theta_of_T(theta,kv0);
+            T = (alpha_m0m1 + sqrt(1+2*theta.*alpha_m0)) ./ alpha_m0;
         end
         
         % bubble equations of motion
@@ -404,26 +431,30 @@ function varargout = f_imr_nodal(varargin)
             % vapor concentration gradients inside the bubble
             dkv     = dmatrix_Tkv*kv;
             ddkv    = ddmatrix_Tkv*kv;
-            Rmix    = kv*Rv_star + (1-kv)*Rg_star;
-            RDkv    = (Rva_diff./Rmix).*dkv;
+            om_kv   = 1-kv;
+            Rmix    = kv*Rv_star + om_kv*Rg_star;
+            wRmix   = Rva_diff./Rmix;
+            RDkv    = wRmix.*dkv;
             
             % bubble pressure equation
             Pdot = 3/R*(chi*(kappa-1)*dtheta(end)/R - kappa*P*Rdot +...
-                + kappa*P*Fom*Rv_star*dkv(end)/(T(end)*R*Rmix(end)*(1-kv(end))));
+                + kappa*P*Fom*Rv_star*dkv(end)/(T(end)*R*Rmix(end)*om_kv(end)));
             
             % bubble wall velocity equation
             Uvel = (chi/R*(kappa-1).*dtheta-y*R*Pdot/3)/(kappa*P) + Fom/R*RDkv;
             
             % mixture thermal conductivity
-            alpha_mix  = kv.*alpha_v + (1-kv).*alpha_g;
+            alpha_mix  = kv.*alpha_v + om_kv.*alpha_g;
             Kstar_g = alpha_g*T+beta_g;
             Kstar_v = alpha_v*T+beta_v;
-            Kstar   = kv.*Kstar_v + (1-kv).*Kstar_g;
+            Kstar   = kv.*Kstar_v + om_kv.*Kstar_g;
             
             % temperature evolution inside the bubble
             nonlinear_term = (chi*ddtheta./R^2+Pdot).*(kapover*Kstar.*T/P);
-            advection_term = -dtheta.*(Uvel-y*Rdot)/R;
-            mass_diffusion = (Fom/(R^2)).*(Rva_diff./Rmix).*dkv.*dtheta;
+            % gas velocity relative to the moving grid
+            u_rel = Uvel-y*Rdot;
+            advection_term = -dtheta.*u_rel/R;
+            mass_diffusion = (Fom/(R^2)).*wRmix.*dkv.*dtheta;
             thetadot = advection_term + nonlinear_term + mass_diffusion;
             % temperature at bubble wall, handled by flux boundary bc
             thetadot(end) = 0;
@@ -431,7 +462,7 @@ function varargout = f_imr_nodal(varargin)
             % water vapor evolution inside the bubble
             nonlinear_diffusion = ...
                 dkv.*(dtheta./(sqrt(1+2*alpha_mix.*theta).*T)+RDkv);
-            advection_term =  (Uvel-Rdot.*y)/R.*dkv;
+            advection_term = u_rel/R.*dkv;
             kvdot = Fom/R^2*(ddkv - nonlinear_diffusion) - advection_term;
             % concentration at bubble wall, handled by flux boundary bc
             kvdot(end) = 0;
@@ -440,7 +471,7 @@ function varargout = f_imr_nodal(varargin)
             % mixture thermal conductivity
             Kstar_g = alpha_g*T+beta_g;
             Kstar_v = alpha_v*T+beta_v;
-            Kstar   = kv0.*Kstar_v + (1-kv0).*Kstar_g;
+            Kstar   = kv0.*Kstar_v + om_kv0.*Kstar_g;
             
             % bubble temperature gradients
             dtheta  = dmatrix_Tkv*theta;
@@ -481,9 +512,9 @@ function varargout = f_imr_nodal(varargin)
             dTm = dmatrix_Tm*Tm;
             ddTm = ddmatrix_Tm*Tm;
             % material temperature equations
-            advection = (1+xi).^2./(Lt*R).*(Rdot./yT2.*(1-yT3)/2 +...
-                Foh/R.*((xi+1)/(2*Lt)-1./yT)).*dTm;
-            diffusion = Foh/R^2.*(xi+1).^4/Lt^2.*ddTm/4;
+            advection = xi1_sq./(Lt*R).*(Rdot./yT2.*om_yT3/2 +...
+                Foh/R.*xi_adv).*dTm;
+            diffusion = Foh/R^2.*xi1_p4/Lt^2.*ddTm/4;
             % stress dissipation
             [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                 Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
@@ -496,7 +527,12 @@ function varargout = f_imr_nodal(varargin)
         end
         
         % pressure waveform
-        [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
+        if wave_const
+            Pf8 = ee;
+            Pf8dot = 0;
+        else
+            [Pf8,Pf8dot] = f_pinfinity(t,pvarargin);
+        end
         
         % stress equation evolution
         [S,Sdot,Z1dot,Z2dot] = f_stress(stress,X,Req,R,Ca,De,Re8, ...
@@ -546,7 +582,12 @@ function varargout = f_imr_nodal(varargin)
             [~,intf_loc,dintf_loc,ddintf_loc] = f_viscosity(nu_model, ...
                 Rdotv,Rv,v_a,v_nc,v_lambda_star);
         end
-        [Pf8_loc,Pf8dot_loc] = f_pinfinity(t,pvarargin);
+        if wave_const
+            Pf8_loc = ee;
+            Pf8dot_loc = 0;
+        else
+            [Pf8_loc,Pf8dot_loc] = f_pinfinity(t,pvarargin);
+        end
         [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = f_stress(stress,X,Req,Rv, ...
             Ca,De,Re8,Rdotv,alphax,ivisco1,ivisco2,LAM, ...
             intf_loc,dintf_loc,iDRe);
@@ -573,12 +614,15 @@ function varargout = f_imr_nodal(varargin)
     % bubble-wall state with vapor mass transfer. The unknown is the wall
     % vapor mass fraction kv_w, confined to (0, 1). For a trial kv_w the
     % saturation condition gives the wall temperature and the Kirchhoff
-    % transform gives theta_w in closed form (f_wall_mass_residual), so the
-    % fixed bracket kv_bracket needs no initial guess. n_rounds rounds of
-    % n_grid residual evaluations, one vectorized call each, narrow the
-    % bracket to the grid interval with the sign change (the first round
-    % includes the bracket ends); n_polish Newton steps with the analytic
-    % derivative follow. There is no adaptive termination.
+    % transform gives theta_w in closed form (f_wall_mass_residual).
+    % Warm start: Newton with the analytic derivative from the previous root
+    % kv_w_guess, accepted once a step falls below warm_tol with every
+    % iterate inside kv_bracket, within n_warm steps. Otherwise (first call,
+    % divergence, a non-finite value) the bracketed solve, which needs no
+    % initial guess: n_rounds rounds of n_grid residual evaluations, one
+    % vectorized call each, narrow kv_bracket to the grid interval with the
+    % sign change (the first round includes the bracket ends), and n_polish
+    % Newton steps follow.
     function [theta_w, kv_w] = f_wall_mass_closure(Tm_in, th_in, kv_in, Pw, Rw, tw)
         % mixture coefficients from the stored wall value kv_in(end), not the
         % trial kv_w. Since kvdot(end) = 0 the stored value is the initial
@@ -601,12 +645,36 @@ function varargout = f_imr_nodal(varargin)
         carrier_fixed = grad_C_coeff(2:end)*kv_in(iwall_b);
         wp = [Pw, alpha_m, beta_m, flux_fixed, carrier_fixed];
         
+        % warm start from the previous root
+        kv_w = NaN;
+        if isfinite(kv_w_guess)
+            x = kv_w_guess;
+            for kw = 1:n_warm
+                [res, ~, ~, dres] = f_wall_mass_residual(x, wp);
+                step = res/dres;
+                x = x - step;
+                if ~(isfinite(x) && x > kv_bracket(1) && x < kv_bracket(2))
+                    break
+                end
+                if abs(step) <= warm_tol
+                    kv_w = x;
+                    break
+                end
+            end
+        end
+        if isfinite(kv_w)
+            kv_w_guess = kv_w;
+            [~, theta_w] = f_wall_mass_residual(kv_w, wp);
+            return
+        end
+        
+        % bracketed solve
         lo = kv_bracket(1);
         hi = kv_bracket(2);
-        for k = 1:n_rounds
+        for kr = 1:n_rounds
             kv_grid = linspace(lo, hi, n_grid);
             r_grid = f_wall_mass_residual(kv_grid, wp);
-            if k == 1
+            if kr == 1
                 r_lo = r_grid(1);
                 r_hi = r_grid(end);
                 if ~(isfinite(r_lo) && isfinite(r_hi)) || sign(r_lo) == sign(r_hi)
@@ -623,11 +691,12 @@ function varargout = f_imr_nodal(varargin)
             hi = kv_grid(ic+1);
         end
         kv_w = (lo + hi)/2;
-        for k = 1:n_polish
+        for kp = 1:n_polish
             [res, ~, ~, dres] = f_wall_mass_residual(kv_w, wp);
             % stay inside the final grid interval
             kv_w = min(max(kv_w - res/dres, lo), hi);
         end
+        kv_w_guess = kv_w;
         [~, theta_w] = f_wall_mass_residual(kv_w, wp);
     end
     
@@ -740,8 +809,8 @@ function varargout = f_imr_nodal(varargin)
             end
         else
             thetas = (uroots.^2 - 1)/(2*alpha_g);
-            [~,k] = min(abs(thetas - theta_bw_guess));
-            theta_bw = thetas(k);
+            [~,kmin] = min(abs(thetas - theta_bw_guess));
+            theta_bw = thetas(kmin);
         end
     end
     

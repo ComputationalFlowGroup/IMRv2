@@ -1,6 +1,9 @@
 % file f_jacobian_nodal.m
 % brief contains function f_jacobian_nodal
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes the analytic Jacobian of the nodal
 % right-hand side (f_imr_nodal) for bubtherm = 1, with or without
 % medium heat transfer and vapor mass transfer. The field equations are

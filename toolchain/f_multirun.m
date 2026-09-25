@@ -1,6 +1,9 @@
 % file f_multirun.m
 % brief contains function f_multirun
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function sweeps the material parameters of the Newtonian,
 % neo-Hookean Kelvin-Voigt, UCM and Oldroyd-B models with the nodal solver
 % and returns every radius history as [t, R] (dimensionless). The

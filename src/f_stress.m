@@ -1,6 +1,9 @@
 % file f_stress.m
 % brief contains function f_stress
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function features the stress integral and its time derivative
 % solver. The solver accounts for the Kelvin-Voigt with neo-Hookean
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear

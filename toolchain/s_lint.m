@@ -1,6 +1,9 @@
 % file s_lint.m
 % brief contains script to run a lint checker throughout the code
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This script runs the Matlab linter to check for inefficiencies in
 % the code
 clc;

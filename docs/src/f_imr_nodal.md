@@ -26,7 +26,7 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 
 ### 3. Time Integration
 - Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s` or `ode23tb`).
-- The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a bracketed solve for the wall vapor mass fraction with a fixed cost per call (see [`f_wall_bc`](f_wall_bc.md)).
+- The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a solve for the wall vapor mass fraction: Newton from the previous root, with a fixed-cost bracketed solve as the fallback (see [`f_wall_bc`](f_wall_bc.md)).
 - The stiff integrators receive the analytic Jacobian of `f_jacobian_nodal` for `bubtherm = 1` (with or without medium heat and mass transfer), or the sparsity pattern from `f_jpattern` otherwise (dense for Chebyshev); see the `jacobian` option.
 
 ### 4. Output Assembly
@@ -91,10 +91,13 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 - Collapse (`collapse = 1`) requires bubble and medium heat transfer, vapor and mass transfer.
 - See [`compatibility`](../compatibility.md) for which features run together.
 - Mesh resolution must be tuned carefully for high Weissenberg numbers or sharp waveforms.
+- Cost per right-hand-side call: the constant factors of the medium equation and of the bubble temperature map are computed once, with the same arithmetic as before, so results are bit-identical; with `wave_type = 0` the far-field pressure is the constant `ee` and `f_pinfinity` is not called. In GNU Octave this made a right-hand-side call 11–31% cheaper and most runs 8–17% faster.
+- A nested function shares every variable name that the solver function also uses, so the nested functions use their own loop variable names (the output loop is `it_out`).
 
 ## Verification of the Chebyshev scheme
 
 Measured in GNU Octave (`ode15s` standing in for `ode23tb`), on thermal cases with `Req = 0.5` and `t` in [0, 3]:
+
 - `scheme = 0` gave bit-identical `R(t)` to `f_imr_fd` over 98 cases: radial 1–4, stress 0–5, polytropic, bubble, bubble and medium, and full mass-transfer models, plus a non-Newtonian and a Gaussian-waveform case. This held before the bracketed mass-transfer wall closure; with it, the cases without mass transfer stay bit-identical and the mass-transfer cases differ at the integrator tolerance.
 - `scheme = 1` and `f_imr_spectral` converge toward each other with resolution over 32 cases (radial 1–4, stress 0/1/3/5, with and without medium heat transfer). The largest relative deviation in `R(t)` over the cases is `2.8e-3`, `4.8e-4` and `2.6e-4` at `Nt = Mt = 12, 20, 30`; the median is `1.4e-4`, `1.0e-5` and `3.4e-6`.
 - Against Richardson-extrapolated finite differences (`Nt = Mt = 200, 400`) for Keller–Miksis with neo-Hookean Kelvin–Voigt stress, `scheme = 1` at `Nt = Mt = 25` is within `1e-4` with bubble heat transfer only, where finite differences at 200 points are `2.4e-3` away. With medium heat transfer it reaches `2e-4` at 40 points, the same as `f_imr_spectral`.

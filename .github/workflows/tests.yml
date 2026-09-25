@@ -1,0 +1,46 @@
+name: IMR test suites
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  testsuite:
+
+    name: ${{ matrix.suite }}
+
+    runs-on: ubuntu-22.04
+
+    # Each suite runs in its own job, and every suite runs even if another
+    # fails. The workflow, and so the README badge, passes only when all of
+    # them pass.
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - s_test_suite_diffmat
+          - s_test_suite_equilibrium
+          - s_test_suite_gaussian
+          - s_test_suite_compatibility
+          - s_test_suite_masstrans
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v1
+        with:
+          release: R2023a
+          products: MATLAB
+
+      - name: Run ${{ matrix.suite }}
+        uses: matlab-actions/run-command@v1
+        with:
+          command: |
+            cd toolchain;
+            ${{ matrix.suite }};

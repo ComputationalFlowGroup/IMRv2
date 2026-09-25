@@ -1,0 +1,118 @@
+# Documentation website, built with MkDocs and the Material theme.
+# Preview locally with:  pip install -r docs/requirements.txt && mkdocs serve
+# The docs workflow (.github/workflows/docs.yml) builds it with --strict on
+# every pull request and publishes it to GitHub Pages from main.
+
+site_name: IMR
+site_description: >-
+  Inertial Microcavitation Rheometry: bubble dynamics solvers for
+  characterizing soft materials at high strain rates
+site_url: https://inertialmicrocavitationrheometry.github.io/IMRv2/
+repo_url: https://github.com/InertialMicrocavitationRheometry/IMRv2
+repo_name: InertialMicrocavitationRheometry/IMRv2
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; Mauro Rodriguez. Released under the GNU GPL, version 3 or later.
+
+theme:
+  name: material
+  icon:
+    logo: material/chart-bell-curve-cumulative
+    repo: fontawesome/brands/github
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+  # The home, getting-started, about and contributing pages include sections
+  # of README.md and CONTRIBUTING.md, so those files stay the single source.
+  - include-markdown
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+exclude_docs: |
+  requirements.txt
+
+# with --strict, any of these fails the build
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Model compatibility: compatibility.md
+  - Inputs and defaults: src/default_case.md
+  - Solvers:
+      - Nodal solver (f_imr_nodal): src/f_imr_nodal.md
+      - Spectral solver (f_imr_spectral): src/f_imr_spectral.md
+  - Physics and numerics:
+      - Radial dynamics (f_radial_eq): src/f_radial_eq.md
+      - Stress models (f_stress): src/f_stress.md
+      - Non-Newtonian viscosity (f_viscosity): src/f_viscosity.md
+      - Medium heating (f_stress_dissipation): src/f_stress_dissipation.md
+      - Bubble-wall conditions (f_wall_bc): src/f_wall_bc.md
+      - Driving pressure (f_pinfinity): src/f_pinfinity.md
+      - Collapse initial stress (f_init_stress): src/f_init_stress.md
+      - Approximate initial stress (f_approx_init_stress): src/f_approx_init_stress.md
+      - Differentiation matrices (f_diff_mat): src/f_diff_mat.md
+      - Time integration (f_odesolve): src/f_odesolve.md
+      - Nodal Jacobian (f_jacobian_nodal): src/f_jacobian_nodal.md
+      - Spectral Jacobian (f_jacobian_spectral): src/f_jacobian_spectral.md
+      - Dual-number operations (f_dual_ops): src/f_dual_ops.md
+      - Jacobian sparsity pattern (f_jpattern): src/f_jpattern.md
+  - Setup and input checks:
+      - Parameters (f_call_params): src/f_call_params.md
+      - Input checks (f_checkers): src/f_checkers.md
+      - Console output (f_display): src/f_display.md
+  - Toolchain:
+      - Unit conversion (f_dim2nondim): toolchain/f_dim2nondim.md
+      - Saturation pressure (f_pvsat): toolchain/f_pvsat.md
+      - Test suites:
+          - Compatibility: toolchain/s_test_suite_compatibility.md
+          - Equilibrium: toolchain/s_test_suite_equilibrium.md
+          - Gaussian pulse: toolchain/s_test_suite_gaussian.md
+          - Mass transfer: toolchain/s_test_suite_masstrans.md
+          - Differentiation operators: toolchain/s_test_suite_diffmat.md
+  - Measured waveforms: waveform/README.md
+  - Contributing: contributing.md
+  - About: about.md

@@ -2,6 +2,9 @@
 % brief contains script to test for equilibrium conditions from a Gaussian
 % pressure impulse
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This script runs both the finite difference and spectral codes to
 % test that initial equilibrium conditions are satisfied
 clc;

@@ -1,6 +1,9 @@
 % file f_wall_mass_bc.m
 % brief contains function f_wall_mass_bc
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function evaluates the bubble-wall heat flux balance with
 % vapor mass transfer and its gradient. The balance couples the wall
 % temperature Tw, the saturated vapor concentration kvw(Tw, P), and the

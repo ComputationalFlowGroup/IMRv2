@@ -1,6 +1,9 @@
 % file f_dim2nondim.m
 % brief contains function f_dim2nondim
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This side function converts dimensional (SI) physical properties
 % into the dimensionless inputs taken by the IMR solvers (f_imr_nodal,
 % f_imr_spectral). It is not called by the solvers: the solvers accept only

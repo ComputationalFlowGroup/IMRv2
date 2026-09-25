@@ -4,9 +4,9 @@
 `f_stress_dissipation` computes the mechanical dissipation `τ:∇u` that heats the medium when `medtherm = 1`. Both solvers call it.
 
 ## Major Sections
-1. **Radial Stretch Calculation**: Compute `Rst`, `x2`, `ix2`, `x4`.
-2. **Closed-form dissipation**: one branch per stress model 0–5. For stress 3–5 this is the Kelvin–Voigt form, which is inconsistent for history-dependent stress; `f_checkers` warns (`IMR:dissipation`).
-3. **Stress-field dissipation**: with the spectral stress representation (`spectral = 1`, `f_imr_spectral` only) the dissipation comes from the stress field itself and replaces the closed form.
+1. **Stress-field dissipation**: with the spectral stress representation (`spectral = 1`, `f_imr_spectral` only) the dissipation comes from the stress field itself.
+2. **No stress**: zero for stress 0.
+3. **Closed-form dissipation**: otherwise the radial stretch terms `Rst`, `x2`, `ix2` and `x4` are computed, followed by the neo-Hookean form (stress 1, 3 and 5) or the quadratic neo-Hookean form (stress 2 and 4). For stress 3–5 this is the Kelvin–Voigt form, which is inconsistent for history-dependent stress; `f_checkers` warns (`IMR:dissipation`).
 
 ## Inputs
 

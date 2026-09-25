@@ -6,8 +6,8 @@
 ## Major Sections
 1. **Options Configuration**: Sets `RelTol` and `AbsTol`, plus `MaxStep` when `divisions > 0`, and `JPattern` or `Jacobian` when `Sp` is given.
 2. **Solver Selection**: Routes to the correct solver based on `method` code:
-   - 15 → `ode15s`
-   - 23 → `ode23tb`
+    - 15 → `ode15s`
+    - 23 → `ode23tb`
 3. **Execution**: Calls the selected solver and returns results.
 
 ## Inputs

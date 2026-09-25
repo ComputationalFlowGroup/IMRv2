@@ -1,6 +1,9 @@
 % file f_pvsat.m
 % brief contains function f_pvsat
 
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
+
 % brief This function computes the saturated water vapor pressure per
 % (A. Preston 2004, Thesis), Pv = c1*exp(c2/T). The constants c1 (Pa) and
 % c2 (K) are returned as optional outputs so that this file is their single

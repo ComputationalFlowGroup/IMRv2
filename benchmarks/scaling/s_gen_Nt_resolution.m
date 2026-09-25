@@ -1,5 +1,8 @@
-% file s_resolution_check.m
+% file s_gen_Nt_resolution.m
 % brief contains script to check resolution capability of IMR
+
+% Copyright (C) Mauro Rodriguez
+% SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script solves IMR for different spatial resolutions
 clc;
