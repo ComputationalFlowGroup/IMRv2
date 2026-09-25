@@ -118,6 +118,16 @@ plot(t*ref.t0, R*ref.R0);
 
 `f_imr_nodal` uses finite differences by default. Add `'scheme', 1` to use Chebyshev differentiation matrices instead; the other inputs stay the same.
 
+### Parameter sweeps
+
+`f_imr_sweep` runs a solver over every combination of the given values and collects the results; failed runs are recorded rather than stopping the sweep. See [`docs/src/f_imr_sweep.md`](docs/src/f_imr_sweep.md).
+
+```matlab
+base = {'radial', 2, 'stress', 1, 'req', 0.2};
+res = f_imr_sweep(@f_imr_nodal, base, 're', [100 300 1000], 'ca', [10 100]);
+plot(res(2,1).out{1}, res(2,1).out{2});      % Re = 300, Ca = 10
+```
+
 ### Examples
 
 - `s_run_fdmodel.m`, `s_run_full_model.m` and `s_run_mercury.m` in the repository root run example simulations.

@@ -85,6 +85,7 @@ nav:
   - Solvers:
       - Nodal solver (f_imr_nodal): src/f_imr_nodal.md
       - Spectral solver (f_imr_spectral): src/f_imr_spectral.md
+      - Parameter sweeps (f_imr_sweep): src/f_imr_sweep.md
   - Physics and numerics:
       - Radial dynamics (f_radial_eq): src/f_radial_eq.md
       - Stress models (f_stress): src/f_stress.md
