@@ -16,6 +16,9 @@ jobs:
 
     name: Linter for toolchain and src
     runs-on: ubuntu-latest
+
+    env:
+      MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
     continue-on-error: true
 
     steps:
@@ -23,14 +26,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # MathWorks activates MATLAB in GitHub Actions for public repositories
+      # only; a private repository needs a batch licensing token
+      - name: Check MATLAB licensing
+        if: github.event.repository.private && env.MLM_LICENSE_TOKEN == ''
+        run: |
+          echo "::error::MATLAB runs in GitHub Actions without a license only in public repositories. This repository is private: add a MATLAB batch licensing token as the repository secret MLM_LICENSE_TOKEN (Settings > Secrets and variables > Actions)."
+          exit 1
+
       - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v1
+        uses: matlab-actions/setup-matlab@v2
         with:
           release: R2023a
-          products: "MATLAB
-"
+          products: MATLAB
       - name: Run MATLAB Linting
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@v2
         with:
           command: |
              addpath('toolchain');

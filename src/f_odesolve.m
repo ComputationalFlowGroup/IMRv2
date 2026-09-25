@@ -1,7 +1,7 @@
 % file f_odesolve.m
 % brief contains function f_odesolve
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function computes time marching for the ODE and PDE system of
@@ -42,7 +42,7 @@ function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, Sp, rtol, at
     elseif method == 23
         [t,X] = ode23tb(bubble,tspan,init,options);
     else
-        error('f_odesolve not set for the run, check casefile');
+        error('f_odesolve: method must be 15 (ode15s) or 23 (ode23tb)');
     end
     
 end

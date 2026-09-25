@@ -1,7 +1,7 @@
 % file s_plot_NMt_ratio.m
 % brief contains script to check resolution capability of IMR
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script solves IMR for different spatial resolutions

@@ -1,7 +1,7 @@
 % file f_jacobian_spectral.m
 % brief contains function f_jacobian_spectral
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function computes the analytic Jacobian of the spectral

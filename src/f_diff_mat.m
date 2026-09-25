@@ -1,7 +1,7 @@
 % file f_diff_mat.m
 % brief contains function f_diff_mat
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function returns the node positions and the differentiation

@@ -1,7 +1,7 @@
 % file f_checkers.m
 % brief contains function f_checkers
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function checks the compatibility of the model conditions and
@@ -290,6 +290,6 @@ end
 function f_dimensional_hint(cond, name, val)
     if cond
         warning('IMR:dimensional', ['%s = %g looks dimensional; IMR takes ' ...
-            'dimensionless inputs (see toolchain/f_dim2nondim.m)'], name, val);
+            'dimensionless inputs (see f_dim2nondim.m)'], name, val);
     end
 end

@@ -1,7 +1,7 @@
 % file s_gen_fd_Rresolved.m
 % brief contains script to generate golden resolution data for IMR
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script generates the golden resolution data for IMR

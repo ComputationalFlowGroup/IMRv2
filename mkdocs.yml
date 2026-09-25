@@ -11,7 +11,7 @@ site_url: https://inertialmicrocavitationrheometry.github.io/IMRv2/
 repo_url: https://github.com/InertialMicrocavitationRheometry/IMRv2
 repo_name: InertialMicrocavitationRheometry/IMRv2
 edit_uri: edit/main/docs/
-copyright: Copyright &copy; Mauro Rodriguez. Released under the GNU GPL, version 3 or later.
+copyright: Copyright &copy; The IMR developers. Released under the GNU GPL, version 3 or later.
 
 theme:
   name: material
@@ -85,6 +85,11 @@ nav:
   - Solvers:
       - Nodal solver (f_imr_nodal): src/f_imr_nodal.md
       - Spectral solver (f_imr_spectral): src/f_imr_spectral.md
+      - Inputs as a struct (f_imr_inputs): src/f_imr_inputs.md
+      - Parameter sweeps (f_imr_sweep): src/f_imr_sweep.md
+  - Units:
+      - Unit conversion (f_dim2nondim): src/f_dim2nondim.md
+      - Saturation pressure (f_pvsat): src/f_pvsat.md
   - Physics and numerics:
       - Radial dynamics (f_radial_eq): src/f_radial_eq.md
       - Stress models (f_stress): src/f_stress.md
@@ -105,8 +110,6 @@ nav:
       - Input checks (f_checkers): src/f_checkers.md
       - Console output (f_display): src/f_display.md
   - Toolchain:
-      - Unit conversion (f_dim2nondim): toolchain/f_dim2nondim.md
-      - Saturation pressure (f_pvsat): toolchain/f_pvsat.md
       - Test suites:
           - Compatibility: toolchain/s_test_suite_compatibility.md
           - Equilibrium: toolchain/s_test_suite_equilibrium.md

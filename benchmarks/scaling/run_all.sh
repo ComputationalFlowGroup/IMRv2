@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (C) Mauro Rodriguez
+# Copyright (C) The IMR developers (see README.md)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 sbatch Rresolved.sh

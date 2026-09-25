@@ -13,9 +13,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/tests.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/tests.yml/badge.svg" alt="Test suites"/></a>
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/format.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/format.yml/badge.svg" alt="Format check"/></a>
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/spellcheck.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/spellcheck.yml/badge.svg" alt="Spellcheck"/></a>
+  <a href="https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml"><img src="https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml/badge.svg" alt="Test suites"/></a>
+  <a href="https://github.com/mrodrig6/imrv2/actions/workflows/format.yml"><img src="https://github.com/mrodrig6/imrv2/actions/workflows/format.yml/badge.svg" alt="Format check"/></a>
+  <a href="https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml"><img src="https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml/badge.svg" alt="Spellcheck"/></a>
 </p>
 
 # Inertial Microcavitation Rheometry (IMR)
@@ -106,21 +106,41 @@ The inputs and their defaults are listed in [`docs/src/default_case.md`](docs/sr
 
 ### First run
 
-Convert physical (SI) values with `toolchain/f_dim2nondim.m`, run the solver, and scale the result back:
+Convert physical (SI) values with `f_dim2nondim`, run the solver, and scale the result back:
 
 ```matlab
-addpath('src'); addpath('toolchain');
+addpath('src');
 [varin, ref] = f_dim2nondim('r0',50e-6,'req',5e-6,'mu',1e-2,'g',1e3, ...
     'tvector',linspace(0,12e-6,100));
 [t, R] = f_imr_nodal(varin{:}, 'radial', 2, 'stress', 1);
 plot(t*ref.t0, R*ref.R0);
 ```
 
+The inputs can also be kept in a struct, which has every input under its name/value name, with its default:
+
+```matlab
+p = f_imr_inputs();
+p.radial = 2;
+p.stress = 1;
+[t, R, ~, ~, ~, ~, ~, used] = f_imr_nodal(p);   % used: every input of this run
+```
+
 `f_imr_nodal` uses finite differences by default. Add `'scheme', 1` to use Chebyshev differentiation matrices instead; the other inputs stay the same.
+
+### Parameter sweeps
+
+`f_imr_sweep` runs a solver over every combination of the given values and collects the results; failed runs are recorded rather than stopping the sweep. See [`docs/src/f_imr_sweep.md`](docs/src/f_imr_sweep.md).
+
+```matlab
+base = {'radial', 2, 'stress', 1, 'req', 0.2};
+res = f_imr_sweep(@f_imr_nodal, base, 're', [100 300 1000], 'ca', [10 100]);
+plot(res(2,1).out{1}, res(2,1).out{2});      % Re = 300, Ca = 10
+```
 
 ### Examples
 
-- `s_run_fdmodel.m`, `s_run_full_model.m` and `s_run_mercury.m` in the repository root run example simulations.
+- `examples/s_run_fdmodel.m`, `examples/s_run_full_model.m` and `examples/s_run_mercury.m` run example simulations.
+- `examples/f_multirun.m` runs a large parameter study with `f_imr_sweep`, and `examples/matlab-submitjob.sh` submits it as a cluster job.
 - The `examples/` folder has more.
 
 <!-- site:getting-started:end -->
@@ -134,7 +154,8 @@ The documentation is published as a website at <https://inertialmicrocavitationr
 | [`docs/compatibility.md`](docs/compatibility.md) | Which features run together in each solver |
 | [`docs/src/default_case.md`](docs/src/default_case.md) | Every input, its dimensionless definition and its default |
 | [`docs/src/f_imr_nodal.md`](docs/src/f_imr_nodal.md), [`docs/src/f_imr_spectral.md`](docs/src/f_imr_spectral.md) | The two solvers; `docs/src/` has one page per physics function |
-| [`docs/toolchain/`](docs/toolchain) | The unit conversion `f_dim2nondim` and the test suites |
+| [`docs/src/f_dim2nondim.md`](docs/src/f_dim2nondim.md) | Converting SI values to the solvers' dimensionless inputs |
+| [`docs/toolchain/`](docs/toolchain) | The test suites |
 | [`docs/waveform/`](docs/waveform/README.md) | Source and files of the measured pressure waveforms |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute: fork, change, check, pull request |
 
@@ -215,7 +236,7 @@ For questions, contact [Mauro Rodriguez](mailto:mrodri97@brown.edu) or ask to jo
 
 ## License
 
-Copyright (C) Mauro Rodriguez
+Copyright (C) The IMR developers: Spencer Bryngelson, Jon Estrada, Christian Franck, David Henann, Eric Johnsen, Mauro Rodriguez and Jin Yang (see [Developers and contact](#developers-and-contact)).
 
 IMR is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

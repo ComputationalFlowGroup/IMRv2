@@ -1,7 +1,7 @@
 % file s_lint.m
 % brief contains script to run a lint checker throughout the code
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script runs the Matlab linter to check for inefficiencies in
@@ -21,11 +21,7 @@ errorFound = false; % Track if any issues are detected
 
 for i = 1:length(files)
     filePath = fullfile(files(i).folder, files(i).name);
-    if strcmp(files(i).name,'f_multirun.m')
-        continue;
-    else
-        fprintf('Checking: %s\n', filePath);
-    end
+    fprintf('Checking: %s\n', filePath);
     
     issues = checkcode(filePath, '-id');
     

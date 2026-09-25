@@ -15,6 +15,9 @@ jobs:
 
     runs-on: ubuntu-22.04
 
+    env:
+      MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
+
     # Each suite runs in its own job, and every suite runs even if another
     # fails. The workflow, and so the README badge, passes only when all of
     # them pass.
@@ -32,14 +35,22 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # MathWorks activates MATLAB in GitHub Actions for public repositories
+      # only; a private repository needs a batch licensing token
+      - name: Check MATLAB licensing
+        if: github.event.repository.private && env.MLM_LICENSE_TOKEN == ''
+        run: |
+          echo "::error::MATLAB runs in GitHub Actions without a license only in public repositories. This repository is private: add a MATLAB batch licensing token as the repository secret MLM_LICENSE_TOKEN (Settings > Secrets and variables > Actions)."
+          exit 1
+
       - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v1
+        uses: matlab-actions/setup-matlab@v2
         with:
           release: R2023a
           products: MATLAB
 
       - name: Run ${{ matrix.suite }}
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@v2
         with:
           command: |
             cd toolchain;

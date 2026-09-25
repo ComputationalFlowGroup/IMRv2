@@ -1,7 +1,7 @@
 % file f_pvsat.m
 % brief contains function f_pvsat
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function computes the saturated water vapor pressure per

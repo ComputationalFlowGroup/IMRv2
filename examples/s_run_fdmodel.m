@@ -1,12 +1,12 @@
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 clc;
 clear;
 close;
 
-addpath(genpath('src'));
-addpath('toolchain');
+% the solvers are in src/, one folder up from these examples
+addpath(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'src'));
 
 % equation options
 R0 = 100e-6;

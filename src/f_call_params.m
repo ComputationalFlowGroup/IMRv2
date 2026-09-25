@@ -1,52 +1,97 @@
 % file f_call_params.m
 % brief contains function f_call_params
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function sets up the simulation environment. All inputs are
 % dimensionless (see default_case.m for the scalings); dimensional values
-% must be converted beforehand, e.g. with toolchain/f_dim2nondim.m. The
-% function can receive an input file formatted similar to default_case.m,
-% otherwise the default case is read. The case can be altered with
-% name/value pairs when invoking either the finite difference or spectral
-% module. The inputs are checked by f_checkers. The first argument names
-% the calling solver, 'nodal' or 'spectral'.
+% must be converted beforehand, e.g. with f_dim2nondim.m. The
+% defaults come from default_case, and any of them can be changed with
+% name/value pairs when invoking either the nodal or spectral solver, or
+% with a struct from f_imr_inputs (optionally followed by name/value
+% pairs). The last output is that struct for this run: every input, with
+% the defaults and the given changes. The
+% inputs are checked by f_checkers. The first argument names the calling
+% solver, 'nodal' or 'spectral'.
 function [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
-    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = ...
+    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts, inputs] = ...
     f_call_params(solver, varargin)
 
 disp('--- Inertial Microcavitation Rheometry forward solver ---');
+% a struct of inputs (f_imr_inputs) becomes the name/value pairs of the
+% fields that differ from the defaults, ahead of any pairs given after it
+if ~isempty(varargin) && isstruct(varargin{1})
+    varargin = [f_struct_pairs(varargin{1}), varargin(2:end)];
+end
 % check that all inputs are matched
 if mod(numel(varargin),2) == 1
     error('input error: unmatched inputs');
 end
 
-% checking for the casefile, if any
-defaultread = true;
-for n = 1:2:numel(varargin)
-    if strcmpi(varargin{n},'casefile') == 1
-        cfname = varargin{n+1};
-        fprintf('Case file: using %s\n', cfname);
-        try
-            run(cfname);
-        catch
-            error('failed to read the given file');
-        end
-        defaultread = false;
-        break;
-    end
-end
-
-% otherwise, reading the default casefile
-if defaultread
-    disp('Case file: Using default case file');
-    run('default_case.m');
-end
-% case files written before the nodal solver have no scheme setting
-if ~exist('scheme','var')
-    scheme = 0;
-end
+% defaults, every one of which a name/value pair can override
+d = default_case();
+radial = d.radial;
+bubtherm = d.bubtherm;
+medtherm = d.medtherm;
+stress = d.stress;
+eps3 = d.eps3;
+vapor = d.vapor;
+masstrans = d.masstrans;
+TFin = d.TFin;
+TVector = d.TVector;
+method = d.method;
+spectral = d.spectral;
+divisions = d.divisions;
+Nt = d.Nt;
+Mt = d.Mt;
+Nv = d.Nv;
+Lv = d.Lv;
+Lt = d.Lt;
+rtol = d.rtol;
+atol = d.atol;
+jacobian = d.jacobian;
+scheme = d.scheme;
+collapse = d.collapse;
+Rdotzero = d.Rdotzero;
+Req = d.Req;
+progdisplay = d.progdisplay;
+Cstar = d.Cstar;
+GAMa = d.GAMa;
+nstate = d.nstate;
+hugoniot_s = d.hugoniot_s;
+ee = d.ee;
+om = d.om;
+tw = d.tw;
+dt = d.dt;
+mn = d.mn;
+wave_type = d.wave_type;
+We = d.We;
+Re8 = d.Re8;
+Ca = d.Ca;
+De = d.De;
+LAM = d.LAM;
+alphax = d.alphax;
+DRe = d.DRe;
+v_a = d.v_a;
+v_nc = d.v_nc;
+v_lambda_star = d.v_lambda_star;
+nu_model = d.nu_model;
+kappa = d.kappa;
+Foh = d.Foh;
+Br = d.Br;
+alpha_g = d.alpha_g;
+beta_g = d.beta_g;
+alpha_v = d.alpha_v;
+beta_v = d.beta_v;
+chi = d.chi;
+Km_star = d.Km_star;
+Fom = d.Fom;
+L_heat_star = d.L_heat_star;
+Rv_star = d.Rv_star;
+Ra_star = d.Ra_star;
+Pv_sat = d.Pv_sat;
+thetav = d.thetav;
 
 % overrides defaults with the dimensionless inputs
 
@@ -148,8 +193,11 @@ for n = 1:2:numel(varargin)
         case 'pv',          Pv_sat = varargin{n+1};
         case 'thetav',      thetav = varargin{n+1};
         
-        % handled in the pre-scan
+        % case files were replaced by name/value pairs
         case 'casefile'
+        error(['INPUT ERROR: casefile is no longer supported. Pass the ' ...
+            'inputs that differ from default_case as name/value pairs, ' ...
+            'for example a cell array varin used as f_imr_nodal(varin{:}).']);
         
         otherwise,          unknown{end+1} = varargin{n}; %#ok<AGROW>
         
@@ -157,7 +205,7 @@ for n = 1:2:numel(varargin)
 end
 if ~isempty(unknown)
     error(['INPUT ERROR: unrecognized input(s): ' strjoin(unknown,', ') ...
-        '. IMR takes dimensionless inputs only; toolchain/f_dim2nondim.m ' ...
+        '. IMR takes dimensionless inputs only; f_dim2nondim.m ' ...
         'converts dimensional values.']);
 end
 if tfinset && ~tvecset
@@ -334,4 +382,39 @@ thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionless mass transfer
 mass_opts = [Fom kv0 Rv_star Ra_star L_heat_star mv0 ma0 thetav];
 
+% the inputs of this run under their input names: the defaults with the
+% given changes, and the time vector that is used
+if nargout > 11
+    inputs = f_imr_inputs();
+    for n = 1:2:numel(varargin)
+        inputs.(lower(varargin{n})) = varargin{n+1};
+    end
+    inputs.tvector = tvector;
+    inputs.tfin = tvector(end);
+end
+
+end
+
+% name/value pairs of the fields of p that differ from f_imr_inputs; a time
+% vector that ends at tfin makes tfin redundant, so only tvector is passed
+function pairs = f_struct_pairs(p)
+    d = f_imr_inputs();
+    f = fieldnames(p);
+    changed = false(size(f));
+    for k = 1:numel(f)
+        changed(k) = ~isfield(d, f{k}) || ~isequaln(p.(f{k}), d.(f{k}));
+    end
+    if isfield(p, 'tvector') && isfield(p, 'tfin')
+        it = find(strcmp(f, 'tvector'));
+        jf = find(strcmp(f, 'tfin'));
+        if changed(it) && changed(jf) && p.tvector(end) == p.tfin
+            changed(jf) = false;
+        end
+    end
+    f = f(changed);
+    pairs = cell(1, 2*numel(f));
+    pairs(1:2:end) = f;
+    for k = 1:numel(f)
+        pairs{2*k} = p.(f{k});
+    end
 end

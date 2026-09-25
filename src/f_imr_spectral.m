@@ -1,7 +1,7 @@
 % file f_imr_spectral.m
 % brief contains function f_imr_spectral
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function features a Chebyshev spectral collocation solver of
@@ -11,7 +11,7 @@ function varargout = f_imr_spectral(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
-        acos_opts, wave_opts, sigma_opts, thermal_opts] ...
+        acos_opts, wave_opts, sigma_opts, thermal_opts, ~, inputs] ...
         = f_call_params('spectral', varargin{:});
     
     % defaults
@@ -305,6 +305,8 @@ function varargout = f_imr_spectral(varargin)
         varargout{6} = ones(size(t,1),1);
     end
     varargout{7} = [];
+    % the inputs of this run (f_imr_inputs names)
+    varargout{8} = inputs;
     
     % solver function
     function dXdt = SVBDODE(t,X)

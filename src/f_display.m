@@ -1,7 +1,7 @@
 % file f_display.m
 % brief contains function f_display
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function features the display output on the command window

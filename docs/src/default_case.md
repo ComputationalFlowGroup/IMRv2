@@ -1,7 +1,7 @@
 # `default_case.m` Documentation
 
 ## Overview
-`default_case.m` defines the default simulation case. **Every quantity is dimensionless.** The solvers take no dimensional inputs and return no dimensional outputs; convert physical values beforehand, for example with [`toolchain/f_dim2nondim.m`](../toolchain/f_dim2nondim.md).
+`default_case` is a function that returns the default value of every solver input as a struct. `f_call_params` starts from these values, and any of them can be changed with a name/value pair, for example `f_imr_nodal('radial', 2, 'stress', 1)`. **Every quantity is dimensionless.** The solvers take no dimensional inputs and return no dimensional outputs; convert physical values beforehand, for example with [`f_dim2nondim.m`](f_dim2nondim.md).
 
 ### Scalings
 | Quantity | Scale |
@@ -111,5 +111,5 @@ The *input* column is the name used in the name/value call (case-insensitive).
 
 ## Notes
 - All inputs are validated by [`f_checkers`](f_checkers.md); inputs that look dimensional raise the `IMR:dimensional` warning.
-- A custom case file (`casefile`) must follow this file's layout and be dimensionless.
+- There are no case files: a case is the list of inputs that differ from these defaults, kept as a struct from [`f_imr_inputs`](f_imr_inputs.md) or as a cell array `varin` passed as `f_imr_nodal(varin{:})`. The former `casefile` input now raises an error that says so. To run many cases, see [`f_imr_sweep`](f_imr_sweep.md).
 - See [`compatibility`](../compatibility.md) for which features run together in each solver.

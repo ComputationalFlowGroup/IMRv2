@@ -1,7 +1,7 @@
 % file f_wall_mass_bc.m
 % brief contains function f_wall_mass_bc
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function evaluates the bubble-wall heat flux balance with

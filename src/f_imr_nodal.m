@@ -1,7 +1,7 @@
 % file f_imr_nodal.m
 % brief contains function f_imr_nodal
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function features the nodal solver of the PDEs involving
@@ -14,7 +14,7 @@ function varargout = f_imr_nodal(varargin)
     
     % problem initialization
     [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
-        acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] ...
+        acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts, inputs] ...
         = f_call_params('nodal', varargin{:});
     
     % defaults
@@ -359,6 +359,8 @@ function varargout = f_imr_nodal(varargin)
     else
         varargout{7} = [];
     end
+    % the inputs of this run (f_imr_inputs names)
+    varargout{8} = inputs;
     
     % solver function
     function [dXdt] = SVBDODE(t,X)

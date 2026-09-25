@@ -52,20 +52,20 @@ GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has
 
 | Folder | Contents |
 |---|---|
-| `src/` | The solvers (`f_imr_nodal`, `f_imr_spectral`) and the physics functions they call |
-| `toolchain/` | The test suites, the formatter, the linter, the test generators and `f_dim2nondim` |
+| `src/` | Everything a user calls: the solvers (`f_imr_nodal`, `f_imr_spectral`), their inputs (`f_imr_inputs`), sweeps (`f_imr_sweep`), unit conversion (`f_dim2nondim`), and the physics functions the solvers call |
+| `toolchain/` | Developer tooling only: the test suites, the formatter, the linter and the test generators |
 | `tests/` | Stored reference results (`.mat`) that the test suites compare against |
 | `docs/src/`, `docs/toolchain/` | One Markdown page per function or script |
 | `docs/compatibility.md` | Which features run together in each solver |
-| `examples/`, `benchmarks/` | Example scripts and scaling benchmarks |
+| `examples/`, `benchmarks/` | Example scripts (including the `f_multirun` study and its cluster job) and scaling benchmarks |
 
 ### Code conventions
 
 - **Base MATLAB only.** Code in `src/` must not need any toolbox, so do not add calls to toolbox functions.
-- **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `toolchain/f_dim2nondim.m`.
+- **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `src/f_dim2nondim.m`.
 - **Adding an input.** Follow the path every input takes:
-    1. Give it a default in `src/default_case.m`.
-    2. Read it in the name/value parser of `src/f_call_params.m`.
+    1. Give it a default in `src/default_case.m`, and add it to the struct `d` at the end of that function.
+    2. In `src/f_call_params.m`, copy it out of the defaults (`x = d.x;`) and read it in the name/value parser. If its input name differs from its name in `default_case`, add the pair to the `renamed` list in `src/f_imr_inputs.m`.
     3. Validate it in `src/f_checkers.m`, raising an `INPUT ERROR` for invalid values.
     4. Document it in `docs/src/default_case.md`.
 - **Option vectors: append, never insert.** `f_call_params` passes settings to the solvers in positional vectors, such as `eqns_opts`, `solve_opts`, `init_opts` and `sigma_opts`. Add a new entry at the end of a vector. Inserting one in the middle shifts every later position and silently breaks the code that unpacks it.
@@ -75,7 +75,7 @@ GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has
     % file f_example.m
     % brief contains function f_example
 
-    % Copyright (C) Mauro Rodriguez
+    % Copyright (C) The IMR developers (see README.md)
     % SPDX-License-Identifier: GPL-3.0-or-later
 
     % brief This function computes ... (one or two sentences on what it does)
@@ -165,7 +165,7 @@ The CI format check runs `s_format` and fails if that leaves any change. So "for
 
 ### Lint
 
-`s_lint` runs MATLAB's `checkcode` on `src/` and `toolchain/`, skipping `f_multirun.m`. It ends with `exit`, which closes MATLAB, so run it from a shell:
+`s_lint` runs MATLAB's `checkcode` on `src/` and `toolchain/`. It ends with `exit`, which closes MATLAB, so run it from a shell:
 
 ```bash
 matlab -batch "addpath('toolchain'); s_lint"

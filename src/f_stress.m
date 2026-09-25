@@ -1,7 +1,7 @@
 % file f_stress.m
 % brief contains function f_stress
 
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function features the stress integral and its time derivative

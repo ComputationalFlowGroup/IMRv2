@@ -1,12 +1,12 @@
-% Copyright (C) Mauro Rodriguez
+% Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 clc;
 clear;
 close;
 
-addpath('src');
-addpath('toolchain');
+% the solvers are in src/, one folder up from these examples
+addpath(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'src'));
 
 % equation options
 R0 = 2.447495043190468e-04;
@@ -30,6 +30,7 @@ dt = 3e-4;
 tw = 1e-4;
 pA = 1e5;
 varin = {'progdisplay',0,...
+    'radial',radial,...
          'bubtherm',bubtherm,...
          'tvector',tvector,...
          'vapor',vapor,...
@@ -52,13 +53,10 @@ varin = {'progdisplay',0,...
 % dimensional (SI) values converted to the solver's dimensionless inputs
 varin = f_dim2nondim(varin{:});
 
-[t3,R3,U3,P3] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
-radial = 5;
-[t4,R4,U4,P4] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
-% radial = 6;
-% [t5,R5,U5,P5] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
+[t3,R3,U3,P3] = f_imr_nodal(varin{:},'Nt',50,'Mt',50);
+
 figure(1)
 hold on;
-plot(t3,R3,'b-')
-plot(t4,R4,'k--')
-% plot(t5,R5,'r:')
+plot(t3,R3,'bs')
+% plot(t3,P3,'rs')
+% ylim([0 1.2])
