@@ -1,7 +1,7 @@
 # `default_case.m` Documentation
 
 ## Overview
-`default_case` is a function that returns the default value of every solver input as a struct. `f_call_params` starts from these values, and any of them can be changed with a name/value pair, for example `f_imr_nodal('radial', 2, 'stress', 1)`. **Every quantity is dimensionless.** The solvers take no dimensional inputs and return no dimensional outputs; convert physical values beforehand, for example with [`toolchain/f_dim2nondim.m`](../toolchain/f_dim2nondim.md).
+`default_case` is a function that returns the default value of every solver input as a struct. `f_call_params` starts from these values, and any of them can be changed with a name/value pair, for example `f_imr_nodal('radial', 2, 'stress', 1)`. **Every quantity is dimensionless.** The solvers take no dimensional inputs and return no dimensional outputs; convert physical values beforehand, for example with [`f_dim2nondim.m`](f_dim2nondim.md).
 
 ### Scalings
 | Quantity | Scale |

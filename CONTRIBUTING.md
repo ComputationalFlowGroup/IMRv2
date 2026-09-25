@@ -52,17 +52,17 @@ GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has
 
 | Folder | Contents |
 |---|---|
-| `src/` | The solvers (`f_imr_nodal`, `f_imr_spectral`) and the physics functions they call |
-| `toolchain/` | The test suites, the formatter, the linter, the test generators and `f_dim2nondim` |
+| `src/` | Everything a user calls: the solvers (`f_imr_nodal`, `f_imr_spectral`), their inputs (`f_imr_inputs`), sweeps (`f_imr_sweep`), unit conversion (`f_dim2nondim`), and the physics functions the solvers call |
+| `toolchain/` | Developer tooling only: the test suites, the formatter, the linter and the test generators |
 | `tests/` | Stored reference results (`.mat`) that the test suites compare against |
 | `docs/src/`, `docs/toolchain/` | One Markdown page per function or script |
 | `docs/compatibility.md` | Which features run together in each solver |
-| `examples/`, `benchmarks/` | Example scripts and scaling benchmarks |
+| `examples/`, `benchmarks/` | Example scripts (including the `f_multirun` study and its cluster job) and scaling benchmarks |
 
 ### Code conventions
 
 - **Base MATLAB only.** Code in `src/` must not need any toolbox, so do not add calls to toolbox functions.
-- **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `toolchain/f_dim2nondim.m`.
+- **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `src/f_dim2nondim.m`.
 - **Adding an input.** Follow the path every input takes:
     1. Give it a default in `src/default_case.m`, and add it to the struct `d` at the end of that function.
     2. In `src/f_call_params.m`, copy it out of the defaults (`x = d.x;`) and read it in the name/value parser. If its input name differs from its name in `default_case`, add the pair to the `renamed` list in `src/f_imr_inputs.m`.
@@ -165,7 +165,7 @@ The CI format check runs `s_format` and fails if that leaves any change. So "for
 
 ### Lint
 
-`s_lint` runs MATLAB's `checkcode` on `src/` and `toolchain/`, skipping `f_multirun.m`. It ends with `exit`, which closes MATLAB, so run it from a shell:
+`s_lint` runs MATLAB's `checkcode` on `src/` and `toolchain/`. It ends with `exit`, which closes MATLAB, so run it from a shell:
 
 ```bash
 matlab -batch "addpath('toolchain'); s_lint"

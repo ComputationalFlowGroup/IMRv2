@@ -21,11 +21,7 @@ errorFound = false; % Track if any issues are detected
 
 for i = 1:length(files)
     filePath = fullfile(files(i).folder, files(i).name);
-    if strcmp(files(i).name,'f_multirun.m')
-        continue;
-    else
-        fprintf('Checking: %s\n', filePath);
-    end
+    fprintf('Checking: %s\n', filePath);
     
     issues = checkcode(filePath, '-id');
     

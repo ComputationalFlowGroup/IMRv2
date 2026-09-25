@@ -13,7 +13,7 @@ It loads a case file or the default case, applies the user's dimensionless overr
 
 ## Inputs
 
-The first argument names the calling solver, `'nodal'` or `'spectral'` (used by `f_checkers` for solver-specific rules). The function then accepts **dimensionless parameter-value pairs** through `varargin`; the recognized names, their definitions and defaults are listed in [`default_case`](default_case.md). Dimensional (SI) values are not accepted: an unrecognized name (for example `mu`, `g`, `r0`, `dimout`) raises an error pointing to [`toolchain/f_dim2nondim.m`](../toolchain/f_dim2nondim.md), which converts physical properties into these inputs.
+The first argument names the calling solver, `'nodal'` or `'spectral'` (used by `f_checkers` for solver-specific rules). The function then accepts **dimensionless parameter-value pairs** through `varargin`; the recognized names, their definitions and defaults are listed in [`default_case`](default_case.md). Dimensional (SI) values are not accepted: an unrecognized name (for example `mu`, `g`, `r0`, `dimout`) raises an error pointing to [`f_dim2nondim.m`](f_dim2nondim.md), which converts physical properties into these inputs.
 
 - Model flags: `radial`, `bubtherm`, `medtherm`, `stress`, `eps3`, `vapor`, `masstrans`, `collapse`.
 - Solver: `method`, `spectral`, `scheme`, `divisions`, `nt`, `mt`, `nv`, `lv`, `lt`, `reltol`, `abstol`, `jacobian`, `tfin`, `tvector`, `progdisplay`.

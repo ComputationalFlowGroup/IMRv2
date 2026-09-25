@@ -16,7 +16,6 @@ function [newtonian, neohook, voigt, ucm, oldb] = f_multirun()
     N = 8^4;
     root = fileparts(fileparts(mfilename('fullpath')));
     addpath(fullfile(root,'src'));
-    addpath(fullfile(root,'toolchain'));
     sweep = @(base, varargin) f_imr_sweep(@f_imr_nodal, base, varargin{:}, ...
         'transform', @f_si_inputs, 'parallel', true);
     

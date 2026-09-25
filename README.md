@@ -106,10 +106,10 @@ The inputs and their defaults are listed in [`docs/src/default_case.md`](docs/sr
 
 ### First run
 
-Convert physical (SI) values with `toolchain/f_dim2nondim.m`, run the solver, and scale the result back:
+Convert physical (SI) values with `f_dim2nondim`, run the solver, and scale the result back:
 
 ```matlab
-addpath('src'); addpath('toolchain');
+addpath('src');
 [varin, ref] = f_dim2nondim('r0',50e-6,'req',5e-6,'mu',1e-2,'g',1e3, ...
     'tvector',linspace(0,12e-6,100));
 [t, R] = f_imr_nodal(varin{:}, 'radial', 2, 'stress', 1);
@@ -139,7 +139,8 @@ plot(res(2,1).out{1}, res(2,1).out{2});      % Re = 300, Ca = 10
 
 ### Examples
 
-- `s_run_fdmodel.m`, `s_run_full_model.m` and `s_run_mercury.m` in the repository root run example simulations.
+- `examples/s_run_fdmodel.m`, `examples/s_run_full_model.m` and `examples/s_run_mercury.m` run example simulations.
+- `examples/f_multirun.m` runs a large parameter study with `f_imr_sweep`, and `examples/matlab-submitjob.sh` submits it as a cluster job.
 - The `examples/` folder has more.
 
 <!-- site:getting-started:end -->
@@ -153,7 +154,8 @@ The documentation is published as a website at <https://inertialmicrocavitationr
 | [`docs/compatibility.md`](docs/compatibility.md) | Which features run together in each solver |
 | [`docs/src/default_case.md`](docs/src/default_case.md) | Every input, its dimensionless definition and its default |
 | [`docs/src/f_imr_nodal.md`](docs/src/f_imr_nodal.md), [`docs/src/f_imr_spectral.md`](docs/src/f_imr_spectral.md) | The two solvers; `docs/src/` has one page per physics function |
-| [`docs/toolchain/`](docs/toolchain) | The unit conversion `f_dim2nondim` and the test suites |
+| [`docs/src/f_dim2nondim.md`](docs/src/f_dim2nondim.md) | Converting SI values to the solvers' dimensionless inputs |
+| [`docs/toolchain/`](docs/toolchain) | The test suites |
 | [`docs/waveform/`](docs/waveform/README.md) | Source and files of the measured pressure waveforms |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute: fork, change, check, pull request |
 

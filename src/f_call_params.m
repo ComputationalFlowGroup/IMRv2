@@ -6,7 +6,7 @@
 
 % brief This function sets up the simulation environment. All inputs are
 % dimensionless (see default_case.m for the scalings); dimensional values
-% must be converted beforehand, e.g. with toolchain/f_dim2nondim.m. The
+% must be converted beforehand, e.g. with f_dim2nondim.m. The
 % defaults come from default_case, and any of them can be changed with
 % name/value pairs when invoking either the nodal or spectral solver, or
 % with a struct from f_imr_inputs (optionally followed by name/value
@@ -205,7 +205,7 @@ for n = 1:2:numel(varargin)
 end
 if ~isempty(unknown)
     error(['INPUT ERROR: unrecognized input(s): ' strjoin(unknown,', ') ...
-        '. IMR takes dimensionless inputs only; toolchain/f_dim2nondim.m ' ...
+        '. IMR takes dimensionless inputs only; f_dim2nondim.m ' ...
         'converts dimensional values.']);
 end
 if tfinset && ~tvecset

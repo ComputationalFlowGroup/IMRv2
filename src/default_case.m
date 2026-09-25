@@ -8,7 +8,7 @@
 % radius R0, pressures by the far-field pressure P8, velocities by
 % Uc = sqrt(P8/rho8), time by t0 = R0/Uc, and temperatures by the far-field
 % temperature T8. The values below correspond to a 50 um bubble in water
-% at 1 atm and 298.15 K; toolchain/f_dim2nondim.m converts dimensional
+% at 1 atm and 298.15 K; src/f_dim2nondim.m converts dimensional
 % (SI) properties into these numbers.
 % Every input of the solvers has its default here. f_call_params starts
 % from these values and overrides the ones given as name/value pairs.

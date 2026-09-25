@@ -87,6 +87,9 @@ nav:
       - Spectral solver (f_imr_spectral): src/f_imr_spectral.md
       - Inputs as a struct (f_imr_inputs): src/f_imr_inputs.md
       - Parameter sweeps (f_imr_sweep): src/f_imr_sweep.md
+  - Units:
+      - Unit conversion (f_dim2nondim): src/f_dim2nondim.md
+      - Saturation pressure (f_pvsat): src/f_pvsat.md
   - Physics and numerics:
       - Radial dynamics (f_radial_eq): src/f_radial_eq.md
       - Stress models (f_stress): src/f_stress.md
@@ -107,8 +110,6 @@ nav:
       - Input checks (f_checkers): src/f_checkers.md
       - Console output (f_display): src/f_display.md
   - Toolchain:
-      - Unit conversion (f_dim2nondim): toolchain/f_dim2nondim.md
-      - Saturation pressure (f_pvsat): toolchain/f_pvsat.md
       - Test suites:
           - Compatibility: toolchain/s_test_suite_compatibility.md
           - Equilibrium: toolchain/s_test_suite_equilibrium.md

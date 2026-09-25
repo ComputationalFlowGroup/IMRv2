@@ -290,6 +290,6 @@ end
 function f_dimensional_hint(cond, name, val)
     if cond
         warning('IMR:dimensional', ['%s = %g looks dimensional; IMR takes ' ...
-            'dimensionless inputs (see toolchain/f_dim2nondim.m)'], name, val);
+            'dimensionless inputs (see f_dim2nondim.m)'], name, val);
     end
 end

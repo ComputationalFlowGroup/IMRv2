@@ -48,4 +48,4 @@ res = f_imr_sweep(@f_imr_nodal, base, 'mu', logspace(-3, -1, 8), ...
 failed = arrayfun(@(r) ~isempty(r.error), res);
 ```
 
-`toolchain/f_multirun.m` runs a larger study with this function: Newtonian, Kelvin–Voigt, UCM and Oldroyd-B grids of 4096 runs each, from SI values.
+`examples/f_multirun.m` runs a larger study with this function: Newtonian, Kelvin–Voigt, UCM and Oldroyd-B grids of 4096 runs each, from SI values.
