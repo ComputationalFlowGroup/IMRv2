@@ -19,7 +19,8 @@
 % Outputs: f at the wall, intf (enters the stress integral as
 % -6*intf/DRe), the Rdot part (dintf) and Rddot coefficient (ddintf) of
 % d(intf)/dt, and, when the radial positions yq = r/R are given, f at those
-% positions from the local shear rate gammadot_R*(R/r)^3 (fq).
+% positions from the local shear rate gammadot_R*(R/r)^3 (fq). R and Rdot
+% may be row vectors (a batch of states), giving one column per state.
 function [f,intf,dintf,ddintf,fq] = f_viscosity(nu_model,Rdot,R,a,nc,lambda,yq)
     
     persistent uq wq
@@ -27,10 +28,10 @@ function [f,intf,dintf,ddintf,fq] = f_viscosity(nu_model,Rdot,R,a,nc,lambda,yq)
         [uq, wq] = f_graded_gauss(14, 10);
     end
     
-    gammadot_R   = -2*Rdot/R;
+    gammadot_R   = -2*Rdot./R;
     % d(gammadot_R*R^3)/dt = dgammadot + ddgammadot*Rddot
-    dgammadot    = -4*Rdot*Rdot*R;
-    ddgammadot   = -2*R*R;
+    dgammadot    = -4*Rdot.*Rdot.*R;
+    ddgammadot   = -2*R.*R;
     
     % shear-rate parameter at the bubble wall
     xR = lambda*abs(gammadot_R);
@@ -38,22 +39,22 @@ function [f,intf,dintf,ddintf,fq] = f_viscosity(nu_model,Rdot,R,a,nc,lambda,yq)
     % viscosity at the wall
     f = f_model(xR);
     % Leibniz integration rule term at the lower limit r = R
-    h = f*gammadot_R*(Rdot/R);
+    h = f.*gammadot_R.*(Rdot./R);
     % stress integral, goes into the stress term of the radial equation
-    I1 = gammadot_R*(wq'*(uq.^2.*f_model(xR*uq.^3)));
+    I1 = gammadot_R.*(wq'*(uq.^2.*f_model(uq.^3.*xR)));
     % time derivative of the stress integral, in closed form
-    I2 = f/(3*R^3);
+    I2 = f./(3*R.^3);
     
     % S_def = (6/DRe)*I1 enters f_stress as -6*intf*iDRe  =>  intf = -I1
     intf = -I1;
     % d/dt intf = -(dg/dt)*I2 + Leibniz boundary term h; dg/dt splits
     % into the Rdot part (dintf) and the Rddot coefficient (ddintf)
-    dintf = -dgammadot*I2 + h;
-    ddintf = -ddgammadot*I2;
+    dintf = -dgammadot.*I2 + h;
+    ddintf = -ddgammadot.*I2;
     
     % viscosity factor at given radial positions
     if nargin > 6
-        fq = f_model(xR*yq.^-3);
+        fq = f_model(yq.^-3.*xR);
     end
     
     % f(x) for the selected model, x = lambda*|gammadot| >= 0

@@ -16,7 +16,7 @@ It loads a case file or the default case, applies the user's dimensionless overr
 The first argument names the calling solver, `'nodal'` or `'spectral'` (used by `f_checkers` for solver-specific rules). The function then accepts **dimensionless parameter-value pairs** through `varargin`; the recognized names, their definitions and defaults are listed in [`default_case`](default_case.md). Dimensional (SI) values are not accepted: an unrecognized name (for example `mu`, `g`, `r0`, `dimout`) raises an error pointing to [`f_dim2nondim.m`](f_dim2nondim.md), which converts physical properties into these inputs.
 
 - Model flags: `radial`, `bubtherm`, `medtherm`, `stress`, `eps3`, `vapor`, `masstrans`, `collapse`.
-- Solver: `method`, `spectral`, `scheme`, `divisions`, `nt`, `mt`, `nv`, `lv`, `lt`, `reltol`, `abstol`, `jacobian`, `tfin`, `tvector`, `progdisplay`.
+- Solver: `method` (a code, or the name `'ode23tb'`, `'ode15s'` or `'cvodes'`), `spectral`, `scheme`, `divisions`, `nt`, `mt`, `nv`, `lv`, `lt`, `reltol`, `abstol`, `jacobian`, `tfin`, `tvector`, `progdisplay`.
 - Initial conditions: `req`, `rdotzero`, `p0star`, `stress0`.
 - Acoustics: `cstar`, `gama`, `nstate`, `hugoniot_s`.
 - Waveform: `wave_type`, `ee`, `om`, `tw`, `dt`, `mn`.

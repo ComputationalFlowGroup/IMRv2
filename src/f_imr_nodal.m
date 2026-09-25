@@ -271,8 +271,13 @@ function varargout = f_imr_nodal(varargin)
         nu_model, eps3, Pv_star, Re8, De, Ca, LAM, scheme_name);
     bubble = @SVBDODE;
     % Jacobian for the stiff integrators: analytic where implemented,
-    % otherwise the sparsity pattern
-    if jacobian == 2 && bubtherm
+    % batched finite differences (jacobian = 3), otherwise the sparsity
+    % pattern
+    if jacobian == 3
+        jmask = full(f_jpattern(numel(init), ibubtherm, imedtherm, imass, ...
+            (4+Nt+Mt+Nc):numel(init), scheme)) ~= 0;
+        Sp = @f_jacobian_fd;
+    elseif jacobian == 2 && bubtherm
         jp = struct('ith',ibubtherm, 'itm',imedtherm, 'ikv',imass, ...
             'iz',(4+Nt+Mt+Nc):numel(init), 'medtherm',medtherm, ...
             'masstrans',masstrans, 'D1',dmatrix_Tkv, 'D2',ddmatrix_Tkv, ...
@@ -365,6 +370,11 @@ function varargout = f_imr_nodal(varargin)
     % solver function
     function [dXdt] = SVBDODE(t,X)
         
+        % X holds one state per column, so a batch of states (the
+        % finite-difference Jacobian) costs about one call; every operation
+        % below is elementwise across the columns, in the same order as for
+        % a single state, so one column gives the same result bit for bit
+        
         % showing output
         if progdisplay
             disp(t/tspan(end));
@@ -373,17 +383,17 @@ function varargout = f_imr_nodal(varargin)
         % extract solution
         
         % bubble wall radius
-        R = X(1);
+        R = X(1,:);
         % bubble wall velocity
-        Rdot = X(2);
+        Rdot = X(2,:);
         % internal bubble pressure
-        P = X(3);
+        P = X(3,:);
         % auxiliary variable for internal bubble temperature
         if bubtherm || masstrans
-            theta = X(ibubtherm);
+            theta = X(ibubtherm,:);
         end
         if masstrans
-            kv = X(imass);
+            kv = X(imass,:);
         end
         
         % empty output variables
@@ -394,17 +404,17 @@ function varargout = f_imr_nodal(varargin)
         % boundary condition evaluation
         if medtherm && masstrans
             % temperature in the material
-            Tm = X(imedtherm);
-            % bracketed closure on the wall vapor mass fraction
+            Tm = X(imedtherm,:);
+            % wall closure on the wall vapor mass fraction
             [theta_bw, kv_bw] = f_wall_mass_closure(Tm, theta, kv, P, R, t);
-            theta(end) = theta_bw;
+            theta(end,:) = theta_bw;
         elseif medtherm
             % temperature in the material
-            Tm = X(imedtherm);
+            Tm = X(imedtherm,:);
             % closed-form wall temperature, fzero only as a fallback
             theta_bw = f_wall_theta_exact(Tm);
-            theta_bw_guess = theta_bw;
-            theta(end) = theta_bw;
+            theta_bw_guess = theta_bw(1);
+            theta(end,:) = theta_bw;
         end
         
         % bubble temperature, f_theta_of_T written out
@@ -421,9 +431,9 @@ function varargout = f_imr_nodal(varargin)
             % converged closure value; it is set after T so that T(end), like
             % the closure, uses the mixture coefficient of the stored kv(end)
             if medtherm
-                kv(end) = kv_bw;
+                kv(end,:) = kv_bw;
             else
-                kv(end) = f_kv_of_T(T(end),P);
+                kv(end,:) = f_kv_of_T(T(end,:),P);
             end
             
             % temperature field gradients inside the bubble
@@ -439,11 +449,11 @@ function varargout = f_imr_nodal(varargin)
             RDkv    = wRmix.*dkv;
             
             % bubble pressure equation
-            Pdot = 3/R*(chi*(kappa-1)*dtheta(end)/R - kappa*P*Rdot +...
-                + kappa*P*Fom*Rv_star*dkv(end)/(T(end)*R*Rmix(end)*om_kv(end)));
+            Pdot = 3./R.*(chi*(kappa-1)*dtheta(end,:)./R - kappa*P.*Rdot +...
+                + kappa*P*Fom*Rv_star.*dkv(end,:)./(T(end,:).*R.*Rmix(end,:).*om_kv(end,:)));
             
             % bubble wall velocity equation
-            Uvel = (chi/R*(kappa-1).*dtheta-y*R*Pdot/3)/(kappa*P) + Fom/R*RDkv;
+            Uvel = (chi./R*(kappa-1).*dtheta-y.*R.*Pdot/3)./(kappa*P) + Fom./R.*RDkv;
             
             % mixture thermal conductivity
             alpha_mix  = kv.*alpha_v + om_kv.*alpha_g;
@@ -452,22 +462,22 @@ function varargout = f_imr_nodal(varargin)
             Kstar   = kv.*Kstar_v + om_kv.*Kstar_g;
             
             % temperature evolution inside the bubble
-            nonlinear_term = (chi*ddtheta./R^2+Pdot).*(kapover*Kstar.*T/P);
+            nonlinear_term = (chi*ddtheta./R.^2+Pdot).*(kapover*Kstar.*T./P);
             % gas velocity relative to the moving grid
-            u_rel = Uvel-y*Rdot;
-            advection_term = -dtheta.*u_rel/R;
-            mass_diffusion = (Fom/(R^2)).*wRmix.*dkv.*dtheta;
+            u_rel = Uvel-y.*Rdot;
+            advection_term = -dtheta.*u_rel./R;
+            mass_diffusion = (Fom./(R.^2)).*wRmix.*dkv.*dtheta;
             thetadot = advection_term + nonlinear_term + mass_diffusion;
             % temperature at bubble wall, handled by flux boundary bc
-            thetadot(end) = 0;
+            thetadot(end,:) = 0;
             
             % water vapor evolution inside the bubble
             nonlinear_diffusion = ...
                 dkv.*(dtheta./(sqrt(1+2*alpha_mix.*theta).*T)+RDkv);
-            advection_term = u_rel/R.*dkv;
-            kvdot = Fom/R^2*(ddkv - nonlinear_diffusion) - advection_term;
+            advection_term = u_rel./R.*dkv;
+            kvdot = Fom./R.^2.*(ddkv - nonlinear_diffusion) - advection_term;
             % concentration at bubble wall, handled by flux boundary bc
-            kvdot(end) = 0;
+            kvdot(end,:) = 0;
             
         elseif bubtherm
             % mixture thermal conductivity
@@ -480,21 +490,21 @@ function varargout = f_imr_nodal(varargin)
             ddtheta = ddmatrix_Tkv*theta;
             
             % bubble pressure evolution equation
-            Pdot = 3/R*(chi*(kappa-1)*dtheta(end)/R - kappa*P*Rdot);
+            Pdot = 3./R.*(chi*(kappa-1)*dtheta(end,:)./R - kappa*P.*Rdot);
             
             % internal bubble velocity equation
-            Uvel = (chi/R*(kappa-1).*dtheta-y*R*Pdot/3)/(kappa*P);
+            Uvel = (chi./R*(kappa-1).*dtheta-y.*R.*Pdot/3)./(kappa*P);
             
             % bubble temperature evolution equation
-            diffusion_term = (chi*ddtheta./R^2+Pdot).*(kapover*Kstar.*T/P);
-            advection_term = -dtheta.*(Uvel-y*Rdot)./R;
+            diffusion_term = (chi*ddtheta./R.^2+Pdot).*(kapover*Kstar.*T./P);
+            advection_term = -dtheta.*(Uvel-y.*Rdot)./R;
             thetadot = advection_term + diffusion_term;
-            thetadot(end) = 0;
+            thetadot(end,:) = 0;
             
         else
             % polytropic gas + vapor
-            P = (Pb_star-Pv_star)*(1/R)^(3*kappa) + Pv_star;
-            Pdot = -3*kappa*P*Rdot/R;
+            P = (Pb_star-Pv_star)*(1./R).^(3*kappa) + Pv_star;
+            Pdot = -3*kappa*P.*Rdot./R;
         end
         
         % surroundings equations of motion
@@ -509,14 +519,14 @@ function varargout = f_imr_nodal(varargin)
         % surrounding temperature
         if medtherm
             % boundary temperature
-            Tm(1) = T(end);
+            Tm(1,:) = T(end,:);
             % temperature gradients
             dTm = dmatrix_Tm*Tm;
             ddTm = ddmatrix_Tm*Tm;
             % material temperature equations
             advection = xi1_sq./(Lt*R).*(Rdot./yT2.*om_yT3/2 +...
-                Foh/R.*xi_adv).*dTm;
-            diffusion = Foh/R^2.*xi1_p4/Lt^2.*ddTm/4;
+                Foh./R.*xi_adv).*dTm;
+            diffusion = Foh./R.^2.*xi1_p4/Lt^2.*ddTm/4;
             % stress dissipation
             [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
                 Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
@@ -524,8 +534,8 @@ function varargout = f_imr_nodal(varargin)
             % surrounding temperature evolution equation
             Tmdot = advection + diffusion + taugradu;
             % sets boundary condition on temperature
-            Tmdot(1) = 0;
-            Tmdot(end) = 0;
+            Tmdot(1,:) = 0;
+            Tmdot(end,:) = 0;
         end
         
         % pressure waveform
@@ -557,6 +567,22 @@ function varargout = f_imr_nodal(varargin)
         
     end
     % end of solver
+    
+    % finite-difference Jacobian from one batched right-hand-side call: the
+    % state and its n perturbations, one per column. The step is
+    % sqrt(eps)*max(|X|, 1) (the states are dimensionless and of order
+    % one), rounded so that the perturbed state is exactly X + del, and
+    % entries outside the sparsity pattern are set to zero (they are zero
+    % up to rounding in the batched products). J is returned dense: it is
+    % computed dense, dense LU is fast at these sizes, and a sparse J whose
+    % number of nonzeros changes between calls breaks the IDA-based ode15s
+    % of Octave
+    function J = f_jacobian_fd(t, X)
+        del = sqrt(eps)*max(abs(X), 1);
+        del = (X + del) - X;
+        F = SVBDODE(t, [X, repmat(X, 1, numel(X)) + diag(del)]);
+        J = ((F(:,2:end) - F(:,1))./del.').*jmask;
+    end
     
     % medium dissipation as a function of (R, Rdot)
     function tg = f_taugradu(Rv,Rdotv,X)
@@ -620,17 +646,17 @@ function varargout = f_imr_nodal(varargin)
     % Warm start: Newton with the analytic derivative from the previous root
     % kv_w_guess, accepted once a step falls below warm_tol with every
     % iterate inside kv_bracket, within n_warm steps. Otherwise (first call,
-    % divergence, a non-finite value) the bracketed solve, which needs no
-    % initial guess: n_rounds rounds of n_grid residual evaluations, one
-    % vectorized call each, narrow kv_bracket to the grid interval with the
-    % sign change (the first round includes the bracket ends), and n_polish
-    % Newton steps follow.
+    % divergence, a non-finite value) the bracketed solve
+    % (f_wall_mass_bracket), which needs no initial guess. The inputs may
+    % hold one state per column (a batch): the warm Newton then runs on all
+    % columns at once, a column that fails it takes the bracketed solve on
+    % its own, and the root of the first column becomes the next guess.
     function [theta_w, kv_w] = f_wall_mass_closure(Tm_in, th_in, kv_in, Pw, Rw, tw)
         % mixture coefficients from the stored wall value kv_in(end), not the
         % trial kv_w. Since kvdot(end) = 0 the stored value is the initial
         % kv0. Deliberate carry-over of the existing behavior, to be
         % revisited separately.
-        alpha_m = kv_in(end)*alpha_v + (1 - kv_in(end))*alpha_g;
+        alpha_m = kv_in(end,:)*alpha_v + (1 - kv_in(end,:))*alpha_g;
         % the transform normalizes the conductivity to 1 at T = 1:
         % K = alpha_m*T + beta_m with beta_m = 1 - alpha_m, so that
         % theta = 0.5*alpha_m*(T^2 - 1) + beta_m*(T - 1) is the exact inverse
@@ -642,35 +668,49 @@ function varargout = f_imr_nodal(varargin)
         % kv(iwall_b) run inward from the wall (theta(end-1:-1:end-2) and
         % kv(end-1:-1:end-2) for finite differences), matching the order
         % of the coefficients in grad_Tm_coeff, grad_Trans_coeff, grad_C_coeff
-        flux_fixed = grad_Tm_coeff(2:end)*Tm_in(iwall_m) + ...
-            grad_Trans_coeff(2:end)*th_in(iwall_b);
-        carrier_fixed = grad_C_coeff(2:end)*kv_in(iwall_b);
-        wp = [Pw, alpha_m, beta_m, flux_fixed, carrier_fixed];
+        flux_fixed = grad_Tm_coeff(2:end)*Tm_in(iwall_m,:) + ...
+            grad_Trans_coeff(2:end)*th_in(iwall_b,:);
+        carrier_fixed = grad_C_coeff(2:end)*kv_in(iwall_b,:);
+        % one column of parameters per state
+        wp = [Pw;
+        alpha_m; beta_m; flux_fixed; carrier_fixed];
+        nw = size(wp, 2);
         
-        % warm start from the previous root
-        kv_w = NaN;
+        % warm start from the previous root, on the columns still iterating
+        kv_w = NaN(1, nw);
         if isfinite(kv_w_guess)
-            x = kv_w_guess;
+            x = kv_w_guess*ones(1, nw);
+            act = true(1, nw);
             for kw = 1:n_warm
-                [res, ~, ~, dres] = f_wall_mass_residual(x, wp);
-                step = res/dres;
-                x = x - step;
-                if ~(isfinite(x) && x > kv_bracket(1) && x < kv_bracket(2))
-                    break
-                end
-                if abs(step) <= warm_tol
-                    kv_w = x;
+                ia = find(act);
+                [res, ~, ~, dres] = f_wall_mass_residual(x(ia), wp(:,ia));
+                step = res./dres;
+                xa = x(ia) - step;
+                x(ia) = xa;
+                inside = isfinite(xa) & xa > kv_bracket(1) & xa < kv_bracket(2);
+                done = inside & abs(step) <= warm_tol;
+                kv_w(ia(done)) = xa(done);
+                act(ia(done | ~inside)) = false;
+                if ~any(act)
                     break
                 end
             end
         end
-        if isfinite(kv_w)
-            kv_w_guess = kv_w;
-            [~, theta_w] = f_wall_mass_residual(kv_w, wp);
-            return
-        end
         
-        % bracketed solve
+        % bracketed solve for the columns the warm start did not settle
+        for jw = find(~isfinite(kv_w))
+            kv_w(jw) = f_wall_mass_bracket(wp(:,jw), Rw(jw), kv_in(end,jw), tw);
+        end
+        kv_w_guess = kv_w(1);
+        [~, theta_w] = f_wall_mass_residual(kv_w, wp);
+    end
+    
+    % bracketed solve of the wall balance for one state (one column wp):
+    % n_rounds rounds of n_grid residual evaluations, one vectorized call
+    % each, narrow kv_bracket to the grid interval with the sign change (the
+    % first round includes the bracket ends), and n_polish Newton steps
+    % follow
+    function kv_w = f_wall_mass_bracket(wp, Rw, kv_end, tw)
         lo = kv_bracket(1);
         hi = kv_bracket(2);
         for kr = 1:n_rounds
@@ -685,7 +725,7 @@ function varargout = f_imr_nodal(varargin)
                         '(R = %g, P = %g, stored kv(end) = %g, residuals %g ' ...
                         'and %g). This indicates a physical or indexing ' ...
                         'problem in the state, not a solver problem.'], lo, ...
-                        1 - hi, tw, Rw, Pw, kv_in(end), r_lo, r_hi);
+                        1 - hi, tw, Rw, wp(1), kv_end, r_lo, r_hi);
                 end
             end
             ic = find(sign(r_grid(1:end-1)) ~= sign(r_grid(2:end)), 1);
@@ -698,34 +738,33 @@ function varargout = f_imr_nodal(varargin)
             % stay inside the final grid interval
             kv_w = min(max(kv_w - res/dres, lo), hi);
         end
-        kv_w_guess = kv_w;
-        [~, theta_w] = f_wall_mass_residual(kv_w, wp);
     end
     
     % mass-transfer wall balance and its derivative as functions of the wall
     % vapor mass fraction kv_w (elementwise, kv_w may be a vector),
-    % wp = [P, alpha_m, beta_m, flux_fixed, carrier_fixed]. It is the balance
+    % wp = [P, alpha_m, beta_m, flux_fixed, carrier_fixed] as a column, or
+    % one column per entry of kv_w. It is the balance
     % of f_wall_mass_bc multiplied through by
     % (kv_w*Rva_diff + Rg_star)*Tw*(1 - kv_w) > 0, which has the same root
     % and no reciprocal that vanishes as kv_w -> 1
     function [r, theta_w, Tw, dr] = f_wall_mass_residual(kv_w, wp)
-        Pw = wp(1);
+        Pw = wp(1,:);
         % vapor partial pressure, and the wall temperature from inverting
         % Pv(Tw) = C1_pv*exp(C2_pv/Tw) (C2_pv < 0)
         q = kv_w*Rvg_ratio + 1 - kv_w;
-        ps = Pw*kv_w*Rvg_ratio./q;
+        ps = Pw.*kv_w*Rvg_ratio./q;
         lg = log(ps/C1_pv);
         Tw = C2_pv./lg;
-        theta_w = 0.5*wp(2)*(Tw.^2 - 1) + wp(3)*(Tw - 1);
+        theta_w = 0.5*wp(2,:).*(Tw.^2 - 1) + wp(3,:).*(Tw - 1);
         mix = kv_w*Rva_diff + Rg_star;
         denom = mix.*Tw.*(1 - kv_w);
-        thermal = grad_Tm_coeff(1)*Tw + grad_Trans_coeff(1)*theta_w + wp(4);
-        r = denom.*thermal + Pw*(grad_C_coeff(1)*kv_w + wp(5));
+        thermal = grad_Tm_coeff(1)*Tw + grad_Trans_coeff(1)*theta_w + wp(4,:);
+        r = denom.*thermal + Pw.*(grad_C_coeff(1)*kv_w + wp(5,:));
         if nargout > 3
             % d/d(kv_w) through ps, Tw and theta_w
             dps = Pw*Rvg_ratio./q.^2;
             dTw = -C2_pv./lg.^2.*dps./ps;
-            dth = (wp(2)*Tw + wp(3)).*dTw;
+            dth = (wp(2,:).*Tw + wp(3,:)).*dTw;
             ddenom = Rva_diff*Tw.*(1 - kv_w) + mix.*dTw.*(1 - kv_w) - mix.*Tw;
             dthermal = grad_Tm_coeff(1)*dTw + grad_Trans_coeff(1)*dth;
             dr = ddenom.*thermal + denom.*dthermal + Pw*grad_C_coeff(1);
@@ -760,59 +799,69 @@ function varargout = f_imr_nodal(varargin)
     % and theta_bw = (u^2-1)/(2*alpha_g) quadratic in u, so the residual is
     % c2*u^2 + 2*c1*u + q = 0. Both roots are formed, u < 0 is discarded
     % (u is a square root), and of two admissible roots the one closest to
-    % theta_bw_guess is kept; the sign of c2 depends on the grid spacing
-    % and the conductivity ratio, so no branch is hard-coded. c2 = 0 is the
-    % linear case. fzero is the fallback when no admissible root exists.
+    % theta_bw_guess is kept (the first on a tie); the sign of c2 depends on
+    % the grid spacing and the conductivity ratio, so no branch is
+    % hard-coded. c2 = 0 is the linear case. fzero is the fallback when no
+    % admissible root exists. Tm_in and th_in may hold one state per column,
+    % giving one theta_bw per column.
     function theta_bw = f_wall_theta_exact(Tm_in, th_in)
         if nargin < 2
             th_in = theta;
         end
         c1 = grad_Tm_coeff(1);
         c2 = grad_Trans_coeff(1);
-        K = grad_Tm_coeff(2:end)*Tm_in(iwall_m) + ...
-            grad_Trans_coeff(2:end)*th_in(iwall_b);
+        K = grad_Tm_coeff(2:end)*Tm_in(iwall_m,:) + ...
+            grad_Trans_coeff(2:end)*th_in(iwall_b,:);
         q = 2*c1*(alpha_g - 1) - c2 + 2*alpha_g*K;
         if abs(c2) < eps
-            uroots = -q/(2*c1);
+            u1 = -q/(2*c1);
+            u2 = NaN(size(q));
         else
             disc = c1^2 - c2*q;
-            if disc >= 0
-                % cancellation-free pair of roots
-                sq = sqrt(disc);
-                if c1 >= 0
-                    qq = -(c1 + sq);
-                else
-                    qq = -(c1 - sq);
-                end
-                uroots = [qq/c2, q/qq];
+            % cancellation-free pair of roots, none where disc < 0
+            sq = sqrt(max(disc, 0));
+            if c1 >= 0
+                qq = -(c1 + sq);
             else
-                uroots = [];
+                qq = -(c1 - sq);
             end
+            u1 = qq/c2;
+            u2 = q./qq;
+            u1(disc < 0) = NaN;
+            u2(disc < 0) = NaN;
         end
-        uroots = uroots(isfinite(uroots) & uroots >= 0);
-        if isempty(uroots)
-            try
-                theta_bw = fzero(@(x) f_bubble_wall_thermal_bc(x, Tm_in, th_in), ...
-                    theta_bw_guess, foptions);
-            catch
-                theta_bw = NaN;
+        ok1 = isfinite(u1) & u1 >= 0;
+        ok2 = isfinite(u2) & u2 >= 0;
+        th1 = (u1.^2 - 1)/(2*alpha_g);
+        th2 = (u2.^2 - 1)/(2*alpha_g);
+        pick2 = ok2 & (~ok1 | abs(th2 - theta_bw_guess) < abs(th1 - theta_bw_guess));
+        theta_bw = th1;
+        theta_bw(pick2) = th2(pick2);
+        for jw = find(~(ok1 | ok2))
+            theta_bw(jw) = f_wall_theta_fallback(c1, c2, Tm_in(:,jw), th_in(:,jw));
+        end
+    end
+    
+    % fzero on the thermal-only balance of one state, for a state where the
+    % quadratic has no admissible root
+    function theta_bw = f_wall_theta_fallback(c1, c2, Tm_in, th_in)
+        try
+            theta_bw = fzero(@(x) f_bubble_wall_thermal_bc(x, Tm_in, th_in), ...
+                theta_bw_guess, foptions);
+        catch
+            theta_bw = NaN;
+        end
+        if ~isfinite(theta_bw)
+            % no root exists (an unphysical trial state of the
+            % integrator): take the least-residual point of the
+            % quadratic so the step is rejected on its error estimate
+            % rather than aborting the run
+            if abs(c2) < eps
+                u = 0;
+            else
+                u = max(-c1/c2, 0);
             end
-            if ~isfinite(theta_bw)
-                % no root exists (an unphysical trial state of the
-                % integrator): take the least-residual point of the
-                % quadratic so the step is rejected on its error estimate
-                % rather than aborting the run
-                if abs(c2) < eps
-                    u = 0;
-                else
-                    u = max(-c1/c2, 0);
-                end
-                theta_bw = (u^2 - 1)/(2*alpha_g);
-            end
-        else
-            thetas = (uroots.^2 - 1)/(2*alpha_g);
-            [~,kmin] = min(abs(thetas - theta_bw_guess));
-            theta_bw = thetas(kmin);
+            theta_bw = (u^2 - 1)/(2*alpha_g);
         end
     end
     

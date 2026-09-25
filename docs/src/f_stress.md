@@ -40,3 +40,4 @@
 ## Notes
 - The spectral stress representation (`f_imr_spectral`, `stress = 5`, `spectral = 1`) does not use this function.
 - The non-Newtonian contribution enters every stress model with a viscous term (stress 1–5) as `-6*intfnu*iDRe` in `S` and `-6*dintfnu*iDRe` in `Sdot`, so that `Sdot` is the time derivative of `S` (the `Rddot` part is carried by `ddintfnu` in [`f_radial_eq`](f_radial_eq.md)). For stress 3–5 the non-Newtonian viscosity takes the place of the solvent viscosity `LAM/Re8`, which gives the `LAM/DRe` scaling. `f_checkers` rejects `nu_model > 0` with stress 0.
+- `R`, `Rdot` and the other state inputs may be row vectors, with `X` holding one state per column (the batched right-hand side of [`f_imr_nodal`](f_imr_nodal.md#batched-right-hand-side)). Every operation is elementwise across the columns, in the same order as for one state, so a single state gives the same result as before bit for bit.

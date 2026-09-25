@@ -40,4 +40,4 @@ Dimensionless name/value pairs, see `default_case`, or a struct from [`f_imr_inp
 | `spectral` | Spectral stress representation for `stress = 5` (0/1) |
 | `nv`, `lv` | Number of stress modes and stretching length of the stress coordinate |
 | `nt`, `mt`, `lt` | Thermal expansion orders and medium stretching length |
-| `jacobian` | 2 analytic Jacobian (default); 0 and 1 give a dense numerical Jacobian |
+| `jacobian` | 2 analytic Jacobian (default); 0 and 1 give a dense numerical Jacobian; 3 (batched finite differences) is nodal only and raises an error here |

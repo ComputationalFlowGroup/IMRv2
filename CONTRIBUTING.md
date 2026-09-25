@@ -57,7 +57,7 @@ GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has
 | `tests/` | Stored reference results (`.mat`) that the test suites compare against |
 | `docs/src/`, `docs/toolchain/` | One Markdown page per function or script |
 | `docs/compatibility.md` | Which features run together in each solver |
-| `examples/`, `benchmarks/` | Example scripts (including the `f_multirun` study and its cluster job) and scaling benchmarks |
+| `examples/`, `benchmarks/` | Example scripts (including the `f_multirun` study and its cluster job), scaling benchmarks, and the integrator comparison (`benchmarks/integrators`) |
 
 ### Code conventions
 

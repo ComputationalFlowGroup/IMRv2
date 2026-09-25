@@ -114,7 +114,7 @@ for n = 1:2:numel(varargin)
         case 'masstrans',   masstrans = varargin{n+1};
         
         % solver options
-        case 'method',      method = varargin{n+1};
+        case 'method',      method = f_method_code(varargin{n+1});
         case 'spectral',    spectral = varargin{n+1};
         case 'divisions',   divisions = varargin{n+1};
         case 'nv',          Nv = varargin{n+1};
@@ -393,6 +393,23 @@ if nargout > 11
     inputs.tfin = tvector(end);
 end
 
+end
+
+% integrator code of the method input, which may also be given by name:
+% 'cvodes' (3), 'ode15s' (15) or 'ode23tb' (23)
+function code = f_method_code(method)
+    if ischar(method) || isstring(method)
+        names = {'cvodes', 'ode15s', 'ode23tb'};
+        codes = [3 15 23];
+        k = find(strcmpi(char(method), names), 1);
+        if isempty(k)
+            error(['INPUT ERROR: method must be ''cvodes'', ''ode15s'' or ' ...
+                '''ode23tb'' (or 3, 15, 23)']);
+        end
+        code = codes(k);
+    else
+        code = method;
+    end
 end
 
 % name/value pairs of the fields of p that differ from f_imr_inputs; a time

@@ -25,9 +25,10 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 - The bubble-wall heat flux balance, with or without mass transfer, uses the wall rows of the first-derivative matrices: three-point one-sided stencils for finite differences, and every node of each field for Chebyshev.
 
 ### 3. Time Integration
-- Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s` or `ode23tb`).
+- Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s`, `ode23tb` or CVODES).
 - The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a solve for the wall vapor mass fraction: Newton from the previous root, with a fixed-cost bracketed solve as the fallback (see [`f_wall_bc`](f_wall_bc.md)).
 - The stiff integrators receive the analytic Jacobian of `f_jacobian_nodal` for `bubtherm = 1` (with or without medium heat and mass transfer), or the sparsity pattern from `f_jpattern` otherwise (dense for Chebyshev); see the `jacobian` option.
+- With `jacobian = 3` they receive a finite-difference Jacobian from one batched right-hand-side call (see [Batched right-hand side](#batched-right-hand-side)). It works for every model.
 
 ### 4. Output Assembly
 - Returns `[t, R, Rdot, P, T, Tm, kv]` through `varargout`, and optionally the struct of the run's inputs as an 8th output. All outputs are dimensionless.
@@ -48,9 +49,9 @@ Inputs are dimensionless name/value pairs (see `default_case`) or a struct from 
 | `eps3`             | Second-order strain term, in [0, 0.5]; currently unused by the stress models |
 | `masstrans`        | Enable mass transfer (0/1, requires `bubtherm = 1` and `vapor = 1`) |
 | `scheme`           | Differentiation matrices: 0 finite difference (default), 1 Chebyshev |
-| `method`           | Stiff time integrator (15 = `ode15s`, 23 = `ode23tb`) |
+| `method`           | Stiff time integrator: 23 or `'ode23tb'` (default), 15 or `'ode15s'`, 3 or `'cvodes'` (CVODES through the `ode` object, MATLAB R2024a or later) |
 | `reltol`, `abstol` | Integrator tolerances (default `1e-8`) |
-| `jacobian`         | Jacobian for the stiff integrators: 0 dense numerical, 1 sparsity pattern, 2 analytic (default). The analytic Jacobian needs `bubtherm = 1`; otherwise 2 falls back to the sparsity pattern. |
+| `jacobian`         | Jacobian for the stiff integrators: 0 dense numerical, 1 sparsity pattern, 2 analytic (default), 3 batched finite differences. The analytic Jacobian needs `bubtherm = 1`; otherwise 2 falls back to the sparsity pattern. |
 | `spectral`         | Spectral stress representation; `f_checkers` rejects `spectral = 1` with stress 5 in this solver |
 | `divisions`, `Nv`, `Nt`, `Mt` | Minimum number of time steps, and grid sizes |
 | `Lt`               | Grid stretching length in the medium |
@@ -94,6 +95,33 @@ Inputs are dimensionless name/value pairs (see `default_case`) or a struct from 
 - Mesh resolution must be tuned carefully for high Weissenberg numbers or sharp waveforms.
 - Cost per right-hand-side call: the constant factors of the medium equation and of the bubble temperature map are computed once, with the same arithmetic as before, so results are bit-identical; with `wave_type = 0` the far-field pressure is the constant `ee` and `f_pinfinity` is not called. In GNU Octave this made a right-hand-side call 11–31% cheaper and most runs 8–17% faster.
 - A nested function shares every variable name that the solver function also uses, so the nested functions use their own loop variable names (the output loop is `it_out`).
+
+## Batched right-hand side
+
+The right-hand side `SVBDODE` takes a matrix `X` with one state per column and returns one column of derivatives per state. Every operation is elementwise across the columns, in the same order as for a single state. The helpers it calls work the same way: `f_stress`, `f_radial_eq`, `f_viscosity`, `f_stress_dissipation`, and the wall closures. A single column therefore gives the same result as before bit for bit. The integrators call it with one column.
+
+`jacobian = 3` uses the batch. It evaluates the state and its `n` perturbations in one call, `F = SVBDODE(t, [X, X + diag(del)])`, and forms `J = (F(:,2:end) - F(:,1))./del.'`. The step is `sqrt(eps)*max(|X|, 1)`, rounded so that the perturbed state is exactly `X + del`. Entries outside the `f_jpattern` pattern are set to zero. `J` is returned dense: it is computed dense, dense LU is fast at these sizes, and a sparse `J` whose number of nonzeros changes between calls breaks Octave's `ode15s`.
+
+Why it pays: an interpreted operation costs about the same for one number as for a few hundred. A batch of `n + 1` states costs about 3 right-hand-side calls, not `n + 1`. The analytic Jacobian is built from 55 sparse dual-number operations and costs 25–40 right-hand-side calls.
+
+Measured in GNU Octave at the default grids (`Nt = Mt = 25`):
+
+| Case | States | Right-hand side | Analytic `J` | Batched FD `J` |
+|------|--------|-----------------|--------------|----------------|
+| Bubble heat transfer | 28 | 0.12 ms | 4.6 ms | 0.30 ms |
+| Bubble and medium heat transfer | 53 | 0.25 ms | 6.7 ms | 0.65 ms |
+| Kelvin–Voigt, Zener stress | 54 | 0.27 ms | 6.9 ms | 0.68 ms |
+| Carreau viscosity | 53 | 0.36 ms | 8.5 ms | 1.2 ms |
+| Mass transfer | 78 | 0.44 ms | 15.0 ms | 1.4 ms |
+| Mass transfer, Chebyshev | 78 | 0.53 ms | 15.8 ms | 1.5 ms |
+| Medium heat transfer, `Nt = Mt = 40` | 83 | 0.24 ms | 6.8 ms | 1.0 ms |
+
+Checks:
+
+- Every column of a batch matches a single-column call to `4e-13` (relative), over 372 model combinations: radial 1–6, stress 0–5, four viscosity models, the thermal and mass-transfer configurations, and both schemes.
+- The batched Jacobian matches the analytic one to a scaled error below `1e-5` in every thermal case.
+- Over the 74 regression cases, `jacobian = 3` reproduces the `jacobian = 2` solution to within the integrator tolerance (`R(t)` differs by at most `9e-7`, mostly `1e-8` or less). The total run time went from 43 s to 28 s in Octave, where `ode15s` is itself compiled. MATLAB's `ode15s` and `ode23tb` are interpreted, so the gain there is expected to differ.
+- `benchmarks/integrators/s_compare_integrators.m` compares `ode23tb`, `ode15s` and CVODES with both Jacobians against a tight-tolerance reference, in MATLAB.
 
 ## Verification of the Chebyshev scheme
 

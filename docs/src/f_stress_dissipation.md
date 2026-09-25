@@ -33,3 +33,4 @@
 ## Notes
 - The viscous part uses the local viscosity `visc = 1/Re8 + fnu/DRe` (`1/Re8` when `DRe = 0`), with `fnu` evaluated at the local shear rate `gammadot_R*(R/r)^3` of each medium grid point.
 - The stress-field branch uses `ZZT*(X(ivisco1)-X(ivisco2))`, the difference of the `tau_rr` and `tau_tt` fields on the medium grid.
+- `R`, `Rdot` and the other state inputs may be row vectors, with `X` holding one state per column (the batched right-hand side of [`f_imr_nodal`](f_imr_nodal.md#batched-right-hand-side)). Every operation is elementwise across the columns, in the same order as for one state, so a single state gives the same result as before bit for bit. The output then has one column per state.

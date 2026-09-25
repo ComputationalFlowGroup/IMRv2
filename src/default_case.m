@@ -38,7 +38,8 @@ function d = default_case()
     TFin            = 3.903439778613622;
     % time span vector
     TVector         = linspace(0,TFin,128);
-    % stiff time integrator: 15 ode15s, 23 ode23tb
+    % stiff time integrator: 15 ode15s, 23 ode23tb, 3 CVODES (the ode
+    % object, MATLAB R2024a or later)
     method          = 23;
     % force spectral collocation solution
     spectral        = 0;
@@ -60,7 +61,8 @@ function d = default_case()
     atol            = 1e-8;
     % Jacobian for the stiff integrators, both solvers
     % 0 : dense numerical, 1 : sparsity pattern (nodal solver; numerical in
-    % the spectral solver), 2 : analytic
+    % the spectral solver), 2 : analytic, 3 : batched finite differences
+    % (nodal solver)
     jacobian        = 2;
     % differentiation matrices of the nodal solver f_imr_nodal
     % 0 : finite difference, 1 : Chebyshev

@@ -6,7 +6,7 @@
 ## Checks
 
 ### Model flags
-- `radial` in 1–6, `stress` in 0–5, `nu_model` in 0–7, `wave_type` in -3–3, `method` in {15, 23}, `jacobian` in 0–2, `scheme` in 0–1.
+- `radial` in 1–6, `stress` in 0–5, `nu_model` in 0–7, `wave_type` in -3–3, `method` in {3, 15, 23}, `jacobian` in 0–3, `scheme` in 0–1.
 - `bubtherm`, `medtherm`, `vapor`, `masstrans`, `collapse`, `spectral`, `progdisplay` are 0 or 1; `eps3` in [0, 0.5].
 
 ### Compatibility of the conditions
