@@ -151,10 +151,18 @@ function varargout = f_imr_nodal(varargin)
     no = (nstate-1)/nstate;
     nog = (nstate-1)/2;
     kapover = (kappa-1)/kappa;
-    % Kirchhoff map T(theta) of the bubble without mass transfer, whose
-    % mixture coefficient is the constant kv0 (as in f_theta_of_T)
+    % Kirchhoff transform of the conductivity K = alpha*T + beta,
+    % theta = alpha*(T^2 - 1)/2 + beta*(T - 1), with the inverse
+    % T = (sqrt((alpha + beta)^2 + 2*alpha*theta) - beta)/alpha, where the
+    % square root is K itself. alpha + beta is K at T = 1, which is not 1
+    % in general (the conductivities are scaled by the mean of the gas and
+    % vapor values). The map of the bubble without mass transfer uses the
+    % constant mixture coefficients of kv0 (as in f_theta_of_T)
     alpha_m0 = kv0.*alpha_v + (1-kv0).*alpha_g;
-    alpha_m0m1 = alpha_m0 - 1;
+    beta_m0 = kv0.*beta_v + (1-kv0).*beta_g;
+    K1sq_m0 = (alpha_m0 + beta_m0)^2;
+    % the same for the gas alone, used by the thermal wall balance
+    K1sq_g = (alpha_g + beta_g)^2;
     om_kv0 = 1-kv0;
     % dimensionless saturated vapor pressure, Pv(T) = C1_pv*exp(C2_pv/T)
     % with Pv(1) = Pv_star
@@ -257,9 +265,9 @@ function varargout = f_imr_nodal(varargin)
     % constants of the bubble-wall heat (and mass) flux balance
     wallc = struct('grad_Tm',grad_Tm_coeff, 'grad_Tr',grad_Trans_coeff, ...
         'grad_C',grad_C_coeff, 'iwall_m',iwall_m, 'iwall_b',iwall_b, ...
-        'alpha_g',alpha_g, 'alpha_v',alpha_v, ...
-        'C1',C1_pv, 'C2',C2_pv, 'Rvg',Rvg_ratio, 'Rva',Rva_diff, ...
-        'Rg',Rg_star);
+        'alpha_g',alpha_g, 'alpha_v',alpha_v, 'beta_g',beta_g, ...
+        'beta_v',beta_v, 'C1',C1_pv, 'C2',C2_pv, 'Rvg',Rvg_ratio, ...
+        'Rva',Rva_diff, 'Rg',Rg_star);
     
     % solver start
     if scheme == 0
@@ -420,9 +428,10 @@ function varargout = f_imr_nodal(varargin)
         % bubble temperature, f_theta_of_T written out
         if masstrans
             alpha_T = kv.*alpha_v + (1-kv).*alpha_g;
-            T = (alpha_T - 1 + sqrt(1+2*theta.*alpha_T)) ./ alpha_T;
+            beta_T = kv.*beta_v + (1-kv).*beta_g;
+            T = (sqrt((alpha_T + beta_T).^2 + 2*theta.*alpha_T) - beta_T) ./ alpha_T;
         elseif bubtherm
-            T = (alpha_m0m1 + sqrt(1+2*theta.*alpha_m0)) ./ alpha_m0;
+            T = (sqrt(K1sq_m0 + 2*theta.*alpha_m0) - beta_m0) ./ alpha_m0;
         end
         
         % bubble equations of motion
@@ -473,7 +482,7 @@ function varargout = f_imr_nodal(varargin)
             
             % water vapor evolution inside the bubble
             nonlinear_diffusion = ...
-                dkv.*(dtheta./(sqrt(1+2*alpha_mix.*theta).*T)+RDkv);
+                dkv.*(dtheta./(Kstar.*T)+RDkv);
             advection_term = u_rel./R.*dkv;
             kvdot = Fom./R.^2.*(ddkv - nonlinear_diffusion) - advection_term;
             % concentration at bubble wall, handled by flux boundary bc
@@ -627,10 +636,11 @@ function varargout = f_imr_nodal(varargin)
     
     % solver functions
     
-    % temperature at the bubble wall as a function of theta
+    % temperature as a function of theta, with the mixture coefficients of kv
     function Tw = f_theta_of_T(theta_w,kv)
         alpha_m  = kv.*alpha_v + (1-kv).*alpha_g;
-        Tw = (alpha_m - 1 + sqrt(1+2*theta_w.*alpha_m)) ./ alpha_m;
+        beta_m  = kv.*beta_v + (1-kv).*beta_g;
+        Tw = (sqrt((alpha_m + beta_m).^2 + 2*theta_w.*alpha_m) - beta_m) ./ alpha_m;
     end
     
     % concentration at the bubble wall
@@ -657,11 +667,10 @@ function varargout = f_imr_nodal(varargin)
         % kv0. Deliberate carry-over of the existing behavior, to be
         % revisited separately.
         alpha_m = kv_in(end,:)*alpha_v + (1 - kv_in(end,:))*alpha_g;
-        % the transform normalizes the conductivity to 1 at T = 1:
-        % K = alpha_m*T + beta_m with beta_m = 1 - alpha_m, so that
+        % K = alpha_m*T + beta_m, so that
         % theta = 0.5*alpha_m*(T^2 - 1) + beta_m*(T - 1) is the exact inverse
-        % of T = (alpha_m - 1 + sqrt(1 + 2*alpha_m*theta))/alpha_m
-        beta_m = 1 - alpha_m;
+        % of T = (sqrt((alpha_m + beta_m)^2 + 2*alpha_m*theta) - beta_m)/alpha_m
+        beta_m = kv_in(end,:)*beta_v + (1 - kv_in(end,:))*beta_g;
         % contractions of the wall rows with the other nodes, independent of
         % kv_w. Order matters: Tm(iwall_m) runs outward from the wall
         % (Tm(2:3) for finite differences), while theta(iwall_b) and
@@ -673,7 +682,8 @@ function varargout = f_imr_nodal(varargin)
         carrier_fixed = grad_C_coeff(2:end)*kv_in(iwall_b,:);
         % one column of parameters per state
         wp = [Pw;
-        alpha_m; beta_m; flux_fixed; carrier_fixed];
+        alpha_m;
+        beta_m; flux_fixed; carrier_fixed];
         nw = size(wp, 2);
         
         % warm start from the previous root, on the columns still iterating
@@ -789,15 +799,16 @@ function varargout = f_imr_nodal(varargin)
     function theta_w = f_bubble_wall_thermal_bc(theta_bw, Tm_in, th_in)
         Tm_trans = Tm_in(iwall_m);
         T_trans = th_in(iwall_b);
-        Tw_prelim = inv_alpha*(alpha_g - 1 + sqrt(1+2*theta_bw*alpha_g));
+        Tw_prelim = inv_alpha*(sqrt(K1sq_g + 2*theta_bw*alpha_g) - beta_g);
         theta_w = grad_Tm_coeff * vertcat(Tw_prelim, Tm_trans) + ...
             grad_Trans_coeff * vertcat(theta_bw, T_trans);
     end
     
     % exact bubble-wall theta for the thermal-only balance. With
-    % u = sqrt(1+2*alpha_g*theta_bw), Tw = (alpha_g-1+u)/alpha_g is linear
-    % and theta_bw = (u^2-1)/(2*alpha_g) quadratic in u, so the residual is
-    % c2*u^2 + 2*c1*u + q = 0. Both roots are formed, u < 0 is discarded
+    % u = sqrt((alpha_g+beta_g)^2+2*alpha_g*theta_bw), the wall
+    % conductivity, Tw = (u-beta_g)/alpha_g is linear and
+    % theta_bw = (u^2-(alpha_g+beta_g)^2)/(2*alpha_g) quadratic in u, so the
+    % residual is c2*u^2 + 2*c1*u + q = 0. Both roots are formed, u < 0 is discarded
     % (u is a square root), and of two admissible roots the one closest to
     % theta_bw_guess is kept (the first on a tie); the sign of c2 depends on
     % the grid spacing and the conductivity ratio, so no branch is
@@ -812,7 +823,7 @@ function varargout = f_imr_nodal(varargin)
         c2 = grad_Trans_coeff(1);
         K = grad_Tm_coeff(2:end)*Tm_in(iwall_m,:) + ...
             grad_Trans_coeff(2:end)*th_in(iwall_b,:);
-        q = 2*c1*(alpha_g - 1) - c2 + 2*alpha_g*K;
+        q = -2*c1*beta_g - c2*K1sq_g + 2*alpha_g*K;
         if abs(c2) < eps
             u1 = -q/(2*c1);
             u2 = NaN(size(q));
@@ -832,8 +843,8 @@ function varargout = f_imr_nodal(varargin)
         end
         ok1 = isfinite(u1) & u1 >= 0;
         ok2 = isfinite(u2) & u2 >= 0;
-        th1 = (u1.^2 - 1)/(2*alpha_g);
-        th2 = (u2.^2 - 1)/(2*alpha_g);
+        th1 = (u1.^2 - K1sq_g)/(2*alpha_g);
+        th2 = (u2.^2 - K1sq_g)/(2*alpha_g);
         pick2 = ok2 & (~ok1 | abs(th2 - theta_bw_guess) < abs(th1 - theta_bw_guess));
         theta_bw = th1;
         theta_bw(pick2) = th2(pick2);
@@ -861,7 +872,7 @@ function varargout = f_imr_nodal(varargin)
             else
                 u = max(-c1/c2, 0);
             end
-            theta_bw = (u^2 - 1)/(2*alpha_g);
+            theta_bw = (u^2 - K1sq_g)/(2*alpha_g);
         end
     end
     

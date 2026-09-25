@@ -49,11 +49,11 @@ The *input* column is the name used in the name/value call (case-insensitive).
 ### Initial conditions
 | Input | Variable | Definition | Default |
 |-------|----------|------------|---------|
-| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `f_imr_nodal`. | 0 |
+| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `f_imr_nodal`. With stress 5 it also requires `stress0`. | 0 |
 | `req` | `Req` | `Req/R0` | 0.2 |
 | `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 |
 | `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed |
-| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, one value for stress 3–4, `2*Nv` values for stress 5 with `spectral = 1` and 2 values with `spectral = 0`; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise) | computed |
+| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, one value for stress 3–4, `2*Nv` values for stress 5 with `spectral = 1` and 2 values with `spectral = 0`; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise; stress 5 with `collapse = 1` must give it) | computed |
 
 ### Acoustic options
 | Input | Variable | Definition | Default |
@@ -93,7 +93,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `kappa` | `kappa` | Ratio of specific heats | 1.47 |
 | `foh` | `Foh` | Thermal Fourier `Dm/(Uc*R0)` | 2.5339e-4 |
 | `br` | `Br` | Brinkman `Uc^2/(Cp*T8)` | 7.6394e-5 |
-| `alpha_g`, `beta_g` | | Gas conductivity `K = K8*(alpha_g*T + beta_g)` | 0.57610, 0.42634 |
+| `alpha_g`, `beta_g` | | Gas conductivity `K = K8*(alpha_g*T + beta_g)`. `K8` is the mean of the gas and vapor conductivities at `T8`, so `alpha_g + beta_g` need not be 1; the solvers use both as given | 0.57610, 0.42634 |
 | `alpha_v`, `beta_v` | | Vapor conductivity coefficients | 0.36006, 0.63750 |
 | `chi` | `chi` | `T8*K8/(P8*R0*Uc)` | 0.16479 |
 | `kmstar` | `Km_star` | Medium to gas conductivity ratio `Km/K8` | 20.1276 |

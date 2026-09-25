@@ -37,7 +37,7 @@ The enthalpy forms (radial 3–6) describe the liquid with an equation of state 
 | 7 | Mass transfer |  |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
 | 8 | Kelvin–Voigt stress (1, 2) |  |  |  |  |  |  |  | – | · | · | · | ✓ | ✓ | ✓ |
 | 9 | Maxwell / Jeffreys / Zener (3, 4) |  |  |  |  |  |  |  |  | – | · | · | ✓ | ✓ | ✓ |
-| 10 | UCM / Oldroyd-B, two states (5) |  |  |  |  |  |  |  |  |  | – | · | ✓ | ✓ | ✓ |
+| 10 | UCM / Oldroyd-B, two states (5) |  |  |  |  |  |  |  |  |  | – | · | ✓ | ✗ | ✓ |
 | 11 | UCM / Oldroyd-B, stress field (5, `spectral = 1`) |  |  |  |  |  |  |  |  |  |  | ✗ | ✗ | ✗ | ✗ |
 | 12 | Non-Newtonian viscosity |  |  |  |  |  |  |  |  |  |  |  | – | ✓ | ✓ |
 | 13 | Collapse |  |  |  |  |  |  |  |  |  |  |  |  | – | ✓ |
@@ -78,12 +78,14 @@ Other rules:
 - **Non-Newtonian viscosity** requires a stress model with a viscous term, stress 1–5; `f_checkers` rejects it with stress 0. It enters every stress model the same way, `-6*intfnu*iDRe` in the stress integral, scaled by `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, and the medium heating uses the local non-Newtonian viscosity.
 - **Stress 3, 4 and 5** require `De > 0`.
 - **Collapse with stress 3 or 4** starts from the stress of a growth from `Req` to `R = 1` ([`f_init_stress`](src/f_init_stress.md)), including the quadratic term for stress 4. If no subsonic growth reaches `R = 1` (very small `Req`), the run stops and asks for `stress0`.
+- **Collapse with stress 0–2** starts from rest at the maximum radius. These models carry no stress history, so there is no initial stress to set, and the run says so.
+- **Collapse with stress 5** is rejected unless `stress0` is given: the stress at the maximum radius is not computed for UCM and Oldroyd-B, and starting from zero stress would be silently wrong.
 - **Stress 5** sets `Ca = Inf`, so it has no elastic contribution.
 - **Medium heating with stress 3 to 5** uses the Kelvin–Voigt closed form, which is inconsistent for history-dependent stress, and `f_checkers` warns. The stress field option (feature 11) computes the heating from the stress field itself.
 
 ## Why the spectral solver cannot collapse
 
-Collapse only sets the initial state in `f_call_params`: the equilibrium radius, a zero wall velocity and, for stress 3 and 4, the initial stress. No solver refers to it afterwards, and the initial-state calculation uses the vapor and gas properties but nothing from mass transfer.
+Collapse only sets the initial state in `f_call_params`: the equilibrium radius, a zero wall velocity and, for stress 3 and 4, the initial stress (stress 5 needs `stress0`). No solver refers to it afterwards, and the initial-state calculation uses the vapor and gas properties but nothing from mass transfer.
 
 `f_imr_spectral` is blocked only because `f_checkers` requires mass transfer for collapse, and it has no mass transfer. That requirement dates from the original code. With it relaxed to bubble and medium heat transfer plus vapor pressure, `f_imr_nodal` and `f_imr_spectral` ran a collapse with stress 0, 1, 3 and 5.
 

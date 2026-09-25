@@ -185,7 +185,10 @@ function varargout = f_imr_spectral(varargin)
     xi_adv = (1+xi)/(2*Lt) - 1./yT;
     yT_adv = 1./yT2 - yT;
     diff_m = Foh/4*(1+xi).^4;
-    alpha_gm1 = alpha_g - 1;
+    % Kirchhoff transform of K = alpha_g*T + beta_g,
+    % theta = alpha_g*(T^2 - 1)/2 + beta_g*(T - 1), inverted as
+    % T = (sqrt((alpha_g + beta_g)^2 + 2*alpha_g*theta) - beta_g)/alpha_g
+    K1sq_g = (alpha_g + beta_g)^2;
     % yV = 2*Lv./(1-ze) - Lv + 1;
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
     nn = sparse(nn);
@@ -287,7 +290,7 @@ function varargout = f_imr_spectral(varargin)
     a = X(:,ia)';
     b = X(:,ib)';
     if bubtherm
-        T = (alpha_g-1+sqrt(1+2*alpha_g*gA*a))/alpha_g;
+        T = (sqrt(K1sq_g + 2*alpha_g*gA*a) - beta_g)/alpha_g;
         if medtherm
             Tm = mA*b;
         end
@@ -346,7 +349,7 @@ function varargout = f_imr_spectral(varargin)
             dtheta = gDA*X(ia);
             ddtheta = gDDA*X(ia);
             % temperature and thermal diffusivity fields
-            T = (alpha_gm1 + sqrt(1+2*alpha_g*theta))/alpha_g;
+            T = (sqrt(K1sq_g + 2*alpha_g*theta) - beta_g)/alpha_g;
             D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
             
             % bubble pressure equation
@@ -380,7 +383,7 @@ function varargout = f_imr_spectral(varargin)
                 % enforce boundary condition and solve A*x=b problem with
                 % the Sherman-Morrison update of the prefactored system
                 Tmdot(end) = 0;
-                s = alpha_g*(T(1)-1) + 1;
+                s = alpha_g*T(1) + beta_g;
                 rhs = vertcat(0, thetadot(2:end), Tmdot(2:end), 0);
                 y0 = QA0*(UA0\(LA0\(PA0*rhs)));
                 qdot = y0 + w1*(((s-1)*(vrow'*y0)) / (1 - (s-1)*vw1));
