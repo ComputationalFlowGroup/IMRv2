@@ -683,7 +683,8 @@ function varargout = f_imr_nodal(varargin)
         % one column of parameters per state
         wp = [Pw;
         alpha_m;
-        beta_m; flux_fixed; carrier_fixed];
+        beta_m;
+        flux_fixed; carrier_fixed];
         nw = size(wp, 2);
         
         % warm start from the previous root, on the columns still iterating

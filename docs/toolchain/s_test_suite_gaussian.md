@@ -1,19 +1,26 @@
-# `s_test_suite_gaussian.m` Documentation
+# `s_test_suite_gaussian.m`
 
 ## Overview
-`s_test_suite_gaussian.m` checks that a bubble driven by a Gaussian pressure pulse returns to its equilibrium radius, in both solvers. The CI workflow `test_equilibrium.yml` runs it after the equilibrium suite.
 
-## Setup
-- Adds the paths `../toolchain/` and `../src/`, so it runs from `toolchain/`.
-- SI inputs converted with `f_dim2nondim`: `Req = R0 = 10e-6`, `T8 = 298.15`, `mu = 0.5`, a Gaussian pulse (`wave_type = 1`) with amplitude `pA = 1e5`, width `tw = 1e-4` and delay `dt = 3e-4`, over `tfin = 2e-3` with 1000 output times.
-- `masstrans = collapse = 0`, integrator `ode23tb` (`method = 23`).
+`s_test_suite_gaussian.m` drives a bubble at equilibrium with a Gaussian pressure pulse and checks that it returns to its equilibrium radius. It needs no stored results.
 
-## Test loop
-- Loops over `radial` 1–4, `bubtherm` 0/1, `medtherm` 0/1, `vapor` 0/1 and `stress` 1–5, skipping `medtherm = 1` without `bubtherm` or with radial 3–4.
-- Runs `f_imr_nodal` with `Nt = Mt = 50` and `f_imr_spectral` with `Nt = Mt = 12`.
-- The error is the departure of the final radius from equilibrium: `|1 - R(end)|` for the nodal solver (finite difference scheme) and `|R(1) - R(end)|` for the spectral solver.
-- A test fails when the error exceeds `threshold = 1e-2`.
+## Cases
 
-## Outputs
-- Console output with the error of each test and a pass or fail summary.
-- Exit code `0` if all tests pass, `1` otherwise.
+From [`f_test_cases('gaussian')`](f_test_cases.md), in the three solver modes. The cases are:
+
+- Radial models 1–6.
+- The polytropic bubble, bubble heat transfer, and bubble and medium heat transfer.
+- With and without vapor.
+- The viscous stress models 1–5.
+
+Only the combinations the compatibility matrix allows are kept: 120 cases per mode.
+
+The physical inputs are:
+
+- `Req = R0 = 10 µm`, with `mu = 0.5 Pa s`.
+- A Gaussian pulse (`wave_type = 1`) of amplitude `pA = 1e5 Pa`, width `tw = 0.1 ms`, centered at `dt = 0.3 ms`.
+- `t` from 0 to 2 ms.
+
+## Check
+
+A case passes when `|R(end) - R(1)| <= 1e-2`. In GNU Octave the largest value was `2e-6`.

@@ -63,10 +63,10 @@ for n = [12 24]
     failed = failed + (err > 1e-8);
 end
 
+% an error fails a batch run (matlab -batch, as in CI) with a nonzero exit
+% code, and only stops the script when run interactively
 if failed == 0
-    fprintf('✅ All tests PASSED.\n');
-    exit(0);
+    fprintf('All tests PASSED.\n');
 else
-    fprintf('❌ %d test(s) FAILED.\n', failed);
-    exit(1);
+    error('Differentiation operators: %d test(s) FAILED', failed);
 end

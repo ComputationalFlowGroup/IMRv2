@@ -165,13 +165,12 @@ The test suites live in `toolchain/` and are run from that folder:
 
 | Suite | Checks |
 |---|---|
-| `s_test_suite_compatibility` | Both solvers against stored results, over radial, thermal and stress models |
-| `s_test_suite_equilibrium` | A bubble at equilibrium stays there, in both solvers |
+| `s_test_suite_equilibrium` | A bubble at equilibrium stays there |
 | `s_test_suite_gaussian` | A bubble returns to equilibrium after a Gaussian pressure pulse |
-| `s_test_suite_masstrans` | The nodal solver with mass transfer against stored results |
+| `s_test_suite_regression` | `R(t)` against stored results, including mass transfer, non-Newtonian viscosity, waveforms, the stress field and collapse |
 | `s_test_suite_diffmat` | The differentiation operators of `f_diff_mat` |
 
-Each suite prints whether it passed. All but `s_test_suite_masstrans` also exit with code 0 on success.
+The first three run every combination of the [compatibility matrix](docs/compatibility.md) in the three solver modes: `f_imr_nodal` with finite differences, `f_imr_nodal` with Chebyshev collocation, and `f_imr_spectral`. The case lists come from `toolchain/f_test_cases.m`, which keeps only the combinations the solvers' input checks accept. Each suite prints one line per case and stops with an error if any case fails.
 
 `toolchain/s_format.m` formats the code and `toolchain/s_lint.m` runs the MATLAB linter; `mkdocs build --strict` builds the documentation website. The CI workflows in `.github/workflows` run these, the spelling check and the suites on every pull request; the test suites run as one workflow, `tests.yml`, which passes only when every suite passes. [`CONTRIBUTING.md`](CONTRIBUTING.md#3-run-the-checks) shows how to run them locally.
 
