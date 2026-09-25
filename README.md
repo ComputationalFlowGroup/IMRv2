@@ -13,9 +13,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/tests.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/tests.yml/badge.svg" alt="Test suites"/></a>
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/format.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/format.yml/badge.svg" alt="Format check"/></a>
-  <a href="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/spellcheck.yml"><img src="https://github.com/InertialMicrocavitationRheometry/IMRv2/actions/workflows/spellcheck.yml/badge.svg" alt="Spellcheck"/></a>
+  <a href="https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml"><img src="https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml/badge.svg" alt="Test suites"/></a>
+  <a href="https://github.com/mrodrig6/imrv2/actions/workflows/format.yml"><img src="https://github.com/mrodrig6/imrv2/actions/workflows/format.yml/badge.svg" alt="Format check"/></a>
+  <a href="https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml"><img src="https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml/badge.svg" alt="Spellcheck"/></a>
 </p>
 
 # Inertial Microcavitation Rheometry (IMR)
@@ -215,7 +215,7 @@ For questions, contact [Mauro Rodriguez](mailto:mrodri97@brown.edu) or ask to jo
 
 ## License
 
-Copyright (C) Mauro Rodriguez
+Copyright (C) The IMR developers: Spencer Bryngelson, Jon Estrada, Christian Franck, David Henann, Eric Johnsen, Mauro Rodriguez and Jin Yang (see [Developers and contact](#developers-and-contact)).
 
 IMR is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
