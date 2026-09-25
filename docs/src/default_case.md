@@ -111,5 +111,5 @@ The *input* column is the name used in the name/value call (case-insensitive).
 
 ## Notes
 - All inputs are validated by [`f_checkers`](f_checkers.md); inputs that look dimensional raise the `IMR:dimensional` warning.
-- There are no case files: a case is the list of inputs that differ from these defaults, kept for example as a cell array `varin` and passed as `f_imr_nodal(varin{:})`. The former `casefile` input now raises an error that says so. To run many cases, see [`f_imr_sweep`](f_imr_sweep.md).
+- There are no case files: a case is the list of inputs that differ from these defaults, kept as a struct from [`f_imr_inputs`](f_imr_inputs.md) or as a cell array `varin` passed as `f_imr_nodal(varin{:})`. The former `casefile` input now raises an error that says so. To run many cases, see [`f_imr_sweep`](f_imr_sweep.md).
 - See [`compatibility`](../compatibility.md) for which features run together in each solver.

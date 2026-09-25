@@ -50,6 +50,7 @@ The function returns the following grouped outputs:
 
 - `f_call_params` must be called before running the forward solver.
 - Critical inputs must be matched correctly; otherwise, the function throws errors.
+- A struct from [`f_imr_inputs`](f_imr_inputs.md) as the first input becomes the name/value pairs of its fields that differ from the defaults, ahead of any pairs after it. The last output is the struct of the run's inputs, which the solvers return as their 8th output.
 - The defaults come from the function [`default_case`](default_case.md) and are copied into local variables one by one, then overridden by the name/value pairs. `casefile` is no longer accepted.
 - `f_checkers.m` and `f_init_stress.m` are required for full execution.
 - A user `stress0` must have 0 entries for stress 0–2, 1 for stress 3–4, and `2*Nv` for stress 5 (2 with `spectral = 0`).

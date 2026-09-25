@@ -65,7 +65,7 @@ GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has
 - **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `toolchain/f_dim2nondim.m`.
 - **Adding an input.** Follow the path every input takes:
     1. Give it a default in `src/default_case.m`, and add it to the struct `d` at the end of that function.
-    2. In `src/f_call_params.m`, copy it out of the defaults (`x = d.x;`) and read it in the name/value parser.
+    2. In `src/f_call_params.m`, copy it out of the defaults (`x = d.x;`) and read it in the name/value parser. If its input name differs from its name in `default_case`, add the pair to the `renamed` list in `src/f_imr_inputs.m`.
     3. Validate it in `src/f_checkers.m`, raising an `INPUT ERROR` for invalid values.
     4. Document it in `docs/src/default_case.md`.
 - **Option vectors: append, never insert.** `f_call_params` passes settings to the solvers in positional vectors, such as `eqns_opts`, `solve_opts`, `init_opts` and `sigma_opts`. Add a new entry at the end of a vector. Inserting one in the middle shifts every later position and silently breaks the code that unpacks it.

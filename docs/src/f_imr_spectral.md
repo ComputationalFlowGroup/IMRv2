@@ -25,13 +25,13 @@
 - `f_odesolve` with the analytic Jacobian of `f_jacobian_spectral` when `jacobian = 2` (default).
 
 ### 5. Output
-- Returns `[t, R, Rdot, P, T, Tm]` (dimensionless); the seventh output is empty.
+- Returns `[t, R, Rdot, P, T, Tm]` (dimensionless); the seventh output is empty. The optional 8th output is the struct of the run's inputs (see [`f_imr_inputs`](f_imr_inputs.md)).
 
 ---
 
 ## Inputs
 
-Dimensionless name/value pairs, see `default_case`. Solver-specific notes:
+Dimensionless name/value pairs, see `default_case`, or a struct from [`f_imr_inputs`](f_imr_inputs.md). Solver-specific notes:
 
 | Variable | Description |
 |----------|-------------|

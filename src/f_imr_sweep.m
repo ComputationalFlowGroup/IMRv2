@@ -9,9 +9,10 @@
 %   [res, grid] = f_imr_sweep(solver, base, name1, values1, name2, values2)
 % with any number of swept inputs, followed by options as name/value pairs.
 % solver is a function handle such as @f_imr_nodal or @f_imr_spectral.
-% base is a cell array of name/value pairs shared by every run ({} for the
-% defaults of default_case). Each name_k is a solver input and values_k the
-% values it takes, a numeric vector or a cell array. res is a struct array
+% base holds the inputs shared by every run: a cell array of name/value
+% pairs ({} for the defaults) or a struct from f_imr_inputs. Each name_k is
+% a solver input and values_k the values it takes, a numeric vector or a
+% cell array. res is a struct array
 % of size [numel(values1), numel(values2), ...] with the fields inputs (the
 % swept name/value pairs of the run), out (the solver outputs, {t, R} by
 % default) and error (the error message of a failed run, '' otherwise). A
@@ -28,8 +29,12 @@ function [res, grid] = f_imr_sweep(solver, base, varargin)
     if ~isa(solver, 'function_handle')
         error('f_imr_sweep: solver must be a function handle, e.g. @f_imr_nodal');
     end
-    if ~iscell(base)
-        error('f_imr_sweep: base must be a cell array of name/value pairs');
+    if isstruct(base)
+        % a struct of inputs (f_imr_inputs) ahead of the swept pairs
+        base = {base};
+    elseif ~iscell(base)
+        error(['f_imr_sweep: base must be a struct from f_imr_inputs or a ' ...
+            'cell array of name/value pairs']);
     end
     
     % options and swept inputs
@@ -68,6 +73,10 @@ function [res, grid] = f_imr_sweep(solver, base, varargin)
     end
     if isempty(names)
         error('f_imr_sweep: give at least one input to sweep');
+    end
+    if ~isempty(transform) && ~isempty(base) && isstruct(base{1})
+        error(['f_imr_sweep: a transform takes name/value pairs, so give ' ...
+            'base as a cell array when using one']);
     end
     
     % every combination, in grid order (the first input varies fastest)

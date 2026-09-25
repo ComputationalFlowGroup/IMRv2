@@ -58,8 +58,7 @@ function varin = f_si_inputs(varargin)
             keep(k) = false;
         end
     end
-    pairs = [varargin(1:2:end);
-    varargin(2:2:end)];
+    pairs = reshape(varargin, 2, []);
     pairs = pairs(:, keep);
     varin = f_dim2nondim(pairs{:}, extra{:});
 end

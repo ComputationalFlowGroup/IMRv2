@@ -116,6 +116,15 @@ addpath('src'); addpath('toolchain');
 plot(t*ref.t0, R*ref.R0);
 ```
 
+The inputs can also be kept in a struct, which has every input under its name/value name, with its default:
+
+```matlab
+p = f_imr_inputs();
+p.radial = 2;
+p.stress = 1;
+[t, R, ~, ~, ~, ~, ~, used] = f_imr_nodal(p);   % used: every input of this run
+```
+
 `f_imr_nodal` uses finite differences by default. Add `'scheme', 1` to use Chebyshev differentiation matrices instead; the other inputs stay the same.
 
 ### Parameter sweeps

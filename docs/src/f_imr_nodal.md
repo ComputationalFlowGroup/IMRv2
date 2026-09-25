@@ -30,14 +30,14 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 - The stiff integrators receive the analytic Jacobian of `f_jacobian_nodal` for `bubtherm = 1` (with or without medium heat and mass transfer), or the sparsity pattern from `f_jpattern` otherwise (dense for Chebyshev); see the `jacobian` option.
 
 ### 4. Output Assembly
-- Returns `[t, R, Rdot, P, T, Tm, kv]` through `varargout`. All outputs are dimensionless.
+- Returns `[t, R, Rdot, P, T, Tm, kv]` through `varargout`, and optionally the struct of the run's inputs as an 8th output. All outputs are dimensionless.
 - The wall entries of the state are not integrated (their time derivatives are zero), so the wall values of `T`, `Tm` and `kv` are recovered at every output time from the same wall closure as the right-hand side. `T(:,end)` and `Tm(:,1)` are both the wall temperature.
 
 ---
 
 ## Inputs
 
-Inputs are dimensionless name/value pairs (see `default_case`), routed through `f_call_params` and checked by `f_checkers`, then unpacked locally.
+Inputs are dimensionless name/value pairs (see `default_case`) or a struct from [`f_imr_inputs`](f_imr_inputs.md), routed through `f_call_params` and checked by `f_checkers`, then unpacked locally.
 
 | Variable          | Description |
 |-------------------|-------------|
@@ -81,6 +81,7 @@ Inputs are dimensionless name/value pairs (see `default_case`), routed through `
 | `T`    | Bubble temperature field (if `bubtherm = 1`, otherwise empty) |
 | `Tm`   | Medium temperature field (if `medtherm = 1`, otherwise the far-field value) |
 | `kv`   | Vapor concentration field (if `masstrans = 1`, otherwise empty) |
+| `inputs` | Optional 8th output: the struct of every input of the run, as from [`f_imr_inputs`](f_imr_inputs.md) with the given changes |
 
 ---
 

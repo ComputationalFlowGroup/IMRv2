@@ -8,14 +8,22 @@
 % dimensionless (see default_case.m for the scalings); dimensional values
 % must be converted beforehand, e.g. with toolchain/f_dim2nondim.m. The
 % defaults come from default_case, and any of them can be changed with
-% name/value pairs when invoking either the nodal or spectral solver. The
+% name/value pairs when invoking either the nodal or spectral solver, or
+% with a struct from f_imr_inputs (optionally followed by name/value
+% pairs). The last output is that struct for this run: every input, with
+% the defaults and the given changes. The
 % inputs are checked by f_checkers. The first argument names the calling
 % solver, 'nodal' or 'spectral'.
 function [eqns_opts, solve_opts, init_opts, init_stress, tspan_opts, out_opts, ...
-    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts] = ...
+    acos_opts, wave_opts, sigma_opts, thermal_opts, mass_opts, inputs] = ...
     f_call_params(solver, varargin)
 
 disp('--- Inertial Microcavitation Rheometry forward solver ---');
+% a struct of inputs (f_imr_inputs) becomes the name/value pairs of the
+% fields that differ from the defaults, ahead of any pairs given after it
+if ~isempty(varargin) && isstruct(varargin{1})
+    varargin = [f_struct_pairs(varargin{1}), varargin(2:end)];
+end
 % check that all inputs are matched
 if mod(numel(varargin),2) == 1
     error('input error: unmatched inputs');
@@ -374,4 +382,39 @@ thermal_opts = [Foh Br alpha_g beta_g alpha_v beta_v chi iota];
 % dimensionless mass transfer
 mass_opts = [Fom kv0 Rv_star Ra_star L_heat_star mv0 ma0 thetav];
 
+% the inputs of this run under their input names: the defaults with the
+% given changes, and the time vector that is used
+if nargout > 11
+    inputs = f_imr_inputs();
+    for n = 1:2:numel(varargin)
+        inputs.(lower(varargin{n})) = varargin{n+1};
+    end
+    inputs.tvector = tvector;
+    inputs.tfin = tvector(end);
+end
+
+end
+
+% name/value pairs of the fields of p that differ from f_imr_inputs; a time
+% vector that ends at tfin makes tfin redundant, so only tvector is passed
+function pairs = f_struct_pairs(p)
+    d = f_imr_inputs();
+    f = fieldnames(p);
+    changed = false(size(f));
+    for k = 1:numel(f)
+        changed(k) = ~isfield(d, f{k}) || ~isequaln(p.(f{k}), d.(f{k}));
+    end
+    if isfield(p, 'tvector') && isfield(p, 'tfin')
+        it = find(strcmp(f, 'tvector'));
+        jf = find(strcmp(f, 'tfin'));
+        if changed(it) && changed(jf) && p.tvector(end) == p.tfin
+            changed(jf) = false;
+        end
+    end
+    f = f(changed);
+    pairs = cell(1, 2*numel(f));
+    pairs(1:2:end) = f;
+    for k = 1:numel(f)
+        pairs{2*k} = p.(f{k});
+    end
 end
