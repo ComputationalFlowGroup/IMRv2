@@ -16,14 +16,20 @@ From [`f_test_cases('regression')`](f_test_cases.md). Only the combinations the 
 
     The two materials are a soft, weakly viscous one (`mu = 1e-4 Pa s`, `G = 100 Pa`, `alphax = 1e-3`, `lambda1 = 1e-7 s`) and a stiff, viscous one (`mu = 0.1 Pa s`, `G = 2.5 kPa`, `alphax = 1`, `lambda1 = 1 ms`).
 
-    Without mass transfer, a 50 µm bubble is released from four times its equilibrium radius and followed for 12 µs. With mass transfer, a 200 µm bubble is released from four times its equilibrium radius and followed for 30 µs. These runs exercise every term without being so violent that the result mostly tests the integrator: GNU Octave's `ode15s` completes every case.
+    The runs are:
+
+    - Without mass transfer: a 50 µm bubble released from four times its equilibrium radius and followed for 12 µs.
+    - The polytropic bubble: released from twice its equilibrium radius. It loses no heat, so its collapse is far sharper.
+    - With mass transfer: a 200 µm bubble released from four times its equilibrium radius and followed for 30 µs.
+
+    These runs exercise every term without being so violent that the result mostly tests the integrator: GNU Octave's `ode15s` completes every case. From ten times the equilibrium radius, as the earlier suites used, Octave stopped on 303 of the 615 cases at the first collapse.
 
 - **Other features**, on Keller–Miksis with bubble and medium heat transfer:
 
     - The seven non-Newtonian viscosity models.
     - The Gaussian, histotripsy and Heaviside waveforms.
     - The UCM / Oldroyd-B stress field (`spectral = 1`, spectral solver only).
-    - Collapse with stress 0, 1, 3 and 4 (nodal solver only, since collapse needs mass transfer).
+    - Collapse with stress 0, 1, 3 and 4, up to the first collapse and rebound (20 µs). This is nodal solver only, since collapse needs mass transfer.
 
 ## Check
 

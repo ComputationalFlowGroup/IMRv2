@@ -98,11 +98,16 @@ function cases = f_test_cases(suite)
             {'mu', 1e-1, 'G', 2.5e3, 'alphax', 1, 'lambda1', 1e-3}};
         % the collapse and rebounds of a bubble released from four times
         % its equilibrium radius, and the same with mass transfer for a
-        % larger bubble. They are strong enough to exercise every term but
-        % not so violent that the result mostly tests the integrator: GNU
-        % Octave's weaker ode15s completes every case
+        % larger bubble. The polytropic bubble loses no heat, so its
+        % collapse is far sharper, and it is released from twice its
+        % equilibrium radius. The runs are strong enough to exercise every
+        % term but not so violent that the result mostly tests the
+        % integrator: GNU Octave's weaker ode15s completes every case
         osc = {'R0', 50e-6, 'Req', 12.5e-6, 'tvector', linspace(0, 12e-6, 100)};
+        poly = {'R0', 50e-6, 'Req', 25e-6, 'tvector', linspace(0, 12e-6, 100)};
         mass = {'R0', 2e-4, 'Req', 5e-5, 'tvector', linspace(0, 30e-6, 100)};
+        % collapse: the first collapse and rebound only
+        coll = {'R0', 2e-4, 'Req', 5e-5, 'tvector', linspace(0, 20e-6, 100)};
         common = {'lambda2', 0, 'vapor', 1, 'collapse', 0};
         specs = {};
         for radial = 1:6
@@ -111,6 +116,8 @@ function cases = f_test_cases(suite)
                     for im = 1:2
                         if thermal{it,4}
                             geom = mass;
+                        elseif it == 1
+                            geom = poly;
                         else
                             geom = osc;
                         end
@@ -144,7 +151,7 @@ function cases = f_test_cases(suite)
         % collapse, which needs the full model with mass transfer
         for stress = [0 1 3 4]
             specs(end+1,:) = {sprintf('r2_collapse_s%d', stress), [common, ...
-                mass, mats{2}, f_thermal(thermal(5,:)), {'radial', 2, ...
+                coll, mats{2}, f_thermal(thermal(5,:)), {'radial', 2, ...
                 'stress', stress}]}; %#ok<AGROW>
             specs{end,2}{find(strcmp(specs{end,2}, 'collapse'), 1) + 1} = 1;
         end
