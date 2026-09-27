@@ -34,8 +34,8 @@ function J = f_jacobian_spectral(t, X, jp)
         th = d.lin(jp.gA, aC);
         dth = d.lin(jp.gDA, aC);
         ddth = d.lin(jp.gDDA, aC);
-        sq = sqrt(1 + 2*jp.alpha_g*th.v);
-        T = d.fun(th, (jp.alpha_g - 1 + sq)/jp.alpha_g, 1./sq);
+        sq = sqrt((jp.alpha_g + jp.beta_g)^2 + 2*jp.alpha_g*th.v);
+        T = d.fun(th, (sq - jp.beta_g)/jp.alpha_g, 1./sq);
         D = d.scale(d.div(d.add(d.scale(d.mul(T, T), jp.alpha_g), ...
             d.scale(T, jp.beta_g)), P), jp.kapover);
         dth1 = d.el(dth, 1);
@@ -91,7 +91,7 @@ function J = f_jacobian_spectral(t, X, jp)
             end
             Tmdot = d.set(Tmdot, numel(Tmdot.v), d.con(0));
             % boundary condition solve with the Sherman-Morrison update
-            s = d.add(d.scale(d.el(T, 1), jp.alpha_g), d.con(1 - jp.alpha_g));
+            s = d.add(d.scale(d.el(T, 1), jp.alpha_g), d.con(jp.beta_g));
             rv = vertcat(0, thdot.v(2:end), Tmdot.v(2:end), 0);
             rJ = vertcat(sparse(1,n), thdot.J(2:end,:), Tmdot.J(2:end,:), ...
                 sparse(1,n));

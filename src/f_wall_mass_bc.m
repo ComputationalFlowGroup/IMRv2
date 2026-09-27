@@ -17,7 +17,7 @@
 % medium and bubble first-derivative matrices (two each for finite
 % differences, every node for Chebyshev), and the constants c (wall-row
 % coefficients grad_Tm, grad_Tr, grad_C with the wall node first, alpha_g,
-% alpha_v, C1, C2, Rvg, Rva, Rg). Outputs: the residual r and its gradient
+% alpha_v, beta_g, beta_v, C1, C2, Rvg, Rva, Rg). Outputs: the residual r and its gradient
 % dr with respect to v. The sums run in node order so that the finite
 % difference result does not depend on the row length.
 function [r, dr] = f_wall_mass_bc(v, c)
@@ -34,10 +34,12 @@ function [r, dr] = f_wall_mass_bc(v, c)
     kvE = v(ie);
     P = v(ip);
     
-    % wall temperature from theta with the local mixture coefficient
+    % wall temperature from theta with the local mixture coefficients
     alpha_m = kvE*c.alpha_v + (1 - kvE)*c.alpha_g;
-    u = sqrt(1 + 2*theta_w*alpha_m);
-    Tw = (alpha_m - 1 + u)/alpha_m;
+    beta_m = kvE*c.beta_v + (1 - kvE)*c.beta_g;
+    ab = alpha_m + beta_m;
+    u = sqrt(ab^2 + 2*theta_w*alpha_m);
+    Tw = (u - beta_m)/alpha_m;
     % saturated vapor pressure and wall vapor concentration
     Pv = c.C1*exp(c.C2/Tw);
     dem = 1 + c.Rvg*(P/Pv - 1);
@@ -63,10 +65,11 @@ function [r, dr] = f_wall_mass_bc(v, c)
     
     if nargout > 1
         nv = numel(v);
-        % d(Tw)/d(theta_w) and d(Tw)/d(kv(end)) through alpha_m
+        % d(Tw)/d(theta_w) and d(Tw)/d(kv(end)) through alpha_m and beta_m
         dTw = zeros(1,nv);
         dTw(1) = 1/u;
-        dTw(ie) = (1 + theta_w/u - Tw)/alpha_m*(c.alpha_v - c.alpha_g);
+        dTw(ie) = ((ab + theta_w)/u - Tw)/alpha_m*(c.alpha_v - c.alpha_g) + ...
+            (ab/u - 1)/alpha_m*(c.beta_v - c.beta_g);
         % d(kvw) through Tw and P
         dPv_dTw = -Pv*c.C2/Tw^2;
         dkvw = kvw^2*c.Rvg*P/Pv^2*dPv_dTw*dTw;

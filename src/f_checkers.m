@@ -75,6 +75,16 @@ function p = f_checkers(p)
         p.masstrans ~= 1 || p.vapor ~= 1)
     error('INPUT ERROR: collapse must have full model with vapor');
 end
+% collapse sets the equilibrium radius and a zero wall velocity, and for
+% stress 3 and 4 the stress at the maximum radius (f_init_stress). Stress
+% 0-2 carry no stress history, so there is nothing more to set. For stress
+% 5 that stress is not computed, and a zero stress would be silently wrong
+if p.collapse == 1 && p.stress == 5 && ~(isfield(p,'stress0set') && p.stress0set)
+    error(['INPUT ERROR: collapse = 1 is not available for stress = 5 ' ...
+        '(UCM, Oldroyd-B): the stress at the maximum radius is not ' ...
+        'computed for it. Give the initial stress with stress0, or use ' ...
+        'stress 3 or 4']);
+end
 if p.stress >= 3 && p.De <= 0
     error('INPUT ERROR: De must be positive for stress = 3, 4, or 5');
 end
@@ -150,6 +160,10 @@ if p.nu_model > 0
     if p.DRe == 0
         warning('IMR:parameters', ['nu_model = %d with DRe = 0: the ' ...
             'non-Newtonian contribution is zero'], p.nu_model);
+    elseif p.stress >= 3 && p.LAM == 0
+        warning('IMR:parameters', ['nu_model = %d with stress = %d and ' ...
+            'LAM = 0: the non-Newtonian viscosity is the solvent share LAM ' ...
+            'of stress 3-5, so its contribution is zero'], p.nu_model, p.stress);
     end
     if (p.nu_model == 2 || p.nu_model == 7) && ~(p.v_a > 0)
         error('INPUT ERROR: nu_model = %d requires v_a > 0', p.nu_model);

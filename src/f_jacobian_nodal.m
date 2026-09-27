@@ -53,7 +53,7 @@ function J = f_jacobian_nodal(t, X, jp)
             % same root as the solver; for c2*u^2 + 2*c1*u + q(K) = 0 the
             % implicit derivative is d(theta_w)/dK = -u/(c2*u + c1)
             theta_bw = jp.theta_bw(t,X);
-            u = sqrt(1 + 2*jp.alpha_g*theta_bw);
+            u = sqrt((jp.alpha_g + jp.beta_g)^2 + 2*jp.alpha_g*theta_bw);
             dK = -u/(gTr(1)*u + gTm(1));
             row = sparse(1, [itm(jp.wall.iwall_m) ith(jp.wall.iwall_b)], ...
                 dK*[gTm(2:end) gTr(2:end)], 1, n);
@@ -61,17 +61,22 @@ function J = f_jacobian_nodal(t, X, jp)
         th = d.set(th, nth, struct('v',theta_bw,'J',row));
     end
     
-    % bubble temperature from theta and the mixture coefficient
+    % bubble temperature from theta and the mixture coefficients,
+    % T = (s - b)/a with s = sqrt((a + b)^2 + 2*a*theta), the conductivity
     if jp.masstrans
         am = d.add(d.con(jp.alpha_g), d.scale(kvs, jp.alpha_v - jp.alpha_g));
-        s = sqrt(1 + 2*am.v.*th.v);
-        Tv = (am.v - 1 + s)./am.v;
+        bm = d.add(d.con(jp.beta_g), d.scale(kvs, jp.beta_v - jp.beta_g));
+        ab = am.v + bm.v;
+        s = sqrt(ab.^2 + 2*am.v.*th.v);
+        Tv = (s - bm.v)./am.v;
         T = struct('v', Tv, 'J', d.diag(1./s)*th.J + ...
-            d.diag((1 + th.v./s - Tv)./am.v)*am.J);
+            d.diag(((ab + th.v)./s - Tv)./am.v)*am.J + ...
+            d.diag((ab./s - 1)./am.v)*bm.J);
     else
         am = jp.kv0*jp.alpha_v + (1 - jp.kv0)*jp.alpha_g;
-        s = sqrt(1 + 2*am*th.v);
-        T = struct('v', (am - 1 + s)/am, 'J', d.diag(1./s)*th.J);
+        bm = jp.kv0*jp.beta_v + (1 - jp.kv0)*jp.beta_g;
+        s = sqrt((am + bm)^2 + 2*am*th.v);
+        T = struct('v', (s - bm)/am, 'J', d.diag(1./s)*th.J);
     end
     Te = d.el(T, nth);
     
@@ -142,10 +147,8 @@ function J = f_jacobian_nodal(t, X, jp)
     
     % vapor concentration equation
     if jp.masstrans
-        amix = d.add(d.con(jp.alpha_g), d.scale(kv, jp.alpha_v - jp.alpha_g));
-        q = d.add(d.con(1), d.scale(d.mul(amix, th), 2));
-        sq = d.fun(q, sqrt(q.v), 0.5./sqrt(q.v));
-        nld = d.mul(dkv, d.add(d.div(dth, d.mul(sq, T)), RDkv));
+        % the square root of the Kirchhoff inverse is the conductivity
+        nld = d.mul(dkv, d.add(d.div(dth, d.mul(Kst, T)), RDkv));
         kvdot = d.sub(d.scale(d.div(d.sub(ddkv, nld), R2), jp.Fom), ...
             d.div(d.mul(av, dkv), R));
         Jkv = kvdot.J;

@@ -26,6 +26,7 @@ It uses a non-dimensionalized formulation and integrates the semi-discrete syste
 
 ### 3. Time Integration
 - Assembles the state vector `[R; Rdot; P; theta; Tm; kv; Z]` and integrates it with `f_odesolve` (`ode15s`, `ode23tb` or CVODES).
+- The bubble temperature is carried as the Kirchhoff variable `theta = alpha*(T^2 - 1)/2 + beta*(T - 1)` of the conductivity `K = alpha*T + beta`, and recovered as `T = (sqrt((alpha + beta)^2 + 2*alpha*theta) - beta)/alpha`, where the square root is `K`. `alpha` and `beta` are the mixture values of the gas and vapor coefficients: of `kv0` without mass transfer, of the local `kv` with it. Both are used as given, so the transform, its inverse and the conductivity in the diffusion term agree. Before, the inverse assumed `beta = 1 - alpha` while the diffusion term used the actual `beta` (`alpha_g + beta_g = 1.0024` in the default case), which changed `R(t)` by up to `2.4e-4` over the regression cases.
 - The bubble-wall temperature is set by the heat flux balance: in closed form for thermal-only runs (`f_wall_theta_exact`, `fzero` only as a fallback) and, with mass transfer, by a solve for the wall vapor mass fraction: Newton from the previous root, with a fixed-cost bracketed solve as the fallback (see [`f_wall_bc`](f_wall_bc.md)).
 - The stiff integrators receive the analytic Jacobian of `f_jacobian_nodal` for `bubtherm = 1` (with or without medium heat and mass transfer), or the sparsity pattern from `f_jpattern` otherwise (dense for Chebyshev); see the `jacobian` option.
 - With `jacobian = 3` they receive a finite-difference Jacobian from one batched right-hand-side call (see [Batched right-hand side](#batched-right-hand-side)). It works for every model.
@@ -90,7 +91,7 @@ Inputs are dimensionless name/value pairs (see `default_case`) or a struct from 
 
 - The finite difference discretization is second-order accurate; the Chebyshev discretization converges spectrally.
 - Medium heating for `stress >= 3` currently uses the Kelvin–Voigt closed form for the dissipation; `f_checkers` warns (`IMR:dissipation`) when this applies.
-- Collapse (`collapse = 1`) requires bubble and medium heat transfer, vapor and mass transfer.
+- Collapse (`collapse = 1`) requires bubble and medium heat transfer, vapor and mass transfer, and with stress 5 also `stress0`.
 - See [`compatibility`](../compatibility.md) for which features run together.
 - Mesh resolution must be tuned carefully for high Weissenberg numbers or sharp waveforms.
 - Cost per right-hand-side call: the constant factors of the medium equation and of the bubble temperature map are computed once, with the same arithmetic as before, so results are bit-identical; with `wave_type = 0` the far-field pressure is the constant `ee` and `f_pinfinity` is not called. In GNU Octave this made a right-hand-side call 11–31% cheaper and most runs 8–17% faster.

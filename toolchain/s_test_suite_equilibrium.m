@@ -1,93 +1,37 @@
 % file s_test_suite_equilibrium.m
-% brief contains script to test for equilibrium conditions
+% brief contains script to test that the equilibrium state is kept
 
 % Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
-% brief This script runs both the finite difference and spectral codes to
-% test that initial equilibrium conditions are satisfied
+% brief This script checks that a bubble started at equilibrium (R0 = Req,
+% no driving) stays there, in the three solver modes: f_imr_nodal with
+% finite differences and with Chebyshev collocation, and f_imr_spectral.
+% It covers every radial, thermal (without mass transfer), vapor and stress
+% model that the compatibility matrix allows (f_test_cases). It needs no
+% stored results. Run it from toolchain/.
 clc;
 clear;
 
 addpath('../toolchain/');
 addpath('../src/');
 
-num_tests = 4*2*2*2*6;
-errors_fd = zeros(num_tests,1);
-errors_sp = zeros(num_tests,1);
-failed_tests = zeros(size(errors_sp));
-threshold = 1e-14; % Define threshold
+% largest allowed deviation of R from 1: rounding only
+threshold = 1e-13;
 
-fprintf('Checking L2 norm errors...\n');
-
-% equilibrium test case
-masstrans = 0;
-collapse = 0;
-Req = 100e-6;
-R0 = Req;
-T8 = 298.15;
-tfin = 10E-6;
-tvector = linspace(0,tfin,100);
-
-% equation options
-count = 1;
-for radial = 1:4
-    for bubtherm = 0:1
-        for medtherm = 0:1
-            for vapor = 0:1
-                for stress = 0:5
-                    % no medium heat transfer without bubble heat transfer,
-                    % nor with the enthalpy forms (radial 3, 4)
-                    if (bubtherm == 0 || radial >= 3) && medtherm == 1
-                        count = count + 2;
-                        continue;
-                    end
-                    varin = {'radial',radial,...
-                        'bubtherm',bubtherm,...
-                        'masstrans',masstrans,...
-                        'tvector',tvector,...
-                        'vapor',vapor,...
-                        'medtherm',medtherm,...
-                        'stress',stress,...
-                        'collapse',collapse,...
-                        'Req',Req,...
-                        'R0',R0,...
-                        't8',T8};
-                    % dimensional (SI) values converted to the solver's dimensionless inputs
-                    varin = f_dim2nondim(varin{:});
-                    [~,Rf_test] = f_imr_nodal(varin{:},'Nt',150,'Mt',150);
-                    [~,Rs_test] = f_imr_spectral(varin{:},'Nt',12,'Mt',12);
-                    errors_fd(count) = abs(norm(Rf_test,2)/10-1);
-                    errors_sp(count) = abs(norm(Rs_test,2)/10-1);
-                    fprintf('Test %d: L2 norm error = %.6e\n', count, errors_fd(count));
-                    fprintf('Test %d: L2 norm error = %.6e\n', count+1, errors_sp(count));
-                    if ( errors_fd(count)  > threshold )
-                        failed_tests(count) = count;
-                    end
-                    if ( errors_sp(count) > threshold )
-                        failed_tests(count+1) = count+1;
-                    end
-                    count = count + 2;
-                end
-            end
-        end
+cases = f_test_cases('equilibrium');
+failed = false(1, numel(cases));
+msg = cell(1, numel(cases));
+for k = 1:numel(cases)
+    [R, msg{k}] = f_test_run(cases(k));
+    if isempty(msg{k})
+        err = max(abs(R - 1));
+        failed(k) = ~(err <= threshold);
+        msg{k} = sprintf('max |R - 1| = %.3e', err);
+    else
+        failed(k) = true;
     end
+    fprintf('%-10s %-28s %s\n', cases(k).mode, cases(k).key, msg{k});
 end
 
-% Find the last non-empty cell index
-lastNonEmptyIdx = find(failed_tests ~= 0, 1, 'last');
-% Truncate the array, keeping empty cells within range
-failed_tests = failed_tests(1:lastNonEmptyIdx);
-
-% Remove zeros from failed_tests
-failed_tests(failed_tests == 0) = [];
-
-if isempty(failed_tests)
-    fprintf('✅ All tests PASSED.\n');
-    % Success
-    exit(0);
-else
-    fprintf('❌ Tests FAILED at indices: %s\n', sprintf('%d ', failed_tests));
-    % Fail the workflow
-    exit(1);
-end
+f_test_report('Equilibrium', cases, failed, msg);

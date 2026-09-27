@@ -54,7 +54,7 @@ GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has
 |---|---|
 | `src/` | Everything a user calls: the solvers (`f_imr_nodal`, `f_imr_spectral`), their inputs (`f_imr_inputs`), sweeps (`f_imr_sweep`), unit conversion (`f_dim2nondim`), and the physics functions the solvers call |
 | `toolchain/` | Developer tooling only: the test suites, the formatter, the linter and the test generators |
-| `tests/` | Stored reference results (`.mat`) that the test suites compare against |
+| `tests/` | Stored results: `tests/reference/` for the regression suite. The older `tests/*.mat` files are no longer used by any suite |
 | `docs/src/`, `docs/toolchain/` | One Markdown page per function or script |
 | `docs/compatibility.md` | Which features run together in each solver |
 | `examples/`, `benchmarks/` | Example scripts (including the `f_multirun` study and its cluster job), scaling benchmarks, and the integrator comparison (`benchmarks/integrators`) |
@@ -113,10 +113,12 @@ Then open <http://127.0.0.1:8000>; the page reloads as you edit.
 
 ### Stored test results
 
-The files in `tests/*.mat` are the reference that the test suites compare against. Do not edit or regenerate them as part of an ordinary change. If your change deliberately changes the results, for example by fixing a physics bug:
+The files in `tests/reference/` are the stored results that `s_test_suite_regression` compares against, one file per solver mode with each result under its case key (such as `r2_bubble+medium_s3_mat1`). Do not edit or regenerate them as part of an ordinary change. If your change deliberately changes the results, for example by fixing a physics bug:
 
 1. Explain in the pull request which results change, why, and by how much.
-2. Regenerate them only after the maintainers agree, with `toolchain/s_generate_compatibility.m` or `toolchain/s_generate_masstransfer.m`.
+2. Regenerate them only after the maintainers agree, with `toolchain/s_generate_references.m` in MATLAB (set `overwrite = true` in the script). It writes nothing unless every case succeeds.
+
+A new case added to `toolchain/f_test_cases.m` fails the regression suite until its result is stored.
 
 ## 3. Run the checks
 
@@ -179,23 +181,22 @@ Each suite runs from `toolchain/`:
 
 | Suite | Checks |
 |---|---|
-| `s_test_suite_compatibility` | Both solvers against stored results, over radial, thermal and stress models |
-| `s_test_suite_equilibrium` | A bubble at equilibrium stays there, in both solvers |
+| `s_test_suite_equilibrium` | A bubble at equilibrium stays there |
 | `s_test_suite_gaussian` | A bubble returns to equilibrium after a Gaussian pressure pulse |
-| `s_test_suite_masstrans` | The nodal solver with mass transfer against stored results |
+| `s_test_suite_regression` | `R(t)` against stored results, including mass transfer, non-Newtonian viscosity, waveforms, the stress field and collapse |
 | `s_test_suite_diffmat` | The differentiation operators of `f_diff_mat` |
 
-Most suites end with `exit`, so run each one in its own MATLAB process:
+A suite that fails stops with an error, which in a batch run exits MATLAB with a nonzero code. Run each one in its own MATLAB process:
 
 ```bash
 cd toolchain
-for s in s_test_suite_diffmat s_test_suite_equilibrium s_test_suite_gaussian \
-         s_test_suite_compatibility s_test_suite_masstrans; do
+for s in s_test_suite_equilibrium s_test_suite_gaussian s_test_suite_diffmat \
+         s_test_suite_regression; do
     matlab -batch "$s" || echo "FAILED: $s"
 done
 ```
 
-Each suite prints `✅ All tests PASSED.` or lists the failing cases. `s_test_suite_masstrans` does not set an exit code, so read its last line rather than relying on the exit status.
+Each suite prints one line per case, then `All ... cases PASSED.` or the list of failing cases with their solver mode and case key.
 
 If you add a model or an option, add a case that exercises it, or say in the pull request how you tested it.
 
@@ -229,7 +230,7 @@ git push -u origin my-change
     | IMR test suites | The five test suites, one job each |
     | Documentation website | `mkdocs build --strict`; on `main`, also publishes the site |
 
-    The spelling, format and lint workflows are marked `continue-on-error`, so a failure there may not turn the pull request red; open their logs and confirm they passed. The test suites workflow fails if any suite fails, except `s_test_suite_masstrans`, which does not set an exit code: read the last line of its log.
+    The spelling, format and lint workflows are marked `continue-on-error`, so a failure there may not turn the pull request red; open their logs and confirm they passed. The test suites workflow fails if any suite fails.
 
 ## 6. Review and updates
 

@@ -111,10 +111,10 @@ nav:
       - Console output (f_display): src/f_display.md
   - Toolchain:
       - Test suites:
-          - Compatibility: toolchain/s_test_suite_compatibility.md
+          - Overview and test cases: toolchain/f_test_cases.md
           - Equilibrium: toolchain/s_test_suite_equilibrium.md
           - Gaussian pulse: toolchain/s_test_suite_gaussian.md
-          - Mass transfer: toolchain/s_test_suite_masstrans.md
+          - Regression: toolchain/s_test_suite_regression.md
           - Differentiation operators: toolchain/s_test_suite_diffmat.md
   - Measured waveforms: waveform/README.md
   - Contributing: contributing.md
