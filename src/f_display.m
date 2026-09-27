@@ -4,9 +4,13 @@
 % Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
-% brief This function features the display output on the command window
+% brief This function features the display output on the command window.
+% The optional inputs after mode describe the non-Newtonian viscosity:
+% DRe, iDRe (the factor of its stress term, 0 when it is inactive),
+% v_lambda, v_nc and v_a.
 function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
-    spectral, nu_model, eps3, Pv_star, Re8, De, Ca, LAM, mode)
+    spectral, nu_model, eps3, Pv_star, Re8, De, Ca, LAM, mode, DRe, iDRe, ...
+    v_lambda, v_nc, v_a)
 
 % Command window display
 
@@ -94,24 +98,44 @@ if eps3 ~= 0
     const = [const ', eps3 = ' num2str(eps3)];
 end
 
+% non-Newtonian viscosity: the model name, and whether it acts. Its stress
+% term carries the factor iDRe = 1/DRe (stress 1-2) or LAM/DRe (stress 3-5,
+% where it is the solvent share), which vanishes for DRe = 0 or, for stress
+% 3-5, LAM = 0
+nu_names = {'Carreau', 'Carreau-Yasuda', 'Powell-Eyring', ...
+    'Modified Powell-Eyring', 'Cross', 'Simplified Cross', 'Modified Cross'};
+nu_params = '';
 if stress == 0
     visco = 'none (no stress applied)';
 elseif nu_model == 0
     visco = 'Newtonian';
-elseif nu_model == 1
-    visco = 'Carreau';
-elseif nu_model == 2
-    visco = 'Carreau-Yasuda';
-elseif nu_model == 3
-    visco = 'Powell-Eyring';
-elseif nu_model == 4
-    visco = 'Modified Powell-Eyring';
-elseif nu_model == 5
-    visco = 'Cross';
-elseif nu_model == 6
-    visco = 'Simplified Cross';
-elseif nu_model == 7
-    visco = 'Modified Cross';
+else
+    visco = nu_names{nu_model};
+    if nargin > 14
+        if DRe == 0
+            visco = [visco ' selected but inactive (DRe = 0, mu0 = mu8): ' ...
+                'Newtonian'];
+        elseif iDRe == 0
+            visco = [visco ' selected but inactive (LAM = 0, no solvent ' ...
+                'share for stress 3-5): Newtonian'];
+        else
+            if stress >= 3
+                visco = [visco ', solvent share (LAM)'];
+            end
+            if v_lambda == 0
+                visco = [visco ', v_lambda = 0 so constant viscosity mu0'];
+            end
+            % the parameters each model uses
+            nu_params = ['DRe = ' num2str(DRe,'%10.10f') ...
+                ', v_lambda = ' num2str(v_lambda,'%10.10f')];
+            if any(nu_model == [1 2 4 5 7])
+                nu_params = [nu_params ', v_nc = ' num2str(v_nc,'%10.10f')];
+            end
+            if any(nu_model == [2 7])
+                nu_params = [nu_params ', v_a = ' num2str(v_a,'%10.10f')];
+            end
+        end
+    end
 end
 
 % how the stress of the history-dependent models is carried: the stress
@@ -139,5 +163,8 @@ disp(['Re8 = ' num2str(Re8,'%10.10f')]);
 disp(['De = ' num2str(De,'%10.10f')]);
 disp(['Ca = ' num2str(Ca,'%10.10f')]);
 disp(['LAM = ' num2str(LAM,'%10.10f')]);
+if ~isempty(nu_params)
+    disp(nu_params);
+end
 
 end

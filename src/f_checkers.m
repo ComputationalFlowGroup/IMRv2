@@ -160,6 +160,10 @@ if p.nu_model > 0
     if p.DRe == 0
         warning('IMR:parameters', ['nu_model = %d with DRe = 0: the ' ...
             'non-Newtonian contribution is zero'], p.nu_model);
+    elseif p.stress >= 3 && p.LAM == 0
+        warning('IMR:parameters', ['nu_model = %d with stress = %d and ' ...
+            'LAM = 0: the non-Newtonian viscosity is the solvent share LAM ' ...
+            'of stress 3-5, so its contribution is zero'], p.nu_model, p.stress);
     end
     if (p.nu_model == 2 || p.nu_model == 7) && ~(p.v_a > 0)
         error('INPUT ERROR: nu_model = %d requires v_a > 0', p.nu_model);

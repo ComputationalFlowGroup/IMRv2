@@ -238,7 +238,8 @@ function varargout = f_imr_spectral(varargin)
     
     % solver start
     f_display(radial, bubtherm, medtherm, 0, stress, spectral,...
-        nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'spectral');
+        nu_model, eps3, Pv_star, Re8, De, Ca, LAM, 'spectral', DRe, iDRe, ...
+        v_lambda_star, v_nc, v_a);
     bubble = @SVBDODE;
     % analytic Jacobian for the stiff integrators
     if jacobian == 3

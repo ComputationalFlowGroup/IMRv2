@@ -12,7 +12,7 @@
 - the main dimensionless numbers (`Re8`, `De`, `Ca`, `LAM`).
 
 ## Inputs
-`radial`, `bubtherm`, `medtherm`, `masstrans`, `stress`, `spectral`, `nu_model`, `eps3`, `Pv_star`, `Re8`, `De`, `Ca`, `LAM`, and `mode`, the solver mode (for example `nodal, Chebyshev`).
+`radial`, `bubtherm`, `medtherm`, `masstrans`, `stress`, `spectral`, `nu_model`, `eps3`, `Pv_star`, `Re8`, `De`, `Ca`, `LAM`, and `mode`, the solver mode (for example `nodal, Chebyshev`). Optionally, after `mode`, the non-Newtonian inputs `DRe`, `iDRe` (the factor of the non-Newtonian stress term), `v_lambda`, `v_nc` and `v_a`. Both solvers pass them.
 
 ## Constitutive model label
 
@@ -40,3 +40,27 @@ The label depends on the numbers as well as on `stress`:
 
 - **Stress 0–2:** "closed form (no stress history)".
 - **Stress 3–5:** "stress integrals (ODEs)". The exception is stress 5 with `spectral = 1`, which prints "stress field, spectral modes".
+
+## Viscosity label
+
+The label is the model name, from `nu_model`:
+
+| `nu_model` | Label | Parameters shown |
+|---|---|---|
+| 0 | Newtonian | |
+| 1 | Carreau | `v_lambda`, `v_nc` |
+| 2 | Carreau-Yasuda | `v_lambda`, `v_nc`, `v_a` |
+| 3 | Powell-Eyring | `v_lambda` |
+| 4 | Modified Powell-Eyring | `v_lambda`, `v_nc` |
+| 5 | Cross | `v_lambda`, `v_nc` |
+| 6 | Simplified Cross | `v_lambda` |
+| 7 | Modified Cross | `v_lambda`, `v_nc`, `v_a` |
+
+With an active model, a line after the dimensionless numbers gives `DRe` and the parameters the model uses.
+
+The label also says when the model does not act as its name suggests:
+
+- **Inactive with `DRe = 0`** (`mu0 = mu8`): "selected but inactive (DRe = 0, mu0 = mu8): Newtonian".
+- **Inactive with `LAM = 0` for stress 3–5:** "selected but inactive (LAM = 0, no solvent share for stress 3-5): Newtonian". For these models the non-Newtonian viscosity is the solvent share `LAM`.
+- **Stress 3–5, active:** ", solvent share (LAM)".
+- **`v_lambda = 0`:** ", v_lambda = 0 so constant viscosity mu0". The shear rate then drops out, and the viscosity is the zero-shear value.

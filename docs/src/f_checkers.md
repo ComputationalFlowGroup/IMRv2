@@ -37,7 +37,7 @@
 - The equilibrium gas pressure `P0_star = (1 + 1/(We*Req) - Pv)*Req^n` must be nonnegative.
 - Thermal (`chi`, `Foh`, `kmstar`, conductivity coefficients) and mass-transfer (`Fom`, `lheat`, `rv`, `ra`, `pv`, `thetav`) numbers are checked when the corresponding model is on; `rv` and `ra` also with `collapse = 1`.
 - Waveform: `tw > 0` for Gaussian, `om > 0` and `mn >= 0` for histotripsy, `tw >= 0` for Heaviside, and a warning when `tvector` extends past the measured waveform data.
-- Non-Newtonian: `DRe`, `v_lambda`, `v_nc` nonnegative; `v_a > 0` for Carreau–Yasuda and modified Cross; `v_nc > 0` for Cross and modified Cross; `v_nc <= 1` and `v_lambda > 0` for modified Powell–Eyring; warning when `DRe = 0`.
+- Non-Newtonian: `DRe`, `v_lambda`, `v_nc` nonnegative; `v_a > 0` for Carreau–Yasuda and modified Cross; `v_nc > 0` for Cross and modified Cross; `v_nc <= 1` and `v_lambda > 0` for modified Powell–Eyring; warning when `DRe = 0`, or with stress 3–5 when `LAM = 0` (the non-Newtonian viscosity is the solvent share `LAM`, so it vanishes).
 
 ### Dimensional-looking inputs
 Warning `IMR:dimensional` when `Req < 1e-3`, the final time `< 1e-3`, `Cstar < 1`, or the Gaussian width `< 1e-3`: values this small usually mean an SI value was passed instead of a dimensionless one.
