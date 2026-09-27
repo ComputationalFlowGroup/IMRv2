@@ -210,12 +210,23 @@ function varargout = f_imr_nodal(varargin)
     imedtherm   = (4+Nt):(3+Nt+Mt);
     imass       = (4+Nt+Mt):(3+Nt+Mt+Nc);
     
-    % precomputations for viscous dissipation
-    % zT = 1 - 2./(1 + (yT - 1)/Lv);
-    ZZT = 0;
-    % stress spectra index management
+    % stress states: Z1 (stress 3, 4) or Z1 and Z2 (stress 5)
     ivisco1 = (4+Nt+Mt+Nc):(3+Nt+Mt+Nc+Nv);
-    ivisco2 = (4+Nt+Mt+Nc+Nv):(3+Nt+Mt+Nc+2*Nv);
+    if stress == 5
+        ivisco2 = (4+Nt+Mt+Nc+Nv):(3+Nt+Mt+Nc+2*Nv);
+    else
+        ivisco2 = [];
+    end
+    % the linear Maxwell, Jeffreys and Zener models (stress 3, 4) carry,
+    % with medium heat transfer, the local polymer stress difference at the
+    % medium nodes yT (the first at the wall, the last at infinity) after
+    % Z1, for the medium heating (f_zener_field)
+    zener_field = (stress == 3 || stress == 4) && medtherm == 1;
+    if zener_field
+        izf = ivisco1(end) + (1:Mt);
+    else
+        izf = [];
+    end
     
     % initial condition assembly
     
@@ -240,6 +251,13 @@ function varargout = f_imr_nodal(varargin)
         kv0vec = [];
     end
     
+    % initial Zener field, consistent with the initial Z1
+    if zener_field
+        sp0 = f_zener_field_init(Szero);
+    else
+        sp0 = [];
+    end
+    
     % initial condition vector
     init = [Rzero;
     Rdotzero;
@@ -247,7 +265,8 @@ function varargout = f_imr_nodal(varargin)
     theta0;
     Tm0;
     kv0vec;
-    Szero];
+    Szero;
+    sp0];
     
     % thermal-only wall closure: previous wall value and fzero fallback
     theta_bw_guess = -0.0001;
@@ -288,7 +307,7 @@ function varargout = f_imr_nodal(varargin)
         Sp = @f_jacobian_fd;
     elseif jacobian == 2 && bubtherm
         jp = struct('ith',ibubtherm, 'itm',imedtherm, 'ikv',imass, ...
-            'iz',(4+Nt+Mt+Nc):numel(init), 'medtherm',medtherm, ...
+            'iz',[ivisco1 ivisco2], 'izf',izf, 'medtherm',medtherm, ...
             'masstrans',masstrans, 'D1',dmatrix_Tkv, 'D2',ddmatrix_Tkv, ...
             'Dm1',dmatrix_Tm, 'Dm2',ddmatrix_Tm, 'y',y, 'xi',xi, 'yT',yT, ...
             'yT2',yT2, 'yT3',yT3, 'Lt',Lt, 'Foh',Foh, 'chi',chi, ...
@@ -297,7 +316,8 @@ function varargout = f_imr_nodal(varargin)
             'Fom',Fom, 'Rv',Rv_star, 'Rg',Rg_star, 'Rva',Rva_diff, ...
             'Rvg',Rvg_ratio, 'C1_pv',C1_pv, 'C2_pv',C2_pv, 'wall',wallc, ...
             'closure',@f_closure, 'taugradu',@f_taugradu, ...
-            'theta_bw',@f_theta_bw_of_X);
+            'theta_bw',@f_theta_bw_of_X, 'zener_field',zener_field, ...
+            'zener_rhs',@f_zener_rhs, 'Br',Br, 'De',De);
         Sp = @(t,X) f_jacobian_nodal(t,X,jp);
     elseif jacobian >= 1
         Sp = f_jpattern(numel(init), ibubtherm, imedtherm, imass, ...
@@ -537,10 +557,15 @@ function varargout = f_imr_nodal(varargin)
             advection = xi1_sq./(Lt*R).*(Rdot./yT2.*om_yT3/2 +...
                 Foh./R.*xi_adv).*dTm;
             diffusion = Foh./R.^2.*xi1_p4/Lt^2.*ddTm/4;
-            % stress dissipation
-            [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
-                Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
-                ivisco2,fnu_m,DRe);
+            % stress dissipation, with the local polymer stress of the
+            % Zener models
+            if zener_field
+                sp = X(izf,:);
+            else
+                sp = [];
+            end
+            [taugradu] = f_stress_dissipation(stress,Req,R,Rdot,Ca,Br, ...
+                Re8,LAM,alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_m,sp);
             % surrounding temperature evolution equation
             Tmdot = advection + diffusion + taugradu;
             % sets boundary condition on temperature
@@ -565,6 +590,13 @@ function varargout = f_imr_nodal(varargin)
             Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
             ddintfnu, iDRe);
         
+        % local polymer stress of the Zener models, for the heating
+        if zener_field
+            spdot = f_zener_rhs(R,Rdot,sp);
+        else
+            spdot = [];
+        end
+        
         % output assembly
         dXdt = [Rdot;
         Rddot;
@@ -573,7 +605,8 @@ function varargout = f_imr_nodal(varargin)
         Tmdot;
         kvdot;
         Z1dot;
-        Z2dot];
+        Z2dot;
+        spdot];
         
     end
     % end of solver
@@ -594,6 +627,45 @@ function varargout = f_imr_nodal(varargin)
         J = ((F(:,2:end) - F(:,1))./del.').*jmask;
     end
     
+    % time derivative of the Zener field sp at the medium nodes
+    % (f_zener_field). The advection -ydot*d(sp)/dy is the Rdot part of the
+    % medium temperature advection, and the far-field node stays at 0
+    function spdot = f_zener_rhs(Rv,Rdotv,sp)
+        adv = xi1_sq./(Lt*Rv).*(Rdotv./yT2.*om_yT3/2).*(dmatrix_Tm*sp);
+        spdot = f_zener_field(sp, adv, yT, Rv, Rdotv, Req, Ca, De, Re8, LAM, ...
+            alphax*(stress == 4));
+        spdot(end,:) = 0;
+    end
+    
+    % initial Zener field for the initial Z1 = Szero. From rest (Z1 = 0)
+    % the field is 0. Otherwise (collapse, or a given stress0) it is a
+    % STOPGAP: the history of the field before t = 0 is not computed, and
+    % the field takes the shape of the elastic stress difference se of the
+    % initial radius, scaled so that 2*int_1^Inf sp/y dy = Z1/R^3 holds.
+    % Without elasticity (Ca = Inf) or at R = Req, where se = 0, it takes
+    % the viscous shape y^-3, for which 2*int_1^Inf y^-4 dy = 2/3
+    function sp = f_zener_field_init(Z1)
+        sp = zeros(Mt,1);
+        if Z1 == 0
+            return
+        end
+        Rst = Req/Rzero;
+        a4 = alphax*(stress == 4);
+        x2 = (yT3 - 1 + Rst^3).^(2/3);
+        lam2 = yT2./x2;
+        lam4i = x2.^2.*iyT4;
+        se = (lam4i - lam2)/Ca.*(1 + a4*(lam4i + 2*lam2 - 3));
+        % elastic stress integral 2*int se/y dy, as in f_stress
+        Se = (3*a4 - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + (2*a4/Ca)*(27/40 + ...
+            (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst);
+        if isfinite(Ca) && abs(Se) > 0
+            sp = Z1/(Rzero^3*Se)*se;
+        else
+            sp = 1.5*Z1/Rzero^3*iyT3;
+        end
+        sp(end) = 0;
+    end
+    
     % medium dissipation as a function of (R, Rdot)
     function tg = f_taugradu(Rv,Rdotv,X)
         fnu_loc = 0;
@@ -601,9 +673,13 @@ function varargout = f_imr_nodal(varargin)
             [~,~,~,~,fnu_loc] = f_viscosity(nu_model,Rdotv,Rv,v_a,v_nc, ...
                 v_lambda_star,yT);
         end
-        tg = f_stress_dissipation(stress,spectral,Req,Rv,Rdotv, ...
-            Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
-            ivisco2,fnu_loc,DRe);
+        if zener_field
+            sp_loc = X(izf);
+        else
+            sp_loc = [];
+        end
+        tg = f_stress_dissipation(stress,Req,Rv,Rdotv,Ca,Br,Re8,LAM, ...
+            alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_loc,sp_loc);
         tg = tg.*ones(size(yT));
     end
     
@@ -612,7 +688,7 @@ function varargout = f_imr_nodal(varargin)
     function out = f_closure(t,v,X)
         Rv = v(1);
         Rdotv = v(2);
-        X(4+Nt+Mt+Nc:end) = v(5:end);
+        X([ivisco1 ivisco2]) = v(5:end);
         intf_loc = 0;
         dintf_loc = 0;
         ddintf_loc = 0;

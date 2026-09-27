@@ -88,10 +88,32 @@ end
 if p.stress >= 3 && p.De <= 0
     error('INPUT ERROR: De must be positive for stress = 3, 4, or 5');
 end
-if p.stress >= 3 && p.medtherm == 1 && p.spectral == 0
-    warning('IMR:dissipation', ['Medium heating for stress>=3 currently ' ...
-        'uses the Kelvin-Voigt closed form (inconsistent for ' ...
-        'history-dependent stress), see docs.']);
+% the medium heating of stress 3-5 needs the local polymer stress. Stress
+% 3 and 4 carry it as a field next to Z1. The two-state form of stress 5
+% carries only integrals of the stress, so medium heat transfer needs the
+% spectral stress field, which only f_imr_spectral has
+if p.stress == 5 && p.medtherm == 1 && p.spectral == 0
+    if strcmp(p.solver,'nodal')
+        error(['INPUT ERROR: stress = 5 with medium heat transfer ' ...
+            '(medtherm = 1) is not available in f_imr_nodal: the medium ' ...
+            'heating needs the local polymer stress, which the two-state ' ...
+            'form does not carry. Use f_imr_spectral, where the stress ' ...
+            'field (spectral = 1) is used, or medtherm = 0']);
+    else
+        warning('IMR:parameters', ['stress = 5 with medium heat transfer ' ...
+            'uses the spectral stress field (spectral = 1), since the ' ...
+            'medium heating needs the local polymer stress, which the ' ...
+            'two-state form does not carry']);
+        p.spectral = 1;
+    end
+end
+% the linear Zener model is a spring 1/Ca in parallel with a Maxwell
+% branch whose dashpot viscosity is (1-LAM)/Re8 - De/Ca
+if (p.stress == 3 || p.stress == 4) && (1 - p.LAM)/p.Re8 < p.De/p.Ca
+    warning('IMR:parameters', ['stress = %d with (1-LAM)/Re8 = %g < ' ...
+        'De/Ca = %g: the implied dashpot viscosity of the Zener branch, ' ...
+        '(1-LAM)/Re8 - De/Ca, is negative'], p.stress, (1 - p.LAM)/p.Re8, ...
+        p.De/p.Ca);
 end
 
 % time span
@@ -234,11 +256,18 @@ end
 
 % settings consistent with the stress model
 
+% the Zener models (stress 3, 4) carry, in f_imr_spectral with medium heat
+% transfer, their local polymer stress as a field of Nv spectral modes
+zener_field = (p.stress == 3 || p.stress == 4) && p.medtherm == 1;
+zener_modes = zener_field && strcmp(p.solver,'spectral');
 if p.stress <= 4
     % closed-form or single-mode stress models, no spectral stress
     % representation
     p.spectral = 0;
-    if p.stress == 3 || p.stress == 4
+    if zener_modes
+        % Nv modes of the field (the stress integral Z1 is one state)
+        p.Nv = max(p.Nv, 1);
+    elseif p.stress == 3 || p.stress == 4
         p.Nv = 1;
     else
         p.Nv = 0;

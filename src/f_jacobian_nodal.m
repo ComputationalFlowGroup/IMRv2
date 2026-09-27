@@ -176,8 +176,34 @@ function J = f_jacobian_nodal(t, X, jp)
         tg_R = (jp.taugradu(R.v+hR,Rdot.v,X) - jp.taugradu(R.v-hR,Rdot.v,X))/(2*hR);
         tg_U = (jp.taugradu(R.v,Rdot.v+hU,X) - jp.taugradu(R.v,Rdot.v-hU,X))/(2*hU);
         Jm = Tmdot.J + sparse(tg_R(:))*R.J + sparse(tg_U(:))*Rdot.J;
+        % the heating is linear in the Zener field, -2*Br*a*sp
+        if jp.zener_field
+            Jm(:,jp.izf) = Jm(:,jp.izf) + ...
+                spdiags(-2*jp.Br*(Rdot.v/R.v)./jp.yT3, 0, numel(itm), numel(itm));
+        end
         Jm([1 end],:) = 0;
         J(itm,:) = Jm;
+    end
+    
+    % Zener field rows: linear in the field, and R and Rdot partials by
+    % central differences
+    if jp.zener_field
+        izf = jp.izf;
+        nf = numel(izf);
+        Rr = Rdot.v/R.v;
+        cadv = (1 + jp.xi).^2/(jp.Lt*R.v).*(Rdot.v./jp.yT2.*(1 - jp.yT3)/2);
+        Af = spdiags(cadv, 0, nf, nf)*jp.Dm1 - speye(nf)/jp.De - ...
+            spdiags(3*Rr*(1 - 1./jp.yT3), 0, nf, nf);
+        sp = X(izf);
+        hR = eps^(1/3)*max(abs(R.v),1);
+        hU = eps^(1/3)*max(abs(Rdot.v),1);
+        f_R = (jp.zener_rhs(R.v+hR,Rdot.v,sp) - jp.zener_rhs(R.v-hR,Rdot.v,sp))/(2*hR);
+        f_U = (jp.zener_rhs(R.v,Rdot.v+hU,sp) - jp.zener_rhs(R.v,Rdot.v-hU,sp))/(2*hU);
+        Jf = sparse(f_R(:))*R.J + sparse(f_U(:))*Rdot.J;
+        Jf(:,izf) = Jf(:,izf) + Af;
+        % the far-field node stays at 0
+        Jf(end,:) = 0;
+        J(izf,:) = Jf;
     end
     
     % radial and stress closure rows g(R, Rdot, P, Pdot, Z), by central

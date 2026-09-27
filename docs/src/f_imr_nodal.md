@@ -90,7 +90,8 @@ Inputs are dimensionless name/value pairs (see `default_case`) or a struct from 
 ## Notes
 
 - The finite difference discretization is second-order accurate; the Chebyshev discretization converges spectrally.
-- Medium heating for `stress >= 3` currently uses the Kelvin–Voigt closed form for the dissipation; `f_checkers` warns (`IMR:dissipation`) when this applies.
+- **Medium heating with stress 3 and 4:** the solver carries the local polymer stress `sp` at the medium nodes after `Z1` ([`f_zener_field`](f_zener_field.md)). The state is `[R; Rdot; P; theta; Tm; kv; Z1; sp]`.
+- **Stress 5 with medium heat transfer:** not available in this solver. Its two-state form has no local stress for the heating, so use `f_imr_spectral`.
 - Collapse (`collapse = 1`) requires bubble and medium heat transfer, vapor and mass transfer, and with stress 5 also `stress0`.
 - See [`compatibility`](../compatibility.md) for which features run together.
 - Mesh resolution must be tuned carefully for high Weissenberg numbers or sharp waveforms.

@@ -33,7 +33,7 @@ The enthalpy forms (radial 3–6) describe the liquid with an equation of state 
 | 3 | Radial 5–6 |  |  | – | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | ✓ |
 | 4 | Vapor pressure |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
 | 5 | Bubble heat transfer |  |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
-| 6 | Medium heat transfer |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
+| 6 | Medium heat transfer |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✗ | ✗ | ✓ | ✓ | ✓ |
 | 7 | Mass transfer |  |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
 | 8 | Kelvin–Voigt stress (1, 2) |  |  |  |  |  |  |  | – | · | · | · | ✓ | ✓ | ✓ |
 | 9 | Maxwell / Jeffreys / Zener (3, 4) |  |  |  |  |  |  |  |  | – | · | · | ✓ | ✓ | ✓ |
@@ -81,7 +81,9 @@ Other rules:
 - **Collapse with stress 0–2** starts from rest at the maximum radius. These models carry no stress history, so there is no initial stress to set, and the run says so.
 - **Collapse with stress 5** is rejected unless `stress0` is given: the stress at the maximum radius is not computed for UCM and Oldroyd-B, and starting from zero stress would be silently wrong.
 - **Stress 5** sets `Ca = Inf`, so it has no elastic contribution.
-- **Medium heating with stress 3 to 5** uses the Kelvin–Voigt closed form, which is inconsistent for history-dependent stress, and `f_checkers` warns. The stress field option (feature 11) computes the heating from the stress field itself.
+- **Medium heating with stress 3 to 5** comes from the local polymer stress, not the Kelvin–Voigt form (see [`f_stress_dissipation`](src/f_stress_dissipation.md)).
+    - **Stress 3 and 4:** carry that stress as a field next to `Z1` ([`f_zener_field`](src/f_zener_field.md)).
+    - **Stress 5:** the two-state form carries only integrals of the stress. With medium heat transfer, `f_imr_spectral` switches to the stress field (feature 11) with a warning, and `f_imr_nodal` rejects the run: its UCM / Oldroyd-B with medium heat transfer cell is ✗.
 
 ## Why the spectral solver cannot collapse
 
