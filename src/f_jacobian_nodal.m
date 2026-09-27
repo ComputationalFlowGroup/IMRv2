@@ -179,7 +179,8 @@ function J = f_jacobian_nodal(t, X, jp)
         % the heating is linear in the Zener field, -2*Br*a*sp
         if jp.zener_field
             Jm(:,jp.izf) = Jm(:,jp.izf) + ...
-                spdiags(-2*jp.Br*(Rdot.v/R.v)./jp.yT3, 0, numel(itm), numel(itm));
+                spdiags(-2*jp.Br*(Rdot.v/R.v)./jp.yT3, 0, numel(itm), ...
+                numel(itm));
         end
         Jm([1 end],:) = 0;
         J(itm,:) = Jm;
@@ -197,8 +198,10 @@ function J = f_jacobian_nodal(t, X, jp)
         sp = X(izf);
         hR = eps^(1/3)*max(abs(R.v),1);
         hU = eps^(1/3)*max(abs(Rdot.v),1);
-        f_R = (jp.zener_rhs(R.v+hR,Rdot.v,sp) - jp.zener_rhs(R.v-hR,Rdot.v,sp))/(2*hR);
-        f_U = (jp.zener_rhs(R.v,Rdot.v+hU,sp) - jp.zener_rhs(R.v,Rdot.v-hU,sp))/(2*hU);
+        f_R = (jp.zener_rhs(R.v+hR,Rdot.v,sp) - ...
+            jp.zener_rhs(R.v-hR,Rdot.v,sp))/(2*hR);
+        f_U = (jp.zener_rhs(R.v,Rdot.v+hU,sp) - ...
+            jp.zener_rhs(R.v,Rdot.v-hU,sp))/(2*hU);
         Jf = sparse(f_R(:))*R.J + sparse(f_U(:))*Rdot.J;
         Jf(:,izf) = Jf(:,izf) + Af;
         % the far-field node stays at 0

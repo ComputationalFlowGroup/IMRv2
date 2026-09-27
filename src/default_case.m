@@ -49,7 +49,9 @@ function d = default_case()
     Nt              = 25;
     % number of points outside of bubble, thermal PDE
     Mt              = 25;
-    % number of points outside of bubble, viscoelastic stress PDE
+    % number of stress modes of f_imr_spectral: the stress 5 field
+    % (spectral = 1), and the stress 3, 4 polymer stress field with medium
+    % heat transfer
     Nv              = 150;
     % characteristic length for grid stretching, leave at 3
     Lv              = 3;

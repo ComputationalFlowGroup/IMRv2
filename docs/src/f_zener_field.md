@@ -19,7 +19,24 @@ On the grid `y = r/R`, the field obeys
 
 ## Why this law
 
-It is the local law whose integral reproduces the solver's stress state exactly: `2*int_1^Inf sp/y dy = Z1/R^3`, where `Z1` obeys `De*Z1dot + Z1 = Ze - 4*etap*R^2*Rdot` (the specification, Section 6.2, proves this). So:
+It is the local law whose integral reproduces the solver's stress state exactly: `2*int_1^Inf sp/y dy = Z1/R^3`, where `Z1` obeys `De*Z1dot + Z1 = Ze - 4*etap*R^2*Rdot` with `Ze = R^3*Se`.
+
+**Proof.** Written for the weighted field `w = y^-3*sp`, the law reads `Dw/Dt = -(w - y^-3*sKV)/De` along a material point. From rest its solution is
+
+    y^-3*sp(t) = int_0^t K(t-t')*y'^-3*sKV(t') dt',   K(t) = exp(-t/De)/De
+
+where primes denote the same material point at time `t'`.
+
+Incompressibility gives `r^3 - r'^3 = R^3 - R'^3`, so `dr/r = r'^2*dr'/r^3`. Hence
+
+    2*int_R^Inf sp/r dr = (1/R^3)*int_0^t K*R'^3*[2*int_R'^Inf sKV/r' dr'] dt'
+                        = (1/R^3)*int_0^t K*R'^3*S_KV(t') dt'
+
+with `S_KV = Se - 4*etap*Rdot/R`, the stress integral of `sKV`. This is `Z1/R^3`, the solution of the `Z1` equation from rest.
+
+The `Z1` equation fixes only this weighted integral. The law above is the simplest local field consistent with it, not the only one. It sets the radial distribution of the heating, but neither `R(t)` nor the total heating.
+
+So:
 
 - `Z1` still drives `R(t)`, unchanged.
 - The field only distributes the heating in `r`.

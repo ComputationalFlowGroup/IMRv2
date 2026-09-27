@@ -22,7 +22,10 @@ function cases = f_test_cases(suite)
     
     % solver modes and their grids: the finite difference grid is fine
     % enough for second-order accuracy, and the Chebyshev and spectral
-    % expansions converge spectrally on far fewer points
+    % expansions converge spectrally on far fewer points. The spectral
+    % solver's Nv stress modes (the stress 5 field, and the Zener field of
+    % stress 3 and 4 with medium heat transfer) are set to 32, well below
+    % the default 150
     modes = struct( ...
         'name',   {'nodal_fd', 'nodal_cheb', 'spectral'}, ...
         'solver', {@f_imr_nodal, @f_imr_nodal, @f_imr_spectral}, ...
@@ -44,7 +47,7 @@ function cases = f_test_cases(suite)
         % a bubble at equilibrium must stay there: every radial, thermal
         % (without mass transfer), vapor and stress model
         grids = {{'Nt', 150, 'Mt', 150}, {'Nt', 20, 'Mt', 20}, ...
-            {'Nt', 12, 'Mt', 12}};
+            {'Nt', 12, 'Mt', 12, 'Nv', 32}};
         base = {'Req', 100e-6, 'R0', 100e-6, 't8', 298.15, ...
             'tvector', linspace(0, 10e-6, 100), 'collapse', 0};
         specs = {};
@@ -67,7 +70,7 @@ function cases = f_test_cases(suite)
         % every radial, thermal (without mass transfer), vapor and viscous
         % stress model
         grids = {{'Nt', 50, 'Mt', 50}, {'Nt', 20, 'Mt', 20}, ...
-            {'Nt', 12, 'Mt', 12}};
+            {'Nt', 12, 'Mt', 12, 'Nv', 32}};
         base = {'Req', 10e-6, 'R0', 10e-6, 't8', 298.15, 'mu', 0.5, ...
             'tvector', linspace(0, 2e-3, 1000), 'collapse', 0, ...
             'wave_type', 1, 'dt', 3e-4, 'tw', 1e-4, 'pA', 1e5};
@@ -91,7 +94,7 @@ function cases = f_test_cases(suite)
         % stress model for two materials, then the other features of the
         % compatibility matrix on a Keller-Miksis case
         grids = {{'Nt', 70, 'Mt', 70}, {'Nt', 20, 'Mt', 20}, ...
-            {'Nt', 12, 'Mt', 12}};
+            {'Nt', 12, 'Mt', 12, 'Nv', 32}};
         % a soft, weakly viscous material and a stiff, viscous one with
         % strain stiffening and relaxation
         mats = {{'mu', 1e-4, 'G', 1e2, 'alphax', 1e-3, 'lambda1', 1e-7}, ...
@@ -146,8 +149,7 @@ function cases = f_test_cases(suite)
         specs(end+1,:) = {'r2_wave3', [km, {'stress', 1, 'wave_type', 3, ...
             'pA', 1e5, 'tw', 5e-6}]};
         % UCM / Oldroyd-B with the stress field (spectral solver only)
-        specs(end+1,:) = {'r2_s5_field', [km, {'stress', 5, 'spectral', 1, ...
-            'Nv', 40}]};
+        specs(end+1,:) = {'r2_s5_field', [km, {'stress', 5, 'spectral', 1}]};
         % collapse, which needs the full model with mass transfer, with the
         % soft material: with the stiff one the quadratic model's collapse
         % is too violent to converge with resolution

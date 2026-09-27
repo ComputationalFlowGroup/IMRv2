@@ -38,7 +38,7 @@ The inputs are given in SI units and converted with [`f_dim2nondim`](../src/f_di
 | Gaussian | 50 | 20 | 12 |
 | Regression | 70 | 20 | 12 |
 
-Finite differences need finer grids because they are second-order accurate. The Chebyshev and spectral expansions converge spectrally.
+Finite differences need finer grids because they are second-order accurate. The Chebyshev and spectral expansions converge spectrally. The spectral mode also sets `Nv = 32` stress modes, for the stress 5 field and the Zener field of stress 3–4 with medium heat transfer. The default is 150.
 
 **Case counts** (`nodal_fd`, `nodal_cheb`, `spectral`):
 

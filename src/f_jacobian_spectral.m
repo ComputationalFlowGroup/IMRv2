@@ -159,8 +159,10 @@ function J = f_jacobian_spectral(t, X, jp)
             (3*Rr*(1 - jp.yV.^-3)).*jp.sCA);
         hR = eps^(1/3)*max(abs(R.v),1);
         hU = eps^(1/3)*max(abs(Rdot.v),1);
-        e_R = (jp.zener_rhs(R.v+hR,Rdot.v,X) - jp.zener_rhs(R.v-hR,Rdot.v,X))/(2*hR);
-        e_U = (jp.zener_rhs(R.v,Rdot.v+hU,X) - jp.zener_rhs(R.v,Rdot.v-hU,X))/(2*hU);
+        e_R = (jp.zener_rhs(R.v+hR,Rdot.v,X) - ...
+            jp.zener_rhs(R.v-hR,Rdot.v,X))/(2*hR);
+        e_U = (jp.zener_rhs(R.v,Rdot.v+hU,X) - ...
+            jp.zener_rhs(R.v,Rdot.v-hU,X))/(2*hU);
         Jf = sparse(e_R(:))*R.J + sparse(e_U(:))*Rdot.J;
         Jf(:,jp.izf) = Jf(:,jp.izf) + Ae;
         J(jp.izf,:) = Jf;
