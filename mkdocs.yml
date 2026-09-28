@@ -101,6 +101,7 @@ nav:
       - Approximate initial stress (f_approx_init_stress): src/f_approx_init_stress.md
       - Differentiation matrices (f_diff_mat): src/f_diff_mat.md
       - Time integration (f_odesolve): src/f_odesolve.md
+      - Zener stress field (f_zener_field): src/f_zener_field.md
       - Nodal Jacobian (f_jacobian_nodal): src/f_jacobian_nodal.md
       - Spectral Jacobian (f_jacobian_spectral): src/f_jacobian_spectral.md
       - Dual-number operations (f_dual_ops): src/f_dual_ops.md

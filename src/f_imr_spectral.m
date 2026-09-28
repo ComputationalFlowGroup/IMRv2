@@ -147,7 +147,11 @@ function varargout = f_imr_spectral(varargin)
     % z = 1 (r -> Inf), with z = 1 - 2/(1 + (r/R - 1)/Lv) and collocation
     % points z_j = cos(pi*j/Nv), j = 1..Nv (z = -1 is the bubble wall)
     spectral_stress = (stress == 5 && spectral == 1);
-    if spectral_stress
+    % the linear Maxwell, Jeffreys and Zener models (stress 3, 4) carry,
+    % with medium heat transfer, the local polymer stress difference as a
+    % field in the same basis (f_zener_field), for the medium heating
+    zener_field = (stress == 3 || stress == 4) && medtherm == 1;
+    if spectral_stress || zener_field
         ze = cos(pi*(1:Nv)'/Nv);
         % r/R at the stress collocation points
         yV = 2*Lv./(1-ze) - Lv + 1;
@@ -201,7 +205,9 @@ function varargout = f_imr_spectral(varargin)
     % 2*cdd'*(c - d) for the spectral stress coefficients c, d
     cdd = f_preStressInt(Lv,Nv);
     
-    % index management
+    % index management: Nf spectral modes of the Zener field, and one
+    % state per stress integral unless the stress 5 field is used
+    Nf = Nv*zener_field;
     if spectral == 0
         Nv = 1;
     end
@@ -215,8 +221,16 @@ function varargout = f_imr_spectral(varargin)
     end
     ia = 4:(4+Nt);
     ib = (5+Nt):(5+Nt+Mt);
-    ivisco1 = (6+Nt+Mt):(5+Nt+Mt+Nv);
-    ivisco2 = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
+    if zener_field
+        % Z1, then the Nf coefficients of the Zener field
+        ivisco1 = 6+Nt+Mt;
+        ivisco2 = [];
+        izf = ivisco1 + (1:Nf);
+    else
+        ivisco1 = (6+Nt+Mt):(5+Nt+Mt+Nv);
+        ivisco2 = (6+Nt+Mt+Nv):(5+Nt+Mt+2*Nv);
+        izf = [];
+    end
     
     % initial condition assembly
     
@@ -234,7 +248,11 @@ function varargout = f_imr_spectral(varargin)
     Tau0;
     Tm0;
     Tm1;
-    Szero];
+    Szero;
+    zeros(Nf,1)];
+    % the stress states present in the state vector (Z1 and Z2, or the
+    % stress 5 field coefficients), without the Zener field
+    iz = (6+Nt+Mt):(numel(init)-Nf);
     
     % solver start
     f_display(radial, bubtherm, medtherm, 0, stress, spectral,...
@@ -247,7 +265,7 @@ function varargout = f_imr_spectral(varargin)
             'is available in the nodal solver only, use 2 (analytic)']);
     end
     if jacobian == 2
-        jp = struct('ia',ia, 'ib',ib, 'iz',(6+Nt+Mt):numel(init), ...
+        jp = struct('ia',ia, 'ib',ib, 'iz',iz, 'izf',izf, ...
             'bubtherm',bubtherm, 'medtherm',medtherm, 'stress',stress, ...
             'spectral_stress',spectral_stress, 'gA',gA, 'gDA',gDA, ...
             'gDDA',gDDA, 'gAI',gAI, 'mA',mA, 'mDA',mDA, 'mDDA',mDDA, ...
@@ -256,7 +274,8 @@ function varargout = f_imr_spectral(varargin)
             'alpha_g',alpha_g, 'beta_g',beta_g, 'nn',nn, 'Pb_star',Pb_star, ...
             'Pv_star',Pv_star, 'ZZT',ZZT, 'cdd',cdd, 'LAM',LAM, 'Re8',Re8, ...
             'closure',@f_closure, 'closure_s',@f_closure_s, ...
-            'taugradu',@f_taugradu);
+            'taugradu',@f_taugradu, 'zener_field',zener_field, ...
+            'zener_rhs',@f_zener_rhs);
         if bubtherm && medtherm
             jp.LA0 = LA0;
             jp.UA0 = UA0;
@@ -266,7 +285,7 @@ function varargout = f_imr_spectral(varargin)
             jp.vw1 = vw1;
             jp.vrow = vrow;
         end
-        if spectral_stress
+        if spectral_stress || zener_field
             jp.sCA = sCA;
             jp.sCI = sCI;
             jp.sCAd = sCAd;
@@ -282,6 +301,17 @@ function varargout = f_imr_spectral(varargin)
     [t,X] = f_odesolve(bubble, init, method, divisions, tspan, Sp, rtol, atol);
     
     % post processing
+    
+    % debug check of the Zener field: its stress integral 2*cdd'*e must
+    % equal Z1/R^3, the state that drives R(t), up to the resolution of the
+    % Nf modes
+    if zener_field
+        Sfield = 2*X(:,izf)*cdd;
+        Sstate = X(:,ivisco1)./X(:,1).^3;
+        fprintf(['Zener field check: max |2*cdd''*e - Z1/R^3| = %.3e ' ...
+            '(max |Z1/R^3| = %.3e, %d modes)\n'], max(abs(Sfield - Sstate)), ...
+            max(abs(Sstate)), Nf);
+    end
     
     % extract result
     R = X(:,1);
@@ -375,9 +405,9 @@ function varargout = f_imr_spectral(varargin)
                     (Foh/R*xi_adv + Rdot/2*yT_adv).*(mDA*X(ib));
                 diffusion = diff_m/(Lt^2*R^2).*(mDDA*X(ib));
                 % stress dissipation
-                [taugradu] = f_stress_dissipation(stress,spectral,Req,R,Rdot, ...
-                    Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
-                    ivisco2,fnu_m,DRe);
+                [taugradu] = f_stress_dissipation(stress,Req,R,Rdot,Ca, ...
+                    Br,Re8,LAM,alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_m, ...
+                    f_polymer_field(X));
                 % surrounding temperature evolution equation
                 Tmdot = advection + diffusion + taugradu;
                 
@@ -421,16 +451,48 @@ function varargout = f_imr_spectral(varargin)
             Sdot, Cstar, sam, no, GAMa, nstate, nog, hugoniot_s, JdotA, ...
             ddintfnu, iDRe);
         
+        % local polymer stress of the Zener models, for the heating
+        if zener_field
+            edot = f_zener_rhs(R,Rdot,X);
+        else
+            edot = [];
+        end
+        
         % output assembly
         dXdt = [Rdot;
         Rddot;
         Pdot;
         qdot;
         Z1dot;
-        Z2dot];
+        Z2dot;
+        edot];
         
     end
     % end of solver
+    
+    % local polymer stress difference at the medium points, for the medium
+    % heating of stress 3-5 (empty otherwise): the stress 5 field
+    % tau_rr - tau_tt, or the Zener field
+    function sp = f_polymer_field(X)
+        if spectral_stress
+            sp = ZZT*(X(ivisco1) - X(ivisco2));
+        elseif zener_field
+            sp = ZZT*X(izf);
+        else
+            sp = [];
+        end
+    end
+    
+    % time derivative of the Chebyshev coefficients e of the Zener field
+    % sp = sCA*e at the stress collocation points (f_zener_field), with
+    % the advection -ydot*d(sp)/dy = -dz/dt*d(sp)/dz
+    function edot = f_zener_rhs(R,Rdot,X)
+        e = X(izf);
+        dzdt = dzdy.*(Rdot/R).*yV_adv;
+        spdot = f_zener_field(sCA*e, -dzdt.*(sCAd*e), yV, R, Rdot, Req, Ca, ...
+            De, Re8, LAM, alphax*(stress == 4));
+        edot = sCI*spdot;
+    end
     
     % UCM and Oldroyd-B stress fields in the spectral representation. The
     % polymer stresses obey, along material points with a = R^2*Rdot/r^3,
@@ -465,16 +527,15 @@ function varargout = f_imr_spectral(varargin)
             [~,~,~,~,fnu_loc] = f_viscosity(nu_model,Rdotv,Rv,v_a,v_nc, ...
                 v_lambda_star,yT);
         end
-        tg = f_stress_dissipation(stress,spectral,Req,Rv,Rdotv, ...
-            Ca,Br,Re8,alphax,yT2,yT3,iyT3,iyT4,iyT6,X,ZZT,ivisco1, ...
-            ivisco2,fnu_loc,DRe);
+        tg = f_stress_dissipation(stress,Req,Rv,Rdotv,Ca,Br,Re8,LAM, ...
+            alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_loc,f_polymer_field(X));
         tg = tg.*ones(size(yT));
     end
     
     % radial acceleration and stress evolution as a function of
     % v = [R, Rdot, P, Pdot, Z], mirroring SVBDODE
     function out = f_closure(t,v,X)
-        X(6+Nt+Mt:end) = v(5:end);
+        X(iz) = v(5:end);
         [~,intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
         [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = f_stress(stress,X,Req,v(1), ...
             Ca,De,Re8,v(2),alphax,ivisco1,ivisco2,LAM, ...

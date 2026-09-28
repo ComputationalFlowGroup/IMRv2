@@ -71,24 +71,27 @@ function J = f_jacobian_spectral(t, X, jp)
             dif = d.mul(d.scale(d.div(d.con(1), R2), ...
                 jp.Foh/4*(1 + jp.xi).^4/jp.Lt^2), ddTm);
             Tmdot = d.add(adv, dif);
+            % stress dissipation: R and Rdot partials by central
+            % differences at a fixed stress field, and the part linear in
+            % the polymer stress field, -2*Br*a*sp with a = (Rdot/R)/yT^3,
+            % exactly
+            hR = eps^(1/3)*max(abs(R.v),1);
+            hU = eps^(1/3)*max(abs(Rdot.v),1);
+            tg_R = (jp.taugradu(R.v+hR,Rdot.v,X) - ...
+                jp.taugradu(R.v-hR,Rdot.v,X))/(2*hR);
+            tg_U = (jp.taugradu(R.v,Rdot.v+hU,X) - ...
+                jp.taugradu(R.v,Rdot.v-hU,X))/(2*hU);
+            tg = jp.taugradu(R.v,Rdot.v,X);
+            Jtg = sparse(tg_R(:))*R.J + sparse(tg_U(:))*Rdot.J;
+            dsp = -2*jp.Br*(Rdot.v/R.v)./jp.yT3.*jp.ZZT;
             if jp.spectral_stress
-                % dissipation of the spectral stress field
-                cmd = d.lin(jp.ZZT, d.sub(d.var(X, iz(1:end/2)), ...
-                    d.var(X, iz(end/2+1:end))));
-                Tmdot = d.add(Tmdot, d.scale(d.mul(d.div(Rdot, R), cmd), ...
-                    -2*jp.Br./jp.yT3));
-            else
-                % closed-form dissipation by central differences
-                hR = eps^(1/3)*max(abs(R.v),1);
-                hU = eps^(1/3)*max(abs(Rdot.v),1);
-                tg_R = (jp.taugradu(R.v+hR,Rdot.v,X) - ...
-                    jp.taugradu(R.v-hR,Rdot.v,X))/(2*hR);
-                tg_U = (jp.taugradu(R.v,Rdot.v+hU,X) - ...
-                    jp.taugradu(R.v,Rdot.v-hU,X))/(2*hU);
-                tg = jp.taugradu(R.v,Rdot.v,X);
-                Tmdot = d.add(Tmdot, struct('v', tg, 'J', ...
-                    sparse(tg_R(:))*R.J + sparse(tg_U(:))*Rdot.J));
+                Nv = numel(iz)/2;
+                Jtg(:,iz(1:Nv)) = Jtg(:,iz(1:Nv)) + dsp;
+                Jtg(:,iz(Nv+1:end)) = Jtg(:,iz(Nv+1:end)) - dsp;
+            elseif jp.zener_field
+                Jtg(:,jp.izf) = Jtg(:,jp.izf) + dsp;
             end
+            Tmdot = d.add(Tmdot, struct('v', tg, 'J', Jtg));
             Tmdot = d.set(Tmdot, numel(Tmdot.v), d.con(0));
             % boundary condition solve with the Sherman-Morrison update
             s = d.add(d.scale(d.el(T, 1), jp.alpha_g), d.con(jp.beta_g));
@@ -145,6 +148,24 @@ function J = f_jacobian_spectral(t, X, jp)
         G = f_closure_fd(@(v) jp.closure(t,v,X), v0);
         JZ = sparse(1:numel(iz), iz, 1, numel(iz), n);
         J([2 iz],:) = sparse(G)*vertcat(R.J, Rdot.J, P.J, Pdot.J, JZ);
+    end
+    
+    % Zener field rows: linear in the coefficients e, and R and Rdot
+    % partials by central differences
+    if jp.zener_field
+        Rr = Rdot.v/R.v;
+        dzdt = jp.dzdy.*Rr.*(1./jp.yV.^2 - jp.yV);
+        Ae = jp.sCI*(-dzdt.*jp.sCAd - jp.sCA/jp.De - ...
+            (3*Rr*(1 - jp.yV.^-3)).*jp.sCA);
+        hR = eps^(1/3)*max(abs(R.v),1);
+        hU = eps^(1/3)*max(abs(Rdot.v),1);
+        e_R = (jp.zener_rhs(R.v+hR,Rdot.v,X) - ...
+            jp.zener_rhs(R.v-hR,Rdot.v,X))/(2*hR);
+        e_U = (jp.zener_rhs(R.v,Rdot.v+hU,X) - ...
+            jp.zener_rhs(R.v,Rdot.v-hU,X))/(2*hU);
+        Jf = sparse(e_R(:))*R.J + sparse(e_U(:))*Rdot.J;
+        Jf(:,jp.izf) = Jf(:,jp.izf) + Ae;
+        J(jp.izf,:) = Jf;
     end
     
     % A(s)\M for the thermal boundary condition system

@@ -20,7 +20,8 @@
 | `collapse = 1` with stress 5 and no `stress0` (the stress at the maximum radius is not computed for UCM and Oldroyd-B) | error |
 | `stress = 3, 4, 5` with `De <= 0` | error |
 | `nu_model > 0` with `stress = 0` | error: the non-Newtonian viscosity needs a viscous stress model (stress 1–5) |
-| `stress >= 3` with `medtherm = 1` (FD dissipation) | warning `IMR:dissipation` |
+| `stress = 5` with `medtherm = 1` and `spectral = 0` | error in `f_imr_nodal`; `f_imr_spectral` sets `spectral = 1` and warns |
+| `stress = 3, 4` with `(1-LAM)/Re8 < De/Ca` (negative dashpot viscosity of the Zener branch) | warning |
 | both `tvector` and `tfin` | error |
 | `tvector` not finite and strictly increasing, or starting below 0 | error |
 | `Nt < 3` with `bubtherm = 1`, or `Mt < 3` with `medtherm = 1` | error |
@@ -47,5 +48,6 @@ After the checks, `f_checkers` adjusts and returns:
 
 - `stress <= 4`: `spectral = 0`; `Nv = 1` for stress 3, 4 (one stress state) and `Nv = 0` otherwise.
 - `stress = 5` (UCM, Oldroyd-B): `Nv` stress modes with the spectral representation, one otherwise, and `Ca = Inf` (no elastic contribution).
+- `stress = 3, 4`: `Nv = 1`, except in `f_imr_spectral` with `medtherm = 1`, where `Nv` is the number of modes of the local polymer stress field.
 
 The size of a user `stress0` is checked in `f_call_params`, not here. See [`compatibility`](../compatibility.md) for the resulting grid of features that run together.

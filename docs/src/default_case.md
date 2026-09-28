@@ -39,7 +39,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `method` | `method` | Stiff time integrator: 23 `ode23tb`, 15 `ode15s`, 3 CVODES (MATLAB R2024a or later). The names `'ode23tb'`, `'ode15s'` and `'cvodes'` are also accepted | 23 |
 | `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `f_imr_spectral` only (0/1) | 0 |
 | `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 |
-| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is used only by the spectral stress representation | 25, 25, 150 |
+| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is the number of stress modes of `f_imr_spectral`, for the stress 5 field (`spectral = 1`) and for the stress 3–4 polymer stress field with medium heat transfer | 25, 25, 150 |
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 |
 | `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (nodal solver; numerical in the spectral solver), 2 analytic, 3 batched finite differences (nodal solver only) | 2 |
