@@ -9,10 +9,9 @@
 clc;
 clear;
 
-repoRoot = fileparts(mfilename('fullpath')); % Get script location
-% repoRoot = '';
-toolchainPath = fullfile(repoRoot, '..', 'toolchain');
-srcPath = fullfile(repoRoot, '..', 'src');
+% this script lives in toolchain/, next to src/
+toolchainPath = fileparts(mfilename('fullpath'));
+srcPath = fullfile(toolchainPath, '..', 'src');
 
 files = [dir(fullfile(toolchainPath, '**', '*.m'));
 dir(fullfile(srcPath, '**', '*.m'))];

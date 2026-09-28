@@ -12,8 +12,10 @@ function [R, msg] = f_test_run(c)
     
     R = [];
     msg = '';
-    solver = c.solver;
-    args = c.args;
+    % solver and args are used inside the evalc string, which the code
+    % analyzer does not read
+    solver = c.solver; %#ok<NASGU>
+    args = c.args; %#ok<NASGU>
     try
         % char(59) is the statement's semicolon, kept out of the string
         % literal because s_format splits lines with two semicolons

@@ -18,7 +18,7 @@
 | Enthalpy forms (`radial = 3, 4`) with `medtherm = 1` | error: the liquid is taken at the far-field temperature |
 | `collapse = 1` without `bubtherm`, `medtherm`, `vapor` and `masstrans` | error |
 | `collapse = 1` with stress 5 and no `stress0` (the stress at the maximum radius is not computed for UCM and Oldroyd-B) | error |
-| `stress = 3, 4, 5` with `De <= 0` | error |
+| `stress = 3, 4, 5` with `De < 1e-4` | error: the model is then its `De -> 0` limit, so the message names the simpler model to run: stress 1 for stress 3, stress 2 for stress 4, stress 1 with `Ca = Inf` for stress 5 (with `nu_model > 0`, `DRe/LAM` in place of `DRe`) |
 | `nu_model > 0` with `stress = 0` | error: the non-Newtonian viscosity needs a viscous stress model (stress 1–5) |
 | `stress = 5` with `medtherm = 1` and `spectral = 0` | error in `f_imr_nodal`; `f_imr_spectral` sets `spectral = 1` and warns |
 | `stress = 3, 4` with `(1-LAM)/Re8 < De/Ca` (negative dashpot viscosity of the Zener branch) | warning |

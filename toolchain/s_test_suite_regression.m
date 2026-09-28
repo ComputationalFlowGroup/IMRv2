@@ -17,7 +17,6 @@
 clc;
 clear;
 
-addpath('../toolchain/');
 addpath('../src/');
 
 % largest allowed L2 norm of R./R_ref - 1 over the output times

@@ -185,8 +185,9 @@ function pairs = f_thermal(row)
 end
 
 % true when f_call_params (and so f_checkers) accepts the inputs, with its
-% console output hidden; only input errors reject a case
-function ok = f_accepted(call, args)
+% console output hidden; only input errors reject a case. call and args are
+% used inside the evalc string, which the code analyzer does not read
+function ok = f_accepted(call, args) %#ok<INUSD>
     ok = true;
     try
         evalc('f_call_params(call, args{:})');

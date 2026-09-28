@@ -18,7 +18,6 @@
 clc;
 clear;
 
-addpath('../toolchain/');
 addpath('../src/');
 
 % replace existing stored results

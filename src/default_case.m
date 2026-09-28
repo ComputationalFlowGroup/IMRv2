@@ -53,9 +53,9 @@ function d = default_case()
     % (spectral = 1), and the stress 3, 4 polymer stress field with medium
     % heat transfer
     Nv              = 150;
-    % characteristic length for grid stretching, leave at 3
+    % grid stretching length of the stress field of f_imr_spectral
     Lv              = 3;
-    % characteristic length for grid stretching, leave at 3
+    % grid stretching length of the medium temperature field
     Lt              = 2;
     % relative tolerance of the time integrator
     rtol            = 1e-8;
@@ -72,6 +72,7 @@ function d = default_case()
     
     % initial conditions
     
+    % 0 : start from R0 = 1, 1 : Rayleigh collapse from the maximum radius
     collapse        = 0;
     % initial bubble wall velocity, Rdot(0)/Uc
     Rdotzero        = 0;

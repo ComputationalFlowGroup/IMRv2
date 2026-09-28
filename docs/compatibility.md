@@ -76,7 +76,7 @@ Some features switch on others. A ✓ means the pair runs with these requirement
 Other rules:
 
 - **Non-Newtonian viscosity** requires a stress model with a viscous term, stress 1–5; `f_checkers` rejects it with stress 0. It enters every stress model the same way, `-6*intfnu*iDRe` in the stress integral, scaled by `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, and the medium heating uses the local non-Newtonian viscosity.
-- **Stress 3, 4 and 5** require `De > 0`.
+- **Stress 3, 4 and 5** require `De >= 1e-4`. Below that the relaxation is far faster than the bubble motion, the model is its `De -> 0` limit, and `f_checkers` asks for the simpler model instead: stress 1 for stress 3, stress 2 for stress 4, and stress 1 with `Ca = Inf` for stress 5. With a non-Newtonian viscosity, the simpler model takes `DRe/LAM` in place of `DRe`, since stress 3–5 apply it to the solvent share `LAM`.
 - **Collapse with stress 3 or 4** starts from the stress of a growth from `Req` to `R = 1` ([`f_init_stress`](src/f_init_stress.md)), including the quadratic term for stress 4. If no subsonic growth reaches `R = 1` (very small `Req`), the run stops and asks for `stress0`.
 - **Collapse with stress 0–2** starts from rest at the maximum radius. These models carry no stress history, so there is no initial stress to set, and the run says so.
 - **Collapse with stress 5** is rejected unless `stress0` is given: the stress at the maximum radius is not computed for UCM and Oldroyd-B, and starting from zero stress would be silently wrong.

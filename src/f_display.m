@@ -5,9 +5,9 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function features the display output on the command window.
-% The optional inputs after mode describe the non-Newtonian viscosity:
-% DRe, iDRe (the factor of its stress term, 0 when it is inactive),
-% v_lambda, v_nc and v_a.
+% The inputs after mode describe the non-Newtonian viscosity: DRe, iDRe
+% (the factor of its stress term, 0 when it is inactive), v_lambda, v_nc
+% and v_a.
 function [] = f_display(radial, bubtherm, medtherm, masstrans, stress, ...
     spectral, nu_model, eps3, Pv_star, Re8, De, Ca, LAM, mode, DRe, iDRe, ...
     v_lambda, v_nc, v_a)
@@ -29,7 +29,6 @@ elseif radial == 6
 else
     error('INPUT ERROR: radial must be 1-6');
 end
-const = 'none';
 
 if bubtherm == 1
     if medtherm == 1
@@ -84,7 +83,7 @@ elseif stress == 3 || stress == 4
     else
         const = ['linear Zener with solvent viscosity, ' elastic ' spring'];
     end
-elseif stress == 5
+else
     if LAM == 0
         const = 'upper-convected Maxwell';
     else
@@ -111,40 +110,42 @@ elseif nu_model == 0
     visco = 'Newtonian';
 else
     visco = nu_names{nu_model};
-    if nargin > 14
-        if DRe == 0
-            visco = [visco ' selected but inactive (DRe = 0, mu0 = mu8): ' ...
-                'Newtonian'];
-        elseif iDRe == 0
-            visco = [visco ' selected but inactive (LAM = 0, no solvent ' ...
-                'share for stress 3-5): Newtonian'];
-        else
-            if stress >= 3
-                visco = [visco ', solvent share (LAM)'];
-            end
-            if v_lambda == 0
-                visco = [visco ', v_lambda = 0 so constant viscosity mu0'];
-            end
-            % the parameters each model uses
-            nu_params = ['DRe = ' num2str(DRe,'%10.10f') ...
-                ', v_lambda = ' num2str(v_lambda,'%10.10f')];
-            if any(nu_model == [1 2 4 5 7])
-                nu_params = [nu_params ', v_nc = ' num2str(v_nc,'%10.10f')];
-            end
-            if any(nu_model == [2 7])
-                nu_params = [nu_params ', v_a = ' num2str(v_a,'%10.10f')];
-            end
+    if DRe == 0
+        visco = [visco ' selected but inactive (DRe = 0, mu0 = mu8): ' ...
+            'Newtonian'];
+    elseif iDRe == 0
+        visco = [visco ' selected but inactive (LAM = 0, no solvent ' ...
+            'share for stress 3-5): Newtonian'];
+    else
+        if stress >= 3
+            visco = [visco ', solvent share (LAM)'];
+        end
+        if v_lambda == 0
+            visco = [visco ', v_lambda = 0 so constant viscosity mu0'];
+        end
+        % the parameters each model uses
+        nu_params = ['DRe = ' num2str(DRe,'%10.10f') ...
+            ', v_lambda = ' num2str(v_lambda,'%10.10f')];
+        if any(nu_model == [1 2 4 5 7])
+            nu_params = [nu_params ', v_nc = ' num2str(v_nc,'%10.10f')];
+        end
+        if any(nu_model == [2 7])
+            nu_params = [nu_params ', v_a = ' num2str(v_a,'%10.10f')];
         end
     end
 end
 
 % how the stress of the history-dependent models is carried: the stress
 % field in spectral modes (stress 5, spectral = 1, f_imr_spectral), or
-% ordinary differential equations for its integrals
+% ordinary differential equations for its integrals, which stress 3 and 4
+% with medium heat transfer complement with the local polymer stress field
+% for the medium heating (f_zener_field)
 if stress < 3
     solut = 'closed form (no stress history)';
 elseif spectral == 1
     solut = 'stress field, spectral modes';
+elseif stress <= 4 && medtherm == 1
+    solut = 'stress integral (ODE), and its local field for the medium heating';
 else
     solut = 'stress integrals (ODEs)';
 end

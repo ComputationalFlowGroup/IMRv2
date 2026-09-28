@@ -28,11 +28,6 @@ function varargout = f_imr_spectral(varargin)
     medtherm        = eqns_opts(3);
     stress          = eqns_opts(4);
     eps3            = eqns_opts(5);
-    % if (stress == 4)
-    %     ptt = 1;
-    % else
-    %     ptt = 0;
-    % end
     
     % solver options
     method          = solve_opts(1);
@@ -108,8 +103,7 @@ function varargout = f_imr_spectral(varargin)
     Br              = thermal_opts(2);
     alpha_g         = thermal_opts(3);
     beta_g          = thermal_opts(4);
-    % alpha_v         = thermal_opts(5);
-    % beta_v          = thermal_opts(6);
+    % alpha_v, beta_v = thermal_opts(5:6), only used by the nodal solver
     chi             = thermal_opts(7);
     iota            = thermal_opts(8);
     
@@ -172,7 +166,6 @@ function varargout = f_imr_spectral(varargin)
     end
     
     % precomputations
-    % LDR = LAM*De/Re8;
     sam = 1 + GAMa;
     no = (nstate-1)/nstate;
     nog = (nstate-1)/2;
@@ -193,7 +186,6 @@ function varargout = f_imr_spectral(varargin)
     % theta = alpha_g*(T^2 - 1)/2 + beta_g*(T - 1), inverted as
     % T = (sqrt((alpha_g + beta_g)^2 + 2*alpha_g*theta) - beta_g)/alpha_g
     K1sq_g = (alpha_g + beta_g)^2;
-    % yV = 2*Lv./(1-ze) - Lv + 1;
     nn = ((-1).^(0:Nt).*(0:Nt).^2)';
     nn = sparse(nn);
     
@@ -214,7 +206,6 @@ function varargout = f_imr_spectral(varargin)
     if bubtherm == 0
         Nt = -1;
         Mt = -1;
-        qdot = [];
     end
     if medtherm == 0
         Mt = -1;
@@ -266,9 +257,9 @@ function varargout = f_imr_spectral(varargin)
     end
     if jacobian == 2
         jp = struct('ia',ia, 'ib',ib, 'iz',iz, 'izf',izf, ...
-            'bubtherm',bubtherm, 'medtherm',medtherm, 'stress',stress, ...
+            'bubtherm',bubtherm, 'medtherm',medtherm, ...
             'spectral_stress',spectral_stress, 'gA',gA, 'gDA',gDA, ...
-            'gDDA',gDDA, 'gAI',gAI, 'mA',mA, 'mDA',mDA, 'mDDA',mDDA, ...
+            'gDDA',gDDA, 'gAI',gAI, 'mDA',mDA, 'mDDA',mDDA, ...
             'y',y, 'xi',xi, 'yT',yT, 'yT2',yT2, 'yT3',yT3, 'Lt',Lt, ...
             'Foh',Foh, 'Br',Br, 'chi',chi, 'kappa',kappa, 'kapover',kapover, ...
             'alpha_g',alpha_g, 'beta_g',beta_g, 'nn',nn, 'Pb_star',Pb_star, ...
@@ -519,8 +510,8 @@ function varargout = f_imr_spectral(varargin)
         Sdot = 2*cdd'*(cdot - ddot) + 4*LAM/Re8*(Rdot/R)^2 - 6*dintfnu*iDRe;
     end
     
-    % medium dissipation as a function of (R, Rdot), closed-form stress
-    % models
+    % medium dissipation as a function of (R, Rdot), at the polymer stress
+    % field of X
     function tg = f_taugradu(Rv,Rdotv,X)
         fnu_loc = 0;
         if nu_model ~= 0
@@ -536,7 +527,7 @@ function varargout = f_imr_spectral(varargin)
     % v = [R, Rdot, P, Pdot, Z], mirroring SVBDODE
     function out = f_closure(t,v,X)
         X(iz) = v(5:end);
-        [~,intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
+        [intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
         [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = f_stress(stress,X,Req,v(1), ...
             Ca,De,Re8,v(2),alphax,ivisco1,ivisco2,LAM, ...
             intf_loc,dintf_loc,iDRe);
@@ -548,18 +539,18 @@ function varargout = f_imr_spectral(varargin)
     % field and solvent parts; the non-Newtonian part is added here from
     % (R, Rdot)
     function out = f_closure_s(t,v)
-        [~,intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
+        [intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
         out = f_rddot(t,v,v(5) - 6*intf_loc*iDRe, v(6) - 6*dintf_loc*iDRe, ...
             ddintf_loc);
     end
     
-    function [f_loc,intf_loc,dintf_loc,ddintf_loc] = f_nu(Rv,Rdotv)
-        f_loc = 0;
+    % non-Newtonian stress integral terms at (R, Rdot), zero when Newtonian
+    function [intf_loc,dintf_loc,ddintf_loc] = f_nu(Rv,Rdotv)
         intf_loc = 0;
         dintf_loc = 0;
         ddintf_loc = 0;
         if nu_model ~= 0
-            [f_loc,intf_loc,dintf_loc,ddintf_loc] = f_viscosity(nu_model, ...
+            [~,intf_loc,dintf_loc,ddintf_loc] = f_viscosity(nu_model, ...
                 Rdotv,Rv,v_a,v_nc,v_lambda_star);
         end
     end

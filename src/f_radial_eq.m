@@ -27,41 +27,29 @@ elseif radial == 2
         - 1.5*(1-Rdot/(3*Cstar)).*Rdot.^2)./((1-Rdot/Cstar).*R + JdotA/Cstar ...
         + 6*R.*ddintfnu*iDRe/Cstar);
     
-    % Keller-Miksis in enthalpy with Tait EoS
-elseif radial == 3
-    Pb = P - iWe./R + GAMa + S;
-    hB = (sam/no)*((Pb/sam).^no - 1);
-    hH = (sam./Pb).^(1/nstate);
-    Rddot = ((1 + Rdot./Cstar).*(hB - Pf8) - R./Cstar*Pf8dot ...
-        + R./Cstar.*hH.*(Pdot + iWe*Rdot./R.^2 + Sdot) ...
-        - 1.5*(1 - Rdot./(3*Cstar)).*Rdot.^2) ./ ((1 - Rdot./Cstar).*R + ...
-        JdotA*hH./Cstar + 6*hH.*R.*ddintfnu*iDRe./Cstar);
-    
-    % Gilmore equation with Tait EoS
-elseif radial == 4
-    Pb = P - iWe./R + GAMa + S;
-    rho = (Pb/sam).^(1/nstate);
-    C = sqrt(nstate*Pb./rho);
-    hB = sam/no*((Pb/sam).^no - 1);
-    hH = (sam./Pb).^(1/nstate);
-    Rddot = ((1 + Rdot./C).*(hB - Pf8) - R./C*Pf8dot ...
-        + R./C.*hH.*(Pdot + iWe*Rdot./R.^2 + Sdot) ...
-        - 1.5*(1 - Rdot./(3*C)).*Rdot.^2) ./ ((1 - Rdot./C).*R + ...
-        JdotA*hH./C + 6*hH.*R.*ddintfnu*iDRe./C);
-    
-    % Keller-Miksis in enthalpy with Mie-Gruneisen EoS
-elseif radial == 5
-    Pb = P - iWe./R + S;
-    [~, hB, hH] = f_mie_gruneisen_eos_scalar(Pb);
-    Rddot = ((1 + Rdot./Cstar).*(hB - Pf8) - R./Cstar*Pf8dot ...
-        + R./Cstar.*hH.*(Pdot + iWe*Rdot./R.^2 + Sdot) ...
-        - 1.5*(1 - Rdot./(3*Cstar)).*Rdot.^2) ./ ((1 - Rdot./Cstar).*R + ...
-        JdotA*hH./Cstar + 6*hH.*R.*ddintfnu*iDRe./Cstar);
-    
-    % Gilmore with Mie-Gruneisen EoS
-elseif radial == 6
-    Pb = P - iWe./R + S;
-    [C, hB, hH] = f_mie_gruneisen_eos_scalar(Pb);
+    % enthalpy forms: Keller-Miksis (3, 5) with the far-field sound speed
+    % and Gilmore (4, 6) with the local one, for the Tait (3, 4) or
+    % Mie-Gruneisen (5, 6) equation of state
+else
+    if radial <= 4
+        % Tait EoS
+        Pb = P - iWe./R + GAMa + S;
+        hB = (sam/no)*((Pb/sam).^no - 1);
+        hH = (sam./Pb).^(1/nstate);
+        if radial == 4
+            rho = (Pb/sam).^(1/nstate);
+            C = sqrt(nstate*Pb./rho);
+        else
+            C = Cstar;
+        end
+    else
+        % Mie-Gruneisen EoS
+        Pb = P - iWe./R + S;
+        [C, hB, hH] = f_mie_gruneisen_eos_scalar(Pb);
+        if radial == 5
+            C = Cstar;
+        end
+    end
     Rddot = ((1 + Rdot./C).*(hB - Pf8) - R./C*Pf8dot ...
         + R./C.*hH.*(Pdot + iWe*Rdot./R.^2 + Sdot) ...
         - 1.5*(1 - Rdot./(3*C)).*Rdot.^2) ./ ((1 - Rdot./C).*R + ...
