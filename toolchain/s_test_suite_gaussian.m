@@ -14,7 +14,6 @@
 clc;
 clear;
 
-addpath('../toolchain/');
 addpath('../src/');
 
 % largest allowed difference between the final and initial radius

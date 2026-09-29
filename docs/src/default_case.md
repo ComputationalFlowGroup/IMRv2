@@ -79,7 +79,7 @@ The *input* column is the name used in the name/value call (case-insensitive).
 | `we` | `We` | Weber `P8*R0/(2*S)` (Inf: no surface tension) | 36.1875 |
 | `re` | `Re8` | Reynolds `P8*R0/(mu8*Uc)` (Inf: inviscid) | 623.366 |
 | `ca` | `Ca` | Cauchy `P8/G` (Inf: no elasticity) | 101.325 |
-| `de` | `De` | Deborah `lambda1*Uc/R0` | 0.019517 |
+| `de` | `De` | Deborah `lambda1*Uc/R0`; at least `1e-4` for stress 3–5 (below that, run the `De -> 0` limit: stress 1, 2, or 1 with `Ca = Inf`) | 0.019517 |
 | `lam` | `LAM` | `lambda2/lambda1` | 0.1 |
 | `alphax` | `alphax` | Strain-stiffening parameter | 0.25 |
 | `dre` | `DRe` | `P8*R0/((mu0-mu8)*Uc)`, 0 for no non-Newtonian contribution | 0 |

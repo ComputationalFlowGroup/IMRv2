@@ -312,8 +312,8 @@ else
 end
 
 % inertial Rayleigh collapse out of equilibrium initial conditions
-opts = optimset('display','off');
 if collapse
+    opts = optimset('display','off');
     % calculate the equilibrium radii ratio for initial stress state
     fun = @(x) Pv_star*(1+(ma0/x)*(Ra_star/Rv_star))-1-(1/We)*(Pv_star/(Rv_star*x))^(1/3);
     MTotal0 = ma0 + mv0;

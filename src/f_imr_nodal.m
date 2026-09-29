@@ -145,8 +145,7 @@ function varargout = f_imr_nodal(varargin)
     om_yT3 = 1-yT3;
     xi_adv = (xi+1)/(2*Lt)-1./yT;
     
-    % precomputations move these to f_call_params
-    %LDR = LAM*De/Re8;
+    % precomputations
     sam = 1 + GAMa;
     no = (nstate-1)/nstate;
     nog = (nstate-1)/2;
@@ -301,9 +300,11 @@ function varargout = f_imr_nodal(varargin)
     % Jacobian for the stiff integrators: analytic where implemented,
     % batched finite differences (jacobian = 3), otherwise the sparsity
     % pattern
+    % the stress states and the Zener field, for the sparsity pattern
+    istress = (4+Nt+Mt+Nc):numel(init);
     if jacobian == 3
         jmask = full(f_jpattern(numel(init), ibubtherm, imedtherm, imass, ...
-            (4+Nt+Mt+Nc):numel(init), scheme)) ~= 0;
+            istress, scheme)) ~= 0;
         Sp = @f_jacobian_fd;
     elseif jacobian == 2 && bubtherm
         jp = struct('ith',ibubtherm, 'itm',imedtherm, 'ikv',imass, ...
@@ -321,7 +322,7 @@ function varargout = f_imr_nodal(varargin)
         Sp = @(t,X) f_jacobian_nodal(t,X,jp);
     elseif jacobian >= 1
         Sp = f_jpattern(numel(init), ibubtherm, imedtherm, imass, ...
-            (4+Nt+Mt+Nc):numel(init), scheme);
+            istress, scheme);
     else
         Sp = [];
     end
@@ -418,7 +419,7 @@ function varargout = f_imr_nodal(varargin)
         % internal bubble pressure
         P = X(3,:);
         % auxiliary variable for internal bubble temperature
-        if bubtherm || masstrans
+        if bubtherm
             theta = X(ibubtherm,:);
         end
         if masstrans
@@ -431,17 +432,17 @@ function varargout = f_imr_nodal(varargin)
         kvdot = [];
         
         % boundary condition evaluation
-        if medtherm && masstrans
+        if medtherm
             % temperature in the material
             Tm = X(imedtherm,:);
+        end
+        if medtherm && masstrans
             % wall closure on the wall vapor mass fraction
             [theta_bw, kv_bw] = f_wall_mass_closure(Tm, theta, kv, P, R, t);
             theta(end,:) = theta_bw;
         elseif medtherm
-            % temperature in the material
-            Tm = X(imedtherm,:);
             % closed-form wall temperature, fzero only as a fallback
-            theta_bw = f_wall_theta_exact(Tm);
+            theta_bw = f_wall_theta_exact(Tm, theta);
             theta_bw_guess = theta_bw(1);
             theta(end,:) = theta_bw;
         end
@@ -486,7 +487,6 @@ function varargout = f_imr_nodal(varargin)
             Uvel = (chi./R*(kappa-1).*dtheta-y.*R.*Pdot/3)./(kappa*P) + Fom./R.*RDkv;
             
             % mixture thermal conductivity
-            alpha_mix  = kv.*alpha_v + om_kv.*alpha_g;
             Kstar_g = alpha_g*T+beta_g;
             Kstar_v = alpha_v*T+beta_v;
             Kstar   = kv.*Kstar_v + om_kv.*Kstar_g;
@@ -772,7 +772,7 @@ function varargout = f_imr_nodal(varargin)
             act = true(1, nw);
             for kw = 1:n_warm
                 ia = find(act);
-                [res, ~, ~, dres] = f_wall_mass_residual(x(ia), wp(:,ia));
+                [res, ~, dres] = f_wall_mass_residual(x(ia), wp(:,ia));
                 step = res./dres;
                 xa = x(ia) - step;
                 x(ia) = xa;
@@ -823,7 +823,7 @@ function varargout = f_imr_nodal(varargin)
         end
         kv_w = (lo + hi)/2;
         for kp = 1:n_polish
-            [res, ~, ~, dres] = f_wall_mass_residual(kv_w, wp);
+            [res, ~, dres] = f_wall_mass_residual(kv_w, wp);
             % stay inside the final grid interval
             kv_w = min(max(kv_w - res/dres, lo), hi);
         end
@@ -836,7 +836,7 @@ function varargout = f_imr_nodal(varargin)
     % of f_wall_mass_bc multiplied through by
     % (kv_w*Rva_diff + Rg_star)*Tw*(1 - kv_w) > 0, which has the same root
     % and no reciprocal that vanishes as kv_w -> 1
-    function [r, theta_w, Tw, dr] = f_wall_mass_residual(kv_w, wp)
+    function [r, theta_w, dr] = f_wall_mass_residual(kv_w, wp)
         Pw = wp(1,:);
         % vapor partial pressure, and the wall temperature from inverting
         % Pv(Tw) = C1_pv*exp(C2_pv/Tw) (C2_pv < 0)
@@ -849,7 +849,7 @@ function varargout = f_imr_nodal(varargin)
         denom = mix.*Tw.*(1 - kv_w);
         thermal = grad_Tm_coeff(1)*Tw + grad_Trans_coeff(1)*theta_w + wp(4,:);
         r = denom.*thermal + Pw.*(grad_C_coeff(1)*kv_w + wp(5,:));
-        if nargout > 3
+        if nargout > 2
             % d/d(kv_w) through ps, Tw and theta_w
             dps = Pw*Rvg_ratio./q.^2;
             dTw = -C2_pv./lg.^2.*dps./ps;
@@ -873,8 +873,7 @@ function varargout = f_imr_nodal(varargin)
     end
     
     % temperature boundary condition at the bubble wall, thermal only:
-    % residual of the heat flux balance (theta is the shared field unless
-    % given)
+    % residual of the heat flux balance
     function theta_w = f_bubble_wall_thermal_bc(theta_bw, Tm_in, th_in)
         Tm_trans = Tm_in(iwall_m);
         T_trans = th_in(iwall_b);
@@ -895,9 +894,6 @@ function varargout = f_imr_nodal(varargin)
     % admissible root exists. Tm_in and th_in may hold one state per column,
     % giving one theta_bw per column.
     function theta_bw = f_wall_theta_exact(Tm_in, th_in)
-        if nargin < 2
-            th_in = theta;
-        end
         c1 = grad_Tm_coeff(1);
         c2 = grad_Trans_coeff(1);
         K = grad_Tm_coeff(2:end)*Tm_in(iwall_m,:) + ...

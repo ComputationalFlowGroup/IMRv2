@@ -13,7 +13,6 @@
 clc;
 clear;
 
-addpath('../toolchain/');
 addpath('../src/');
 
 % largest allowed deviation of R from 1: rounding only
