@@ -10,8 +10,8 @@
 % cases are built from the model features and kept only when the solver's
 % own input checks (f_call_params and f_checkers) accept them, so every
 % suite covers exactly the combinations of the compatibility matrix and
-% follows it when it changes. suite is 'equilibrium', 'gaussian' or
-% 'regression'. Each case has the fields
+% follows it when it changes. suite is 'equilibrium', 'gaussian',
+% 'regression' or 'permutations'. Each case has the fields
 %   key     a name that identifies the case within its mode, e.g.
 %           'r2_bubble+medium_s3_mat1'; stored results are looked up by it
 %   mode    'nodal_fd', 'nodal_cheb' or 'spectral'
@@ -105,7 +105,7 @@ function cases = f_test_cases(suite)
         % collapse is far sharper, and it is released from twice its
         % equilibrium radius. The runs are strong enough to exercise every
         % term but not so violent that the result mostly tests the
-        % integrator: GNU Octave's weaker ode15s completes every case
+        % integrator
         osc = {'R0', 50e-6, 'Req', 12.5e-6, 'tvector', linspace(0, 12e-6, 100)};
         poly = {'R0', 50e-6, 'Req', 25e-6, 'tvector', linspace(0, 12e-6, 100)};
         mass = {'R0', 2e-4, 'Req', 5e-5, 'tvector', linspace(0, 30e-6, 100)};
@@ -160,8 +160,108 @@ function cases = f_test_cases(suite)
             specs{end,2}{find(strcmp(specs{end,2}, 'collapse'), 1) + 1} = 1;
         end
         
+        case 'permutations'
+        % every accepted combination of the solver options that the other
+        % suites do not cross, run briefly on coarse grids: the suite only
+        % checks that each run finishes with finite results
+        grids = {{'Nt', 20, 'Mt', 20}, {'Nt', 12, 'Mt', 12}, ...
+            {'Nt', 8, 'Mt', 8, 'Nv', 8}};
+        base = {'R0', 50e-6, 'Req', 25e-6, 'mu', 1e-2, 'G', 1e3, ...
+            'lambda1', 1e-7, 'lambda2', 3e-8, 'alphax', 0.25, ...
+            'tvector', linspace(0, 2e-6, 5), 'collapse', 0, 'vapor', 1};
+        nonnewt = {'mu0', 5e-2, 'v_lambda', 1e-7, 'v_nc', 0.5, 'v_a', 2};
+        wave = {'pA', 1e5, 'TW', 2e-7, 'DT', 1e-6, 'omega', 2*pi*1e6, ...
+            'mn', 2};
+        specs = {};
+        % non-Newtonian viscosity: every model with every viscous stress
+        % model, with and without medium heat transfer
+        for nu = 1:7
+            for stress = 1:5
+                for it = 2:3
+                    specs(end+1,:) = {sprintf('nu%d_s%d_%s', nu, stress, ...
+                        thermal{it,1}), [base, nonnewt, ...
+                        f_thermal(thermal(it,:)), {'radial', 2, ...
+                        'stress', stress, 'nu_model', nu}]}; %#ok<AGROW>
+                end
+            end
+        end
+        % driving waveforms with every radial model
+        for w = -3:3
+            for radial = 1:6
+                specs(end+1,:) = {sprintf('wave%d_r%d', w, radial), ...
+                    [base, wave, f_thermal(thermal(1,:)), {'radial', ...
+                    radial, 'stress', 1, 'wave_type', w}]}; %#ok<AGROW>
+            end
+        end
+        % integrators and Jacobians with every thermal configuration and
+        % the stress model families
+        for method = [3 15 23]
+            for jacobian = 0:3
+                for it = 1:5
+                    for stress = [0 1 3 5]
+                        specs(end+1,:) = {sprintf('m%d_j%d_%s_s%d', method, ...
+                            jacobian, thermal{it,1}, stress), [base, ...
+                            f_thermal(thermal(it,:)), {'radial', 2, ...
+                            'stress', stress, 'method', method, ...
+                            'jacobian', jacobian}]}; %#ok<AGROW>
+                    end
+                end
+            end
+        end
+        % no viscosity, surface tension or elasticity (Re, We, Ca = Inf)
+        % (one pair per row, rows separated by line breaks)
+        limits = {
+        'mu', 0
+        'surft', 0
+        'G', 0
+        };
+        for il = 1:3
+            for stress = 0:5
+                specs(end+1,:) = {sprintf('inf_%s_s%d', limits{il,1}, ...
+                    stress), [base, f_thermal(thermal(3,:)), {'radial', 2, ...
+                    'stress', stress, limits{il,1}, limits{il,2}}]}; %#ok<AGROW>
+            end
+        end
+        % collapse with every stress model (stress 5 needs stress0) and the
+        % limits above
+        for radial = 1:2
+            for stress = 0:5
+                for il = 0:3
+                    a = [base, f_thermal(thermal(5,:)), {'radial', radial, ...
+                        'stress', stress, 'R0', 2e-4, 'Req', 5e-5, ...
+                        'tvector', linspace(0, 1e-6, 5)}];
+                    a{find(strcmp(a, 'collapse'), 1) + 1} = 1;
+                    if il > 0
+                        a = [a, limits(il,:)]; %#ok<AGROW>
+                    end
+                    if stress == 5
+                        a = [a, {'stress0', [0 0]}]; %#ok<AGROW>
+                    end
+                    specs(end+1,:) = {sprintf('collapse_r%d_s%d_lim%d', ...
+                        radial, stress, il), a}; %#ok<AGROW>
+                end
+            end
+        end
+        % the stress field of stress 5, the bubble-wall nonlinearity eps3,
+        % a moving start, a given initial pressure and stress, the end time
+        % given as tfin, and the integrator named instead of numbered
+        km = [base, f_thermal(thermal(3,:)), {'radial', 2}];
+        specs(end+1,:) = {'s5_field', [km, {'stress', 5, 'spectral', 1}]};
+        specs(end+1,:) = {'eps3', [km, {'stress', 1, 'eps3', 0.5}]};
+        specs(end+1,:) = {'rdotzero', [km, {'stress', 3, 'U0', -5}]};
+        specs(end+1,:) = {'p0', [km, {'stress', 1, 'P0', 5e4}]};
+        specs(end+1,:) = {'stress0_s3', [km, {'stress', 3, 'stress0', 1e-2}]};
+        specs(end+1,:) = {'stress0_s5', [base, f_thermal(thermal(2,:)), ...
+            {'radial', 2, 'stress', 5, 'stress0', [1e-2 2e-2]}]};
+        ktv = find(strcmp(km, 'tvector'), 1);
+        specs(end+1,:) = {'tfin', [km([1:ktv-1, ktv+2:end]), {'stress', 1, ...
+            'tfin', 2e-6}]};
+        specs(end+1,:) = {'method_name', [km, {'stress', 1, 'method', ...
+            'ode23tb'}]};
+        
         otherwise
-        error('f_test_cases: suite must be equilibrium, gaussian or regression');
+        error(['f_test_cases: suite must be equilibrium, gaussian, ' ...
+            'regression or permutations']);
     end
     
     % every case in every mode, kept when the solver's input checks accept it

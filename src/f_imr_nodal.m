@@ -617,9 +617,7 @@ function varargout = f_imr_nodal(varargin)
     % one), rounded so that the perturbed state is exactly X + del, and
     % entries outside the sparsity pattern are set to zero (they are zero
     % up to rounding in the batched products). J is returned dense: it is
-    % computed dense, dense LU is fast at these sizes, and a sparse J whose
-    % number of nonzeros changes between calls breaks the IDA-based ode15s
-    % of Octave
+    % computed dense, and dense LU is fast at these sizes
     function J = f_jacobian_fd(t, X)
         del = sqrt(eps)*max(abs(X), 1);
         del = (X + del) - X;

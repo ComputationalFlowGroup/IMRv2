@@ -24,11 +24,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # the equilibrium, Gaussian and operator suites need no stored
-        # results; the regression suite compares with tests/reference
+        # the equilibrium, Gaussian, permutation and operator suites need no
+        # stored results; the regression suite compares with tests/reference
         suite:
           - s_test_suite_equilibrium
           - s_test_suite_gaussian
+          - s_test_suite_permutations
           - s_test_suite_diffmat
           - s_test_suite_regression
 

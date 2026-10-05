@@ -23,4 +23,4 @@ The physical inputs are:
 
 ## Check
 
-A case passes when `|R(end) - R(1)| <= 1e-2`. In GNU Octave the largest value was `2e-6`.
+A case passes when `|R(end) - R(1)| <= 1e-2`.

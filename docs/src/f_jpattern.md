@@ -10,4 +10,3 @@
 
 ## Notes
 - The pattern is a conservative superset of the true Jacobian. The bubble pressure equation and the wall boundary condition feed every field row, so all field rows couple to `R`, `Rdot`, `P` and the wall stencil columns, while the finite difference operators themselves are tridiagonal.
-- GNU Octave's `ode15s` ignores `JPattern`.

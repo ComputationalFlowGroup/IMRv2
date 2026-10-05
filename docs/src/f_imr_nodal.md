@@ -95,39 +95,27 @@ Inputs are dimensionless name/value pairs (see `default_case`) or a struct from 
 - Collapse (`collapse = 1`) requires bubble and medium heat transfer, vapor and mass transfer, and with stress 5 also `stress0`.
 - See [`compatibility`](../compatibility.md) for which features run together.
 - Mesh resolution must be tuned carefully for high Weissenberg numbers or sharp waveforms.
-- Cost per right-hand-side call: the constant factors of the medium equation and of the bubble temperature map are computed once, with the same arithmetic as before, so results are bit-identical; with `wave_type = 0` the far-field pressure is the constant `ee` and `f_pinfinity` is not called. In GNU Octave this made a right-hand-side call 11–31% cheaper and most runs 8–17% faster.
+- Cost per right-hand-side call: the constant factors of the medium equation and of the bubble temperature map are computed once, with the same arithmetic as before, so results are bit-identical; with `wave_type = 0` the far-field pressure is the constant `ee` and `f_pinfinity` is not called.
 - A nested function shares every variable name that the solver function also uses, so the nested functions use their own loop variable names (the output loop is `it_out`).
 
 ## Batched right-hand side
 
 The right-hand side `SVBDODE` takes a matrix `X` with one state per column and returns one column of derivatives per state. Every operation is elementwise across the columns, in the same order as for a single state. The helpers it calls work the same way: `f_stress`, `f_radial_eq`, `f_viscosity`, `f_stress_dissipation`, and the wall closures. A single column therefore gives the same result as before bit for bit. The integrators call it with one column.
 
-`jacobian = 3` uses the batch. It evaluates the state and its `n` perturbations in one call, `F = SVBDODE(t, [X, X + diag(del)])`, and forms `J = (F(:,2:end) - F(:,1))./del.'`. The step is `sqrt(eps)*max(|X|, 1)`, rounded so that the perturbed state is exactly `X + del`. Entries outside the `f_jpattern` pattern are set to zero. `J` is returned dense: it is computed dense, dense LU is fast at these sizes, and a sparse `J` whose number of nonzeros changes between calls breaks Octave's `ode15s`.
+`jacobian = 3` uses the batch. It evaluates the state and its `n` perturbations in one call, `F = SVBDODE(t, [X, X + diag(del)])`, and forms `J = (F(:,2:end) - F(:,1))./del.'`. The step is `sqrt(eps)*max(|X|, 1)`, rounded so that the perturbed state is exactly `X + del`. Entries outside the `f_jpattern` pattern are set to zero. `J` is returned dense: it is computed dense, and dense LU is fast at these sizes.
 
-Why it pays: an interpreted operation costs about the same for one number as for a few hundred. A batch of `n + 1` states costs about 3 right-hand-side calls, not `n + 1`. The analytic Jacobian is built from 55 sparse dual-number operations and costs 25–40 right-hand-side calls.
-
-Measured in GNU Octave at the default grids (`Nt = Mt = 25`):
-
-| Case | States | Right-hand side | Analytic `J` | Batched FD `J` |
-|------|--------|-----------------|--------------|----------------|
-| Bubble heat transfer | 28 | 0.12 ms | 4.6 ms | 0.30 ms |
-| Bubble and medium heat transfer | 53 | 0.25 ms | 6.7 ms | 0.65 ms |
-| Kelvin–Voigt, Zener stress | 54 | 0.27 ms | 6.9 ms | 0.68 ms |
-| Carreau viscosity | 53 | 0.36 ms | 8.5 ms | 1.2 ms |
-| Mass transfer | 78 | 0.44 ms | 15.0 ms | 1.4 ms |
-| Mass transfer, Chebyshev | 78 | 0.53 ms | 15.8 ms | 1.5 ms |
-| Medium heat transfer, `Nt = Mt = 40` | 83 | 0.24 ms | 6.8 ms | 1.0 ms |
+Why it pays: an interpreted operation costs about the same for one number as for a few hundred, so a batch of `n + 1` states costs a few right-hand-side calls, not `n + 1`. The analytic Jacobian is built from 55 sparse dual-number operations. `benchmarks/integrators/s_compare_integrators.m` measures both Jacobians with each integrator in MATLAB.
 
 Checks:
 
 - Every column of a batch matches a single-column call to `4e-13` (relative), over 372 model combinations: radial 1–6, stress 0–5, four viscosity models, the thermal and mass-transfer configurations, and both schemes.
 - The batched Jacobian matches the analytic one to a scaled error below `1e-5` in every thermal case.
-- Over the 74 regression cases, `jacobian = 3` reproduces the `jacobian = 2` solution to within the integrator tolerance (`R(t)` differs by at most `9e-7`, mostly `1e-8` or less). The total run time went from 43 s to 28 s in Octave, where `ode15s` is itself compiled. MATLAB's `ode15s` and `ode23tb` are interpreted, so the gain there is expected to differ.
+- Over the 74 regression cases, `jacobian = 3` reproduces the `jacobian = 2` solution to within the integrator tolerance (`R(t)` differs by at most `9e-7`, mostly `1e-8` or less).
 - `benchmarks/integrators/s_compare_integrators.m` compares `ode23tb`, `ode15s` and CVODES with both Jacobians against a tight-tolerance reference, in MATLAB.
 
 ## Verification of the Chebyshev scheme
 
-Measured in GNU Octave (`ode15s` standing in for `ode23tb`), on thermal cases with `Req = 0.5` and `t` in [0, 3]:
+On thermal cases with `Req = 0.5` and `t` in [0, 3]:
 
 - `scheme = 0` gave bit-identical `R(t)` to `f_imr_fd` over 98 cases: radial 1–4, stress 0–5, polytropic, bubble, bubble and medium, and full mass-transfer models, plus a non-Newtonian and a Gaussian-waveform case. This held before the bracketed mass-transfer wall closure; with it, the cases without mass transfer stay bit-identical and the mass-transfer cases differ at the integrator tolerance.
 - `scheme = 1` and `f_imr_spectral` converge toward each other with resolution over 32 cases (radial 1–4, stress 0/1/3/5, with and without medium heat transfer). The largest relative deviation in `R(t)` over the cases is `2.8e-3`, `4.8e-4` and `2.6e-4` at `Nt = Mt = 12, 20, 30`; the median is `1.4e-4`, `1.0e-5` and `3.4e-6`.

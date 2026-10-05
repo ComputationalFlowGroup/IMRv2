@@ -251,10 +251,6 @@ function varargout = f_imr_spectral(varargin)
         v_lambda_star, v_nc, v_a);
     bubble = @SVBDODE;
     % analytic Jacobian for the stiff integrators
-    if jacobian == 3
-        error(['f_imr_spectral: jacobian = 3 (batched finite differences) ' ...
-            'is available in the nodal solver only, use 2 (analytic)']);
-    end
     if jacobian == 2
         jp = struct('ia',ia, 'ib',ib, 'iz',iz, 'izf',izf, ...
             'bubtherm',bubtherm, 'medtherm',medtherm, ...

@@ -115,6 +115,7 @@ nav:
           - Overview and test cases: toolchain/f_test_cases.md
           - Equilibrium: toolchain/s_test_suite_equilibrium.md
           - Gaussian pulse: toolchain/s_test_suite_gaussian.md
+          - Option permutations: toolchain/s_test_suite_permutations.md
           - Regression: toolchain/s_test_suite_regression.md
           - Differentiation operators: toolchain/s_test_suite_diffmat.md
   - Measured waveforms: waveform/README.md
