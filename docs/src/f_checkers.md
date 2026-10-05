@@ -28,6 +28,8 @@
 | `divisions` not a nonnegative integer | error |
 | `vapor = 1` with `Pv >= 1` (boiling liquid) | warning `IMR:parameters` |
 | `masstrans = 1` in the spectral solver | error: use `f_imr_nodal` |
+| `jacobian = 3` in the spectral solver | error: batched finite differences are in `f_imr_nodal` only |
+| `method = 3` (CVODES) before MATLAB R2024a, which lacks the `ode` object's `cvodesstiff` solver | error: use 15 or 23 |
 | `spectral = 1` (spectral stress representation) in the nodal solver | error: `f_imr_spectral` only |
 | `scheme ~= 0` in the spectral solver | error: `scheme` is for `f_imr_nodal` |
 

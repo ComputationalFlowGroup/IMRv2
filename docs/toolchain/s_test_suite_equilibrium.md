@@ -19,4 +19,4 @@ The physical inputs are `Req = R0 = 100 µm` and `T8 = 298.15 K`.
 
 ## Check
 
-A case passes when `max |R - 1| <= 1e-13` over the 100 output times, with `R` scaled by `R0`. Only rounding should move the bubble. In GNU Octave every case of every mode gave exactly 0.
+A case passes when `max |R - 1| <= 1e-13` over the 100 output times, with `R` scaled by `R0`. Only rounding should move the bubble.

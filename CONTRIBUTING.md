@@ -44,8 +44,6 @@ If you are planning a large change, such as a new physical model, a new solver o
 | Python with [`codespell`](https://github.com/codespell-project/codespell) (`pip install codespell`) | The spelling check |
 | Git | Version control |
 
-GNU Octave runs most of the solvers, but the test suites need MATLAB. Octave has no `ode23tb`, the default integrator, and differs from MATLAB in a few other places; see the notes at the end of [`docs/compatibility.md`](docs/compatibility.md).
-
 ## 2. Make your change
 
 ### Where things live
@@ -183,6 +181,7 @@ Each suite runs from `toolchain/`:
 |---|---|
 | `s_test_suite_equilibrium` | A bubble at equilibrium stays there |
 | `s_test_suite_gaussian` | A bubble returns to equilibrium after a Gaussian pressure pulse |
+| `s_test_suite_permutations` | Every combination of the solver options that the input checks accept runs to the end: non-Newtonian models, waveforms, integrators and Jacobians, infinite `Re`, `We`, `Ca`, collapse, and the other input forms |
 | `s_test_suite_regression` | `R(t)` against stored results, including mass transfer, non-Newtonian viscosity, waveforms, the stress field and collapse |
 | `s_test_suite_diffmat` | The differentiation operators of `f_diff_mat` |
 
@@ -190,8 +189,8 @@ A suite that fails stops with an error, which in a batch run exits MATLAB with a
 
 ```bash
 cd toolchain
-for s in s_test_suite_equilibrium s_test_suite_gaussian s_test_suite_diffmat \
-         s_test_suite_regression; do
+for s in s_test_suite_equilibrium s_test_suite_gaussian \
+         s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression; do
     matlab -batch "$s" || echo "FAILED: $s"
 done
 ```

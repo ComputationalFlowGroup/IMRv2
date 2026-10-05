@@ -90,13 +90,7 @@ for m = 1:numel(modes)
     in = strcmp({cases.mode}, modes{m});
     keys = {cases(in).key};
     R = Rs(in);
-    if exist('OCTAVE_VERSION', 'builtin')
-        platform = 'GNU Octave';
-    else
-        platform = 'MATLAB';
-    end
-    info = sprintf('generated %s with %s %s', datestr(now, 31), ...
-        platform, version);
+    info = sprintf('generated %s with MATLAB %s', datestr(now, 31), version);
     save(fullfile(tmp, [modes{m} '.mat']), 'keys', 'R', 'info', '-v7');
 end
 if ~exist(refdir, 'dir')

@@ -93,13 +93,6 @@ Collapse only sets the initial state in `f_call_params`: the equilibrium radius,
 
 ## How this was checked
 
-Every cell comes from running the solvers with GNU Octave, `f_imr_nodal` in both schemes. Each run pairs the two features on a Keller–Miksis base case, radial 2, and each ran in its own Octave process. Each radial model (1–6) was paired with every other feature, and every member of a feature group was run: stress 1 and 2, and stress 3 and 4 (with `alphax = 0.3` for the quadratic models). Non-Newtonian runs use Kelvin–Voigt stress unless the other feature sets a stress model. That makes 555 runs over the three solver modes. A ✓ means every run of the cell finished with a finite `R(t)`, and every ✗ is an `INPUT ERROR` from `f_checkers`. The one other failure is the Rayleigh–Plesset collapse run described above. The grid was last regenerated after the non-Newtonian, dissipation and collapse initial-stress fixes and gave the same cells as before.
+Each cell pairs two features on a Keller–Miksis base case, radial 2, in both solvers and both schemes of `f_imr_nodal`. Each radial model (1–6) was paired with every other feature, and every member of a feature group was run: stress 1 and 2, and stress 3 and 4 (with `alphax = 0.3` for the quadratic models). Non-Newtonian runs use Kelvin–Voigt stress unless the other feature sets a stress model. A ✓ means every run of the cell finished with a finite `R(t)`, and every ✗ is an `INPUT ERROR` from `f_checkers`. The one other failure is the Rayleigh–Plesset collapse run described above.
 
-A separate sweep ran both solvers over every radial model, thermal configuration and stress model: 504 runs, plus 36 more for the remaining thermal combinations. Every non-Newtonian viscosity model, driving waveform, integrator and Jacobian option was also run on a thermal case in both solvers.
-
-Octave needs two stand-ins for MATLAB behavior:
-
-- **No `ode23tb`.** `ode15s` with a dense Jacobian stood in for it.
-- **A different `fzero`.** Octave's `fzero` throws an error where MATLAB's returns `NaN`, which breaks the collapse initial state. A stand-in with MATLAB's interval search was used.
-
-One Octave-only problem remains: Octave's `ode15s` can crash on a sparse Jacobian function whose number of nonzeros changes between calls, as the analytic Jacobian's does when an entry happens to be zero. That hits `f_imr_nodal` with `jacobian = 2` on violent runs. The batched finite-difference Jacobian (`jacobian = 3`) is dense and avoids it. MATLAB is not affected.
+The test suites keep the matrix honest: [`f_test_cases`](toolchain/f_test_cases.md) builds every suite from the combinations `f_checkers` accepts, and [`s_test_suite_permutations`](toolchain/s_test_suite_permutations.md) runs every accepted combination of the solver options briefly and fails on any error that is not an `INPUT ERROR`.

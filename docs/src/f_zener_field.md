@@ -48,7 +48,7 @@ So:
 - **`f_imr_nodal`.** `sp` is stored at the medium nodes `yT` after `Z1`: the first node is the wall, and the last, at infinity, is held at 0. The advection reuses the `Rdot` part of the medium temperature advection, `xi1_sq./(Lt*R).*(Rdot./yT2.*om_yT3/2).*(dmatrix_Tm*sp)`, which equals `-ydot*d(sp)/dy`.
 - **Collapse (nodal only).** The history of the field before `t = 0` is not computed. As a stopgap, the initial field takes the shape of the elastic stress difference of the initial radius, scaled so that the integral identity holds for the initial `Z1` from `f_init_stress`. Without elasticity (`Ca = Inf`), it takes the viscous shape `y^-3` instead.
 
-## Verification (GNU Octave)
+## Verification
 
 The largest error in `2*int sp/y dy - Z1/R^3` over a run, relative to `max |Z1/R^3|` (Keller–Miksis, `Req = 0.5`):
 

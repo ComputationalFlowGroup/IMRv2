@@ -27,7 +27,7 @@ With `gammadot = gammadot_R*(R/r)^3`, `gammadot_R = -2*Rdot/R`, and the substitu
 
 `I1` uses a fixed Gauss–Legendre rule: 10 points on each of the 15 panels `[0, 2^-14], [2^-14, 2^-13], ..., [1/2, 1]`, 150 nodes, computed once. The panels shrink toward `u = 0` because at high shear rates the integrand changes on the scale `u ~ x_R^(-1/3)`. Against an adaptive `integral` at `1e-13`, the rule is accurate to `1.3e-11` relative for all seven models, exponents 0.3–0.8, and `x_R` from `1e-4` to `1e9`.
 
-Compared with the previous version, which called `integral` twice at `1e-8`, the outputs agree to `4e-11` and a call is about 10 times faster (58 µs against 613 µs in GNU Octave). A run with a non-Newtonian model takes about half the time.
+Compared with the previous version, which called `integral` twice at `1e-8`, the outputs agree to `4e-11`, with one fixed graded Gauss rule in place of two adaptive integrations. A run with a non-Newtonian model takes about half the time.
 
 ## Outputs
 

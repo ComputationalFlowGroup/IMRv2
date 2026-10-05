@@ -63,6 +63,17 @@ function p = f_checkers(p)
         error(['INPUT ERROR: masstrans = 1 is not available in the spectral ' ...
             'solver, use f_imr_nodal']);
     end
+    if strcmp(p.solver,'spectral') && p.jacobian == 3
+        error(['INPUT ERROR: jacobian = 3 (batched finite differences) is ' ...
+            'available in f_imr_nodal only, use 2 (analytic) in f_imr_spectral']);
+    end
+    % CVODES is the cvodesstiff solver of the ode object, MATLAB R2024a on
+    has_cvodes = exist('ode', 'class') == 8 && ~isMATLABReleaseOlderThan('R2024a');
+    if p.method == 3 && ~has_cvodes
+        error(['INPUT ERROR: method = 3 (CVODES) needs the ode object with ' ...
+            'the cvodesstiff solver (MATLAB R2024a or later), use 15 ' ...
+            '(ode15s) or 23 (ode23tb)']);
+    end
     if strcmp(p.solver,'spectral') && p.scheme ~= 0
         error(['INPUT ERROR: scheme selects the differentiation matrices of ' ...
             'f_imr_nodal. f_imr_spectral takes no scheme']);

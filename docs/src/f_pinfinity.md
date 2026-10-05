@@ -31,3 +31,4 @@ Each waveform is evaluated inline, without nested function calls, since the solv
 - The solvers pass `wave_poly` and `wave_dpoly` in `vararg`; `f_call_params` builds them for `wave_type < 0`.
 - Gaussian and histotripsy waveforms depend on `ee` (amplitude `pA/P8`), `om` (frequency `omega*t0`), `tw` (width `TW/t0`), `dt` (delay `DT/t0`), and `mn` (histotripsy power).
 - The default `ee = 0` means no driving pressure.
+- **Sign.** `p8` is the far-field pressure above ambient: the radial equations use `P - 1 - p8`. The waveforms take `ee` with different signs. The Gaussian and Heaviside pulses are `-ee*g(t)`, a tension for `ee > 0`. The histotripsy pulse is `+ee*g(t)`, so a tensile histotripsy pulse needs `ee < 0`. The constant of `wave_type = 0` is `+ee`.

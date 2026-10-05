@@ -74,7 +74,6 @@ The numerical methods are described in:
 
 - **MATLAB** R2021a or newer. The solvers use base MATLAB only.
 - **Optional toolboxes** for work outside the solvers: the Optimization Toolbox for parameter fitting, and the Image Processing Toolbox for analyzing high-speed video.
-- **GNU Octave** runs most of the solvers. It lacks `ode23tb`, the default integrator, and differs from MATLAB in a few places; see the notes at the end of [`docs/compatibility.md`](docs/compatibility.md).
 
 ### Installation
 
@@ -167,10 +166,11 @@ The test suites live in `toolchain/` and are run from that folder:
 |---|---|
 | `s_test_suite_equilibrium` | A bubble at equilibrium stays there |
 | `s_test_suite_gaussian` | A bubble returns to equilibrium after a Gaussian pressure pulse |
+| `s_test_suite_permutations` | Every combination of the solver options that the input checks accept runs to the end: non-Newtonian models, waveforms, integrators and Jacobians, infinite `Re`, `We`, `Ca`, collapse, and the other input forms |
 | `s_test_suite_regression` | `R(t)` against stored results, including mass transfer, non-Newtonian viscosity, waveforms, the stress field and collapse |
 | `s_test_suite_diffmat` | The differentiation operators of `f_diff_mat` |
 
-The first three run every combination of the [compatibility matrix](docs/compatibility.md) in the three solver modes: `f_imr_nodal` with finite differences, `f_imr_nodal` with Chebyshev collocation, and `f_imr_spectral`. The case lists come from `toolchain/f_test_cases.m`, which keeps only the combinations the solvers' input checks accept. Each suite prints one line per case and stops with an error if any case fails.
+All but the operator suite run every combination of the [compatibility matrix](docs/compatibility.md) in the three solver modes: `f_imr_nodal` with finite differences, `f_imr_nodal` with Chebyshev collocation, and `f_imr_spectral`. The case lists come from `toolchain/f_test_cases.m`, which keeps only the combinations the solvers' input checks accept. Each suite prints one line per case and stops with an error if any case fails.
 
 `toolchain/s_format.m` formats the code and `toolchain/s_lint.m` runs the MATLAB linter; `mkdocs build --strict` builds the documentation website. The CI workflows in `.github/workflows` run these, the spelling check and the suites on every pull request; the test suites run as one workflow, `tests.yml`, which passes only when every suite passes. [`CONTRIBUTING.md`](CONTRIBUTING.md#3-run-the-checks) shows how to run them locally.
 

@@ -64,7 +64,7 @@ Integrating over the medium gives `4*pi*R^3*int_1^Inf y^2*Phi dy = -4*pi*R^2*Rdo
 - **Far-field point:** at `yT = Inf` the elastic term is undefined. The solvers hold the temperature there fixed (`Tmdot(end) = 0`).
 - **Batched states:** `R`, `Rdot` and `sp` may hold one state per column, for the batched right-hand side of [`f_imr_nodal`](f_imr_nodal.md#batched-right-hand-side).
 
-## Verification (GNU Octave)
+## Verification
 
 - **Energy budget.** The total heating from quadrature on the solver grids matches `-4*pi*R^2*Rdot*S` to:
     - `1e-8`–`5e-5` (relative) with Chebyshev and spectral grids;

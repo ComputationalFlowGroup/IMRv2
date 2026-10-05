@@ -22,7 +22,7 @@ From [`f_test_cases('regression')`](f_test_cases.md). Only the combinations the 
     - The polytropic bubble: released from twice its equilibrium radius. It loses no heat, so its collapse is far sharper.
     - With mass transfer: a 200 µm bubble released from four times its equilibrium radius and followed for 30 µs.
 
-    These runs exercise every term without being so violent that the result mostly tests the integrator: GNU Octave's `ode15s` completes every case. From ten times the equilibrium radius, as the earlier suites used, Octave stopped on 303 of the 615 cases at the first collapse.
+    These runs exercise every term without being so violent that the result mostly tests the integrator. From ten times the equilibrium radius, as the earlier suites used, about half of the cases stop at the first collapse.
 
 - **Other features**, on Keller–Miksis with bubble and medium heat transfer:
 
@@ -59,8 +59,6 @@ Regenerate them only when a change of results is intended and agreed (see Contri
 
 A new case added to `f_test_cases` fails the suite until its result is stored.
 
-## Checked in GNU Octave
-
-The generator and the suite were run end to end in GNU Octave, with `ode15s` standing in for `ode23tb`, into a scratch folder. Octave results are not committed, since MATLAB's would differ. The generator completed all 615 cases, and the suite then passed all 615 against them.
+## Agreement between the modes
 
 In the cross-mode report, Chebyshev and the spectral solver agree with finite differences to about 2% on the cases without mass transfer. The mass-transfer cases differ by up to 11% between the two nodal schemes. At `Nt = Mt = 20` (Chebyshev) and 70 (finite differences), neither nodal scheme is resolved for mass transfer: the convergence study in the `f_imr_nodal` documentation needs about 40 Chebyshev points. The suite checks that results are reproduced, not that they are accurate, so these grids are adequate.

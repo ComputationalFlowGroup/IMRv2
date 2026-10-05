@@ -33,5 +33,5 @@
 | `S0` | Initial stress at bubble maximum | –       |
 
 ## Notes
-- Against the previous `fminsearch` shooting, over the default collapse parameters with `Req` 0.1–0.5 and `De` 0.01–1, the stress agrees to `3e-8` relative and the call is 4 to 6 times faster (GNU Octave). At `Req = 0.05` no subsonic start reaches `R = 1` (the maximum radius stays at 0.93); the previous version returned the stress at that non-root without notice.
-- Uses `ode23tb`, so it needs MATLAB; GNU Octave has no `ode23tb`.
+- Against the previous `fminsearch` shooting, over the default collapse parameters with `Req` 0.1–0.5 and `De` 0.01–1, the stress agrees to `3e-8` relative. At `Req = 0.05` no subsonic start reaches `R = 1` (the maximum radius stays at 0.93); the previous version returned the stress at that non-root without notice.
+- Integrates with `ode23tb`.

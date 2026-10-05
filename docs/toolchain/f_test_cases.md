@@ -8,10 +8,11 @@ The test suites live in `toolchain/` and run from that folder. The tests workflo
 |---|---|---|
 | [`s_test_suite_equilibrium`](s_test_suite_equilibrium.md) | A bubble at equilibrium stays there | None |
 | [`s_test_suite_gaussian`](s_test_suite_gaussian.md) | A bubble returns to equilibrium after a Gaussian pressure pulse | None |
+| [`s_test_suite_permutations`](s_test_suite_permutations.md) | Every accepted combination of the solver options runs | None |
 | [`s_test_suite_regression`](s_test_suite_regression.md) | `R(t)` matches the stored results | `tests/reference/` |
 | [`s_test_suite_diffmat`](s_test_suite_diffmat.md) | The differentiation operators of `f_diff_mat` | None |
 
-The first three run every case in three solver modes:
+All but the operator suite run every case in three solver modes:
 
 | Mode | Solver |
 |---|---|
@@ -21,7 +22,7 @@ The first three run every case in three solver modes:
 
 ## `f_test_cases(suite)`
 
-Returns the cases of `'equilibrium'`, `'gaussian'` or `'regression'` for all three modes. It builds each case from the model features, then keeps it only if the solver's own input checks (`f_call_params` and [`f_checkers`](../src/f_checkers.md)) accept it. So the suites cover exactly the combinations of the [compatibility matrix](../compatibility.md), and they follow it when the checks change.
+Returns the cases of `'equilibrium'`, `'gaussian'`, `'regression'` or `'permutations'` for all three modes. It builds each case from the model features, then keeps it only if the solver's own input checks (`f_call_params` and [`f_checkers`](../src/f_checkers.md)) accept it. So the suites cover exactly the combinations of the [compatibility matrix](../compatibility.md), and they follow it when the checks change.
 
 Each case has these fields:
 
@@ -37,6 +38,7 @@ The inputs are given in SI units and converted with [`f_dim2nondim`](../src/f_di
 | Equilibrium | `Nt = Mt = 150` | 20 | 12 |
 | Gaussian | 50 | 20 | 12 |
 | Regression | 70 | 20 | 12 |
+| Permutations | 20 | 12 | 8 (`Nv = 8`) |
 
 Finite differences need finer grids because they are second-order accurate. The Chebyshev and spectral expansions converge spectrally. The spectral mode also sets `Nv = 32` stress modes, for the stress 5 field and the Zener field of stress 3–4 with medium heat transfer. The default is 150.
 

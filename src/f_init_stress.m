@@ -53,7 +53,11 @@ function [S0] = f_init_stress(Req, Re, Ca, De, We, CL, Pv_star, alphax)
             'Events',@(t,X) f_rmax_event(X));
         [~,X,~,Xe,~] = ode23tb(@(t,X) f_RP_bub_collapse_comp(X, Req, Re, ...
             Ca, De, We, CL), tspan, X0, opts);
-        Rmax = max(abs(vertcat(Xe(:,1), X(:,1))));
+        % no event fires when the bubble never turns (Xe is then empty)
+        Rmax = max(abs(X(:,1)));
+        if ~isempty(Xe)
+            Rmax = max(Rmax, max(abs(Xe(:,1))));
+        end
     end
     
     % event locating the maximum radius, growth -> collapse crossing
