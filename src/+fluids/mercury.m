@@ -19,7 +19,7 @@ function p = mercury()
     p.temperature_range = [275 550];
     p.sound_temperature_range = [296 513];
     p.pressure_range = [0 6.23e9];
-    
+    % Liquid fit coefficients.
     p.liquid.gamma = 1.129196028264567;
     p.liquid.Gamma = 0.129196028264567;
     p.liquid.Cv = 121.07661322485443;
@@ -36,7 +36,7 @@ function p = mercury()
     p.liquid.Tref = 412.5;
     p.liquid.cs_rms_surface_percent = 0.49595540334060295;
     p.liquid.cs_rms_canonical_percent = 0.7124894179683818;
-    
+    % Vapor fit coefficients.
     p.vapor.gamma = 1.6668832801308178;
     p.vapor.Gamma = 0.6668832801308178;
     p.vapor.Cv = 62.154204843565914;
