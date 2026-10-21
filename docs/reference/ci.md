@@ -15,8 +15,8 @@ The lint, format and spelling jobs currently use `continue-on-error: true`. Read
 ## Spelling
 
 ```bash
-codespell toolchain src --ignore-words-list="te,nd,Fom,Foh,fom" --skip="*.git,*.md,*.yml,*.json" --quiet-level=2
-codespell docs README.md CONTRIBUTING.md benchmarks/integrators/README.md --ignore-words-list="te,nd,Fom,Foh,fom" --skip="*.mat,*.jfif,*.svg" --quiet-level=2
+codespell toolchain src tests/fixtures imr_setup.m --ignore-words-list="te,nd,Fom,Foh,fom" --skip="*.git,*.md,*.yml,*.json" --quiet-level=2
+codespell docs README.md CONTRIBUTING.md benchmarks/integrators/README.md --ignore-words-list="te,nd,Fom,Foh,fom" --skip="*.mat,*.jfif,*.svg,*.pdf" --quiet-level=2
 ```
 
 `te`, `nd`, `Fom` and `Foh` are accepted variable names. A clean run prints nothing. Both commands passed during this documentation change.

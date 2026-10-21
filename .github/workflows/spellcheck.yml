@@ -26,7 +26,7 @@ jobs:
         run: pip install codespell
 
       - name: Run Codespell on MATLAB Files
-        run: codespell toolchain src --ignore-words-list="te,nd,Fom,Foh,fom" --skip="*.git,*.md,*.yml,*.json" --quiet-level=2
+        run: codespell toolchain src tests/fixtures imr_setup.m --ignore-words-list="te,nd,Fom,Foh,fom" --skip="*.git,*.md,*.yml,*.json" --quiet-level=2
 
       - name: Check documentation spelling
-        run: codespell docs README.md CONTRIBUTING.md benchmarks/integrators/README.md --ignore-words-list="te,nd,Fom,Foh,fom,fom" --skip="*.mat,*.jfif,*.svg" --quiet-level=2
+        run: codespell docs README.md CONTRIBUTING.md benchmarks/integrators/README.md --ignore-words-list="te,nd,Fom,Foh,fom" --skip="*.mat,*.jfif,*.svg,*.pdf" --quiet-level=2
