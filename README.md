@@ -11,7 +11,7 @@ IMR simulates a spherical cavitation bubble in a viscoelastic material. Research
 
 ![IMR: a cavitation bubble coupled to motion, transport and a deformable medium.](docs/assets/logos/imr-bubble-field.svg)
 
-[Three editable TikZ logo candidates](docs/reference/branding.md).
+[Logo source and vector exports](docs/reference/branding.md).
 
 - Bubble radius, wall velocity and pressure with Rayleigh–Plesset, Keller–Miksis or Gilmore dynamics.
 - Bubble and medium temperatures, with optional vapor mass transfer in the nodal solver.

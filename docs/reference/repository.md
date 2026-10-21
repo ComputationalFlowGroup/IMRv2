@@ -19,7 +19,7 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `benchmarks/scaling/` | Legacy resolution scripts, cluster templates and stored results; [provenance](../validation/convergence.md#legacy-scaling-data) |
 | `docs/` | Topic-based Markdown documentation |
 | `docs/waveform/` | Raw measured data and MATLAB spline rebuild script |
-| `docs/assets/logos/` | Three TikZ logo sources and compiled SVG/PDF exports |
+| `docs/assets/logos/` | Adopted TikZ logo source and compiled SVG/PDF exports |
 | `docs/imr.jfif` | Retained original branding image; rebuild source unavailable |
 | `docs/index.md` | Includes README through standard MkDocs plugin configuration, with no custom Python source |
 | `docs/requirements.txt` | Documentation dependencies, independent of MATLAB |

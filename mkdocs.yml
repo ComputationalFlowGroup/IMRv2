@@ -135,7 +135,7 @@ nav:
       - "Compatibility": reference/compatibility.md
       - "Code map": reference/code-map.md
       - "Defaults and units": reference/defaults.md
-      - "Logo candidates": reference/branding.md
+      - "Logo": reference/branding.md
       - "Distributions": reference/distributions.md
       - "Repository map": reference/repository.md
       - "CI": reference/ci.md
