@@ -9,4 +9,6 @@ s_run_merc.m
 *.out
 *.err
 site/
+.venv/
+__pycache__/
 !docs/requirements.txt

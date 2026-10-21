@@ -12,7 +12,7 @@ jobs:
 
   spellcheck:
 
-    name: Check spelling of src and toolchain
+    name: Check spelling of code and documentation
     runs-on: ubuntu-latest
 
     continue-on-error: true  # Does not stop other workflows
@@ -27,3 +27,6 @@ jobs:
 
       - name: Run Codespell on MATLAB Files
         run: codespell toolchain src --ignore-words-list="te,nd,Fom,Foh" --skip="*.git,*.md,*.yml,*.json" --quiet-level=2
+
+      - name: Check documentation spelling
+        run: codespell docs README.md CONTRIBUTING.md benchmarks/integrators/README.md --ignore-words-list="te,nd,Fom,Foh,fom" --skip="*.mat,*.jfif,*.svg" --quiet-level=2
