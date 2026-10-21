@@ -38,11 +38,9 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
 
-hooks:
-  - docs/hooks.py
-
 plugins:
   - search
+  - include-markdown
 
 markdown_extensions:
   - admonition
@@ -69,7 +67,6 @@ extra_javascript:
 
 exclude_docs: |
   requirements.txt
-  hooks.py
   __pycache__/
 
 # with --strict, any of these fails the build
@@ -101,10 +98,13 @@ nav:
       - "Spectral solver": api/f_imr_spectral.md
       - "Inputs": api/f_imr_inputs.md
       - "Unit conversion": api/f_dim2nondim.md
+      - "Mercury properties": api/f_mercury_eos.md
+      - "Mercury inputs": api/f_mercury_inputs.md
       - "Sweep API": api/f_imr_sweep.md
       - "Extending": api/extending.md
   - Model:
       - "Assumptions": model/overview.md
+      - "Mercury": model/mercury.md
       - "Parameters": model/parameters.md
       - "Radial dynamics": model/radial-dynamics.md
       - "Stress and viscosity": model/stress-viscosity.md
@@ -122,6 +122,7 @@ nav:
       - "Viscosity integrals": theory/viscosity-integrals.md
   - Validation:
       - "Tests": validation/tests.md
+      - "Mercury and vapor derivative": validation/mercury.md
       - "Equilibrium": validation/equilibrium.md
       - "Gaussian pulse": validation/gaussian.md
       - "Permutations": validation/permutations.md

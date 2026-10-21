@@ -9,6 +9,11 @@ This table maps each solver and toolchain module to its role. Public entry point
 | `src/f_call_params.m` | Defaults, overrides, derived constants and initialization | [`f_call_params`](functions/f_call_params.md) |
 | `src/f_checkers.m` | Input ranges and model compatibility | [`f_checkers`](functions/f_checkers.md) |
 | `src/f_diff_mat.m` | Nodal differentiation matrices | [`f_diff_mat`](functions/f_diff_mat.md) |
+| `src/f_mercury_parameters.m` | Versioned mercury coefficients and saturation nodes | [Mercury properties](../api/f_mercury_eos.md) |
+| `src/f_mercury_eos.m` | Vectorized SI mercury property slices | [Mercury properties](../api/f_mercury_eos.md) |
+| `src/f_mercury_pvsat.m` | Ambient Hg saturation interpolation | [Mercury properties](../api/f_mercury_eos.md#ambient-saturation-pressure) |
+| `src/f_mercury_inputs.m` | Hg SI preparation for KM pressure | [Mercury input helper](../api/f_mercury_inputs.md) |
+| `src/f_polytropic_pressure.m` | Gas pressure derivative with constant vapor | [Validation](../validation/mercury.md#intentional-correction-to-existing-behavior) |
 | `src/f_dim2nondim.m` | SI conversion and scale record | [`f_dim2nondim`](../api/f_dim2nondim.md) |
 | `src/f_display.m` | Run labels and diagnostics | [`f_display`](functions/f_display.md) |
 | `src/f_dual_ops.m` | Value/derivative operations | [`f_dual_ops`](functions/f_dual_ops.md) |
@@ -41,12 +46,18 @@ This table maps each solver and toolchain module to its role. Public entry point
 | `toolchain/s_test_suite_permutations.m` | Numerical permutations suite | `s_test_suite_permutations` |
 | `toolchain/s_test_suite_regression.m` | Numerical regression suite | `s_test_suite_regression` |
 
+| `toolchain/f_mercury_reference.m` | Frozen source predictions and observations | [Mercury validation](../validation/mercury.md) |
+| `toolchain/s_test_suite_mercury.m` | Mercury properties and KM preparation | [Mercury validation](../validation/mercury.md) |
+| `toolchain/s_test_suite_polytropic.m` | Constant-vapor derivative and solver histories | [Mercury validation](../validation/mercury.md) |
+
 ## Call structure
 
 The diagram is editable Mermaid source. GitHub and the Material build render it directly; change the block to rebuild it.
 
 ```mermaid
 flowchart TD
+  Hg[f_mercury_inputs] --> SI[f_dim2nondim]
+  Hg --> E[f_mercury_eos and f_mercury_pvsat]
   SI[f_dim2nondim] --> Caller[User script or f_imr_sweep]
   Caller --> N[f_imr_nodal]
   Caller --> S[f_imr_spectral]
