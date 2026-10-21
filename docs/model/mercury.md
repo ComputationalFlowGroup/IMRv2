@@ -1,26 +1,32 @@
 # Mercury liquid and vapor properties
 
-The mercury helpers provide fitted SI liquid and ideal-vapor properties in base MATLAB. `f_mercury_inputs` uses ambient liquid density and sound speed to prepare the pressure-form Keller–Miksis equation (`radial = 2`) for either solver.
+The MATLAB profile `fluids.mercury()` supplies fitted SI liquid and ideal-vapor coefficients to the shared `f_fluid_properties` evaluator. Selecting it in `f_dim2nondim` uses ambient liquid density and sound speed to prepare the pressure-form Keller–Miksis equation (`radial = 2`) for either solver.
 
 ## What enters the radial equation
 
-At ambient absolute pressure `P8` and temperature `T8`, the helper evaluates `rho8 = rho(P8,T8)` and `C8 = c(P8,T8)`. `f_dim2nondim` then computes consistent velocity, time and acoustic scales. The standard KM pressure equation holds these ambient liquid properties fixed during a run. It does not evaluate pressure-dependent density or sound speed at the moving bubble wall.
+At ambient absolute pressure `P8` and temperature `T8`, the converter evaluates `rho8 = rho(P8,T8)` and `C8 = c(P8,T8)`. `f_dim2nondim` then computes consistent velocity, time and acoustic scales. The standard KM pressure equation holds these ambient liquid properties fixed during a run. It does not evaluate pressure-dependent density or sound speed at the moving bubble wall.
 
 There is no Python implementation or runtime call in IMRv2. Coefficients, saturation data, examples and tests are MATLAB files bundled with this repository. The original fitting repository is a provenance reference, not an installation dependency.
 
 ## Fitted liquid slices
 
-`f_mercury_eos(P,T)` evaluates
+`f_fluid_properties(@fluids.mercury,P,T)` evaluates
 
-$$\rho_0=a_\rho T+b_\rho,\quad c_0=c_{0,0}+c_{0,1}T,\quad
-K_0=\rho_0c_0^2/\gamma,\quad n=1+2K_0s_1/c_0,$$
+$$
+\rho_0=a_\rho T+b_\rho,\quad c_0=c_{0,0}+c_{0,1}T,\quad
+K_0=\rho_0c_0^2/\gamma,\quad n=1+2K_0s_1/c_0,
+$$
 
-$$\rho(P,T)=\rho_0(1+nP/K_0)^{1/n},\qquad
-c(P,T)=\sqrt{\gamma(K_0+nP)/\rho(P,T)}.$$
+$$
+\rho(P,T)=\rho_0(1+nP/K_0)^{1/n},\qquad
+c(P,T)=\sqrt{\gamma(K_0+nP)/\rho(P,T)}.
+$$
+
+Here $\rho_0$ and $c_0$ are the fitted zero-pressure density and sound speed at temperature $T$; $K_0$ is the corresponding reference bulk modulus and $n$ the Murnaghan pressure exponent. The dimensionless base $1+nP/K_0$ accounts for compression from zero pressure, using absolute pressure $P$ in Pa and $T$ in K. At $P=0$ the equations recover $\rho_0$ and $c_0$. These source conventions must be preserved together.
 
 The liquid caloric slice is `h_l = Cp_l*T + q_l`. `K0` and `n` are recomputed at each temperature; the single tabulated pair applies only at `Tref = 412.5 K`. The quadratic diagnostic coefficient `s2` is retained as metadata and is not part of these evaluators.
 
-| Parameter group in `f_mercury_parameters` | Units |
+| Parameter group in `fluids.mercury()` | Units |
 |---|---|
 | `liquid.rho0_a`, `rho0_b` | kg/(m³ K), kg/m³ |
 | `liquid.c0_0`, `c0_1` | m/s, m/(s K) |
@@ -30,18 +36,18 @@ The liquid caloric slice is `h_l = Cp_l*T + q_l`. `K0` and `n` are recomputed at
 | Both phases' `q` | J/kg |
 | Both phases' `gamma`, `Gamma` | Dimensionless |
 | `vapor.Rs` | J/(kg K) |
-| `vapor.saturation_T`, `saturation_P` | K, Pa |
+| `saturation.T`, `saturation.P` | K, Pa |
 | Fields ending in `_percent` | Percent RMS diagnostic |
 
 `gamma = Cp/Cv` is distinct from bubble `kappa` and the Grüneisen coefficient `Gamma`. The source's liquid `Gamma = gamma - 1` is provisional and is not used by the evaluators. These slices do not implement a complete `p(rho,e)` liquid model.
 
 ## Vapor and saturation
 
-The ideal-vapor slices are `v = Rs*T/P`, `rho = P/(Rs*T)`, `c = sqrt(gamma*Rs*T)` and `h_g = Cp_g*T + q_g`. `hg.latent_heat` reports `h_g - h_l` on the source's shared caloric convention. It is available for inspection, not used to enable a dynamic phase-change calculation.
+The ideal-vapor slices are `v = Rs*T/P`, `rho = P/(Rs*T)`, `c = sqrt(gamma*Rs*T)` and `h_g = Cp_g*T + q_g`. `state.latent_heat` reports `h_g - h_l` on the source's shared caloric convention. It is available for inspection, not used to enable a dynamic phase-change calculation.
 
-[`f_mercury_pvsat`](../api/f_mercury_eos.md#ambient-saturation-pressure) interpolates `log(Psat)` linearly in `1/T` between measured vapor-table nodes. This matches those nodes and gives a positive, monotone ambient interpolation. It is not a new fitted saturation law or proof of interpolation accuracy. `vapor = 1` adds that constant ambient saturation pressure to a polytropic noncondensable gas bubble. Bubble `kappa` remains an explicit gas input.
+[The shared saturation evaluator](../api/f_fluid_properties.md#saturation) interpolates `log(Psat)` linearly in `1/T` between measured vapor-table nodes. This matches those nodes and gives a positive, monotone ambient interpolation. It is not a new fitted saturation law or proof of interpolation accuracy. `vapor = 1` adds that constant ambient saturation pressure to a polytropic noncondensable gas bubble. Bubble `kappa` remains an explicit gas input.
 
-Dynamic mercury mass transfer and collapse initialization are rejected. Thermal runs require explicit conductivities because the EoS fit supplies none. See the [input helper](../api/f_mercury_inputs.md) for required transport inputs.
+Dynamic mercury mass transfer and collapse initialization are rejected. Thermal runs require explicit conductivities because the EoS fit supplies none. See the [SI converter](../api/f_dim2nondim.md) for required transport inputs.
 
 ## Limits and enthalpy formulations
 
@@ -49,7 +55,7 @@ The property evaluator accepts 275–550 K and 0–6.23 GPa. Sound-speed measure
 
 The source reports 0.71249% liquid sound-speed RMS over its full dataset, but about 2% uncertainty on the saturation sound-speed slice. The property port preserves the fit rather than improving it. No mercury viscosity, surface tension, conductivity or diffusivity is inferred from these coefficients.
 
-At fixed temperature the source density gives `dP/drho = (K0+nP)/rho`, while reported `c²` is `gamma` times that value. Treating both as one barotrope would make them inconsistent. Consequently this helper rejects radial 3–6; the existing Hugoniot-based MG models remain separate. Neither the caloric `h_l(T)` nor the tabulated reference modulus can simply replace the pressure integral needed by an enthalpy model. An acoustically consistent enthalpy extension remains deferred.
+At fixed temperature the source density gives `dP/drho = (K0+nP)/rho`, while reported `c²` is `gamma` times that value. Treating both as one barotrope would make them inconsistent. Consequently this profile rejects radial 3–6; the existing Hugoniot-based MG models remain separate. Neither the caloric `h_l(T)` nor the tabulated reference modulus can simply replace the pressure integral needed by an enthalpy model. An acoustically consistent enthalpy extension remains deferred.
 
 ## Provenance
 

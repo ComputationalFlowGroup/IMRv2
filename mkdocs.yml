@@ -98,12 +98,12 @@ nav:
       - "Spectral solver": api/f_imr_spectral.md
       - "Inputs": api/f_imr_inputs.md
       - "Unit conversion": api/f_dim2nondim.md
-      - "Mercury properties": api/f_mercury_eos.md
-      - "Mercury inputs": api/f_mercury_inputs.md
+      - "Fluid properties": api/f_fluid_properties.md
       - "Sweep API": api/f_imr_sweep.md
       - "Extending": api/extending.md
   - Model:
       - "Assumptions": model/overview.md
+      - "Fluid profiles": model/fluids.md
       - "Mercury": model/mercury.md
       - "Parameters": model/parameters.md
       - "Radial dynamics": model/radial-dynamics.md
@@ -123,6 +123,7 @@ nav:
   - Validation:
       - "Tests": validation/tests.md
       - "Mercury and vapor derivative": validation/mercury.md
+      - "Numerical bug regressions": validation/numerics.md
       - "Equilibrium": validation/equilibrium.md
       - "Gaussian pulse": validation/gaussian.md
       - "Permutations": validation/permutations.md
@@ -150,7 +151,6 @@ nav:
           - f_jpattern: reference/functions/f_jpattern.md
           - f_odesolve: reference/functions/f_odesolve.md
           - f_pinfinity: reference/functions/f_pinfinity.md
-          - f_pvsat: reference/functions/f_pvsat.md
           - f_radial_eq: reference/functions/f_radial_eq.md
           - f_stress: reference/functions/f_stress.md
           - f_stress_dissipation: reference/functions/f_stress_dissipation.md

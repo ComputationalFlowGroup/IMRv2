@@ -12,6 +12,17 @@
 
 The [compatibility matrix](../reference/compatibility.md) owns prerequisites and exclusions. Without medium heat transfer the wall remains at the far-field temperature; this treats the liquid as an infinite heat reservoir and neglects wall cooling/heating from phase change.
 
-`f_dim2nondim` uses the water-vapor fit in `f_pvsat`, attributed to Preston's 2004 thesis. The former function page stated a typical biological-temperature interval of 290–310 K, but the code neither checks it nor supplies a validation dataset. That interval remains an unverified historical statement, not an established accuracy guarantee. Overriding `pv` does not replace the temperature-law exponent; supply consistent parameters for another material.
+`f_dim2nondim` obtains saturation from the selected [fluid profile](fluids.md) through [`f_fluid_properties`](../api/f_fluid_properties.md#saturation). Without a profile, it retains the legacy water exponential fit attributed to Preston's 2004 thesis. Its historically quoted 290–310 K interval is not a validated accuracy guarantee. Overriding `pv` alone does not replace the temperature-law exponent.
+
+The wall law uses dimensionless temperature $\tau=T/T_\infty$ and pressure:
+
+$$
+\frac{P_{\mathrm{sat}}(T)}{P_\infty}
+=p_v\exp\left[\Theta_v\left(1-\frac{1}{\tau}\right)\right],\qquad
+p_v=\frac{P_{\mathrm{sat}}(T_\infty)}{P_\infty},\quad
+\Theta_v=-\frac{c_2}{T_\infty}.
+$$
+
+Thus $\tau=1$ recovers the ambient vapor pressure, and negative dimensional $c_2$ gives positive `thetav`. This law is analytically inverted by the mass-transfer wall closure. Mercury's saturation table supplies an ambient value but not that inverse law; its profile rejects dynamic mass transfer and collapse.
 
 Bubble conductivity is linear in temperature. The [wall method](../method/wall-boundaries.md) explains the Kirchhoff transform, saturated vapor closure and the known stored-mixture-coefficient limitation. The [stress-heating theory](../theory/stress-heating.md) states the full-stress-power convention, including elastic heating and cooling.

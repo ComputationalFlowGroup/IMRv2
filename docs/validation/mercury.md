@@ -1,13 +1,13 @@
 # Mercury and constant-vapor validation
 
-The two MATLAB suites below check the new material preparation and the corrected polytropic derivative. They need base MATLAB and bundled `.m` reference values, not Python, another checkout or stored regression `.mat` files.
+The two MATLAB suites below check fluid preparation and the corrected polytropic derivative. They need base MATLAB and bundled `.m` reference values, not Python, another checkout or stored regression `.mat` files.
 
 From the checkout root in a shell with licensed MATLAB:
 
 ```bash
 cd toolchain
 matlab -batch "s_test_suite_polytropic"
-matlab -batch "s_test_suite_mercury"
+matlab -batch "s_test_suite_fluids"
 ```
 
 Or change to `toolchain/` in MATLAB and run the two script names there. The suites are separate jobs in the existing MATLAB CI workflow.
@@ -19,7 +19,7 @@ Or change to `toolchain/` in MATLAB and run the two script names there. The suit
 - Scalar and array calls agree; zero-pressure limits, temperature-specific moduli and invalid input handling behave as documented.
 - Saturation interpolation matches measured nodes, is monotone and interpolates in reciprocal temperature without extrapolation.
 - Input preparation uses Hg density, acoustics, gas constant and saturation pressure, derives consistent scales, records replay metadata and rejects missing transport values or conflicting overrides.
-- The unchanged generic converter keeps its documented water defaults.
+- Explicit water selection matches the legacy converter, including SI overrides. Synthetic profiles exercise material-independent model selection; saturation derivatives are checked against finite differences.
 - The nodal FD, nodal Chebyshev and spectral KM calls match equivalent explicitly supplied SI properties and preserve an equilibrium bubble.
 - The constant-vapor polytropic derivative agrees with finite differences, depends only on gas pressure, and yields consistent integrated pressure histories in all three solver modes.
 

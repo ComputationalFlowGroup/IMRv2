@@ -10,7 +10,7 @@ The supported integrators, codes and MATLAB requirements live in the [parameter 
 |---|---|
 | `reltol`, `abstol` | `RelTol` and `AbsTol` in `f_odesolve` |
 | `divisions = 0` | Automatic time-step selection |
-| Positive `divisions` | `MaxStep = tspan(end)/divisions` |
+| Positive `divisions` | `MaxStep = (tspan(end)-tspan(1))/divisions` |
 | Two-element time span | Return the integrator's output steps |
 | Longer time vector | Return values at requested times |
 
@@ -50,7 +50,11 @@ Batching amortizes interpreted operations across columns. The earlier implementa
 
 Both solvers carry a Kirchhoff variable for linear conductivity:
 
-$$\theta=\alpha(T^2-1)/2+\beta(T-1),\qquad
-T=\frac{\sqrt{(\alpha+\beta)^2+2\alpha\theta}-\beta}{\alpha}.$$
+$$
+\theta=\frac{\alpha}{2}(T^2-1)+\beta(T-1),\qquad
+T=\frac{\sqrt{(\alpha+\beta)^2+2\alpha\theta}-\beta}{\alpha}.
+$$
+
+Temperature $T$ is scaled by its far-field value, so $\theta=0$ corresponds to $T=1$. The coefficients define conductivity $K(T)=\alpha T+\beta$; differentiation gives $d\theta/dT=K(T)$ and $dT/d\theta=1/K(T)$. Those factors enter the thermal Jacobian. The implemented inverse assumes a positive slope; a constant-conductivity thermal limit needs a separate inverse and is currently rejected.
 
 The spectral solver uses gas coefficients. The nodal solver uses the initial mixture without mass transfer and local vapor-dependent mixture with mass transfer. Both use the supplied `alpha` and `beta`; their sum need not equal 1. The wall-condition derivative must use the same transform. See [wall boundaries](wall-boundaries.md) and the [reported correction](../validation/convergence.md#reported-kirchhoff-transform-correction).

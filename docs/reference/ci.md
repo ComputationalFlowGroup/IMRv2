@@ -4,7 +4,7 @@ The five workflows below run on pushes and pull requests to `main`, and support 
 
 | Workflow | File | What it checks | Local equivalent |
 |---|---|---|---|
-| IMR test suites | `.github/workflows/tests.yml` | Seven separate MATLAB jobs on R2023a; any failure fails the workflow | [Test commands](../validation/tests.md#run-the-suites) |
+| IMR test suites | `.github/workflows/tests.yml` | Eight separate MATLAB jobs on R2023a; any failure fails the workflow | [Test commands](../validation/tests.md#run-the-suites) |
 | Neatness Check | `.github/workflows/lint.yml` | `checkcode` on `src/` and `toolchain/`, R2023a | `matlab -batch "addpath('toolchain'); s_lint"` from root |
 | Format check | `.github/workflows/format.yml` | Runs `s_format` and checks for a Git diff; default MATLAB release from setup action | `matlab -batch "cd('toolchain'); s_format"`, then `git diff --exit-code` |
 | Code Spellcheck | `.github/workflows/spellcheck.yml` | Code and documentation spelling | Commands below, from root |

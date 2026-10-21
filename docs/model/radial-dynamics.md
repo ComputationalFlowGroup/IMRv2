@@ -13,6 +13,6 @@
 
 An equation of state (EoS) relates pressure to the liquid density and acoustic quantities. The enthalpy forms use a pressure-only relation at the far-field temperature; they cannot be combined with medium heat transfer in this implementation. Radial 5–6 are further limited to the polytropic bubble. See [compatibility](../reference/compatibility.md) for complete requirements.
 
-`cstar`, `gama`, `nstate` and `hugoniot_s` are defined in [parameters](parameters.md#acoustic-options). Choosing radial 5 or 6 does not supply a validated material parameter set. For mercury, use the [material helper](../api/f_mercury_inputs.md) with radial 2. Its [property fit](mercury.md) is distinct from the existing radial 5–6 Hugoniot model.
+`cstar`, `gama`, `nstate` and `hugoniot_s` are defined in [parameters](parameters.md#acoustic-options). Choosing radial 5 or 6 does not supply a validated material parameter set. For mercury, use the [profile preparation](../api/f_dim2nondim.md) with radial 2. Its [property fit](mercury.md) is distinct from the existing radial 5–6 Hugoniot model.
 
 The [radial theory](../theory/radial-equations.md) states implemented equations and the enthalpy construction. [Reported comparisons](../validation/convergence.md) preserve earlier numerical measurements without claiming they were rerun.

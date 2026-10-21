@@ -2,6 +2,8 @@
 
 IMR is extended by editing its MATLAB functions directly. There is no plugin loader; each input must pass from defaults through parsing and validation to the equations that use it.
 
+For a new fluid using an existing EoS family, start with a [MATLAB fluid profile](../model/fluids.md). Material coefficients and saturation data belong there; the shared evaluator and SI converter handle selection. The trace below applies when adding a numerical option or a mathematical model that is not already supported.
+
 ## Worked trace: the existing `scheme` input
 
 | Step | Existing implementation | What an extension must preserve |
