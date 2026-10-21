@@ -16,11 +16,13 @@ This is a flow of information, rather than a function-call graph. A user may sta
 flowchart LR
   Case[Material and model choices] --> Prepare[Prepare dimensionless inputs]
   Prepare --> Solve[Choose nodal or spectral solver]
-  Solve --> Histories[Radius, pressure, temperature and stress histories]
+  Solve --> Histories[Radius, velocity, pressure, temperature and vapor histories]
   Histories --> Compare[Restore SI units, plot and compare]
 ```
 
 Run `imr_setup` once per MATLAB session. Use [`f_dim2nondim`](../api/f_dim2nondim.md) for SI input, [`f_imr_inputs`](../api/f_imr_inputs.md) for a dimensionless input struct, and [`f_imr_sweep`](../api/f_imr_sweep.md) to repeat the workflow across parameter combinations. The [quick start](../getting-started/quick-start.md) provides a complete example.
+
+Stress enters the internal equations; a separate stress history is not part of the public solver output tuple. Enabled thermal and vapor fields are reconstructed by the selected solver. See [outputs](../running/output.md) for returned shapes and scalings.
 
 ## 2. Setup: inputs become one checked case
 
