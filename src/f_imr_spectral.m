@@ -34,8 +34,10 @@ function varargout = f_imr_spectral(varargin)
     spectral        = solve_opts(2);
     divisions       = solve_opts(3);
     Nv              = solve_opts(4);
-    Nt              = solve_opts(5);
-    Mt              = solve_opts(6);
+    % Operators are constructed before inactive fields are removed. Avoid
+    % zero-order collocation divisions for unused grids set to 0, 1 or 2.
+    Nt              = max(solve_opts(5),3);
+    Mt              = max(solve_opts(6),3);
     Lv              = solve_opts(7);
     Lt              = solve_opts(8);
     rtol            = solve_opts(9);

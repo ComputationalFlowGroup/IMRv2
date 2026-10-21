@@ -138,8 +138,9 @@ function p = f_checkers(p)
         error('INPUT ERROR: Only tvector or tfin can be specified, not both');
     end
     t = p.tvector;
-    if ~isnumeric(t) || numel(t) < 2 || any(~isfinite(t)) || any(diff(t) <= 0)
-        error('INPUT ERROR: tvector must be finite and strictly increasing');
+    valid_t = isnumeric(t) && isreal(t) && isvector(t) && numel(t) >= 2;
+    if ~valid_t || any(~isfinite(t)) || any(diff(t) <= 0)
+        error('INPUT ERROR: tvector must be a finite, real, strictly increasing vector');
     end
     if t(1) < 0
         error('INPUT ERROR: tvector must start at a nonnegative time');
@@ -157,9 +158,7 @@ function p = f_checkers(p)
     if p.medtherm == 1 && p.Mt < 3
         error('INPUT ERROR: Mt must be at least 3 when medtherm = 1');
     end
-    if ~(isnumeric(p.divisions) && p.divisions >= 0 && p.divisions == round(p.divisions))
-        error('INPUT ERROR: divisions must be a nonnegative integer');
-    end
+    f_nonnegative_integer(p.divisions, 'divisions');
     f_positive({'Lv','Lt','rtol','atol'}, {p.Lv, p.Lt, p.rtol, p.atol});
     
     % initial conditions
@@ -325,8 +324,9 @@ function f_integer_in(val, allowed, name, desc)
 end
 
 function f_nonnegative_integer(val, name)
-    if ~(isnumeric(val) && isscalar(val) && val >= 0 && val == round(val))
-        error('INPUT ERROR: %s must be a nonnegative integer', name);
+    ok = isnumeric(val) && isscalar(val) && isreal(val) && isfinite(val);
+    if ~ok || val < 0 || val ~= round(val)
+        error('INPUT ERROR: %s must be a finite, real, nonnegative integer', name);
     end
 end
 

@@ -79,7 +79,7 @@ h(p)=\frac{a}{m}\left[\left(\frac{p+B}{a}\right)^m-1\right],\qquad
 C(p)^2=\frac{n(p+B)}{\rho(p)}.
 $$
 
-The pressure shift must satisfy $p+B>0$. In the source, `sam = a`, `no = m`, `hB = h(p_w)`, `hF = h(p_f)` and `hH = 1/rho(p_w)`.
+The pressure shift must satisfy $p+B>0$. At $n=1$, the finite limit is $h(p)=a\ln((p+B)/a)$. The code uses this logarithmic limit exactly and evaluates the other exponents with `log1p` and `expm1` to preserve small pressure changes and exponents near one. In the source, `sam = a`, `no = m`, `hB = h(p_w)`, `hF = h(p_f)` and `hH = 1/rho(p_w)`.
 
 ### Existing Hugoniot-based relation
 

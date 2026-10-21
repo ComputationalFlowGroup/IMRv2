@@ -34,12 +34,21 @@ else
     if radial <= 4
         % Tait EoS
         Pb = P - iWe./R + GAMa + S;
-        hB = (sam/no)*((Pb/sam).^no - 1);
+        logB = log1p((P - iWe./R + S - 1)/sam);
+        logF = log1p(Pf8/sam);
+        % The nstate = 1 limit is logarithmic. expm1 also avoids loss of
+        % significance for nstate close to one or pressure near ambient.
+        if no == 0
+            hB = sam*logB;
+            hF = sam*logF;
+        else
+            hB = (sam/no)*expm1(no*logB);
+            hF = (sam/no)*expm1(no*logF);
+        end
         hH = (sam./Pb).^(1/nstate);
         % The driving pressure belongs to the same barotrope as the wall.
         % Subtracting Pf8 itself assumes unit far-field density at all P.
         Pfar = 1 + Pf8 + GAMa;
-        hF = (sam/no)*((Pfar/sam).^no - 1);
         hFprime = (sam./Pfar).^(1/nstate);
         if radial == 4
             rho = (Pb/sam).^(1/nstate);

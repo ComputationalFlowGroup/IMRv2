@@ -27,4 +27,12 @@ The implemented temperature-transform inverse divides by the gas conductivity sl
 
 ## Execution status
 
+The current review adds these regressions to the existing suites:
+
+- **Tait limit:** radial 3 and 4 at `nstate = 1` and nearby exponents, checked against independent quadrature near ambient pressure and exact pressure balance.
+- **Histotripsy edges:** zero, fractional and integer exponents; endpoint conventions, zero amplitude, scalar/array shape and derivatives checked against centered differences inside the pulse.
+- **Inactive grids:** both solvers, both nodal schemes, and inactive grid counts 0–2. Previously, initialization could build an invalid stencil or divide by a zero collocation order even though the field was disabled. A thermal bubble with no medium grid is also checked.
+- **Input limits:** reject nonfinite, complex, fractional or nonscalar grid/division counts and malformed time vectors before allocation or integration. Increasing real row and column time vectors remain accepted.
+- **Table orientation:** `s_test_suite_fluids` checks identical saturation results from row and column tables and compares derivatives with the analytic inverse-temperature interpolation, including interior-knot conventions.
+
 MATLAB and Octave were not installed or run in this cloud task. The numerical assertions are prepared for local MATLAB execution and the existing CI workflow; static syntax checks and independent reference calculations do not establish that these MATLAB suites pass. The regression suite still requires its separately approved baseline files.

@@ -40,6 +40,36 @@ custom.saturation.model = 'table_logp_inverseT';
 f_expect_error(@() f_dim2nondim('fluid',custom), 'IMR:fluidProfile');
 fprintf('Water compatibility, saturation derivatives and custom profile PASSED.\n');
 
+% User-supplied saturation tables may be rows or columns. Check against
+% the analytic derivative of log(P) linear in inverse temperature.
+table = fluids.water();
+table.saturation.model = 'table_logp_inverseT';
+table.saturation.temperature_range = [280 340];
+table.saturation.T = [280 300 340];
+table.saturation.P = [100 1000 10000];
+query = [280 290 300 320 340];
+row = f_fluid_properties(table,[],query);
+table.saturation.T = table.saturation.T';
+table.saturation.P = table.saturation.P';
+column = f_fluid_properties(table,[],query');
+assert(isequal(row.pressure,column.pressure'));
+assert(isequal(row.dpressure_dT,column.dpressure_dT'));
+for interval = 1:2
+    T1 = table.saturation.T(interval);
+    T2 = table.saturation.T(interval+1);
+    logP1 = log(table.saturation.P(interval));
+    logP2 = log(table.saturation.P(interval+1));
+    slope = (logP2-logP1)/(1/T2-1/T1);
+    T = (T1+T2)/2;
+    pressure = exp(logP1+slope*(1/T-1/T1));
+    actual = f_fluid_properties(table,[],T);
+    assert(abs(actual.pressure/pressure-1) < 1e-14);
+    assert(abs(actual.dpressure_dT/(-slope*pressure/T^2)-1) < 1e-14);
+    at_knot = f_fluid_properties(table,[],T1);
+    assert(abs(at_knot.dpressure_dT/(-slope*at_knot.pressure/T1^2)-1) < 1e-14);
+end
+fprintf('Row/column saturation tables and analytic derivatives PASSED.\n');
+
 % Independently frozen pre-refactor numbers detect accidental default drift.
 d = default_case();
 expected = imrtest.default_physics();

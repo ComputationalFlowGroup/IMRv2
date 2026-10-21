@@ -38,8 +38,10 @@ function varargout = f_imr_nodal(varargin)
     spectral        = solve_opts(2);
     divisions       = solve_opts(3);
     Nv              = solve_opts(4);
-    Nt              = solve_opts(5);
-    Mt              = solve_opts(6);
+    % Operators are constructed before inactive fields are removed. Give
+    % unused grids a safe stencil size even when the caller sets 0, 1 or 2.
+    Nt              = max(solve_opts(5),3);
+    Mt              = max(solve_opts(6),3);
     % Lv            = solve_opts(7), only used by the spectral solver
     Lt              = solve_opts(8);
     rtol            = solve_opts(9);

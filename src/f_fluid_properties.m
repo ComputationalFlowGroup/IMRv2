@@ -85,8 +85,10 @@ function s = f_saturation(law, T)
         s.dpressure_dT = -law.c2*s.pressure./T.^2;
         s.c2 = law.c2;
         case 'table_logp_inverseT'
-        x = 1./fliplr(law.T);
-        y = log(fliplr(law.P));
+        % Normalize table orientation so each query is compared with every
+        % knot, including when a custom profile supplies column vectors.
+        x = 1./flipud(law.T(:))';
+        y = log(flipud(law.P(:)))';
         query = 1./T(:);
         logp = interp1(x, y, query, 'linear');
         % Right-hand T derivative at interior knots; left-hand at Tmax.
