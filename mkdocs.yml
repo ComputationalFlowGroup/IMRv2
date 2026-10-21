@@ -1,15 +1,11 @@
-# Documentation website, built with MkDocs and the Material theme.
-# Preview locally with:  pip install -r docs/requirements.txt && mkdocs serve
-# The docs workflow (.github/workflows/docs.yml) builds it with --strict on
-# every pull request and publishes it to GitHub Pages from main.
+# Local documentation with a strict CI build. No Pages deployment.
 
 site_name: IMR
 site_description: >-
   Inertial Microcavitation Rheometry: bubble dynamics solvers for
   characterizing soft materials at high strain rates
-site_url: https://inertialmicrocavitationrheometry.github.io/IMRv2/
-repo_url: https://github.com/InertialMicrocavitationRheometry/IMRv2
-repo_name: InertialMicrocavitationRheometry/IMRv2
+repo_url: https://github.com/mrodrig6/imrv2
+repo_name: mrodrig6/imrv2
 edit_uri: edit/main/docs/
 copyright: Copyright &copy; The IMR developers. Released under the GNU GPL, version 3 or later.
 
@@ -42,11 +38,11 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
 
+hooks:
+  - docs/hooks.py
+
 plugins:
   - search
-  # The home, getting-started, about and contributing pages include sections
-  # of README.md and CONTRIBUTING.md, so those files stay the single source.
-  - include-markdown
 
 markdown_extensions:
   - admonition
@@ -61,7 +57,11 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 
 extra_javascript:
   - javascripts/mathjax.js
@@ -69,55 +69,91 @@ extra_javascript:
 
 exclude_docs: |
   requirements.txt
+  hooks.py
+  __pycache__/
 
 # with --strict, any of these fails the build
 validation:
   omitted_files: warn
+  not_found: warn
   absolute_links: warn
   unrecognized_links: warn
   anchors: warn
 
 nav:
   - Home: index.md
-  - Getting started: getting-started.md
-  - Model compatibility: compatibility.md
-  - Inputs and defaults: src/default_case.md
-  - Solvers:
-      - Nodal solver (f_imr_nodal): src/f_imr_nodal.md
-      - Spectral solver (f_imr_spectral): src/f_imr_spectral.md
-      - Inputs as a struct (f_imr_inputs): src/f_imr_inputs.md
-      - Parameter sweeps (f_imr_sweep): src/f_imr_sweep.md
-  - Units:
-      - Unit conversion (f_dim2nondim): src/f_dim2nondim.md
-      - Saturation pressure (f_pvsat): src/f_pvsat.md
-  - Physics and numerics:
-      - Radial dynamics (f_radial_eq): src/f_radial_eq.md
-      - Stress models (f_stress): src/f_stress.md
-      - Non-Newtonian viscosity (f_viscosity): src/f_viscosity.md
-      - Medium heating (f_stress_dissipation): src/f_stress_dissipation.md
-      - Bubble-wall conditions (f_wall_bc): src/f_wall_bc.md
-      - Driving pressure (f_pinfinity): src/f_pinfinity.md
-      - Collapse initial stress (f_init_stress): src/f_init_stress.md
-      - Approximate initial stress (f_approx_init_stress): src/f_approx_init_stress.md
-      - Differentiation matrices (f_diff_mat): src/f_diff_mat.md
-      - Time integration (f_odesolve): src/f_odesolve.md
-      - Zener stress field (f_zener_field): src/f_zener_field.md
-      - Nodal Jacobian (f_jacobian_nodal): src/f_jacobian_nodal.md
-      - Spectral Jacobian (f_jacobian_spectral): src/f_jacobian_spectral.md
-      - Dual-number operations (f_dual_ops): src/f_dual_ops.md
-      - Jacobian sparsity pattern (f_jpattern): src/f_jpattern.md
-  - Setup and input checks:
-      - Parameters (f_call_params): src/f_call_params.md
-      - Input checks (f_checkers): src/f_checkers.md
-      - Console output (f_display): src/f_display.md
-  - Toolchain:
-      - Test suites:
-          - Overview and test cases: toolchain/f_test_cases.md
-          - Equilibrium: toolchain/s_test_suite_equilibrium.md
-          - Gaussian pulse: toolchain/s_test_suite_gaussian.md
-          - Option permutations: toolchain/s_test_suite_permutations.md
-          - Regression: toolchain/s_test_suite_regression.md
-          - Differentiation operators: toolchain/s_test_suite_diffmat.md
-  - Measured waveforms: waveform/README.md
-  - Contributing: contributing.md
-  - About: about.md
+  - Getting started:
+      - "Installation": getting-started/installation.md
+      - "Quick start": getting-started/quick-start.md
+      - "Examples": getting-started/examples.md
+  - Running:
+      - "Commands": running/commands.md
+      - "Configuration": running/configuration.md
+      - "Outputs": running/output.md
+      - "Solvers": running/solvers.md
+      - "Sweeps": running/sweeps.md
+      - "Waveforms": running/waveforms.md
+      - "Collapse": running/collapse.md
+      - "Troubleshooting": running/troubleshooting.md
+  - MATLAB API:
+      - "Overview": api/index.md
+      - "Nodal solver": api/f_imr_nodal.md
+      - "Spectral solver": api/f_imr_spectral.md
+      - "Inputs": api/f_imr_inputs.md
+      - "Unit conversion": api/f_dim2nondim.md
+      - "Sweep API": api/f_imr_sweep.md
+      - "Extending": api/extending.md
+  - Model:
+      - "Assumptions": model/overview.md
+      - "Parameters": model/parameters.md
+      - "Radial dynamics": model/radial-dynamics.md
+      - "Stress and viscosity": model/stress-viscosity.md
+      - "Heat and mass transfer": model/heat-mass-transfer.md
+  - Method:
+      - "Workflow": method/overview.md
+      - "Discretization": method/discretization.md
+      - "Integration and Jacobians": method/time-integration.md
+      - "Wall boundaries": method/wall-boundaries.md
+      - "Initial stress": method/initial-stress.md
+      - "Benchmarks": method/integrator-benchmarks.md
+  - Theory:
+      - "Radial equations": theory/radial-equations.md
+      - "Stress heating": theory/stress-heating.md
+      - "Viscosity integrals": theory/viscosity-integrals.md
+  - Validation:
+      - "Tests": validation/tests.md
+      - "Equilibrium": validation/equilibrium.md
+      - "Gaussian pulse": validation/gaussian.md
+      - "Permutations": validation/permutations.md
+      - "Regression": validation/regression.md
+      - "Operators": validation/operators.md
+      - "Reported comparisons": validation/convergence.md
+  - Reference:
+      - "Compatibility": reference/compatibility.md
+      - "Code map": reference/code-map.md
+      - "Repository map": reference/repository.md
+      - "CI": reference/ci.md
+      - "Contributing": reference/contributing.md
+      - "Citation": reference/references.md
+      - "People": reference/about.md
+      - Internal functions:
+          - f_approx_init_stress: reference/functions/f_approx_init_stress.md
+          - f_call_params: reference/functions/f_call_params.md
+          - f_checkers: reference/functions/f_checkers.md
+          - f_diff_mat: reference/functions/f_diff_mat.md
+          - f_display: reference/functions/f_display.md
+          - f_dual_ops: reference/functions/f_dual_ops.md
+          - f_init_stress: reference/functions/f_init_stress.md
+          - f_jacobian_nodal: reference/functions/f_jacobian_nodal.md
+          - f_jacobian_spectral: reference/functions/f_jacobian_spectral.md
+          - f_jpattern: reference/functions/f_jpattern.md
+          - f_odesolve: reference/functions/f_odesolve.md
+          - f_pinfinity: reference/functions/f_pinfinity.md
+          - f_pvsat: reference/functions/f_pvsat.md
+          - f_radial_eq: reference/functions/f_radial_eq.md
+          - f_stress: reference/functions/f_stress.md
+          - f_stress_dissipation: reference/functions/f_stress_dissipation.md
+          - f_viscosity: reference/functions/f_viscosity.md
+          - f_wall_mass_bc: reference/functions/f_wall_mass_bc.md
+          - f_zener_field: reference/functions/f_zener_field.md
+  - Waveform source directory: waveform/README.md

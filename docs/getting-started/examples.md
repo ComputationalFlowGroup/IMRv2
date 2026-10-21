@@ -1,0 +1,46 @@
+# Examples
+
+These recipes use the public MATLAB functions from the checkout root. Their interfaces were checked against source; execution and numerical results remain pending local MATLAB validation.
+
+## Configure a run as a struct
+
+```matlab
+% Start from dimensionless defaults and change two model choices.
+addpath('src');
+p = f_imr_inputs();
+p.radial = 2;
+p.stress = 1;
+[t, R, ~, ~, ~, ~, ~, used] = f_imr_nodal(p);
+```
+
+## Switch spatial discretization
+
+```matlab
+% Run the nodal solver with Chebyshev differentiation.
+addpath('src');
+[t, R] = f_imr_nodal('radial',2,'stress',1,'bubtherm',1,'scheme',1);
+```
+
+## Sweep inputs and save outputs
+
+Use the complete recipes in [parameter sweeps](../running/sweeps.md) and [outputs](../running/output.md#save-and-replay-a-run). Each fact and recipe lives on its own workflow page.
+
+## Bundled script inventory
+
+| File | What it actually does | Limits |
+|---|---|---|
+| `examples/s_run_fdmodel.m` | Polytropic nodal Keller–Miksis case with vapor pressure and viscous stress | Does not enable heat or mass transfer |
+| `examples/s_run_full_model.m` | Gaussian-driven polytropic Kelvin–Voigt case | Despite the name, bubble heat, medium heat and mass transfer are off |
+| `examples/s_run_mercury.m` | Compares radial 2 and radial 5 | Uses `rho8 = 1064` and helper defaults, not a validated mercury material set |
+| `examples/f_multirun.m` | Five large material studies | Expensive parallel study, described in [sweeps](../running/sweeps.md) |
+| `examples/matlab-submitjob.sh` | Submits the large study on a cluster | Site-specific `sbatch` and `matlab-threaded` commands |
+| `examples/f_contour_field.m` | Legacy stress-contour postprocessing fragment | Needs existing workspace variables and output directories; not standalone |
+
+The scripts add `src/` relative to their own location. For example, in MATLAB from the checkout root:
+
+```matlab
+% Run the bundled Gaussian-driven example.
+run('examples/s_run_full_model.m');
+```
+
+The contour fragment reads `R`, `U`, `f_r`, `max_tau_r`, `lm` and other workspace values. It is retained for provenance, not offered as a complete recipe. The scaling benchmarks also contain legacy data; see [reported comparisons](../validation/convergence.md#legacy-scaling-data).

@@ -1,4 +1,4 @@
-name: Documentation website
+name: Documentation build
 
 on:
   push:
@@ -11,9 +11,9 @@ on:
 permissions:
   contents: read
 
-# one run per branch at a time; a deployment in progress is allowed to finish
+# Keep one documentation build per branch.
 concurrency:
-  group: pages-${{ github.ref }}
+  group: docs-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -40,33 +40,3 @@ jobs:
       # the nav) into an error
       - name: Build the site
         run: mkdocs build --strict
-
-      - name: Upload the site for GitHub Pages
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-  deploy:
-
-    name: Deploy to GitHub Pages
-
-    # only the main repository publishes; forks and pull requests just build
-    if: github.repository == 'InertialMicrocavitationRheometry/IMRv2' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-
-    needs: build
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
