@@ -2,9 +2,9 @@ name: IMR test suites
 
 on:
   push:
-    branches: [ "main", "water-only" ]
+    branches: [ "main", "water" ]
   pull_request:
-    branches: [ "main", "water-only" ]
+    branches: [ "main", "water" ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
