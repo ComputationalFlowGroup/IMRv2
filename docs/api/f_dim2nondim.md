@@ -6,25 +6,22 @@ See the [complete quick start](../getting-started/quick-start.md) for a runnable
 
 ## Fluid profiles
 
-Select a MATLAB property file with `'fluid',@fluids.water` or `'fluid',@fluids.mercury`. A resolved profile struct is also accepted. Profile functions run once during preparation; the solvers receive dimensionless numbers, not material callbacks.
+Select `'fluid',@fluids.water`, a new MATLAB profile function, or a resolved profile struct. Profile data are evaluated once during preparation; the solver receives dimensionless numbers rather than a callback.
 
 ```matlab
-[args, ref] = f_dim2nondim('fluid',@fluids.mercury, ...
+imr_setup;
+[args, ref] = f_dim2nondim('fluid',@fluids.water, ...
     'radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
-    't8',298.15,'p8',101325,'mu',0,'surft',0,'kappa',1.4, ...
+    't8',298.15,'p8',101325,'mu',1e-3,'surft',0.072,'kappa',1.4, ...
     'r0',50e-6,'req',40e-6,'tvector',linspace(0,1e-6,41));
 [t,R] = f_imr_nodal(args{:});
 ```
 
-Explicit SI transport inputs override a profile's defaults. EoS-derived density, acoustics and caloric inputs are protected by its `derived_inputs` list. Dimensionless physical overrides such as `cstar` or `re` are rejected for explicit profiles. Model flags, numerical options, stress parameters and forcing remain ordinary inputs. Without `fluid`, the existing defaults and pass-through behavior below are retained.
+Explicit SI transport inputs override reference values in `profile.transport`. Protected EoS-derived inputs are listed in `profile.derived_inputs`; conflicting overrides and dimensionless physical overrides such as `cstar` or `re` are rejected. Model, grid, numerical and forcing choices remain ordinary inputs. Calls without `fluid` preserve legacy conversion and pass-through behavior.
 
-The mercury profile selects its only supported radial model, pressure-form KM (`radial = 2`). Stress, elasticity and relaxation retain the converter's ordinary defaults; select the Newtonian case explicitly as in the example. It requires explicit `surft`, bubble-gas `kappa`, and `mu` when `stress > 0`. With `bubtherm = 1`, supply `atg`, `btg`, `atv`, `btv`; with `medtherm = 1`, also supply positive `km`. Thermal calculations need positive conductivities, positive `atg` and `kappa > 1`. Inactive placeholder transport scales in its profile are not physical mercury measurements.
+Required active-model inputs and supported radial/phase-change choices come from the profile's `required_*` and `capabilities` fields. Gas conductivity, stress and forcing are simulation choices, independent of liquid/vapor material data. The converter uses internal neutral scales only for inactive terms that have no transport data. Those scales are not physical properties and cannot satisfy an active model's explicit input requirements.
 
-Mercury `vapor = 1` selects ambient saturation pressure from its table; otherwise `pv = 0`. Dynamic mass transfer, collapse and radial 3–6 are rejected. The [mercury model](../model/mercury.md) explains these limits. Water retains its legacy exponential wall law and converter defaults, subject to [solver compatibility](../reference/compatibility.md).
-
-Profile errors use `IMR:fluidMissingInput`, `IMR:fluidOverride`, `IMR:fluidRadial`, `IMR:fluidMassTransfer`, `IMR:fluidThermal` or `IMR:fluidBoiling`; invalid numeric inputs can also raise MATLAB validation errors. See [property errors](f_fluid_properties.md#errors) for EoS domain failures.
-
-See [fluid profiles](../model/fluids.md) for data-file fields and migration from the removed mercury helpers.
+Profile errors use `IMR:fluidMissingInput`, `IMR:fluidOverride`, `IMR:fluidRadial`, `IMR:fluidMassTransfer`, `IMR:fluidThermal` or `IMR:fluidBoiling`. Invalid numeric inputs can also raise MATLAB validation errors. See [property errors](f_fluid_properties.md#errors), [fluid profiles](../model/fluids.md) and [defaults and units](../reference/defaults.md).
 
 ## Inputs (SI)
 

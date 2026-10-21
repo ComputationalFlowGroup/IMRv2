@@ -23,6 +23,6 @@ p_v=\frac{P_{\mathrm{sat}}(T_\infty)}{P_\infty},\quad
 \Theta_v=-\frac{c_2}{T_\infty}.
 $$
 
-Thus $\tau=1$ recovers the ambient vapor pressure, and negative dimensional $c_2$ gives positive `thetav`. This law is analytically inverted by the mass-transfer wall closure. Mercury's saturation table supplies an ambient value but not that inverse law; its profile rejects dynamic mass transfer and collapse.
+Thus $\tau=1$ recovers the ambient vapor pressure, and negative dimensional $c_2$ gives positive `thetav`. This law is analytically inverted by the mass-transfer wall closure. A saturation table can supply an ambient value without supplying that inverse law. Such profiles must disable unsupported dynamic mass transfer and collapse.
 
 Bubble conductivity is linear in temperature. The [wall method](../method/wall-boundaries.md) explains the Kirchhoff transform, saturated vapor closure and the known stored-mixture-coefficient limitation. The [stress-heating theory](../theory/stress-heating.md) states the full-stress-power convention, including elastic heating and cooling.

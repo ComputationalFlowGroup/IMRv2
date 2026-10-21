@@ -6,7 +6,7 @@ These recipes use the public MATLAB functions from the checkout root. Their inte
 
 ```matlab
 % Start from dimensionless defaults and change two model choices.
-addpath('src');
+imr_setup;
 p = f_imr_inputs();
 p.radial = 2;
 p.stress = 1;
@@ -17,7 +17,7 @@ p.stress = 1;
 
 ```matlab
 % Run the nodal solver with Chebyshev differentiation.
-addpath('src');
+imr_setup;
 [t, R] = f_imr_nodal('radial',2,'stress',1,'bubtherm',1,'scheme',1);
 ```
 
@@ -36,11 +36,12 @@ Use the complete recipes in [parameter sweeps](../running/sweeps.md) and [output
 | `examples/matlab-submitjob.sh` | Submits the large study on a cluster | Site-specific `sbatch` and `matlab-threaded` commands |
 | `examples/f_contour_field.m` | Legacy stress-contour postprocessing fragment | Needs existing workspace variables and output directories; not standalone |
 
-The scripts add `src/` relative to their own location. For example, in MATLAB from the checkout root:
+Run path setup once per MATLAB session, from the checkout root. The setup adds the public source and examples without recursive path expansion:
 
 ```matlab
 % Run the bundled Gaussian-driven example.
-run('examples/s_run_full_model.m');
+imr_setup;
+s_run_full_model;
 ```
 
 The contour fragment reads `R`, `U`, `f_r`, `max_tau_r`, `lm` and other workspace values. It is retained for provenance, not offered as a complete recipe. The scaling benchmarks also contain legacy data; see [reported comparisons](../validation/convergence.md#legacy-scaling-data).

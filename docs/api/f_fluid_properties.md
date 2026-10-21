@@ -3,8 +3,8 @@
 One MATLAB evaluator serves every fluid profile. Add `src/` to the MATLAB path; no installation of the fitting repository or external runtime is needed.
 
 ```matlab
-addpath('src');
-p = fluids.mercury();                 % data only, all coefficients in SI
+imr_setup;
+p = fluids.water();                 % data only, all coefficients in SI
 state = f_fluid_properties(p,101325,298.15);
 state.liquid.rho                      % kg/m^3
 state.liquid.c                        % m/s
@@ -28,7 +28,7 @@ Pass a profile struct or a zero-argument function handle such as `@fluids.water`
 | `vapor.c`, `vapor.h` | Ideal-vapor sound speed and caloric slice | m/s, J/kg |
 | `latent_heat` | Vapor minus liquid enthalpy on the profile convention | J/kg |
 
-The Murnaghan family also reports `liquid.rho0`, `c0`, `K0` and `K0_prime` (kg/m³, m/s, Pa and dimensionless). These are temperature-specific zero-pressure values. See the [mercury equations and provenance](../model/mercury.md).
+The Murnaghan family also reports `liquid.rho0`, `c0`, `K0` and `K0_prime` (kg/m³, m/s, Pa and dimensionless). These are temperature-specific zero-pressure values. See the [Murnaghan coefficient convention](../model/fluids.md#murnaghan-coefficient-convention).
 
 ## Saturation
 

@@ -3,7 +3,7 @@
 
 MATLAB checks were not run in this cloud task. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
 
-The test suites live in `toolchain/` and run from that folder. The tests workflow `tests.yml` also runs the [fluid and constant-vapor suites](mercury.md), independently of stored references. It runs each suite in its own MATLAB process on every pull request, and fails if any suite fails.
+The test suites live in `toolchain/` and run from that folder. The tests workflow `tests.yml` also runs the shared [fluid/default checks](../reference/defaults.md) and [constant-vapor suite](polytropic.md), independently of stored trajectory references. It runs each suite in its own MATLAB process on every pull request, and fails if any suite fails.
 
 | Suite | Checks | Stored results |
 |---|---|---|
@@ -12,8 +12,9 @@ The test suites live in `toolchain/` and run from that folder. The tests workflo
 | [`s_test_suite_permutations`](permutations.md) | Every accepted combination of the solver options runs | None |
 | [`s_test_suite_regression`](regression.md) | `R(t)` matches the stored results | `tests/reference/` |
 | [`s_test_suite_diffmat`](operators.md) | The differentiation operators of `f_diff_mat` | None |
-| `s_test_suite_polytropic` | [Constant-vapor pressure derivative and histories](mercury.md) | None |
-| `s_test_suite_fluids` | [Water/Hg profiles, saturation and KM preparation](mercury.md) | Bundled `.m` observations/reference values |
+| `s_test_suite_polytropic` | [Constant-vapor pressure derivative and histories](polytropic.md) | None |
+| `s_test_suite_fluids` | [Water properties, defaults, overrides and custom profiles](../reference/defaults.md) | Frozen old default values |
+| `s_test_suite_mercury` | [Optional material properties and KM preparation](mercury.md) | Frozen property states and observations |
 | `s_test_suite_numerics` | [Driven enthalpy, time-step limits and input guards](numerics.md) | None |
 
 The generated equilibrium, Gaussian, permutation and regression suites use three solver modes. The separate polytropic and fluid suites also exercise these modes, while the operator suite checks matrices directly:
@@ -68,7 +69,8 @@ cd toolchain
 status=0
 for suite in s_test_suite_equilibrium s_test_suite_gaussian \
     s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression \
-    s_test_suite_polytropic s_test_suite_fluids s_test_suite_numerics; do
+    s_test_suite_polytropic s_test_suite_fluids s_test_suite_numerics \
+    s_test_suite_mercury; do
     matlab -batch "$suite" || status=1
 done
 exit "$status"

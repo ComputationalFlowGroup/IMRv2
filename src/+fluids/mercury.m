@@ -10,7 +10,6 @@
 % the implemented liquid density/acoustic evaluators or the KM equation.
 function p = mercury()
     p.name = 'mercury';
-    p.units = 'SI: Pa, K, kg, m, s, J, W';
     p.liquid.model = 'murnaghan';
     p.vapor.model = 'ideal';
     p.caloric.model = 'linear_enthalpy';
@@ -59,8 +58,7 @@ function p = mercury()
     p.required_viscous = {'mu'};
     p.required_thermal = {'atg','btg','atv','btv'};
     p.required_medium = {'km'};
-    % Unused transport scales are neutral placeholders for polytropic runs;
-    % the required_* lists prevent them being used for a thermal simulation.
-    p.defaults = struct('mu',0,'atg',1e-4,'btg',0,'atv',1e-4,'btv',0, ...
-        'km',1,'dmass',0);
+    % The source supplies no transport data. Required inputs above must be
+    % supplied for the active stress/thermal models, never guessed here.
+    p.transport = struct();
 end

@@ -8,7 +8,7 @@ Use the public functions below from MATLAB with `src/` on the path. All solver i
 | [`f_imr_spectral`](f_imr_spectral.md) | Spectral solver with optional local stress field |
 | [`f_imr_inputs`](f_imr_inputs.md) | Default input struct |
 | [`f_fluid_properties`](f_fluid_properties.md) | Shared liquid, vapor and saturation evaluation |
-| [Fluid profiles](../model/fluids.md) | MATLAB data files for water, mercury or another fluid |
+| [Fluid profiles](../model/fluids.md) | MATLAB material data files, independent of simulation choices |
 | [`f_dim2nondim`](f_dim2nondim.md) | SI-to-dimensionless conversion and reference scales |
 | [`f_imr_sweep`](f_imr_sweep.md) | Full-grid parameter study |
 

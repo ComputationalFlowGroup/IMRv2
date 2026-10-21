@@ -39,6 +39,7 @@ function [varin, ref] = f_dim2nondim(varargin)
         error('f_dim2nondim: unmatched inputs');
     end
     [varargin, fluid, saturation] = f_prepare_fluid(varargin);
+    water = fluids.water();
     
     % dimensional defaults (SI)
     R0 = 50e-6;
@@ -46,31 +47,30 @@ function [varin, ref] = f_dim2nondim(varargin)
     U0 = 0;
     TFin = [];
     TVector = [];
-    rho8 = 1064;
+    rho8 = water.liquid.rho;
     P8 = 101325;
-    C8 = 1484;
-    GAM = 3049.13*1e5;
-    S = 0.07;
+    C8 = water.liquid.c;
+    GAM = water.liquid.tait_pressure;
+    S = water.transport.surft;
     G = 1e3;
-    mu8 = 8.3283e-4;
+    mu8 = water.transport.mu;
     muo = [];
     Dmu = [];
     lambda1 = 1e-7;
     lambda2 = 1e-8;
     v_lambda = 0;
     T8 = 298.15;
-    ATg = 5.28e-5;
-    BTg = 1.165e-2;
-    ATv = 3.30e-5;
-    BTv = 1.742e-2;
-    Km = 0.55;
-    Cp = 4.181e3;
+    [ATg, BTg] = f_gas_conductivity();
+    ATv = water.transport.atv;
+    BTv = water.transport.btv;
+    Km = water.transport.km;
+    Cp = water.liquid.Cp;
     Dm = [];
-    D0 = 24.2e-6;
-    L_heat = 2264.76e3;
+    D0 = water.transport.dmass;
+    L_heat = water.caloric.latent_heat;
     % (J/mol-K) universal gas constant, (kg/mol) molecular weights
     Ru = 8.3144598;
-    Rv = Ru/18.01528E-3;
+    Rv = water.vapor.Rs;
     Ra = Ru/28.966E-3;
     Pv = [];
     P0 = [];
@@ -138,7 +138,7 @@ function [varin, ref] = f_dim2nondim(varargin)
         Dm = Km/(rho8*Cp);
     end
     if isempty(fluid)
-        saturation = f_fluid_properties(@fluids.water,[],T8);
+        saturation = f_fluid_properties(water,[],T8);
     end
     if isempty(Pv)
         Pv = saturation.pressure;
@@ -242,7 +242,13 @@ function [args, fluid, saturation] = f_prepare_fluid(args)
         'bubtherm','medtherm','masstrans','collapse','vapor','method', ...
         'spectral','scheme','divisions','nt','mt','nv','lv','lt', ...
         'reltol','abstol','jacobian','progdisplay','stress0','wave_type','eps3'};
-    opts = p.defaults;
+    % Only measured/reference transport belongs to a material profile.
+    % Gas conductivity, stress choices and forcing remain simulation inputs.
+    opts = p.transport;
+    [opts.atg, opts.btg] = f_gas_conductivity();
+    if isfield(p.liquid,'tait_pressure')
+        opts.gam = p.liquid.tait_pressure;
+    end
     for k = 1:numel(names)
         if strcmp(names{k},'fluid')
             continue
@@ -295,6 +301,16 @@ function [args, fluid, saturation] = f_prepare_fluid(args)
     if selected(2)
         f_required(p.required_medium,names);
     end
+    % Numerical scales for inactive terms with no material data. These are
+    % not estimates of physical transport: active models were required to
+    % provide the missing values above. Never put these in material files.
+    inactive = struct('mu',0,'km',0,'dmass',0,'atv',0,'btv',1);
+    fields = fieldnames(inactive);
+    for k = 1:numel(fields)
+        if ~isfield(opts,fields{k})
+            opts.(fields{k}) = inactive.(fields{k});
+        end
+    end
     T8 = f_option(opts,'t8',298.15);
     P8 = f_option(opts,'p8',101325);
     validateattributes(T8, {'numeric'}, {'scalar','real','finite','positive'});
@@ -342,8 +358,11 @@ function [args, fluid, saturation] = f_prepare_fluid(args)
         end
         gas_K = opts.atg*T8 + opts.btg;
         vapor_K = opts.atv*T8 + opts.btv;
-        if opts.atg <= 0 || gas_K <= 0 || vapor_K <= 0 || f_option(opts,'kappa',1.47) <= 1
+        if opts.atg <= 0 || gas_K <= 0 || vapor_K <= 0
             error('IMR:fluidThermal', 'Thermal runs need positive conductivities, positive gas slope and kappa > 1.');
+        end
+        if isfield(opts,'kappa') && opts.kappa <= 1
+            error('IMR:fluidThermal', 'Profile thermal preparation needs kappa > 1.');
         end
     end
     if selected(2)
@@ -359,6 +378,12 @@ function [args, fluid, saturation] = f_prepare_fluid(args)
     fluid.assumption = 'Fixed ambient liquid density and sound speed for pressure-form KM';
     fields = fieldnames(opts);
     args = reshape([fields, struct2cell(opts)].',1,[]);
+end
+
+% Reference noncondensable gas, separate from the liquid/vapor material.
+function [a, b] = f_gas_conductivity()
+    a = 5.28e-5; % W/(m K^2).
+    b = 1.165e-2; % W/(m K).
 end
 
 function value = f_option(opts, name, fallback)

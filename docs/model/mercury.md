@@ -8,6 +8,22 @@ At ambient absolute pressure `P8` and temperature `T8`, the converter evaluates 
 
 There is no Python implementation or runtime call in IMRv2. Coefficients, saturation data, examples and tests are MATLAB files bundled with this repository. The original fitting repository is a provenance reference, not an installation dependency.
 
+## Preparing a run
+
+Run `imr_setup` once. Use `f_dim2nondim('fluid',@fluids.mercury,...)`; the profile selects its only supported radial model, pressure-form KM. Stress and gas choices remain explicit:
+
+```matlab
+[args, ref] = f_dim2nondim('fluid',@fluids.mercury, ...
+    'radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
+    'mu',0,'surft',0,'kappa',1.4,'vapor',1, ...
+    'req',40e-6,'tvector',linspace(0,1e-6,41));
+[t,R] = f_imr_nodal(args{:});
+```
+
+Zero viscosity and surface tension above select an idealized demonstration. For physical simulations provide measured values at the selected conditions. `surft` and bubble-gas `kappa` are required; `mu` is required when `stress > 0`. Thermal runs require explicit `atg`, `btg`, `atv`, `btv`, positive conductivities and gas slope, and `kappa > 1`; medium heat additionally requires positive `km`. The profile intentionally contains no fabricated transport values.
+
+For migration, `fluids.mercury()` replaces `f_mercury_parameters`, `f_fluid_properties` replaces `f_mercury_eos` and `f_mercury_pvsat`, and the SI converter replaces `f_mercury_inputs`. Use the Newtonian settings in the example to reproduce that helper's model choices. `ref.fluid.profile` and `ref.fluid.input_pairs` preserve a data snapshot for replay.
+
 ## Fitted liquid slices
 
 `f_fluid_properties(@fluids.mercury,P,T)` evaluates

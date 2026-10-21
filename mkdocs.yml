@@ -122,7 +122,8 @@ nav:
       - "Viscosity integrals": theory/viscosity-integrals.md
   - Validation:
       - "Tests": validation/tests.md
-      - "Mercury and vapor derivative": validation/mercury.md
+      - "Polytropic pressure": validation/polytropic.md
+      - "Mercury": validation/mercury.md
       - "Numerical bug regressions": validation/numerics.md
       - "Equilibrium": validation/equilibrium.md
       - "Gaussian pulse": validation/gaussian.md
@@ -133,6 +134,9 @@ nav:
   - Reference:
       - "Compatibility": reference/compatibility.md
       - "Code map": reference/code-map.md
+      - "Defaults and units": reference/defaults.md
+      - "Logo": reference/branding.md
+      - "Distributions": reference/distributions.md
       - "Repository map": reference/repository.md
       - "CI": reference/ci.md
       - "Contributing": reference/contributing.md

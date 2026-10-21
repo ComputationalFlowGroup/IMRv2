@@ -1,4 +1,4 @@
-% file f_mercury_reference.m
+% file +imrtest/mercury_reference.m
 % brief contains frozen SI observations and independently computed reference values
 
 % Copyright (C) The IMR developers (see README.md)
@@ -13,7 +13,7 @@
 % observations: T, P, measured c, reference liquid rho, reference liquid c.
 % Measured c: Ayrinhac et al. (2014), doi:10.1063/1.4882695.
 % Do not regenerate this reference from the implementation under test.
-function [grid, observations] = f_mercury_reference()
+function [grid, observations] = mercury_reference()
     grid = [
     101325 296 13537.606801685575 1459.8241586959796 46232.842115384621 0.12108642092277325 143.00743680522584 352498.27241009532 25548241868.252754 7.3316509638517662
     100000000 296 13589.896174092764 1477.749793143229 46232.842115384621 0.000122690816 143.00743680522584 352498.27241009532 25548241868.252754 7.3316509638517662

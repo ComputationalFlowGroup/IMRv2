@@ -1,64 +1,57 @@
 # Fluid profiles
 
-Material data live in `src/+fluids/`. The package functions `fluids.water()` and `fluids.mercury()` return ordinary MATLAB structs; the shared `f_fluid_properties` evaluator contains the equations. A new fluid using an existing equation family needs one data file, with no changes to the radial equation or an ODE-time file read.
+Material data live in MATLAB's `src/+fluids/` package. `fluids.water()` returns a struct of SI liquid/vapor coefficients and reference transport values; `f_fluid_properties` evaluates the selected mathematical model. The simulation call chooses the bubble gas, stress model and forcing.
 
 ```matlab
-addpath('src');
-[args, ref] = f_dim2nondim('fluid',@fluids.mercury, ...
+imr_setup;
+[args, ref] = f_dim2nondim('fluid',@fluids.water, ...
     'radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
-    'mu',0,'surft',0,'kappa',1.4,'req',40e-6, ...
+    'mu',1e-3,'surft',0.072,'kappa',1.4,'req',40e-6, ...
     'tvector',linspace(0,1e-6,41));
 [t,R] = f_imr_nodal(args{:});
 plot(t*ref.t0,R*ref.R0);
 ```
 
-Zero viscosity and surface tension above select an idealized demonstration. For a physical run, supply measured values at the selected conditions. `kappa` describes the noncondensable bubble gas and is separate from each phase's heat-capacity ratio.
-
-## Included profiles
-
-| Profile | Liquid properties | Saturation | Solver preparation |
-|---|---|---|---|
-| `@fluids.water` | Legacy constant reference values | Exponential water fit | Existing options, subject to solver compatibility |
-| `@fluids.mercury` | Fitted temperature-dependent Murnaghan slices | Measured table | Pressure-form KM only; ambient vapor optional |
-
-The water profile preserves the converter's historical values, including `rho8 = 1064 kg/m³`. It is a reference set, **not a calibrated temperature-dependent water EoS**. Its constant latent heat and caloric offsets reproduce legacy conversion; its ideal-vapor acoustic ratio is an approximate reference value, not an additional fitted property. Selecting radial 3–6 with water still selects the existing Tait/Hugoniot equations and their independent coefficients. It does not turn the constant-property profile into those equations.
-
-Mercury coefficients and frozen reference data are unchanged. [Its model page](mercury.md) explains the source domains and why an acoustically consistent enthalpy extension remains deferred. The generic interface preserves those scientific restrictions.
+The water profile preserves the legacy reference set, including `rho8 = 1064 kg/m³`. It is **not a calibrated temperature-dependent water EoS**. Constant latent heat and caloric offsets reproduce legacy conversion; its ideal-vapor acoustic ratio is an approximate diagnostic. Selecting radial 3–6 still selects the separate Tait/Hugoniot equations and their coefficients.
 
 ## Data schema
 
-Copy an included profile to `src/+fluids/myfluid.m`, rename its function to `myfluid`, and edit all relevant coefficients, provenance and limits. Select it with `'fluid',@fluids.myfluid`. Profiles contain data, with no fitted calculations or transport fallbacks hidden in the evaluator.
+Copy `water.m` to `src/+fluids/myfluid.m`, rename the function to `myfluid`, and edit the relevant data, provenance and capabilities. Select it with `'fluid',@fluids.myfluid`. Existing equation families need no new solver file or ODE-time file read.
 
 | Field | Purpose |
 |---|---|
-| `name`, `source`, `commit`, `units` | Identity, provenance and SI convention |
+| `name`, `source`, `commit` | Material identity and reproducible provenance |
 | `temperature_range`, `pressure_range` | Accepted bulk-property domain |
-| `sound_temperature_range` | Measured acoustic interval; warns outside |
+| `sound_temperature_range` | Measured acoustic interval; warn outside |
 | `liquid.model` | `constant` or `murnaghan` |
-| `liquid` coefficients | Constant `rho`, `c`, or the Murnaghan coefficients; both require `Cp`, `q` |
+| `liquid` coefficients | Constant `rho`, `c`, or Murnaghan coefficients; both require `Cp`, `q` |
+| `liquid.tait_pressure` | Optional SI Tait pressure shift; separate from the bulk evaluator |
 | `vapor.model`, `Rs`, `gamma` | `ideal`, specific gas constant and acoustic heat-capacity ratio |
 | `caloric.model` | `linear_enthalpy` (both phases' `Cp`, `q`) or `constant_latent_heat` (`caloric.latent_heat`) |
 | `saturation.model` | `exp_inverse_temperature` (`c1`, `c2`) or `table_logp_inverseT` (ascending row vectors `T`, `P`) |
-| `saturation.temperature_range` | Saturation domain, independent of bulk-property domain |
-| `defaults` | SI transport defaults; gas, stress and forcing choices belong in the simulation call |
-| `derived_inputs` | SI inputs locked to evaluated EoS values; conflicting user pairs are rejected |
-| `required`, `required_viscous`, `required_thermal`, `required_medium` | Inputs the user must supply, unconditionally or for the selected model |
-| `capabilities.radial`, `mass_transfer`, `collapse` | Supported radial selectors and phase-change capabilities |
+| `saturation.temperature_range` | Saturation domain, independent of the bulk-property domain |
+| `transport` | Available SI `surft`, `mu`, `km`, `dmass`, `atv`, `btv`; each has a unit beside its assignment |
+| `derived_inputs` | SI inputs protected because the EoS determines them |
+| `required`, `required_viscous`, `required_thermal`, `required_medium` | Inputs callers must explicitly provide for active models |
+| `capabilities.radial`, `mass_transfer`, `collapse` | Allowed radial models and phase-change capabilities |
 
-Set conservative capabilities backed by your model and data. For a table, use positive, strictly increasing temperature nodes, positive pressures and matching row-vector lengths. Its accepted range must stay within the nodes. Dynamic mass transfer requires the exponential law used by the current wall closure; setting a capability flag cannot create that law. General solver restrictions still apply.
+An empty transport struct means the source supplies no such data. Missing values must not be copied from another material or disguised as profile defaults. The former `p.defaults` and unused `p.units` fields have been removed; [defaults and units](../reference/defaults.md) explains where their responsibilities went. SI units are the fixed API contract, not a string selected by the profile.
 
-A new mathematical EoS family needs an additional model branch and tests in `f_fluid_properties`. The present Murnaghan family follows the mercury source's coefficient convention; it is not a universal parameterization for every liquid.
+Set capabilities conservatively. Table saturation needs positive temperatures and pressures, matching row-vector lengths and strictly increasing temperatures. Its accepted domain must stay within the nodes. Dynamic mass transfer requires the exponential law analytically inverted by the wall closure; changing a capability flag cannot create that law. General solver compatibility also applies.
 
-## Migration from the mercury-specific API
+## Murnaghan coefficient convention
 
-| Previous call | Replacement |
-|---|---|
-| `f_mercury_parameters()` | `fluids.mercury()` |
-| `f_mercury_eos(P,T)` | `f_fluid_properties(@fluids.mercury,P,T)` |
-| `f_mercury_pvsat(T)` | `sat = f_fluid_properties(@fluids.mercury,[],T); Pv = sat.pressure;` |
-| `f_mercury_inputs(...)` | `f_dim2nondim('fluid',@fluids.mercury,...)` |
-| `[Pv,~,c2] = f_pvsat(T)` | `sat = f_fluid_properties(@fluids.water,[],T);` then `sat.pressure`, `sat.c2` |
+The shared evaluator supports a source convention with temperature-dependent zero-pressure density and sound speed:
 
-The four `f_mercury_*` functions and `f_pvsat` are removed. `ref.fluid` replaces `ref.mercury`, with the resolved profile in `ref.fluid.profile`. Calls to `f_dim2nondim` without `fluid` retain the legacy conversion and dimensionless-override behavior. Explicit profiles reject dimensionless physical overrides so an EoS-derived value cannot be silently replaced after conversion.
+$$
+\rho_0=a_\rho T+b_\rho,\quad c_0=c_{0,0}+c_{0,1}T,\quad
+K_0=\rho_0c_0^2/\gamma,\quad n=1+2K_0s_1/c_0.
+$$
 
-The shared converter retains its ordinary stress and elasticity defaults for every fluid. To reproduce the old mercury helper's Newtonian setup, explicitly select `stress = 1`, `g = 0` and `lambda1 = lambda2 = 0`, as above. The radial selector defaults to the first supported branch if the ordinary `radial = 1` is unavailable; mercury therefore selects radial 2. A profile does not supply a noncondensable gas or a material stress law.
+It then evaluates $\rho=\rho_0(1+nP/K_0)^{1/n}$ and $c^2=\gamma(K_0+nP)/\rho$. Profile coefficient names are `rho0_a`, `rho0_b`, `c0_0`, `c0_1`, `gamma` and `s1`. This is a particular property-family convention, not a universal calibration for all liquids. Density and reported acoustics must be checked for thermodynamic consistency before coupling a new profile to enthalpy radial models.
+
+A genuinely new equation family needs a model branch and tests in `f_fluid_properties`. A new profile using an existing family needs only data and appropriate validation evidence.
+
+## Optional material add-on
+
+The full distribution includes a [mercury profile](mercury.md) with its own measured-data provenance, input requirements and restrictions. Its profile, example, test suite and fixtures are independent of the water reference path.
