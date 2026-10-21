@@ -1,4 +1,4 @@
-% file f_mercury_parameters.m
+% file +fluids/mercury.m
 % brief returns the versioned liquid and vapor mercury fit coefficients
 
 % Copyright (C) The IMR developers (see README.md)
@@ -8,13 +8,18 @@
 % See docs/model/mercury.md for equations, units and original data citations.
 % Gamma is provisional and s2 is a surface-fit diagnostic. Neither enters
 % the implemented liquid density/acoustic evaluators or the KM equation.
-function p = f_mercury_parameters()
+function p = mercury()
+    p.name = 'mercury';
+    p.units = 'SI: Pa, K, kg, m, s, J, W';
+    p.liquid.model = 'murnaghan';
+    p.vapor.model = 'ideal';
+    p.caloric.model = 'linear_enthalpy';
     p.source = 'mrodrig6/mercury_eos';
     p.commit = '5d51892ee4eef7d898d33ac81a02bee52d554165';
     p.temperature_range = [275 550];
     p.sound_temperature_range = [296 513];
     p.pressure_range = [0 6.23e9];
-
+    
     p.liquid.gamma = 1.129196028264567;
     p.liquid.Gamma = 0.129196028264567;
     p.liquid.Cv = 121.07661322485443;
@@ -31,7 +36,7 @@ function p = f_mercury_parameters()
     p.liquid.Tref = 412.5;
     p.liquid.cs_rms_surface_percent = 0.49595540334060295;
     p.liquid.cs_rms_canonical_percent = 0.7124894179683818;
-
+    
     p.vapor.gamma = 1.6668832801308178;
     p.vapor.Gamma = 0.6668832801308178;
     p.vapor.Cv = 62.154204843565914;
@@ -39,8 +44,23 @@ function p = f_mercury_parameters()
     p.vapor.q = 321831.5461763998;
     p.vapor.Rs = 41.4496;
     p.vapor.cs_rms_percent = 0.03343476679216099;
+    p.saturation.model = 'table_logp_inverseT';
+    p.saturation.temperature_range = [298.15 550];
     % Fokin, Popov and Naurzakov (2011), as transcribed in source data.
-    p.vapor.saturation_T = [298.15 300 350 400 450 500 550];
-    p.vapor.saturation_P = [0.26117 0.30427 10.148 138.75 ...
+    p.saturation.T = [298.15 300 350 400 450 500 550];
+    p.saturation.P = [0.26117 0.30427 10.148 138.75 ...
         1049.1 5247.7 19457];
+    p.capabilities.radial = 2;
+    p.capabilities.mass_transfer = false;
+    p.capabilities.collapse = false;
+    p.derived_inputs = {'rho8','c8','cp','rv','pv','lheat','gam', ...
+        'nstate','hugoniot_s'};
+    p.required = {'surft','kappa'};
+    p.required_viscous = {'mu'};
+    p.required_thermal = {'atg','btg','atv','btv'};
+    p.required_medium = {'km'};
+    % Unused transport scales are neutral placeholders for polytropic runs;
+    % the required_* lists prevent them being used for a thermal simulation.
+    p.defaults = struct('mu',0,'atg',1e-4,'btg',0,'atv',1e-4,'btv',0, ...
+        'km',1,'dmass',0);
 end
