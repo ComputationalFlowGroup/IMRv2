@@ -413,8 +413,8 @@ function varargout = f_imr_spectral(varargin)
             end
         else
             % polytropic gas + vapor
-            P = (Pb_star-Pv_star)*(1/R)^(3*kappa) + Pv_star;
-            Pdot = -3*kappa*P*Rdot/R;
+            [P, Pdot] = f_polytropic_pressure(R, Rdot, ...
+                Pb_star-Pv_star, Pv_star, kappa);
         end
         
         % pressure waveform
