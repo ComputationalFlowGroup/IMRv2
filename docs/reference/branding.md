@@ -18,4 +18,6 @@ pdflatex -halt-on-error -output-directory=/tmp/imr-logos docs/assets/logos/imr-b
 pdftocairo -svg /tmp/imr-logos/imr-bubble-field.pdf docs/assets/logos/imr-bubble-field.svg
 ```
 
+The SVG uses a 1200-pixel intrinsic display width so the README logo fills the available content width. After rebuilding it, keep the root SVG attributes `width="1200"` and `height="508.7"` with the original `viewBox`. This enlarges the display without rasterizing or changing the artwork.
+
 PDF/SVG exports retain vector geometry. MATLAB does not need TeX or these artwork tools.
