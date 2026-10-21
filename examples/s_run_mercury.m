@@ -1,64 +1,23 @@
+% file s_run_mercury.m
+% brief demonstrates mercury properties in pressure-form Keller-Miksis
+
 % Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
-clc;
+% Run in base MATLAB. No Python, toolbox or mercury_eos checkout is needed.
+% This example deliberately uses zero viscosity, elasticity and surface
+% tension, not assumed transport coefficients for real mercury. Supply
+% measured SI mu and surft for a physical material case.
 clear;
-close;
-
-% the solvers are in src/, one folder up from these examples
 addpath(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'src'));
 
-% equation options
-R0 = 2.447495043190468e-04;
-Req = 3.008409399929516e-05;
-ratio = Req/R0;
-Req = R0;
-tfin = 2e-3;
-kappa = 1.4;
-Lheat = 2.378193575129533e+04;
-T8 = 298.15;
-rho8 = 1064;
-tvector = linspace(0,tfin,1000);
-radial = 2;
-vapor = 1;
-bubtherm = 0;
-medtherm = 0;
-masstrans = 0;
-stress = 1;
-wave_type = 1;
-dt = 3e-4;
-tw = 1e-4;
-pA = 1e5;
-varin = {'progdisplay',0,...
-         'bubtherm',bubtherm,...
-         'tvector',tvector,...
-         'vapor',vapor,...
-         'medtherm',medtherm,...
-         'method',23,...
-         'stress',stress,...
-         'mu',0.5,...
-         'g',3.125000000000000e+02,...
-         'lambda1',0,...
-         'r0',R0,...
-         'req',Req,...
-         'kappa',kappa,...
-         'masstrans',masstrans,...
-         't8',T8,...
-         'rho8',rho8,...
-         'wave_type',wave_type,...
-         'dt',dt,...
-         'tw',tw,...
-         'pA',pA};
-% dimensional (SI) values converted to the solver's dimensionless inputs
-varin = f_dim2nondim(varin{:});
-
-[t3,R3,U3,P3] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
-radial = 5;
-[t4,R4,U4,P4] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
-% radial = 6;
-% [t5,R5,U5,P5] = f_imr_nodal(varin{:},'radial',radial,'Nt',50,'Mt',50);
-figure(1)
-hold on;
-plot(t3,R3,'b-')
-plot(t4,R4,'k--')
-% plot(t5,R5,'r:')
+[args, ref] = f_mercury_inputs('t8',298.15,'p8',101325, ...
+    'r0',50e-6,'req',40e-6,'mu',0,'surft',0,'kappa',1.4, ...
+    'vapor',1,'tvector',linspace(0,12e-6,200));
+[t, R] = f_imr_nodal(args{:});
+fprintf('Hg ambient density: %.6f kg/m^3\n', ref.rho8);
+fprintf('Hg ambient sound speed: %.6f m/s\n', ref.mercury.properties.liquid.c);
+fprintf('Hg ambient saturation pressure: %.6f Pa\n', ref.mercury.Pv);
+plot(t*ref.t0*1e6, R*ref.R0*1e6);
+xlabel('Time (microseconds)');
+ylabel('Bubble radius (micrometers)');

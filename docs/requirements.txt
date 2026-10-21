@@ -1,3 +1,4 @@
 # Local documentation build; no deployment tooling.
 mkdocs>=1.6,<2
 mkdocs-material>=9.7,<10
+mkdocs-include-markdown-plugin>=7.3,<8

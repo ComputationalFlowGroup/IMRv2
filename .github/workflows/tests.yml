@@ -24,14 +24,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # the equilibrium, Gaussian, permutation and operator suites need no
-        # stored results; the regression suite compares with tests/reference
+        # Only regression needs stored .mat results in tests/reference.
+        # Mercury uses frozen observations and predictions bundled as MATLAB.
         suite:
           - s_test_suite_equilibrium
           - s_test_suite_gaussian
           - s_test_suite_permutations
           - s_test_suite_diffmat
           - s_test_suite_regression
+          - s_test_suite_polytropic
+          - s_test_suite_mercury
 
     steps:
       - name: Checkout Repository

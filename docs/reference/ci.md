@@ -4,7 +4,7 @@ The five workflows below run on pushes and pull requests to `main`, and support 
 
 | Workflow | File | What it checks | Local equivalent |
 |---|---|---|---|
-| IMR test suites | `.github/workflows/tests.yml` | Five separate MATLAB jobs on R2023a; any failure fails the workflow | [Test commands](../validation/tests.md#run-the-suites) |
+| IMR test suites | `.github/workflows/tests.yml` | Seven separate MATLAB jobs on R2023a; any failure fails the workflow | [Test commands](../validation/tests.md#run-the-suites) |
 | Neatness Check | `.github/workflows/lint.yml` | `checkcode` on `src/` and `toolchain/`, R2023a | `matlab -batch "addpath('toolchain'); s_lint"` from root |
 | Format check | `.github/workflows/format.yml` | Runs `s_format` and checks for a Git diff; default MATLAB release from setup action | `matlab -batch "cd('toolchain'); s_format"`, then `git diff --exit-code` |
 | Code Spellcheck | `.github/workflows/spellcheck.yml` | Code and documentation spelling | Commands below, from root |
@@ -36,4 +36,4 @@ python -m pip install -r docs/requirements.txt
 mkdocs build --strict
 ```
 
-The build checks navigation, missing pages, links and anchors. `docs/hooks.py` makes README the home and rewrites its `docs/` links; it does not edit README or deploy anything. Retain the Material light/dark theme, copy buttons and MathJax configuration when adding pages. Add every new page to navigation.
+The build checks navigation, missing pages, links and anchors. The configured include-markdown plugin reads README as the home page and rewrites relative links. No custom Python source is bundled with IMRv2; simulation and numerical tests run in MATLAB alone. Retain the Material light/dark theme, copy buttons and MathJax configuration when adding pages. Add every new page to navigation.

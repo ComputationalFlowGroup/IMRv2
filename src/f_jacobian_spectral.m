@@ -112,7 +112,8 @@ function J = f_jacobian_spectral(t, X, jp)
         dP = jp.Pb_star - jp.Pv_star;
         P = d.fun(R, dP*R.v^(-3*jp.kappa) + jp.Pv_star, ...
             -3*jp.kappa*dP*R.v^(-3*jp.kappa-1));
-        Pdot = d.scale(d.div(d.mul(P, Rdot), R), -3*jp.kappa);
+        Pg = d.sub(P, d.con(jp.Pv_star));
+        Pdot = d.scale(d.div(d.mul(Pg, Rdot), R), -3*jp.kappa);
     end
     J(3,:) = Pdot.J;
     

@@ -1,9 +1,9 @@
 # Test suites
 
 
-MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
+MATLAB checks were not run in this cloud task. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
 
-The test suites live in `toolchain/` and run from that folder. The tests workflow `tests.yml` runs each one in its own MATLAB process on every pull request, and fails if any suite fails.
+The test suites live in `toolchain/` and run from that folder. The tests workflow `tests.yml` also runs the [mercury and constant-vapor suites](mercury.md), independently of stored references. It runs each suite in its own MATLAB process on every pull request, and fails if any suite fails.
 
 | Suite | Checks | Stored results |
 |---|---|---|
@@ -12,8 +12,10 @@ The test suites live in `toolchain/` and run from that folder. The tests workflo
 | [`s_test_suite_permutations`](permutations.md) | Every accepted combination of the solver options runs | None |
 | [`s_test_suite_regression`](regression.md) | `R(t)` matches the stored results | `tests/reference/` |
 | [`s_test_suite_diffmat`](operators.md) | The differentiation operators of `f_diff_mat` | None |
+| `s_test_suite_polytropic` | [Constant-vapor pressure derivative and histories](mercury.md) | None |
+| `s_test_suite_mercury` | [Hg properties, scaling and KM preparation](mercury.md) | Bundled `.m` observations/reference values |
 
-All but the operator suite run every case in three solver modes:
+The generated equilibrium, Gaussian, permutation and regression suites use three solver modes. The separate polytropic and mercury suites also exercise these modes, while the operator suite checks matrices directly:
 
 | Mode | Solver |
 |---|---|
@@ -64,7 +66,8 @@ From the checkout root, use a shell with licensed MATLAB on its path. Each suite
 cd toolchain
 status=0
 for suite in s_test_suite_equilibrium s_test_suite_gaussian \
-    s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression; do
+    s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression \
+    s_test_suite_polytropic s_test_suite_mercury; do
     matlab -batch "$suite" || status=1
 done
 exit "$status"
