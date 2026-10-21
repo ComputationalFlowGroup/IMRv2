@@ -22,4 +22,4 @@ Most runs use 0 to 2 µs for a 50 µm bubble with five output times and coarse g
 
 ## Check
 
-The suite checks that the radius history has at least two finite values. With `tvector`, it also checks the requested output count. For `tfin`, it uses the returned radius count as its own expected count and does not retrieve time, so it does not independently assert final-time completion.
+The suite requires at least two finite radius values, matching finite times, and completion at the requested final time for both `tvector` and `tfin`. With `tvector`, it also checks the requested output count. An integrator warning with a truncated history therefore cannot silently pass as a completed `tfin` run. Empty suites fail rather than reporting zero passed cases as success.

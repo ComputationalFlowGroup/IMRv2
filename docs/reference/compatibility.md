@@ -66,7 +66,7 @@ The finite difference and Chebyshev schemes of `f_imr_nodal` were run separately
 
 ## Mercury material preparation
 
-The [mercury helper](../api/f_mercury_inputs.md) prepares ambient properties for radial 2 only and rejects dynamic mass transfer and collapse. This is a material-helper restriction, separate from the generic solver feature matrix. Thermal runs need explicit conductivities. Radial 5–6 remain the existing distinct Hugoniot model.
+The [mercury profile preparation](../api/f_dim2nondim.md) prepares ambient properties for radial 2 only and rejects dynamic mass transfer and collapse. This is a profile capability restriction, separate from the generic solver feature matrix. Thermal runs need explicit conductivities. Radial 5–6 remain the existing distinct Hugoniot model.
 
 ## Requirements
 

@@ -3,7 +3,7 @@
 
 MATLAB checks were not run in this cloud task. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
 
-The test suites live in `toolchain/` and run from that folder. The tests workflow `tests.yml` also runs the [mercury and constant-vapor suites](mercury.md), independently of stored references. It runs each suite in its own MATLAB process on every pull request, and fails if any suite fails.
+The test suites live in `toolchain/` and run from that folder. The tests workflow `tests.yml` also runs the [fluid and constant-vapor suites](mercury.md), independently of stored references. It runs each suite in its own MATLAB process on every pull request, and fails if any suite fails.
 
 | Suite | Checks | Stored results |
 |---|---|---|
@@ -13,9 +13,10 @@ The test suites live in `toolchain/` and run from that folder. The tests workflo
 | [`s_test_suite_regression`](regression.md) | `R(t)` matches the stored results | `tests/reference/` |
 | [`s_test_suite_diffmat`](operators.md) | The differentiation operators of `f_diff_mat` | None |
 | `s_test_suite_polytropic` | [Constant-vapor pressure derivative and histories](mercury.md) | None |
-| `s_test_suite_mercury` | [Hg properties, scaling and KM preparation](mercury.md) | Bundled `.m` observations/reference values |
+| `s_test_suite_fluids` | [Water/Hg profiles, saturation and KM preparation](mercury.md) | Bundled `.m` observations/reference values |
+| `s_test_suite_numerics` | [Driven enthalpy, time-step limits and input guards](numerics.md) | None |
 
-The generated equilibrium, Gaussian, permutation and regression suites use three solver modes. The separate polytropic and mercury suites also exercise these modes, while the operator suite checks matrices directly:
+The generated equilibrium, Gaussian, permutation and regression suites use three solver modes. The separate polytropic and fluid suites also exercise these modes, while the operator suite checks matrices directly:
 
 | Mode | Solver |
 |---|---|
@@ -55,8 +56,8 @@ Finite differences need finer grids because they are second-order accurate. The 
 
 ## Helpers
 
-- `f_test_run(c)` runs one case with the solver's console output hidden. It returns `R`, or the error message if the run fails, so one failing case does not stop a suite.
-- `f_test_report(name, cases, failed, msg)` prints the passes per mode and every failure with its mode and key. It then raises an error if any case failed. In a batch run (`matlab -batch`, as in CI) the error exits MATLAB with a nonzero code; interactively it only stops the script.
+- `f_test_run(c)` runs one case with the solver's console output hidden. It returns `[R, msg, t]`, with an empty message on success and the actual time history as an optional third output, or the error message if the run fails, so one failing case does not stop a suite.
+- `f_test_report(name, cases, failed, msg)` prints the passes per mode and every failure with its mode and key. It then raises an error if any case failed or no cases were generated. In a batch run (`matlab -batch`, as in CI) the error exits MATLAB with a nonzero code; interactively it only stops the script.
 
 ## Run the suites
 
@@ -67,7 +68,7 @@ cd toolchain
 status=0
 for suite in s_test_suite_equilibrium s_test_suite_gaussian \
     s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression \
-    s_test_suite_polytropic s_test_suite_mercury; do
+    s_test_suite_polytropic s_test_suite_fluids s_test_suite_numerics; do
     matlab -batch "$suite" || status=1
 done
 exit "$status"

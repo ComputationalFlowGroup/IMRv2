@@ -7,9 +7,13 @@ The nodal solver enforces wall heat balance algebraically instead of integrating
 The nested `f_wall_theta_exact` in `src/f_imr_nodal.m` solves
 `c1*Tw + c2*theta_w + K = 0`. `K` collects the other nodes' wall-row contributions. Set `ag = alpha_g`, `bg = beta_g` and
 
-$$u=\sqrt{(ag+bg)^2+2ag\theta_w},\quad
-T_w=(u-bg)/ag,\quad
-\theta_w=(u^2-(ag+bg)^2)/(2ag).$$
+$$
+u=\sqrt{(a_g+b_g)^2+2a_g\theta_w},\qquad
+T_w=\frac{u-b_g}{a_g},\qquad
+\theta_w=\frac{u^2-(a_g+b_g)^2}{2a_g}.
+$$
+
+Here $a_g$ and $b_g$ are the code variables `ag` and `bg`; $T_w$ is wall temperature divided by ambient temperature. The Kirchhoff variable $\theta_w$ is the integral of dimensionless conductivity from ambient temperature to $T_w$, so ambient conditions give $T_w=1$ and $\theta_w=0$. The nonnegative quantity $u=a_gT_w+b_g$ is conductivity at the wall; choosing an admissible root is a physical constraint. This inverse requires positive $a_g$; unsupported zero-slope thermal inputs are rejected during validation.
 
 Then `c2*u^2 + 2*c1*u + q = 0`, where
 `q = -2*c1*bg - c2*(ag+bg)^2 + 2*ag*K`.

@@ -1,6 +1,7 @@
 // MathJax setup for pymdownx.arithmatex (generic mode): equations written as
-// $...$ or $$...$$ in the Markdown pages are typeset on every page load,
-// including the instant navigation of the Material theme.
+// Subscribe only after the CDN script has initialized MathJax. Material's
+// document$ emits immediately; subscribing at config load can otherwise
+// access startup.output before it exists and leave equations unrendered.
 window.MathJax = {
   tex: {
     inlineMath: [["\\(", "\\)"]],
@@ -9,14 +10,21 @@ window.MathJax = {
     processEnvironments: true
   },
   options: {
-    ignoreHtmlClass: ".*|",
+    ignoreHtmlClass: ".*",
     processHtmlClass: "arithmatex"
+  },
+  startup: {
+    typeset: false,
+    ready: () => {
+      MathJax.startup.defaultReady();
+      document$.subscribe(() => {
+        // Serialize page changes with initialization and previous rendering.
+        MathJax.startup.promise = MathJax.startup.promise.then(() => {
+          MathJax.typesetClear();
+          MathJax.texReset();
+          return MathJax.typesetPromise();
+        }).catch(error => console.error("MathJax typesetting failed:", error));
+      });
+    }
   }
 };
-
-document$.subscribe(() => {
-  MathJax.startup.output.clearCache();
-  MathJax.typesetClear();
-  MathJax.texReset();
-  MathJax.typesetPromise();
-});

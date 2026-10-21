@@ -33,7 +33,7 @@ function [t,X] = f_odesolve(bubble, init, method, divisions, tspan, Sp, rtol, at
     if divisions == 0
         options = odeset('RelTol',rtol,'AbsTol',atol);
     else
-        options = odeset('MaxStep',tspan(end)/divisions,'RelTol',rtol, ...
+        options = odeset('MaxStep',(tspan(end)-tspan(1))/divisions,'RelTol',rtol, ...
             'AbsTol',atol);
     end
     if ~isempty(Sp)
@@ -81,7 +81,7 @@ function [t,X] = f_cvodes(bubble, init, divisions, tspan, Sp, rtol, atol)
         end
     end
     if divisions ~= 0
-        F.SolverOptions.MaxStep = tspan(end)/divisions;
+        F.SolverOptions.MaxStep = (tspan(end)-tspan(1))/divisions;
     end
     if numel(tspan) == 2
         sol = solve(F, tspan(1), tspan(2));

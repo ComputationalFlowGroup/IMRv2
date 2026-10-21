@@ -7,8 +7,8 @@ Use the public functions below from MATLAB with `src/` on the path. All solver i
 | [`f_imr_nodal`](f_imr_nodal.md) | Nodal solver with finite-difference or Chebyshev operators |
 | [`f_imr_spectral`](f_imr_spectral.md) | Spectral solver with optional local stress field |
 | [`f_imr_inputs`](f_imr_inputs.md) | Default input struct |
-| [Mercury properties](f_mercury_eos.md) | Liquid/vapor fit coefficients and SI evaluation in base MATLAB |
-| [`f_mercury_inputs`](f_mercury_inputs.md) | Ambient mercury preparation for pressure-form KM |
+| [`f_fluid_properties`](f_fluid_properties.md) | Shared liquid, vapor and saturation evaluation |
+| [Fluid profiles](../model/fluids.md) | MATLAB data files for water, mercury or another fluid |
 | [`f_dim2nondim`](f_dim2nondim.md) | SI-to-dimensionless conversion and reference scales |
 | [`f_imr_sweep`](f_imr_sweep.md) | Full-grid parameter study |
 

@@ -229,7 +229,10 @@ function p = f_checkers(p)
     
     % thermal transport
     if p.bubtherm == 1
-        f_positive({'chi'}, {p.chi});
+        % The implemented conductivity-transform inverse divides by
+        % alpha_g. Reject its unsupported zero-slope limit before it
+        % generates NaN during initialization or wall reconstruction.
+        f_positive({'chi','alpha_g'}, {p.chi, p.alpha_g});
         f_nonnegative({'alpha_g','beta_g','alpha_v','beta_v'}, ...
             {p.alpha_g, p.beta_g, p.alpha_v, p.beta_v});
     end

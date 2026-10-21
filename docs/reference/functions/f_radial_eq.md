@@ -11,7 +11,7 @@
 5. **Keller–Miksis with Mie–Grüneisen EoS (Model 5)**
 6. **Gilmore with Mie–Grüneisen EoS (Model 6)**
 7. **EOS Helper Functions**:
-    - `f_mie_gruneisen_eos_scalar`: sound speed `C`, enthalpy `hB` and `hH = 1/rho` at the wall pressure
+    - `f_mie_gruneisen_eos_scalar`: sound speed `C`, enthalpy `hB` and `hH = 1/rho` at the wall or far-field pressure
     - `f_mie_mu`: density strain `mu = rho - 1` at a pressure
 
 ## Inputs
@@ -21,13 +21,13 @@
 | `radial`    | Model selector (1–6)                      | –     |
 | `P`         | Internal bubble pressure (non-dim)        | –     |
 | `Pdot`      | Time derivative of `P`                    | –     |
-| `Pf8`       | External pressure (non-dim)               | –     |
+| `Pf8`       | Far-field pressure above ambient (non-dim)               | –     |
 | `Pf8dot`    | Time derivative of `Pf8`                  | –     |
 | `iWe`       | Inverse Weber number                      | –     |
 | `R`         | Bubble radius (non-dim)                   | –     |
 | `Rdot`      | Bubble wall velocity (non-dim)            | –     |
 | `S`         | Stress term (non-dim)                     | –     |
-| `Sdot`      | Time derivative of `S`                    | –     |
+| `Sdot`      | Acceleration-independent part of the stress derivative                    | –     |
 | `Cstar`     | Non-dim sound speed                       | –     |
 | `sam`       | `1 + GAMa`, Tait pressure at rest         | –     |
 | `no`        | `(nstate - 1)/nstate`                     | –     |
@@ -48,6 +48,6 @@
 ## Notes
 
 - The EOS helper functions work elementwise, on one pressure or a row of them.
-- `R`, `Rdot` and the other state inputs may be row vectors, with `X` holding one state per column (the batched right-hand side of [`f_imr_nodal`](../../method/time-integration.md#batched-right-hand-side)). Every operation is elementwise across the columns, in the same order as for one state, so a single state gives the same result as before bit for bit.
-- Mie–Grüneisen enthalpy: with `s = hugoniot_s` and `A = p/Cstar^2 = g(mu) = mu*(1 + nog*mu)/(1 - s*mu)^2`, `h(P) = int_1^P dp/(1 + mu)` is integrated by parts, `h = [p/(1 + mu)] + Cstar^2*int g/(1 + mu)^2 dmu`, and the partial fractions of `g/(1 + mu)^2` (poles at `mu = -1` and `mu = 1/s`) give it in closed form. The differences are written so that they hold for `s = 0` and near `P = 1`. Against an adaptive `integral` at `1e-12` the closed form agrees to `2.4e-13` relative to `|P - 1|` over 396 states (`Cstar` 5–1000, `nog` 0.5–2.5, `s` 0–2, `P` from -0.5 to `1e4`). It replaces an adaptive `integral` on every right-hand-side call, and radial 5 and 6 runs take about half the time, with `R(t)` unchanged to `1e-13`.
+- `R`, `Rdot` and the other state inputs may be row vectors, with `X` holding one state per column (the batched right-hand side of [`f_imr_nodal`](../../method/time-integration.md#batched-right-hand-side)). Operations are elementwise across the columns. Driven enthalpy branches now evaluate far-field enthalpy and its pressure derivative with the same EoS as the wall; see the [equations](../../theory/radial-equations.md#enthalpy-forms).
+- Historical unforced comparison (not rerun for this change): Mie–Grüneisen enthalpy: with `s = hugoniot_s` and `A = p/Cstar^2 = g(mu) = mu*(1 + nog*mu)/(1 - s*mu)^2`, `h(P) = int_1^P dp/(1 + mu)` is integrated by parts, `h = [p/(1 + mu)] + Cstar^2*int g/(1 + mu)^2 dmu`, and the partial fractions of `g/(1 + mu)^2` (poles at `mu = -1` and `mu = 1/s`) give it in closed form. The differences are written so that they hold for `s = 0` and near `P = 1`. Against an adaptive `integral` at `1e-12` the closed form agrees to `2.4e-13` relative to `|P - 1|` over 396 states (`Cstar` 5–1000, `nog` 0.5–2.5, `s` 0–2, `P` from -0.5 to `1e4`). It replaces an adaptive `integral` on every right-hand-side call, and radial 5 and 6 runs take about half the time, with `R(t)` unchanged to `1e-13`.
 - `f_checkers` allows radial 5 and 6 only with the polytropic bubble, and radial 3 and 4 without medium heat transfer: the enthalpy forms take the liquid at the far-field temperature.

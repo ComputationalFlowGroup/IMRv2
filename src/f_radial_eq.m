@@ -36,6 +36,11 @@ else
         Pb = P - iWe./R + GAMa + S;
         hB = (sam/no)*((Pb/sam).^no - 1);
         hH = (sam./Pb).^(1/nstate);
+        % The driving pressure belongs to the same barotrope as the wall.
+        % Subtracting Pf8 itself assumes unit far-field density at all P.
+        Pfar = 1 + Pf8 + GAMa;
+        hF = (sam/no)*((Pfar/sam).^no - 1);
+        hFprime = (sam./Pfar).^(1/nstate);
         if radial == 4
             rho = (Pb/sam).^(1/nstate);
             C = sqrt(nstate*Pb./rho);
@@ -46,11 +51,12 @@ else
         % Mie-Gruneisen EoS
         Pb = P - iWe./R + S;
         [C, hB, hH] = f_mie_gruneisen_eos_scalar(Pb);
+        [~, hF, hFprime] = f_mie_gruneisen_eos_scalar(1 + Pf8);
         if radial == 5
             C = Cstar;
         end
     end
-    Rddot = ((1 + Rdot./C).*(hB - Pf8) - R./C*Pf8dot ...
+    Rddot = ((1 + Rdot./C).*(hB - hF) - R./C.*hFprime.*Pf8dot ...
         + R./C.*hH.*(Pdot + iWe*Rdot./R.^2 + Sdot) ...
         - 1.5*(1 - Rdot./(3*C)).*Rdot.^2) ./ ((1 - Rdot./C).*R + ...
         JdotA*hH./C + 6*hH.*R.*ddintfnu*iDRe./C);

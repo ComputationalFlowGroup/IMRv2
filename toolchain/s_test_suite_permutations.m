@@ -25,18 +25,26 @@ cases = f_test_cases('permutations');
 failed = false(1, numel(cases));
 msg = cell(1, numel(cases));
 for k = 1:numel(cases)
-    [R, msg{k}] = f_test_run(cases(k));
+    [R, msg{k}, t] = f_test_run(cases(k));
     if isempty(msg{k})
         % with tfin in place of tvector the integrator's own steps return
         kt = find(strcmp(cases(k).args, 'tvector'), 1);
         if isempty(kt)
             nt = numel(R);
+            kfin = find(strcmp(cases(k).args, 'tfin'), 1, 'last');
+            final_time = cases(k).args{kfin + 1};
         else
             nt = numel(cases(k).args{kt + 1});
+            requested = cases(k).args{kt + 1};
+            final_time = requested(end);
         end
         if numel(R) ~= nt || nt < 2
             failed(k) = true;
             msg{k} = sprintf('stopped after %d of %d output times', numel(R), nt);
+        elseif numel(t) ~= numel(R) || ~all(isfinite(t)) || ...
+                abs(t(end) - final_time) > 10*eps(max(1,abs(final_time)))
+            failed(k) = true;
+            msg{k} = 'did not reach the requested final time';
         elseif ~all(isfinite(R))
             failed(k) = true;
             msg{k} = 'non-finite radius';
