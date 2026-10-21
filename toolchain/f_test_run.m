@@ -7,10 +7,12 @@
 % brief This function runs one test case from f_test_cases with the solver's
 % console output hidden. It returns the radius history R, or [] and the
 % error message if the run fails, so that one failing case does not stop a
-% suite.
-function [R, msg] = f_test_run(c)
+% suite. Optional t is the actual returned time vector, including an early
+% stop, so completion checks do not infer success from radius length alone.
+function [R, msg, t] = f_test_run(c)
     
     R = [];
+    t = [];
     msg = '';
     % solver and args are used inside the evalc string, which the code
     % analyzer does not read
@@ -19,7 +21,7 @@ function [R, msg] = f_test_run(c)
     try
         % char(59) is the statement's semicolon, kept out of the string
         % literal because s_format splits lines with two semicolons
-        evalc(['[~, R] = solver(args{:})' char(59)]);
+        evalc(['[t, R] = solver(args{:})' char(59)]);
     catch err
         msg = err.message;
     end

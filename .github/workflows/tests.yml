@@ -34,6 +34,7 @@ jobs:
           - s_test_suite_regression
           - s_test_suite_polytropic
           - s_test_suite_fluids
+          - s_test_suite_numerics
 
     steps:
       - name: Checkout Repository

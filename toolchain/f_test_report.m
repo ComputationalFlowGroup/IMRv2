@@ -12,6 +12,9 @@
 % the list from f_test_cases, and failed the logical vector of failures
 % with their messages in msg.
 function f_test_report(name, cases, failed, msg)
+    if isempty(cases)
+        error('IMR:emptyTestSuite', '%s: no accepted test cases were generated.', name);
+    end
     
     modes = unique({cases.mode});
     for m = 1:numel(modes)
