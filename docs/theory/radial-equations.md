@@ -97,6 +97,6 @@ h(p)=\left[\frac{q}{1+\mu(q)}\right]_1^p
 +C_*^2\int_{\mu(1)}^{\mu(p)}\frac{g(\mu)}{(1+\mu)^2}\,d\mu.
 $$
 
-Partial fractions at $\mu=-1$ and $\mu=1/s$ give the closed form in the nested `f_mie_gruneisen_eos_scalar`; `log1p` differences reduce cancellation near the reference state. These branches implement a pressure-based liquid model, rather than a complete arbitrary-temperature thermodynamic EoS. They are separate from the mercury Murnaghan profile.
+Partial fractions at $\mu=-1$ and $\mu=1/s$ give the closed form in the nested `f_mie_gruneisen_eos_scalar`; `log1p` differences reduce cancellation near the reference state. These branches implement a pressure-based liquid model, rather than a complete arbitrary-temperature thermodynamic EoS. They are distinct from the Murnaghan property family.
 
 See [compatibility](../reference/compatibility.md) for thermal restrictions, [numerical checks](../validation/numerics.md) for forcing regressions, and [reported comparisons](../validation/convergence.md#reported-radial-enthalpy-comparison) for historical unforced measurements.

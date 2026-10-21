@@ -6,8 +6,8 @@ All commands below start from the checkout root unless a directory is stated. MA
 
 | Task | Command | Working directory |
 |---|---|---|
-| Minimal solver call | `matlab -batch "addpath('src'); [t,R]=f_imr_nodal('radial',2,'stress',1);"` | Root |
-| Function help | `matlab -batch "addpath('src'); help f_imr_nodal"` | Root |
+| Minimal solver call | `matlab -batch "imr_setup; [t,R]=f_imr_nodal('radial',2,'stress',1);"` | Root |
+| Function help | `matlab -batch "imr_setup; help f_imr_nodal"` | Root |
 | Bundled Gaussian case | `matlab -batch "run('examples/s_run_full_model.m')"` | Root |
 | Operator tests | `matlab -batch "s_test_suite_diffmat"` | `toolchain/` |
 | Numerical test commands | See [tests](../validation/tests.md#run-the-suites) | `toolchain/` |

@@ -12,12 +12,12 @@
 | time | `t0 = R0/Uc` |
 | temperature | far-field temperature `T8` |
 
-The default values correspond to a 50 µm bubble in water at 1 atm and 298.15 K.
+The default values use the legacy water reference set for a 50 µm bubble at 1 atm and 298.15 K.
 
 
 ## Parameters
 
-The *input* column is the accepted name in a name/value call (case-insensitive). All public solver inputs are dimensionless, including time and temperature. Values in the tables are rounded for readability; `src/default_case.m` is authoritative. SI names, defaults and units are listed in the [conversion API](../api/f_dim2nondim.md#inputs-si).
+The *input* column is the accepted name in a name/value call (case-insensitive). All public solver inputs are dimensionless, including time and temperature. Values in the tables are rounded for readability; Model and numerical defaults come from `src/default_case.m`; physical groups are derived from the shared SI converter and water profile. See [defaults and units](../reference/defaults.md). SI names, defaults and units are listed in the [conversion API](../api/f_dim2nondim.md#inputs-si).
 
 ### Equation options
 

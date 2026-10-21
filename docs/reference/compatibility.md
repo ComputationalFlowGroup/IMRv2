@@ -64,7 +64,7 @@ The enthalpy forms (radial 3–6) describe the liquid with an equation of state 
 
 The finite difference and Chebyshev schemes of `f_imr_nodal` were run separately and gave the same grid. One run is worth knowing about: Rayleigh–Plesset (radial 1) with collapse on 12 Chebyshev points compressed the bubble to `R = 0.005` and `P = 3.6e6`, above the ceiling `C1_pv` of the saturation curve. The wall closure then stops with its sign-change error, since no wall vapor fraction satisfies the saturation condition there. Rayleigh–Plesset has no acoustic damping, so strong collapses are best run with radial 2.
 
-## Mercury material preparation
+## Optional material add-on
 
 The [mercury profile preparation](../api/f_dim2nondim.md) prepares ambient properties for radial 2 only and rejects dynamic mass transfer and collapse. This is a profile capability restriction, separate from the generic solver feature matrix. Thermal runs need explicit conductivities. Radial 5–6 remain the existing distinct Hugoniot model.
 

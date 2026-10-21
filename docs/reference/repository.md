@@ -7,17 +7,19 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `README.md` | Short front door and source of the local documentation home |
 | `CONTRIBUTING.md` | Pointer to the contributor guide |
 | `LICENSE` | GNU GPL version 3 or later |
+| `imr_setup.m` | One-session path setup for source and examples |
+| `tests/fixtures/+imrtest/` | Frozen test data; not part of the solver runtime |
 | `src/` | MATLAB solver, parser, conversion and physics modules; [code map](code-map.md) |
 | `src/d_hn.mat`, `d_mn.mat`, `d_ml.mat` | Runtime measured-waveform spline data |
 | `examples/` | Simulation scripts, large sweeps and legacy postprocessing; [inventory](../getting-started/examples.md#bundled-script-inventory) |
-| `toolchain/` | Eight numerical suites, helpers, formatter, linter and reference generator |
+| `toolchain/` | Numerical suites, helpers, formatter, linter and reference generator |
 | `tests/*.mat` | Older stored data, unused by the current suites |
 | `tests/reference/` | Expected regression baselines; absent from the audited checkout |
 | `benchmarks/integrators/` | Reproducible integrator comparison driver; [method](../method/integrator-benchmarks.md) |
 | `benchmarks/scaling/` | Legacy resolution scripts, cluster templates and stored results; [provenance](../validation/convergence.md#legacy-scaling-data) |
 | `docs/` | Topic-based Markdown documentation |
 | `docs/waveform/` | Raw measured data and MATLAB spline rebuild script |
-| `docs/assets/workflow.svg` | Editable source of the README overview diagram; no simulation data |
+| `docs/assets/logos/` | Three TikZ logo sources and compiled SVG/PDF exports |
 | `docs/imr.jfif` | Retained original branding image; rebuild source unavailable |
 | `docs/index.md` | Includes README through standard MkDocs plugin configuration, with no custom Python source |
 | `docs/requirements.txt` | Documentation dependencies, independent of MATLAB |

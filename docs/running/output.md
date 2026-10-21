@@ -29,7 +29,7 @@ In MATLAB from the checkout root:
 
 ```matlab
 % Save a dimensionless configuration and its radius history.
-addpath('src');
+imr_setup;
 p = f_imr_inputs();
 p.radial = 2;
 p.stress = 1;

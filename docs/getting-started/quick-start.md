@@ -4,7 +4,7 @@ This example converts physical inputs to IMR's dimensionless variables, solves a
 
 ```matlab
 % Make the solver functions available.
-addpath('src');
+imr_setup;
 % Convert SI values and retain the reference scales.
 [varin, ref] = f_dim2nondim('r0',50e-6,'req',5e-6,'mu',1e-2,'g',1e3, ...
     'tvector',linspace(0,12e-6,100));
@@ -18,7 +18,7 @@ ylabel('Bubble radius (m)');
 
 | Line or expression | Meaning |
 |---|---|
-| `addpath('src')` | Loads this checkout's MATLAB functions |
+| `imr_setup` | Loads this checkout's MATLAB functions |
 | `r0`, `req` | Initial and equilibrium radii in meters |
 | `mu`, `g` | Viscosity in Pa s and shear modulus in Pa |
 | `tvector` | Requested times in seconds before conversion |

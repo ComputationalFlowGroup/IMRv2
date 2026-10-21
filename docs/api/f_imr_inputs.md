@@ -3,7 +3,7 @@
 `f_imr_inputs` returns every solver input with its default value, as a struct whose field names are the input names used in name/value pairs: `p.re` is the input `'re'`, `p.nt` is `'nt'`. It is the struct form of [`default_case`](../model/parameters.md), which keeps the internal names (`Re8`, `Nt`, ...).
 
 ```matlab
-addpath('src');
+imr_setup;
 p = f_imr_inputs();
 p.radial = 2;
 p.stress = 1;

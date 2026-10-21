@@ -5,8 +5,7 @@ clc;
 clear;
 close;
 
-% the solvers are in src/, one folder up from these examples
-addpath(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'src'));
+% Run imr_setup once from the checkout root before this example.
 
 % equation options
 R0 = 100e-6;

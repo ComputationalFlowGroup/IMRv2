@@ -9,7 +9,7 @@
 % tension, not assumed transport coefficients for real mercury. Supply
 % measured SI mu and surft for a physical material case.
 clear;
-addpath(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'src'));
+% Run imr_setup once from the checkout root before this example.
 
 [args, ref] = f_dim2nondim('fluid',@fluids.mercury,'t8',298.15,'p8',101325, ...
     'radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...

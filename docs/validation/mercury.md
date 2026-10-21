@@ -1,16 +1,15 @@
-# Mercury and constant-vapor validation
+# Mercury profile validation
 
-The two MATLAB suites below check fluid preparation and the corrected polytropic derivative. They need base MATLAB and bundled `.m` reference values, not Python, another checkout or stored regression `.mat` files.
+The mercury MATLAB suite checks the optional material profile, properties and KM preparation. The separate [polytropic suite](polytropic.md) checks the shared constant-vapor derivative. They need base MATLAB and bundled `.m` reference values, not Python, another checkout or stored regression `.mat` files.
 
 From the checkout root in a shell with licensed MATLAB:
 
 ```bash
 cd toolchain
-matlab -batch "s_test_suite_polytropic"
-matlab -batch "s_test_suite_fluids"
+matlab -batch "s_test_suite_mercury"
 ```
 
-Or change to `toolchain/` in MATLAB and run the two script names there. The suites are separate jobs in the existing MATLAB CI workflow.
+Or change to `toolchain/` in MATLAB and run the script there. It runs as a separate job in the existing MATLAB CI workflow.
 
 ## Claims checked
 
@@ -19,15 +18,9 @@ Or change to `toolchain/` in MATLAB and run the two script names there. The suit
 - Scalar and array calls agree; zero-pressure limits, temperature-specific moduli and invalid input handling behave as documented.
 - Saturation interpolation matches measured nodes, is monotone and interpolates in reciprocal temperature without extrapolation.
 - Input preparation uses Hg density, acoustics, gas constant and saturation pressure, derives consistent scales, records replay metadata and rejects missing transport values or conflicting overrides.
-- Explicit water selection matches the legacy converter, including SI overrides. Synthetic profiles exercise material-independent model selection; saturation derivatives are checked against finite differences.
 - The nodal FD, nodal Chebyshev and spectral KM calls match equivalent explicitly supplied SI properties and preserve an equilibrium bubble.
-- The constant-vapor polytropic derivative agrees with finite differences, depends only on gas pressure, and yields consistent integrated pressure histories in all three solver modes.
 
-`toolchain/f_mercury_reference.m` stores source calculations and observations as MATLAB literals with the source commit and original data citation. They were prepared from the original evaluator independently of the MATLAB port, not regenerated from the implementation under test. The reference-state property values were checked while preparing this change; they are not MATLAB execution results.
-
-## Intentional correction to existing behavior
-
-The old polytropic branch used `P = Pg + Pv` and `Pdot = -3*kappa*P*Rdot/R`, incorrectly differentiating constant vapor pressure. Both solvers now use `f_polytropic_pressure` with `Pdot = -3*kappa*Pg*Rdot/R`; the spectral Jacobian differentiates that same expression. Vapor-enabled polytropic histories can therefore change. Vapor-free behavior obeys the same mathematical law, with possible arithmetic round-off differences. No old baseline was regenerated.
+`tests/fixtures/+imrtest/mercury_reference.m` stores source calculations and observations as MATLAB literals with the source commit and original data citation. They were prepared from the original evaluator independently of the MATLAB port, not regenerated from the implementation under test. The reference-state property values were checked while preparing this change; they are not MATLAB execution results.
 
 ## Execution status and scientific limits
 

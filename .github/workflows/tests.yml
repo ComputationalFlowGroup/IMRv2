@@ -2,9 +2,9 @@ name: IMR test suites
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "water-only" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "water-only" ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -33,6 +33,7 @@ jobs:
           - s_test_suite_diffmat
           - s_test_suite_regression
           - s_test_suite_polytropic
+          - s_test_suite_mercury
           - s_test_suite_fluids
           - s_test_suite_numerics
 
