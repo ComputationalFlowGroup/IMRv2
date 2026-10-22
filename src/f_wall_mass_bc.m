@@ -37,11 +37,9 @@ function [r, dr] = f_wall_mass_bc(v, c)
     % wall temperature from theta with the local mixture coefficients
     alpha_m = kvE*c.alpha_v + (1 - kvE)*c.alpha_g;
     beta_m = kvE*c.beta_v + (1 - kvE)*c.beta_g;
-    ab = alpha_m + beta_m;
-    u = sqrt(ab^2 + 2*theta_w*alpha_m);
-    Tw = (u - beta_m)/alpha_m;
+    [Tw,u,dTda,dTdb] = f_thermal_inverse(theta_w,alpha_m,beta_m);
     % saturated vapor pressure and wall vapor concentration
-    Pv = c.C1*exp(c.C2/Tw);
+    [Pv,dPv_dTw] = f_saturation_pressure(Tw,c.C1,c.C2);
     dem = 1 + c.Rvg*(P/Pv - 1);
     kvw = 1/dem;
     % latent heat flux term G*H
@@ -68,10 +66,8 @@ function [r, dr] = f_wall_mass_bc(v, c)
         % d(Tw)/d(theta_w) and d(Tw)/d(kv(end)) through alpha_m and beta_m
         dTw = zeros(1,nv);
         dTw(1) = 1/u;
-        dTw(ie) = ((ab + theta_w)/u - Tw)/alpha_m*(c.alpha_v - c.alpha_g) + ...
-            (ab/u - 1)/alpha_m*(c.beta_v - c.beta_g);
+        dTw(ie) = dTda*(c.alpha_v - c.alpha_g)+dTdb*(c.beta_v - c.beta_g);
         % d(kvw) through Tw and P
-        dPv_dTw = -Pv*c.C2/Tw^2;
         dkvw = kvw^2*c.Rvg*P/Pv^2*dPv_dTw*dTw;
         dkvw(ip) = dkvw(ip) - kvw^2*c.Rvg/Pv;
         % d(G) = G*(dP/P - dM/M - dN/N)

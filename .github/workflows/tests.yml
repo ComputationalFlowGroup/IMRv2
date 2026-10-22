@@ -36,6 +36,7 @@ jobs:
           - s_test_suite_mercury
           - s_test_suite_fluids
           - s_test_suite_numerics
+          - s_test_suite_structure
 
     steps:
       - name: Checkout Repository

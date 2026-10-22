@@ -43,7 +43,7 @@ for i = 1:length(fileList)
         count = 1;
         while ~feof(fid)
             line = fgetl(fid);
-            lines{count} = strtrim(line);
+            lines{count} = line;
             count = count + 1;
         end
         fclose(fid);
@@ -58,7 +58,14 @@ for i = 1:length(fileList)
         multiLineContinuation = false;
 
         for j = 1:length(lines)
-            line = lines{j};
+            originalLine = lines{j};
+            line = strtrim(originalLine);
+            % Preserve blank lines instead of adding trailing indentation.
+            if isempty(line)
+                formattedLines{count} = originalLine;
+                count = count + 1;
+                continue;
+            end
 
             if startsWith(line, "end")
                 indentLevel = max(indentLevel - 1, 0);

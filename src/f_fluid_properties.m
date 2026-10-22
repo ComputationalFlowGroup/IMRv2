@@ -81,8 +81,7 @@ function s = f_saturation(law, T)
     s.c2 = 0; % No exponential wall law for a table.
     switch law.model
         case 'exp_inverse_temperature'
-        s.pressure = law.c1*exp(law.c2./T);
-        s.dpressure_dT = -law.c2*s.pressure./T.^2;
+        [s.pressure,s.dpressure_dT] = f_saturation_pressure(T,law.c1,law.c2);
         s.c2 = law.c2;
         case 'table_logp_inverseT'
         % Normalize table orientation so each query is compared with every

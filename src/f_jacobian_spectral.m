@@ -34,8 +34,8 @@ function J = f_jacobian_spectral(t, X, jp)
         th = d.lin(jp.gA, aC);
         dth = d.lin(jp.gDA, aC);
         ddth = d.lin(jp.gDDA, aC);
-        sq = sqrt((jp.alpha_g + jp.beta_g)^2 + 2*jp.alpha_g*th.v);
-        T = d.fun(th, (sq - jp.beta_g)/jp.alpha_g, 1./sq);
+        [Tv,sq] = f_thermal_inverse(th.v,jp.alpha_g,jp.beta_g);
+        T = d.fun(th,Tv,1./sq);
         D = d.scale(d.div(d.add(d.scale(d.mul(T, T), jp.alpha_g), ...
             d.scale(T, jp.beta_g)), P), jp.kapover);
         dth1 = d.el(dth, 1);

@@ -11,7 +11,7 @@
 % at 1 atm and 298.15 K; src/f_dim2nondim.m converts dimensional
 % (SI) properties into these numbers.
 % Numerical/model defaults live here; material data live in fluids.water.
-% Physical groups below are derived through the SI converter. f_call_params
+% Physical groups below are derived through the SI converter. f_prepare_case
 % starts from these values and overrides explicit name/value pairs.
 function d = default_case()
     % One SI material source and one conversion path; no duplicated physical
