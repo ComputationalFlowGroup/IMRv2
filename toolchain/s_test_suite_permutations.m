@@ -6,13 +6,13 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script runs every combination of the solver options that the
-% other suites do not cross, in the three solver modes: f_imr_nodal with
-% finite differences and with Chebyshev collocation, and f_imr_spectral.
+% other suites do not cross, in the three solver modes: imr.solve_nodal with
+% finite differences and with Chebyshev collocation, and imr.solve_spectral.
 % It covers the non-Newtonian models with every viscous stress model, the
 % driving waveforms with every radial model, the integrators and Jacobians
 % with every thermal configuration, the limits Re, We, Ca = Inf, collapse
 % with every stress model, and the remaining input forms (f_test_cases).
-% A combination that f_checkers rejects is left out; every other one must
+% A combination that imr.configuration.validate_case rejects is left out; every other one must
 % run to the final time with finite results, so an input that passes the
 % checks and then fails is caught here. The runs are short and on coarse
 % grids, and the suite needs no stored results. Run it from toolchain/.

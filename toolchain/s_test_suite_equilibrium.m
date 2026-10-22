@@ -5,8 +5,8 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script checks that a bubble started at equilibrium (R0 = Req,
-% no driving) stays there, in the three solver modes: f_imr_nodal with
-% finite differences and with Chebyshev collocation, and f_imr_spectral.
+% no driving) stays there, in the three solver modes: imr.solve_nodal with
+% finite differences and with Chebyshev collocation, and imr.solve_spectral.
 % It covers every radial, thermal (without mass transfer), vapor and stress
 % model that the compatibility matrix allows (f_test_cases). It needs no
 % stored results. Run it from toolchain/.

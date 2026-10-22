@@ -77,7 +77,7 @@ common = {'tvector', tvector, 'reltol', tol, 'abstol', tol};
 % one solver run on run_args, its console output hidden by evalc (char(59)
 % is the statement's semicolon, kept out of the string because s_format
 % splits lines with two semicolons)
-run_cmd = ['[~, R] = f_imr_nodal(run_args{:})' char(59)];
+run_cmd = ['[~, R] = imr.solve_nodal(run_args{:})' char(59)];
 
 for ic = 1:ncase
     args = cases{ic, 2};

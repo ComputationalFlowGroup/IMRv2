@@ -8,10 +8,10 @@
 clear;
 addpath('../src','../tests/fixtures');
 [grid, observations] = imrtest.mercury_reference();
-p = fluids.mercury();
-properties = @(P,T) f_fluid_properties(p,P,T);
-saturation = @(T) f_fluid_properties(p,[],T);
-prepare = @(varargin) f_dim2nondim('fluid',@fluids.mercury,varargin{:});
+p = imr.fluids.mercury();
+properties = @(P,T) imr.fluid_properties(p,P,T);
+saturation = @(T) imr.fluid_properties(p,[],T);
+prepare = @(varargin) imr.nondimensionalize('fluid',@imr.fluids.mercury,varargin{:});
 hg = properties(grid(:,1),grid(:,2));
 actual = [hg.liquid.rho hg.liquid.c hg.liquid.h hg.vapor.v ...
     hg.vapor.c hg.vapor.h hg.liquid.K0 hg.liquid.K0_prime];
@@ -59,8 +59,8 @@ sat_nodes = saturation(p.saturation.T);
 Pv_nodes = sat_nodes.pressure;
 assert(max(abs(Pv_nodes./p.saturation.P - 1)) < 1e-13);
 middle_T = 2/(1/350 + 1/400);
-assert(abs(f_saturation_pressure(p,middle_T)/sqrt(10.148*138.75) - 1) < 1e-13);
-assert(all(diff(f_saturation_pressure(p,linspace(298.15,550,100))) > 0));
+assert(abs(reference_saturation(p,middle_T)/sqrt(10.148*138.75) - 1) < 1e-13);
+assert(all(diff(reference_saturation(p,linspace(298.15,550,100))) > 0));
 f_expect_error(@() saturation(298), 'IMR:fluidSaturation');
 f_expect_error(@() saturation(551), 'IMR:fluidSaturation');
 fprintf('Mercury saturation interpolation PASSED.\n');
@@ -78,7 +78,7 @@ assert(f_pair(args,'pv') == 0);
 assert(isinf(f_pair(args,'re')) && isinf(f_pair(args,'we')));
 assert(isinf(f_pair(args,'ca')));
 assert(abs(f_pair(args,'cstar')*ref.Uc/ambient.liquid.c - 1) < 1e-14);
-[again, replay] = f_dim2nondim(ref.fluid.input_pairs{:});
+[again, replay] = imr.nondimensionalize(ref.fluid.input_pairs{:});
 assert(isequaln(args,again) && isequaln(ref,replay));
 [wet, wet_ref] = prepare(base{:},'vapor',1);
 assert(abs(f_pair(wet,'pv')*wet_ref.P8/0.26117 - 1) < 1e-13);
@@ -109,15 +109,15 @@ f_expect_error(@() prepare(base{:},'vapor',1,'p8',0.1), 'IMR:fluidBoiling');
 Tprobe = reshape([320 375 425 475],[2 2]);
 st = saturation(Tprobe);
 step = 1e-3;
-fd = (f_saturation_pressure(p,Tprobe+step) - f_saturation_pressure(p,Tprobe-step))/(2*step);
+fd = (reference_saturation(p,Tprobe+step) - reference_saturation(p,Tprobe-step))/(2*step);
 assert(isequal(size(st.pressure),size(Tprobe)));
 assert(max(abs(st.dpressure_dT./fd - 1),[],'all') < 1e-8);
 % Compare with independently supplied ambient properties, without the helper.
-manual = f_dim2nondim('radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
+manual = imr.nondimensionalize('radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
     base{:},'rho8',ambient.liquid.rho,'c8',ambient.liquid.c, ...
     'cp',p.liquid.Cp,'rv',p.vapor.Rs,'pv',0,'thetav',0, ...
     'lheat',ambient.latent_heat);
-solvers = {@f_imr_nodal, @f_imr_nodal, @f_imr_spectral};
+solvers = {@imr.solve_nodal, @imr.solve_nodal, @imr.solve_spectral};
 extra = {{'scheme',0}, {'scheme',1}, {}};
 for mode = 1:numel(solvers)
     [time, radius] = solvers{mode}(args{:}, extra{mode}{:});
@@ -156,7 +156,7 @@ function f_expect_failure(fun)
     error('Expected invalid property input to fail.');
 end
 
-function pressure = f_saturation_pressure(profile,T)
-    sat = f_fluid_properties(profile,[],T);
+function pressure = reference_saturation(profile,T)
+    sat = imr.fluid_properties(profile,[],T);
     pressure = sat.pressure;
 end

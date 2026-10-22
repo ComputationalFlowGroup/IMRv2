@@ -13,21 +13,21 @@ U = [-0.2 0 0.3];
 Pg0 = 0.8;
 Pv = 0.2;
 kappa = 1.4;
-[P, Pdot] = f_polytropic_pressure(R, U, Pg0, Pv, kappa);
+[P, Pdot] = imr.physics.polytropic_pressure(R, U, Pg0, Pv, kappa);
 step = 1e-6;
-Pplus = f_polytropic_pressure(R + step*U, U, Pg0, Pv, kappa);
-Pminus = f_polytropic_pressure(R - step*U, U, Pg0, Pv, kappa);
+Pplus = imr.physics.polytropic_pressure(R + step*U, U, Pg0, Pv, kappa);
+Pminus = imr.physics.polytropic_pressure(R - step*U, U, Pg0, Pv, kappa);
 assert(max(abs(Pdot - (Pplus - Pminus)/(2*step))) < 1e-8);
-[Pgas, Dgas] = f_polytropic_pressure(R, U, Pg0, 0, kappa);
+[Pgas, Dgas] = imr.physics.polytropic_pressure(R, U, Pg0, 0, kappa);
 assert(max(abs(P - Pgas - Pv)) < 1e-14);
 assert(isequal(Pdot, Dgas));
-[~, Dvapor] = f_polytropic_pressure(R, U, 0, Pv, kappa);
+[~, Dvapor] = imr.physics.polytropic_pressure(R, U, 0, Pv, kappa);
 assert(all(Dvapor == 0));
 fprintf('Polytropic gas derivative and constant-vapor invariance PASSED.\n');
 
 % Returned pressure is an integrated state. Check it against the algebraic
 % pressure law during actual motion, including the spectral analytic path.
-solvers = {@f_imr_nodal, @f_imr_nodal, @f_imr_spectral};
+solvers = {@imr.solve_nodal, @imr.solve_nodal, @imr.solve_spectral};
 extra = {{'scheme',0}, {'scheme',1}, {}};
 for mode = 1:numel(solvers)
     args = {'radial',2,'stress',0,'vapor',1,'pv',Pv,'req',0.8, ...

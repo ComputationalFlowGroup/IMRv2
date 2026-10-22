@@ -5,9 +5,9 @@
 % Run from toolchain/ using base MATLAB, without trajectory baseline files.
 clear;
 addpath('../src','../tests/fixtures');
-schema = f_parameter_schema();
-public = f_imr_inputs();
-d = default_case();
+schema = imr.configuration.schema();
+public = imr.default_inputs();
+d = imr.configuration.defaults();
 assert(numel(unique({schema.name})) == numel(schema));
 assert(numel(schema) == numel(fieldnames(public)));
 for k = 1:numel(schema)
@@ -32,11 +32,11 @@ assert(all(ismember({schema.name},documented)));
 for theta = [-0.01 0 0.02]
     a = 0.4;
     b = 0.7;
-    [~,K,da,db] = f_thermal_inverse(theta,a,b);
+    [~,K,da,db] = imr.physics.thermal_inverse(theta,a,b);
     h = 1e-6;
-    dt = (f_thermal_inverse(theta+h,a,b)-f_thermal_inverse(theta-h,a,b))/(2*h);
-    na = (f_thermal_inverse(theta,a+h,b)-f_thermal_inverse(theta,a-h,b))/(2*h);
-    nb = (f_thermal_inverse(theta,a,b+h)-f_thermal_inverse(theta,a,b-h))/(2*h);
+    dt = (imr.physics.thermal_inverse(theta+h,a,b)-imr.physics.thermal_inverse(theta-h,a,b))/(2*h);
+    na = (imr.physics.thermal_inverse(theta,a+h,b)-imr.physics.thermal_inverse(theta,a-h,b))/(2*h);
+    nb = (imr.physics.thermal_inverse(theta,a,b+h)-imr.physics.thermal_inverse(theta,a,b-h))/(2*h);
     assert(max(abs([dt-1/K na-da nb-db])) < 1e-8);
 end
 p = public;
@@ -44,20 +44,20 @@ p.req = 1;
 p.tvector = linspace(0,0.1,8);
 p.tfin = p.tvector(end);
 p.method = 'ode15s';
-from_struct = f_prepare_case('nodal',p,'ee',0.02);
-from_pairs = f_prepare_case('nodal','req',1,'tvector',p.tvector, ...
+from_struct = imr.configuration.prepare_case('nodal',p,'ee',0.02);
+from_pairs = imr.configuration.prepare_case('nodal','req',1,'tvector',p.tvector, ...
     'method','ode15s','ee',0.02);
 assert(isequaln(from_struct,from_pairs));
 assert(from_struct.numerics.method == 15);
 % Compatibility serialization keeps the original output order and values.
-[eq,~,initial,S,t,~,acoustic,wave] = f_call_params('nodal',p,'ee',0.02);
+[eq,~,initial,S,t,~,acoustic,wave] = imr.configuration.legacy_options('nodal',p,'ee',0.02);
 assert(isequal(eq,[1 0 0 0 0 0]) && isempty(S));
 assert(isequal(t,p.tvector) && initial(1) == 1 && initial(5) == 1);
 assert(acoustic(3) == p.kappa && wave{1}(2) == 0.02);
 fprintf('Public input schema, struct overrides and compatibility adapter PASSED.\n');
 % An active stress expansion needs a mode; an inactive field may use zero.
 try
-    f_prepare_case('spectral','stress',5,'spectral',1,'Nv',0);
+    imr.configuration.prepare_case('spectral','stress',5,'spectral',1,'Nv',0);
     error('Expected active zero-mode stress to fail.');
 catch err
     assert(strcmp(err.identifier,'IMR:stressGrid'));
@@ -83,13 +83,13 @@ for kind = {'nodal','spectral'}
                 if stress == 5 && medium && strcmp(solver,'nodal')
                     continue
                 end
-                c = f_prepare_case(solver,'Req',1,'radial',2, ...
+                c = imr.configuration.prepare_case(solver,'Req',1,'radial',2, ...
                     'bubtherm',flags(1),'medtherm',medium, ...
                     'masstrans',flags(3),'vapor',flags(3), ...
                     'stress',stress,'spectral',double(strcmp(solver,'spectral')), ...
                     'Nv',6,'Nt',7,'Mt',7, ...
                     'scheme',scheme,'jacobian',2,'progdisplay',0);
-                sys = f_imr_system(c);
+                sys = imr.solvers.build(c);
                 idx = c.layout;
                 assert(numel(sys.initial) == idx.count);
                 blocks = [idx.R idx.Rdot idx.P idx.bubble idx.medium ...
@@ -153,8 +153,8 @@ fprintf('State layouts, enabled operators, outputs and %d independent Jacobians 
 for radial = 1:6
     options = {'radial',radial,'Req',1,'bubtherm',0,'medtherm',0, ...
         'masstrans',0,'stress',1,'Nt',0,'Mt',0,'jacobian',0};
-    nodal = f_imr_system(f_prepare_case('nodal',options{:}));
-    spectral = f_imr_system(f_prepare_case('spectral',options{:}));
+    nodal = imr.solvers.build(imr.configuration.prepare_case('nodal',options{:}));
+    spectral = imr.solvers.build(imr.configuration.prepare_case('spectral',options{:}));
     state = nodal.initial;
     state(1:2) = [0.98 -0.02]';
     a = nodal.rhs(0.2,state);
@@ -167,8 +167,8 @@ end
 time = linspace(0,0.1,20);
 options = {'Req',1,'rdotzero',0.02,'bubtherm',1,'medtherm',0, ...
     'vapor',0,'masstrans',0,'stress',0,'tvector',time,'jacobian',2};
-[tn,Rn,~,Pn] = f_imr_nodal(options{:},'Nt',40,'Mt',0);
-[ts,Rs,~,Ps] = f_imr_spectral(options{:},'Nt',12,'Mt',0);
+[tn,Rn,~,Pn] = imr.solve_nodal(options{:},'Nt',40,'Mt',0);
+[ts,Rs,~,Ps] = imr.solve_spectral(options{:},'Nt',12,'Mt',0);
 assert(tn(end) == time(end) && ts(end) == time(end));
 assert(max(abs(Rn-Rs)) < 5e-4 && max(abs(Pn-Ps)) < 5e-4);
 fprintf('Shared ODE physics and thermal nodal/spectral comparison PASSED.\n');

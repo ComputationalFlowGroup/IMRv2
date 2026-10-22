@@ -8,14 +8,14 @@
 % neo-Hookean Kelvin-Voigt, UCM and Oldroyd-B models with the nodal solver
 % and returns every radius history as [t, R] (dimensionless), in cell
 % arrays shaped like the parameter grids. The parameters are given in SI
-% units and converted with f_dim2nondim; the relaxation times are
+% units and converted with imr.nondimensionalize; the relaxation times are
 % lambda1 = lambda1_factor*mu/G and lambda2 = lambda2_factor*mu/G. The
-% sweeps run with f_imr_sweep on a parallel pool.
+% sweeps run with imr.sweep on a parallel pool.
 function [newtonian, neohook, voigt, ucm, oldb] = f_multirun()
     
     N = 8^4;
     % Run imr_setup once before calling this example.
-    sweep = @(base, varargin) f_imr_sweep(@f_imr_nodal, base, varargin{:}, ...
+    sweep = @(base, varargin) imr.sweep(@imr.solve_nodal, base, varargin{:}, ...
         'transform', @f_si_inputs, 'parallel', true);
     
     % one parameter: Newtonian and neo-Hookean models
@@ -58,7 +58,7 @@ function varin = f_si_inputs(varargin)
     end
     pairs = reshape(varargin, 2, []);
     pairs = pairs(:, keep);
-    varin = f_dim2nondim(pairs{:}, extra{:});
+    varin = imr.nondimensionalize(pairs{:}, extra{:});
 end
 
 % sweep results as [t, R] per run ([] for a failed run)

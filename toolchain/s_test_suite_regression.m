@@ -5,8 +5,8 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This script runs the regression cases of f_test_cases in the three
-% solver modes (f_imr_nodal with finite differences and with Chebyshev
-% collocation, and f_imr_spectral) and compares R(t) with the stored
+% solver modes (imr.solve_nodal with finite differences and with Chebyshev
+% collocation, and imr.solve_spectral) and compares R(t) with the stored
 % results in tests/reference/<mode>.mat, written by s_generate_references.
 % The cases cover every radial, thermal (with and without mass transfer)
 % and stress model that the compatibility matrix allows, for two
