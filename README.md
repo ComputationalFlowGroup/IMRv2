@@ -1,5 +1,21 @@
 # Inertial Microcavitation Rheometry (IMR)
 
+## Minimal logo proposals
+
+Three draft directions for review, shown from left to right. Click the image to open the full-size comparison.
+
+[![Three minimal IMR logo proposals: Contour, Oscillation and Monogram.](docs/assets/logos/proposals/imr-minimal-concepts.png)](docs/assets/logos/proposals/imr-minimal-concepts.png)
+
+| Option | Concept | Description |
+|---|---|---|
+| 1 | **Contour** | A circular bubble with one curved line suggesting depth. Recommended for its simple, recognizable bubble motif. |
+| 2 | **Oscillation** | A gently distorted bubble outline suggesting radial dynamics. |
+| 3 | **Monogram** | A compact bubble ring integrated with the IMR lettering. |
+
+These PNG concept previews are for choosing a direction. The selected design can be recreated in TikZ and exported as SVG/PDF. The current logo remains below for comparison.
+
+---
+
 [![Tests](https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml)
 [![Docs build](https://github.com/mrodrig6/imrv2/actions/workflows/docs.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/docs.yml)
 [![Lint](https://github.com/mrodrig6/imrv2/actions/workflows/lint.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/lint.yml)
