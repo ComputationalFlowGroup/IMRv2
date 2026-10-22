@@ -40,3 +40,19 @@ jobs:
       # the nav) into an error
       - name: Build the site
         run: mkdocs build --strict
+
+      - name: Set up documentation checks
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: toolchain/docs/package-lock.json
+
+      - name: Install equation and browser checks
+        working-directory: toolchain/docs
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+
+      - name: Compile equations and check browser rendering
+        run: node toolchain/docs/check.cjs site

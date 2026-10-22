@@ -10,9 +10,11 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `imr_setup.m` | One-session path setup for source and examples |
 | `tests/fixtures/+imrtest/` | Frozen test data; not part of the solver runtime |
 | `src/` | MATLAB solver, parser, conversion and physics modules; [code map](code-map.md) |
+| `src/private/` | Scheme-specific system factories; resolved through `f_imr_system` |
 | `src/d_hn.mat`, `d_mn.mat`, `d_ml.mat` | Runtime measured-waveform spline data |
 | `examples/` | Simulation scripts, large sweeps and legacy postprocessing; [inventory](../getting-started/examples.md#bundled-script-inventory) |
 | `toolchain/` | Numerical suites, helpers, formatter, linter and reference generator |
+| `toolchain/docs/` | Locked documentation-only equation and browser checks; no MATLAB dependency |
 | `tests/*.mat` | Older stored data, unused by the current suites |
 | `tests/reference/` | Expected regression baselines; absent from the audited checkout |
 | `benchmarks/integrators/` | Reproducible integrator comparison driver; [method](../method/integrator-benchmarks.md) |

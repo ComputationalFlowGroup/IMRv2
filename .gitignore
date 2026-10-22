@@ -11,4 +11,5 @@ s_run_merc.m
 site/
 .venv/
 __pycache__/
+node_modules/
 !docs/requirements.txt

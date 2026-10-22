@@ -13,9 +13,9 @@ Both solvers return dimensionless arrays and print a model summary through `f_di
 | 7 | `kv` | Vapor mass fraction; empty without mass transfer and always empty for spectral solver | Already dimensionless |
 | 8 | `inputs` | Requested/default inputs plus actual time vector | A configuration record, not a physical output |
 
-Histories use one row per returned time. Nodal thermal and concentration fields use columns for spatial nodes. The nodal bubble grid runs center to wall; the medium grid runs wall to infinity. `T(:,end)` and `Tm(:,1)` are the wall temperature when medium heat transfer is enabled; the wall closure recovers these values at each output time. The spectral solver reconstructs temperature values from its coefficients before returning them.
+Radius, velocity and pressure histories use one row per returned time. Nodal thermal and concentration fields use one row per time and columns for spatial nodes. Spectral temperature fields instead use one row per collocation point and one column per time; this existing output orientation is preserved. The nodal bubble grid runs center to wall; the medium grid runs wall to infinity. `T(:,end)` and `Tm(:,1)` are the wall temperature when medium heat transfer is enabled; the wall closure recovers these values at each output time. The spectral solver reconstructs temperature values from its coefficients before returning them.
 
-`f_call_params` records inputs before applying all internal checker adjustments to that record. Use [compatibility](../reference/compatibility.md) to understand automatic stress-field selection, mode counts and the `Ca = Inf` stress-5 rule. The [API](../api/index.md) distinguishes input contracts from internal state.
+`f_prepare_case` records inputs before applying all internal checker adjustments to that record. Use [compatibility](../reference/compatibility.md) to understand automatic stress-field selection, mode counts and the `Ca = Inf` stress-5 rule. The [API](../api/index.md) distinguishes input contracts from internal state.
 
 ## Printed diagnostics
 

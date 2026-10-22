@@ -1,6 +1,6 @@
 # `f_init_stress`
 
-`f_init_stress` computes the stress at the bubble's maximum radius for a collapse run. It shoots on the initial wall velocity of a Keller–Miksis growth from `Req` so that the bubble reaches `R = 1` at its maximum, and returns the stress there. `f_call_params` calls it for stress 3 and 4 with `collapse = 1` when no `stress0` is given. The model has no heat or mass transfer; the bubble holds gas at the equilibrium pressure and vapor at `Pv_star`.
+`f_init_stress` computes the stress at the bubble's maximum radius for a collapse run. It shoots on the initial wall velocity of a Keller–Miksis growth from `Req` so that the bubble reaches `R = 1` at its maximum, and returns the stress there. `f_prepare_case` calls it for stress 3 and 4 with `collapse = 1` when no `stress0` is given. The model has no heat or mass transfer; the bubble holds gas at the equilibrium pressure and vapor at `Pv_star`.
 
 ## Inputs
 

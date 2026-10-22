@@ -82,6 +82,7 @@ nav:
   - Getting started:
       - "Installation": getting-started/installation.md
       - "Quick start": getting-started/quick-start.md
+      - "Keller–Miksis example": getting-started/keller-miksis.md
       - "Examples": getting-started/examples.md
   - Running:
       - "Commands": running/commands.md
@@ -134,6 +135,7 @@ nav:
   - Reference:
       - "Compatibility": reference/compatibility.md
       - "Code map": reference/code-map.md
+      - "Internal contracts": reference/internal-contracts.md
       - "Defaults and units": reference/defaults.md
       - "Logo": reference/branding.md
       - "Distributions": reference/distributions.md

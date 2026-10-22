@@ -20,4 +20,4 @@ Inputs follow the same dimensionless [configuration forms](../running/configurat
 
 Vapor mass transfer and currently supported collapse are unavailable. With stress 5 and medium heat, the checker selects the local stress field and warns. See [compatibility](../reference/compatibility.md).
 
-Implementation: `src/f_imr_spectral.m`, `f_call_params`, `f_odesolve`. See [discretization](../method/discretization.md), [stress heating theory](../theory/stress-heating.md) and [reported comparisons](../validation/convergence.md).
+Implementation: `f_prepare_case` → `f_imr_system` → `f_odesolve` → output reconstruction. Spectral operators and closures live in `src/private/imr_spectral_system.m`. See [discretization](../method/discretization.md), [stress heating theory](../theory/stress-heating.md) and [reported comparisons](../validation/convergence.md).

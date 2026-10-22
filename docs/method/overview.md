@@ -5,12 +5,12 @@ Both solvers turn a configured physical model into a coupled system of ordinary 
 | Stage | Implementation | Result |
 |---|---|---|
 | Convert SI, if needed | `f_dim2nondim` | Dimensionless pairs and reference scales |
-| Defaults and overrides | `default_case`, `f_imr_inputs`, `f_call_params` | Grouped option vectors and initial state |
+| Defaults and overrides | `default_case`, `f_parameter_schema`, `f_prepare_case` | Named, checked case and initial state |
 | Validate | `f_checkers` | Compatible settings or an error |
-| Spatial operators | `f_diff_mat` or spectral setup | Bubble/medium derivatives and boundary maps |
-| Evaluate derivative | Nested solver right-hand side and physics helpers | Radial, thermal, vapor and stress derivatives |
+| Spatial operators | `f_imr_system` and its private factory | Bubble/medium derivatives and boundary maps |
+| Evaluate derivative | System RHS callback and physics helpers | Radial, thermal, vapor and stress derivatives |
 | Integrate | `f_odesolve` and selected Jacobian | State history |
-| Reconstruct | Output assembly and wall closure | Public arrays and input record |
+| Reconstruct | System outputs callback and wall closure | Public arrays and input record |
 
 ## State layout
 
@@ -19,6 +19,8 @@ The nodal state follows `[R; Rdot; P; theta; Tm; kv; Z]`, with inactive fields o
 The local polymer field supplies heating, while its stress integral drives radial motion. The [stress-heating theory](../theory/stress-heating.md) states that coupling and the collapse initialization approximation. The [output guide](../running/output.md) describes field reconstruction and wall values.
 
 ## Implementation considerations
+
+Only enabled spatial operators are constructed. `f_state_layout` supplies the same indices to initialization, RHS, Jacobians and outputs. The [internal contracts](../reference/internal-contracts.md) describe named case fields and callable system components.
 
 Constant medium and thermal-map factors are precomputed; constant forcing skips `f_pinfinity`. Nodal nested functions share names with their parent workspace, so local loop names must avoid collisions; the output loop uses `it_out`.
 
