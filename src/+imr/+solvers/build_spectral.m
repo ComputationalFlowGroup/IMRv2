@@ -85,6 +85,7 @@ function system = build_spectral(prepared)
     v_lambda_star   = prepared.stress.v_lambda_star;
     iDRe            = prepared.stress.iDRe;
     iWe             = 1/We;
+    nonnewtonian    = nu_model ~= 0 && iDRe ~= 0;
 
     % dimensionless thermal
     Foh             = prepared.thermal.Foh;
@@ -331,7 +332,7 @@ function system = build_spectral(prepared)
         qdot = [];
 
         % updating the viscous forces/Reynolds number
-        if nu_model ~= 0
+        if nonnewtonian
             % fnu_m: viscosity factor at the medium grid points
             [~,intfnu,dintfnu,ddintfnu,fnu_m] = imr.physics.viscosity(nu_model, ...
                 Rdot,R,v_a,v_nc,v_lambda_star,yT);
@@ -488,7 +489,7 @@ function system = build_spectral(prepared)
     % field of X
     function tg = f_taugradu(Rv,Rdotv,X)
         fnu_loc = 0;
-        if nu_model ~= 0
+        if nonnewtonian
             [~,~,~,~,fnu_loc] = imr.physics.viscosity(nu_model,Rdotv,Rv,v_a,v_nc, ...
                 v_lambda_star,yT);
         end
@@ -523,7 +524,7 @@ function system = build_spectral(prepared)
         intf_loc = 0;
         dintf_loc = 0;
         ddintf_loc = 0;
-        if nu_model ~= 0
+        if nonnewtonian
             [~,intf_loc,dintf_loc,ddintf_loc] = imr.physics.viscosity(nu_model, ...
                 Rdotv,Rv,v_a,v_nc,v_lambda_star);
         end

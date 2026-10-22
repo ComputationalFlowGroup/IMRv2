@@ -5,35 +5,44 @@ The nodal solver enforces wall heat balance algebraically instead of integrating
 ## Thermal-only wall
 
 The nested `f_wall_theta_exact` in `src/+imr/+solvers/build_nodal.m` solves
-`c1*Tw + c2*theta_w + K = 0`. `K` collects the other nodes' wall-row contributions. Set `ag = alpha_g`, `bg = beta_g` and
+`c1*Tw + c2*theta_w + K = 0`. `K` collects the other nodes' wall-row contributions. Set $d=T_w-1$, $a_g=\mathtt{alpha\_g}$ and $b_g=\mathtt{beta\_g}$. The Kirchhoff map is
 
 $$
-u=\sqrt{(a_g+b_g)^2+2a_g\theta_w},\qquad
-T_w=\frac{u-b_g}{a_g},\qquad
-\theta_w=\frac{u^2-(a_g+b_g)^2}{2a_g}.
+\theta_w=(a_g+b_g)d+\frac{a_g}{2}d^2,
 $$
 
-Here $a_g$ and $b_g$ are the code variables `ag` and `bg`; $T_w$ is wall temperature divided by ambient temperature. The Kirchhoff variable $\theta_w$ is the integral of dimensionless conductivity from ambient temperature to $T_w$, so ambient conditions give $T_w=1$ and $\theta_w=0$. The nonnegative quantity $u=a_gT_w+b_g$ is conductivity at the wall; choosing an admissible root is a physical constraint. This inverse requires positive $a_g$; unsupported zero-slope thermal inputs are rejected during validation.
+so the flux balance becomes $Ad^2+Bd+C=0$, with
 
-Then `c2*u^2 + 2*c1*u + q = 0`, where
-`q = -2*c1*bg - c2*(ag+bg)^2 + 2*ag*K`.
+$$
+A=\frac{a_gc_2}{2},\qquad
+B=c_1+c_2(a_g+b_g),\qquad
+C=c_1+K.
+$$
+
+$T_w$ is wall temperature divided by ambient temperature. The Kirchhoff variable integrates dimensionless conductivity from ambient temperature to $T_w$, so ambient conditions give $d=0$ and $\theta_w=0$. Solving for the temperature difference avoids subtracting two nearly equal squared conductivities and dividing by a small $a_g$.
 
 | Coefficient | Meaning |
 |---|---|
 | `c1` | Medium wall-row coefficient multiplying dimensionless wall temperature |
 | `c2` | Bubble wall-row coefficient multiplying the Kirchhoff variable |
-| `K` | Fixed contributions from all nonwall nodes; distinct from conductivity $u$ |
-| `q` | Constant term after eliminating temperature in favor of conductivity |
+| `K` | Fixed contributions from all nonwall nodes |
+| `A`, `B`, `C` | Quadratic, linear and constant coefficients for `d = Tw - 1` |
 
-All gradients use the moving, dimensionless coordinates and the flux scales in the prepared case. Uniform ambient fields give zero wall Kirchhoff variable. At zero quadratic coefficient the equation reduces to a linear solve; the algorithm below handles that limit explicitly. `imr.physics.thermal_inverse` supplies the common inverse transform and derivatives used by the wall residual and both Jacobians.
+All gradients use the moving, dimensionless coordinates and the flux scales in the prepared case.
 
-- Form both roots in a cancellation-free form and discard `u < 0`.
-- If two roots remain, choose the wall `theta` closest to the previous wall value; do not hard-code the sign of `c2`.
-- If `c2 = 0`, use `u = -q/(2*c1)`.
-- If the discriminant is negative or no admissible root remains, try `fzero` on the residual.
-- If that fails at an unphysical trial state, return the least-residual quadratic point so the integrator can reject the step.
+- Form both roots using a stable quadratic formula and discard roots with negative conductivity $u=a_g(1+d)+b_g$.
+- If two roots remain, choose the wall `theta` closest to the previous wall value.
+- If `A = 0`, solve the linear equation `d = -C/B`.
+- If no admissible root remains, try `fzero` on the residual.
+- If that fails at an unphysical trial state, return the least-residual point in the conductivity formulation so the integrator can reject the step.
 
-The Jacobian uses `d(theta_w)/dK = -u/(c2*u + c1)` on the selected branch.
+The Jacobian differentiates the same flux balance, giving `d(theta_w)/dK = -u/(c2*u + c1)` on the selected branch. `imr.physics.thermal_inverse` supplies the common inverse transform and derivatives:
+
+$$
+T=1+\frac{2\theta}{\sqrt{(a+b)^2+2a\theta}+a+b}.
+$$
+
+This rationalized expression includes the constant-conductivity limit $a=0$, $b>0$. Thermal solver inputs still require positive `alpha_g` because the wall fallback retains divisions by that slope; zero vapor slope remains supported when the resulting mixture conductivity is positive.
 
 ## Mass-transfer residual
 

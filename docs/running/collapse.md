@@ -4,6 +4,14 @@
 
 Use [compatibility](../reference/compatibility.md) for the exact prerequisites. The current checker requires bubble heat, medium heat, vapor pressure and mass transfer, so supported collapse uses the nodal solver with radial 1 or 2.
 
+Preparation solves the initial gas/vapor/surface-tension balance for a positive equilibrium radius $r$:
+
+$$
+(1-P_v^*)r^3+\frac{r^2}{\mathrm{We}}-P_{g0}^*=0.
+$$
+
+Here $P_{g0}^*$ is `p0star`, the gas-pressure coefficient at the initial radius $R=1$, and $P_v^*$ is the enabled saturation pressure scaled by ambient pressure. Dividing by $r^3$ recovers gas plus vapor pressure balanced by ambient pressure and surface tension. Preparation brackets the stable positive root; if no such equilibrium exists, it raises an input error. This replaces an unconstrained solve in vapor mass. The [settings suite](../validation/settings.md) checks the radius against an independently evaluated pressure balance, including zero surface tension and boiling-pressure limits.
+
 | Stress | Initial history | User action |
 |---|---|---|
 | 0–2 | No stress history state | Start from rest at maximum radius |

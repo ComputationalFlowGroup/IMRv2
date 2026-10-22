@@ -11,6 +11,9 @@ function c = prepare_case(solver,varargin)
     end
     disp('--- Inertial Microcavitation Rheometry forward solver ---');
     if ~isempty(varargin) && isstruct(varargin{1})
+        if ~isscalar(varargin{1})
+            error('INPUT ERROR: an input struct must be scalar.');
+        end
         varargin = [f_struct_pairs(varargin{1}),varargin(2:end)];
     end
     if mod(numel(varargin),2) ~= 0
@@ -52,7 +55,11 @@ function c = prepare_case(solver,varargin)
     end
     p.method = f_method_code(p.method);
     if specified.tfin && ~specified.tvector
-        p.TVector = [0 p.TFin];
+        valid_end = isnumeric(p.TFin) && isscalar(p.TFin) && isreal(p.TFin) && isfinite(p.TFin);
+        if ~valid_end || p.TFin <= 0
+            error('INPUT ERROR: tfin must be a positive, finite, real scalar.');
+        end
+        p.TVector = [0 double(p.TFin)];
     end
     p.wave_poly = [];
     p.wave_dpoly = [];
@@ -62,15 +69,14 @@ function c = prepare_case(solver,varargin)
         p.wave_poly = data.poly;
         p.wave_dpoly = data.dpoly;
     end
-    p.Pv_star = p.vapor*p.Pv_sat;
-    if ~specified.p0star
-        exponent = 3;
-        if p.bubtherm == 0
-            exponent = 3*p.kappa;
-        end
-        p.P0_star = (1+1/(p.We*p.Req)-p.Pv_star)*p.Req^exponent;
-    end
-    p.Pb_star = p.P0_star+p.Pv_star;
+    p.solver = solver;
+    p.stress0set = specified.stress0;
+    p.pressure0set = specified.p0star;
+    p.tflag = specified.tfin+specified.tvector;
+    p.tvector = p.TVector;
+    % Check primitive inputs before deriving pressures, mixture fractions
+    % or transport ratios. The checker returns checked initial pressures.
+    p = imr.configuration.validate_case(p);
     p.iota = p.Km_star/p.Lt;
     if p.DRe == 0
         p.iDRe = 0;
@@ -79,15 +85,22 @@ function c = prepare_case(solver,varargin)
     else
         p.iDRe = 1/p.DRe;
     end
-    theta = p.Rv_star/p.Ra_star*(p.Pb_star/p.Pv_star-1);
-    p.kv0 = 1/(1+theta);
-    p.mv0 = p.Pv_star/p.Rv_star;
-    p.ma0 = p.P0_star/p.Ra_star;
-    p.solver = solver;
-    p.stress0set = specified.stress0;
-    p.tflag = specified.tfin+specified.tvector;
-    p.tvector = p.TVector;
-    p = imr.configuration.validate_case(p);
+    p.kv0 = 0;
+    p.mv0 = 0;
+    p.ma0 = 0;
+    if p.bubtherm && p.vapor && p.Pv_star > 0
+        p.mv0 = p.Pv_star/p.Rv_star;
+        p.ma0 = p.P0_star/p.Ra_star;
+        p.kv0 = p.mv0/(p.mv0+p.ma0);
+        alpha_m = p.kv0*p.alpha_v+(1-p.kv0)*p.alpha_g;
+        beta_m = p.kv0*p.beta_v+(1-p.kv0)*p.beta_g;
+        if ~(isfinite(p.kv0) && isfinite(alpha_m+beta_m) && alpha_m+beta_m > 0)
+            error('INPUT ERROR: the initial mixture needs a finite vapor fraction and positive conductivity.');
+        end
+        if p.masstrans && p.kv0 >= 1
+            error('INPUT ERROR: mass transfer requires a representable nonzero gas mass fraction.');
+        end
+    end
     if p.stress == 1 || p.stress == 2
         p.JdotA = 4/p.Re8;
     elseif p.stress >= 3
@@ -98,16 +111,39 @@ function c = prepare_case(solver,varargin)
     Rdot = p.Rdotzero;
     Req = p.Req;
     if p.collapse
-        opts = optimset('display','off');
-        fun = @(x) p.Pv_star*(1+(p.ma0/x)*(p.Ra_star/p.Rv_star))-1- ...
-            (1/p.We)*(p.Pv_star/(p.Rv_star*x))^(1/3);
-        total = p.ma0+p.mv0;
-        vapor_mass = fzero(fun,total,opts);
-        while isnan(vapor_mass)
-            total = total/1.11;
-            vapor_mass = fzero(fun,total,opts);
+        % At equilibrium Pg0/Req^3 + Pv = 1 + 1/(We*Req).
+        % Solve in positive radius, not vapor mass: scalar-start fzero
+        % could probe negative mass, and its NaN retry loop was unbounded.
+        pressure_gap = 1-p.Pv_star;
+        balance = @(r) pressure_gap*r^3+r^2/p.We-p.P0_star;
+        if pressure_gap > 0
+            gas_radius = exp((log(p.P0_star)-log(pressure_gap))/3);
+            if isinf(p.We)
+                Req = gas_radius;
+            else
+                cap_radius = exp((log(p.P0_star)+log(p.We))/2);
+                upper = min(gas_radius,cap_radius);
+                % Enlarge by roundoff so the upper endpoint brackets.
+                upper = upper*(1+16*eps);
+                scaled_balance = @(x) balance(upper*x)/p.P0_star;
+                Req = upper*fzero(scaled_balance,[0 1],optimset('display','off'));
+            end
+        elseif pressure_gap == 0 && isfinite(p.We)
+            Req = exp((log(p.P0_star)+log(p.We))/2);
+        elseif pressure_gap < 0 && isfinite(p.We)
+            % The smaller root is stable; the cubic maximum brackets it.
+            upper = 2/(3*(-pressure_gap)*p.We);
+            if balance(upper) <= 0
+                error('INPUT ERROR: collapse has no stable positive equilibrium radius.');
+            end
+            scaled_balance = @(x) balance(upper*x)/p.P0_star;
+            Req = upper*fzero(scaled_balance,[0 1],optimset('display','off'));
+        else
+            error('INPUT ERROR: collapse has no stable positive equilibrium radius.');
         end
-        Req = (p.Rv_star*vapor_mass/p.Pv_star)^(1/3);
+        if ~(isfinite(Req) && Req > 0)
+            error('INPUT ERROR: collapse equilibrium radius must be positive and finite.');
+        end
         Rdot = 0;
         fprintf('New equilibrium radius, Req = %.8f\n',Req);
     end
@@ -118,7 +154,11 @@ function c = prepare_case(solver,varargin)
         nstress = 2*p.Nv;
     end
     if specified.stress0
-        Szero = p.Szero(:);
+        valid_stress = isnumeric(p.Szero) && isreal(p.Szero) && all(isfinite(p.Szero(:)));
+        if ~valid_stress || (~isempty(p.Szero) && ~isvector(p.Szero))
+            error('INPUT ERROR: stress0 must be a finite, real numeric vector.');
+        end
+        Szero = double(p.Szero(:));
         if numel(Szero) ~= nstress
             error('INPUT ERROR: stress0 must have %d element(s) for stress = %d',nstress,p.stress);
         end
@@ -204,6 +244,10 @@ end
 % 'cvodes' (3), 'ode15s' (15) or 'ode23tb' (23)
 function code = f_method_code(method)
     if ischar(method) || isstring(method)
+        valid_text = (ischar(method) && isrow(method)) || (isstring(method) && isscalar(method));
+        if ~valid_text
+            error('INPUT ERROR: method must be a text scalar or numeric solver code.');
+        end
         names = {'cvodes', 'ode15s', 'ode23tb'};
         codes = [3 15 23];
         k = find(strcmpi(char(method), names), 1);

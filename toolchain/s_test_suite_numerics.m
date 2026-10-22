@@ -187,9 +187,14 @@ function f_expect_failure(fun)
     error('Expected invalid input to fail.');
 end
 
-function [t,R] = f_early_return()
+function [t,R,U,P,T,Tm,kv] = f_early_return()
     t = [0;
     0.5];
     R = [1;
     1];
+    U = [0 0]';
+    P = R;
+    T = [];
+    Tm = R;
+    kv = [];
 end

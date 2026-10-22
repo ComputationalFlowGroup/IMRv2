@@ -22,7 +22,7 @@ The first argument names the calling solver, `'nodal'` or `'spectral'` (used by 
 - Thermal: `kappa`, `foh`, `br`, `alpha_g`, `beta_g`, `alpha_v`, `beta_v`, `chi`, `kmstar`.
 - Mass transfer and vapor pressure: `fom`, `lheat`, `rv`, `ra`, `pv`, `thetav`.
 
-After reading the inputs, the function computes the derived quantities (initial gas pressure `P0_star`, initial vapor concentration, `JdotA`, ...) and calls [`imr.configuration.validate_case`](f_checkers.md) to validate the case.
+After reading the inputs, [`imr.configuration.validate_case`](f_checkers.md) checks primitive values before deriving and checking initial pressures. Case preparation then computes checked mixture fractions, transport ratios and `JdotA`, and initializes the stress history.
 
 
 ## Outputs

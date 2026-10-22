@@ -23,11 +23,35 @@ function p = validate_case(p)
                 ['one of ' mat2str(item.allowed)]);
         elseif strcmp(item.rule,'count')
             f_nonnegative_integer(p.(item.field),item.name);
+        elseif ~any(strcmp(item.name,{'tfin','tvector'}))
+            % Scalar shape/type checks precede all arithmetic, including
+            % inactive parameters used by builders in precomputed ratios.
+            v = p.(item.field);
+            allowinf = any(strcmp(item.name,{'re','we','ca'}));
+            ok = isnumeric(v) && isscalar(v) && isreal(v);
+            if ~ok || ~(isfinite(v) || (allowinf && v == Inf))
+                error('INPUT ERROR: %s must be a finite, real numeric scalar (only Re, We and Ca allow Inf).',item.name);
+            end
+        end
+        if ~any(strcmp(item.name,{'tfin','tvector'}))
+            % MATLAB integer arithmetic saturates and rounds division.
+            % Model calculations and ODE states must use floating point.
+            p.(item.field) = double(p.(item.field));
         end
     end
     if ~(isnumeric(p.eps3) && isscalar(p.eps3) && p.eps3 >= 0 && p.eps3 <= 0.5)
         error('INPUT ERROR: eps3 must be in [0, 0.5]');
     end
+    if p.eps3 ~= 0
+        warning('IMR:unusedParameter','eps3 is reserved and does not enter the implemented equations.');
+    end
+
+    % These values enter compatibility warnings and initial pressure
+    % calculations, so check their ranges before evaluating either.
+    f_positive({'Re','We','Ca'}, {p.Re8, p.We, p.Ca}, true);
+    f_positive({'Req'}, {p.Req});
+    f_nonnegative({'De','LAM','alphax','kappa - 1'}, ...
+        {p.De, p.LAM, p.alphax, p.kappa - 1});
 
     % compatibility of the model conditions
 
@@ -130,12 +154,17 @@ function p = validate_case(p)
     end
     t = p.tvector;
     valid_t = isnumeric(t) && isreal(t) && isvector(t) && numel(t) >= 2;
-    if ~valid_t || any(~isfinite(t)) || any(diff(t) <= 0)
+    if ~valid_t
+        error('INPUT ERROR: tvector must be a finite, real, strictly increasing vector');
+    end
+    t = double(t);
+    if any(~isfinite(t)) || any(diff(t) <= 0)
         error('INPUT ERROR: tvector must be a finite, real, strictly increasing vector');
     end
     if t(1) < 0
         error('INPUT ERROR: tvector must start at a nonnegative time');
     end
+    p.tvector = double(t);
     f_dimensional_hint(t(end) < 1e-3, 'the final time', t(end));
 
     % solver and grid options
@@ -153,19 +182,39 @@ function p = validate_case(p)
     f_positive({'Req'}, {p.Req});
     f_dimensional_hint(p.Req < 1e-3, 'Req (= Req/R0)', p.Req);
     f_finite({'Rdotzero'}, {p.Rdotzero});
-    if ~(isfinite(p.P0_star) && p.P0_star >= 0)
+    p.Pv_star = 0;
+    if p.vapor
+        f_nonnegative({'Pv'}, {p.Pv_sat});
+        p.Pv_star = p.Pv_sat;
+    end
+    if ~p.pressure0set
+        exponent = 3;
+        if p.bubtherm == 0
+            exponent = 3*p.kappa;
+        end
+        p.P0_star = (1+1/(p.We*p.Req)-p.Pv_star)*p.Req^exponent;
+    end
+    valid_pressure = isnumeric(p.P0_star) && isscalar(p.P0_star) && isreal(p.P0_star) && isfinite(p.P0_star);
+    if ~valid_pressure
+        error('INPUT ERROR: p0star must be a finite, real numeric scalar.');
+    end
+    if p.P0_star < 0
         error(['INPUT ERROR: the initial gas pressure P0_star = %g is negative; ' ...
             'check We, Req and the vapor pressure (1 + 1/(We*Req) must exceed ' ...
             'Pv_star)'], p.P0_star);
     end
+    p.P0_star = double(p.P0_star);
+    p.Pb_star = p.P0_star+p.Pv_star;
+    if ~isfinite(p.Pb_star) || (p.bubtherm && p.Pb_star <= 0)
+        error('INPUT ERROR: a thermal bubble requires a positive, finite initial total pressure.');
+    end
+    if p.masstrans && p.P0_star <= 0
+        error('INPUT ERROR: mass transfer requires positive initial noncondensible gas pressure (p0star).');
+    end
 
     % dimensionless numbers
 
-    % Reynolds, Weber, and Cauchy numbers may be Inf (no viscosity, surface
-    % tension, or elasticity, respectively)
-    f_positive({'Re','We','Ca'}, {p.Re8, p.We, p.Ca}, true);
-    f_nonnegative({'De','LAM','alphax','kappa - 1'}, ...
-        {p.De, p.LAM, p.alphax, p.kappa - 1});
+    % Re, We and Ca were checked before calculating initial pressures.
     if p.stress >= 3 && p.LAM > 1
         warning('IMR:parameters', ['LAM = lambda2/lambda1 = %g exceeds 1; the ' ...
             'retardation time is normally shorter than the relaxation time'], p.LAM);
@@ -233,6 +282,10 @@ function p = validate_case(p)
             {p.Fom, p.L_heat_star, p.Rv_star, p.Ra_star, p.thetav, p.Pv_sat});
     end
     if p.collapse == 1
+        f_positive({'rv','ra'}, {p.Rv_star, p.Ra_star});
+    end
+    if p.bubtherm && p.vapor && p.Pv_star > 0
+        % Gas constants also set the frozen mixture without mass transfer.
         f_positive({'rv','ra'}, {p.Rv_star, p.Ra_star});
     end
 
