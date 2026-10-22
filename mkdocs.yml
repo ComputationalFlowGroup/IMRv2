@@ -1,4 +1,6 @@
-# Local documentation with a strict CI build. No Pages deployment.
+# Dormant website configuration, retained for future activation.
+# CI checks Markdown/LaTeX sources only. No website build or deployment.
+# Configure and verify an equation renderer before activating the website.
 
 site_name: IMR
 site_description: >-
@@ -40,7 +42,6 @@ theme:
 
 plugins:
   - search
-  - include-markdown
 
 markdown_extensions:
   - admonition
@@ -60,10 +61,6 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-
-extra_javascript:
-  - javascripts/mathjax.js
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 exclude_docs: |
   requirements.txt

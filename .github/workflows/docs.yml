@@ -1,4 +1,4 @@
-name: Documentation build
+name: Documentation checks
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 
-# Keep one documentation build per branch.
+# Keep one source-documentation check per branch. No website is built.
 concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: false
@@ -20,39 +20,22 @@ jobs:
 
   build:
 
-    name: Build (strict)
+    name: Markdown links and LaTeX
 
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install MkDocs
-        run: pip install -r docs/requirements.txt
-
-      # --strict turns every warning (broken link or anchor, page missing from
-      # the nav) into an error
-      - name: Build the site
-        run: mkdocs build --strict
-
-      - name: Set up documentation checks
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: toolchain/docs/package-lock.json
-
-      - name: Install equation and browser checks
-        working-directory: toolchain/docs
+      - name: Install Markdown and LaTeX tools
         run: |
-          npm ci --ignore-scripts
-          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y pandoc jq texlive-latex-base texlive-latex-recommended texlive-fonts-recommended
 
-      - name: Compile equations and check browser rendering
-        run: node toolchain/docs/check.cjs site
+      - name: Check failure detection
+        run: bash toolchain/docs/test.sh
+
+      - name: Check Markdown links and compile equations
+        run: bash toolchain/docs/check.sh
