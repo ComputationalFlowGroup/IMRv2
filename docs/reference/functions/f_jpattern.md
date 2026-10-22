@@ -1,6 +1,6 @@
-# `f_jpattern`
+# `imr.numerics.jacobian_pattern`
 
-`Sp = f_jpattern(n, ith, itm, ikv, iz, scheme)` builds the Jacobian sparsity pattern of the nodal solver from its state indices. `f_imr_nodal` passes it to the stiff integrators when `jacobian = 1`, and when `jacobian = 2` without bubble heat transfer, where no analytic Jacobian exists.
+`Sp = imr.numerics.jacobian_pattern(n, ith, itm, ikv, iz, scheme)` builds the Jacobian sparsity pattern of the nodal solver from its state indices. `imr.solve_nodal` passes it to the stiff integrators when `jacobian = 1`, and when `jacobian = 2` without bubble heat transfer, where no analytic Jacobian exists.
 
 ## Inputs
 

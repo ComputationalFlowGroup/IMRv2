@@ -1,6 +1,6 @@
 # Parameters and units
 
-`default_case` is a function that returns the default value of every solver input as a struct. `f_prepare_case` starts from these values, and any of them can be changed with a name/value pair, for example `f_imr_nodal('radial', 2, 'stress', 1)`. **Every quantity is dimensionless.** The solvers take no dimensional inputs and return no dimensional outputs; convert physical values beforehand, for example with [`f_dim2nondim.m`](../api/f_dim2nondim.md).
+`imr.configuration.defaults` is a function that returns the default value of every solver input as a struct. `imr.configuration.prepare_case` starts from these values, and any of them can be changed with a name/value pair, for example `imr.solve_nodal('radial', 2, 'stress', 1)`. **Every quantity is dimensionless.** The solvers take no dimensional inputs and return no dimensional outputs; convert physical values beforehand, for example with [`imr.nondimensionalize`](../api/f_dim2nondim.md).
 
 ### Scalings
 
@@ -17,7 +17,7 @@ The default values use the legacy water reference set for a 50 µm bubble at 1 a
 
 ## Parameters
 
-The *input* column is the accepted name in a name/value call (case-insensitive). All public solver inputs are dimensionless, including time and temperature. Values in the tables are rounded for readability; Model and numerical defaults come from `src/default_case.m`; physical groups are derived from the shared SI converter and water profile. See [defaults and units](../reference/defaults.md). SI names, defaults and units are listed in the [conversion API](../api/f_dim2nondim.md#inputs-si).
+The *input* column is the accepted name in a name/value call (case-insensitive). All public solver inputs are dimensionless, including time and temperature. Values in the tables are rounded for readability; Model and numerical defaults come from `src/+imr/+configuration/defaults.m`; physical groups are derived from the shared SI converter and water profile. See [defaults and units](../reference/defaults.md). SI names, defaults and units are listed in the [conversion API](../api/f_dim2nondim.md#inputs-si).
 
 ### Equation options
 
@@ -38,20 +38,20 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 | 1 (dimensionless) |
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` | 1 (dimensionless) |
 | `method` | `method` | Stiff time integrator: 23 `ode23tb`, 15 `ode15s`, 3 CVODES (MATLAB R2024a or later). The names `'ode23tb'`, `'ode15s'` and `'cvodes'` are also accepted | 23 | 1 (dimensionless) |
-| `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `f_imr_spectral` only (0/1) | 0 | 1 (dimensionless) |
+| `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `imr.solve_spectral` only (0/1) | 0 | 1 (dimensionless) |
 | `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 | 1 (dimensionless) |
-| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is the number of stress modes of `f_imr_spectral`, for the stress 5 field (`spectral = 1`) and for the stress 3–4 polymer stress field with medium heat transfer | 25, 25, 150 | 1 (dimensionless) |
+| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is the number of stress modes of `imr.solve_spectral`, for the stress 5 field (`spectral = 1`) and for the stress 3–4 polymer stress field with medium heat transfer | 25, 25, 150 | 1 (dimensionless) |
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 | 1 (dimensionless) |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 | 1 (dimensionless) |
 | `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (nodal solver; numerical in the spectral solver), 2 analytic, 3 batched finite differences (nodal solver only) | 2 | 1 (dimensionless) |
-| `scheme` | `scheme` | Differentiation matrices of `f_imr_nodal`: 0 finite difference, 1 Chebyshev. `f_imr_spectral` takes no scheme | 0 | 1 (dimensionless) |
+| `scheme` | `scheme` | Differentiation matrices of `imr.solve_nodal`: 0 finite difference, 1 Chebyshev. `imr.solve_spectral` takes no scheme | 0 | 1 (dimensionless) |
 | `progdisplay` | `progdisplay` | Print progress (every right-hand-side call; slows runs) | 0 | 1 (dimensionless) |
 
 ### Initial conditions
 
 | Input | Variable | Definition | Default | Units |
 |-------|----------|------------|------------|---|
-| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `f_imr_nodal`. With stress 5 it also requires `stress0`. | 0 | 1 (dimensionless) |
+| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `imr.solve_nodal`. With stress 5 it also requires `stress0`. | 0 | 1 (dimensionless) |
 | `req` | `Req` | `Req/R0` | 0.2 | 1 (dimensionless) |
 | `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 | 1 (dimensionless) |
 | `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed | 1 (dimensionless) |
@@ -88,9 +88,9 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `lam` | `LAM` | `lambda2/lambda1` | 0.1 | 1 (dimensionless) |
 | `alphax` | `alphax` | Strain-stiffening parameter | 0.25 | 1 (dimensionless) |
 | `dre` | `DRe` | `P8*R0/((mu0-mu8)*Uc)`, 0 for no non-Newtonian contribution | 0 | 1 (dimensionless) |
-| `v_a`, `v_nc` | `v_a`, `v_nc` | Exponents of the non-Newtonian models (see `f_viscosity`) | 0, 0 | 1 (dimensionless) |
+| `v_a`, `v_nc` | `v_a`, `v_nc` | Exponents of the non-Newtonian models (see `imr.physics.viscosity`) | 0, 0 | 1 (dimensionless) |
 | `v_lambda` | `v_lambda_star` | Viscosity time scale `v_lambda/t0` | 0 | 1 (dimensionless) |
-| `nu_model` | `nu_model` | 0 Newtonian, 1 Carreau, 2 Carreau–Yasuda, 3 Powell–Eyring, 4 modified Powell–Eyring, 5 Cross, 6 simplified Cross, 7 modified Cross (see `f_viscosity`) | 0 | 1 (dimensionless) |
+| `nu_model` | `nu_model` | 0 Newtonian, 1 Carreau, 2 Carreau–Yasuda, 3 Powell–Eyring, 4 modified Powell–Eyring, 5 Cross, 6 simplified Cross, 7 modified Cross (see `imr.physics.viscosity`) | 0 | 1 (dimensionless) |
 
 ### Thermal transport
 
@@ -117,6 +117,6 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 
 ## Input validation
 
-- All inputs are validated by [`f_checkers`](../reference/functions/f_checkers.md); inputs that look dimensional raise the `IMR:dimensional` warning.
-- [Configuration](../running/configuration.md) explains structs, cell arrays and precedence. There are no case files: a case is the list of inputs that differ from these defaults, kept as a struct from [`f_imr_inputs`](../api/f_imr_inputs.md) or as a cell array `varin` passed as `f_imr_nodal(varin{:})`. The former `casefile` input now raises an error that says so. To run many cases, see [`f_imr_sweep`](../api/f_imr_sweep.md).
+- All inputs are validated by [`imr.configuration.validate_case`](../reference/functions/f_checkers.md); inputs that look dimensional raise the `IMR:dimensional` warning.
+- [Configuration](../running/configuration.md) explains structs, cell arrays and precedence. There are no case files: a case is the list of inputs that differ from these defaults, kept as a struct from [`imr.default_inputs`](../api/f_imr_inputs.md) or as a cell array `varin` passed as `imr.solve_nodal(varin{:})`. The former `casefile` input now raises an error that says so. To run many cases, see [`imr.sweep`](../api/f_imr_sweep.md).
 - See [`compatibility`](../reference/compatibility.md) for which features run together in each solver.

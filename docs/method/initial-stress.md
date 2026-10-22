@@ -1,6 +1,6 @@
 # Initial stress
 
-`f_init_stress` supplies the stress history at maximum radius for stress 3 and 4 collapse runs.
+`imr.physics.initial_stress` supplies the stress history at maximum radius for stress 3 and 4 collapse runs.
 The [collapse guide](../running/collapse.md) explains when it runs and when `stress0` is required.
 
 ## Shooting algorithm
@@ -13,7 +13,7 @@ The [collapse guide](../running/collapse.md) explains when it runs and when `str
 ### Internal Functions
 
 - `f_maxwell_growth_iter`: returns the maximum radius for a trial initial wall velocity.
-- `f_RP_bub_collapse_comp`: Nondimensional Keller–Miksis ODE for the growth with the stress evolution. For the Maxwell branch the stress relaxes toward the elastic stress `Se` of the (quadratic) neo-Hookean model, the same `Ze/R^3` as stress 3 and 4 in [`f_stress`](../reference/functions/f_stress.md): `Sdot = -4*Rdot/(Re*R*De) + dSe/dt - (S - Se)/De`.
+- `f_RP_bub_collapse_comp`: Nondimensional Keller–Miksis ODE for the growth with the stress evolution. For the Maxwell branch the stress relaxes toward the elastic stress `Se` of the (quadratic) neo-Hookean model, the same `Ze/R^3` as stress 3 and 4 in [`imr.physics.material_stress`](../reference/functions/f_stress.md): `Sdot = -4*Rdot/(Re*R*De) + dSe/dt - (S - Se)/De`.
 
 ## Standalone approximation
 
@@ -27,4 +27,4 @@ The [collapse guide](../running/collapse.md) explains when it runs and when `str
 8. **Time Constant Calculation** (`tg`): Computes relaxation time for stress growth.
 9. **Stress Prediction** (`Smaxpred`): Final predicted maximum stress.
 
-The standalone `f_approx_init_stress` is not called by either solver. It calls `hypergeom`, which is not bundled and normally requires Symbolic Math Toolbox. Confirm availability with `which hypergeom` in your MATLAB installation. Its approximate result is not a substitute for an approved collapse stress history.
+The standalone `imr.approximate_initial_stress` is not called by either solver. It calls `hypergeom`, which is not bundled and normally requires Symbolic Math Toolbox. Confirm availability with `which hypergeom` in your MATLAB installation. Its approximate result is not a substitute for an approved collapse stress history.

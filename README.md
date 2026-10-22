@@ -34,19 +34,19 @@ git clone https://github.com/mrodrig6/imrv2.git
 # Enter the checkout.
 cd imrv2
 # Read the input-struct help.
-matlab -batch "imr_setup; help f_imr_inputs"
+matlab -batch "imr_setup; help imr.default_inputs"
 # Run a dimensionless Kelvin–Voigt case.
-matlab -batch "imr_setup; [t,R]=f_imr_nodal('radial',2,'stress',1);"
+matlab -batch "imr_setup; [t,R]=imr.solve_nodal('radial',2,'stress',1);"
 ```
 
 Or use the core API from MATLAB at the checkout root:
 
 ```matlab
 imr_setup;
-p = f_imr_inputs();
+p = imr.default_inputs();
 p.radial = 2;
 p.stress = 1;
-[t, R] = f_imr_nodal(p);
+[t, R] = imr.solve_nodal(p);
 ```
 
 The [complete quick start](docs/getting-started/quick-start.md) converts SI inputs and restores dimensional outputs. These examples await local MATLAB execution; no numerical output is claimed here.
@@ -62,7 +62,7 @@ The [complete quick start](docs/getting-started/quick-start.md) converts SI inpu
 | Method | [Workflow](docs/method/overview.md) · [Discretization](docs/method/discretization.md) · [Integration and Jacobians](docs/method/time-integration.md) · [Wall boundaries](docs/method/wall-boundaries.md) · [Initial stress](docs/method/initial-stress.md) · [Benchmarks](docs/method/integrator-benchmarks.md) |
 | Theory | [Radial equations](docs/theory/radial-equations.md) · [Stress heating](docs/theory/stress-heating.md) · [Viscosity integrals](docs/theory/viscosity-integrals.md) |
 | Validation | [Tests](docs/validation/tests.md) · [Equilibrium](docs/validation/equilibrium.md) · [Gaussian pulse](docs/validation/gaussian.md) · [Permutations](docs/validation/permutations.md) · [Regression](docs/validation/regression.md) · [Operators](docs/validation/operators.md) · [Reported comparisons](docs/validation/convergence.md) |
-| Reference | [Compatibility](docs/reference/compatibility.md) · [Code map](docs/reference/code-map.md) · [Repository map](docs/reference/repository.md) · [CI](docs/reference/ci.md) · [Contributing](docs/reference/contributing.md) · [Citation](docs/reference/references.md) · [People](docs/reference/about.md) |
+| Reference | [Compatibility](docs/reference/compatibility.md) · [Code map](docs/reference/code-map.md) · [Namespaces](docs/reference/namespaces.md) · [Repository map](docs/reference/repository.md) · [CI](docs/reference/ci.md) · [Contributing](docs/reference/contributing.md) · [Citation](docs/reference/references.md) · [People](docs/reference/about.md) |
 
 IMR accompanies the inertial-cavitation methods described by Estrada et al. (2017) and Warnez and Johnsen (2015). See [references and citation](docs/reference/references.md) for the project BibTeX and the papers to cite for measured waveforms.
 

@@ -1,6 +1,6 @@
-# `f_radial_eq`
+# `imr.physics.radial_acceleration`
 
-`f_radial_eq` evaluates the bubble-wall acceleration `Rddot` for the six radial models. Rayleigh–Plesset treats the liquid as incompressible, the pressure form of Keller–Miksis uses a constant sound speed, and the other four use an equation of state: Tait for radial 3 and 4, Mie–Grüneisen for radial 5 and 6.
+`imr.physics.radial_acceleration` evaluates the bubble-wall acceleration `Rddot` for the six radial models. Rayleigh–Plesset treats the liquid as incompressible, the pressure form of Keller–Miksis uses a constant sound speed, and the other four use an equation of state: Tait for radial 3 and 4, Mie–Grüneisen for radial 5 and 6.
 
 ## Major Sections
 
@@ -48,5 +48,5 @@
 ## Notes
 
 - The EOS helper functions work elementwise, on one pressure or a row of them.
-- `R`, `Rdot` and the other state inputs may be row vectors, with `X` holding one state per column (the batched right-hand side of [`f_imr_nodal`](../../method/time-integration.md#batched-right-hand-side)). Operations are elementwise across the columns. Driven enthalpy branches now evaluate far-field enthalpy and its pressure derivative with the same EoS as the wall; see the [equations](../../theory/radial-equations.md#enthalpy-forms).
-- `f_checkers` allows radial 5 and 6 only with the polytropic bubble, and radial 3 and 4 without medium heat transfer: the enthalpy forms take the liquid at the far-field temperature.
+- `R`, `Rdot` and the other state inputs may be row vectors, with `X` holding one state per column (the batched right-hand side of [`imr.solve_nodal`](../../method/time-integration.md#batched-right-hand-side)). Operations are elementwise across the columns. Driven enthalpy branches now evaluate far-field enthalpy and its pressure derivative with the same EoS as the wall; see the [equations](../../theory/radial-equations.md#enthalpy-forms).
+- `imr.configuration.validate_case` allows radial 5 and 6 only with the polytropic bubble, and radial 3 and 4 without medium heat transfer: the enthalpy forms take the liquid at the far-field temperature.

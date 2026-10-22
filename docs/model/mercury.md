@@ -1,32 +1,32 @@
 # Mercury liquid and vapor properties
 
-The MATLAB profile `fluids.mercury()` supplies fitted SI liquid and ideal-vapor coefficients to the shared `f_fluid_properties` evaluator. Selecting it in `f_dim2nondim` uses ambient liquid density and sound speed to prepare the pressure-form Keller–Miksis equation (`radial = 2`) for either solver.
+The MATLAB profile `imr.fluids.mercury()` supplies fitted SI liquid and ideal-vapor coefficients to the shared `imr.fluid_properties` evaluator. Selecting it in `imr.nondimensionalize` uses ambient liquid density and sound speed to prepare the pressure-form Keller–Miksis equation (`radial = 2`) for either solver.
 
 ## What enters the radial equation
 
-At ambient absolute pressure `P8` and temperature `T8`, the converter evaluates `rho8 = rho(P8,T8)` and `C8 = c(P8,T8)`. `f_dim2nondim` then computes consistent velocity, time and acoustic scales. The standard KM pressure equation holds these ambient liquid properties fixed during a run. It does not evaluate pressure-dependent density or sound speed at the moving bubble wall.
+At ambient absolute pressure `P8` and temperature `T8`, the converter evaluates `rho8 = rho(P8,T8)` and `C8 = c(P8,T8)`. `imr.nondimensionalize` then computes consistent velocity, time and acoustic scales. The standard KM pressure equation holds these ambient liquid properties fixed during a run. It does not evaluate pressure-dependent density or sound speed at the moving bubble wall.
 
 There is no Python implementation or runtime call in IMRv2. Coefficients, saturation data, examples and tests are MATLAB files bundled with this repository. The original fitting repository is a provenance reference, not an installation dependency.
 
 ## Preparing a run
 
-Run `imr_setup` once. Use `f_dim2nondim('fluid',@fluids.mercury,...)`; the profile selects its only supported radial model, pressure-form KM. Stress and gas choices remain explicit:
+Run `imr_setup` once. Use `imr.nondimensionalize('fluid',@imr.fluids.mercury,...)`; the profile selects its only supported radial model, pressure-form KM. Stress and gas choices remain explicit:
 
 ```matlab
-[args, ref] = f_dim2nondim('fluid',@fluids.mercury, ...
+[args, ref] = imr.nondimensionalize('fluid',@imr.fluids.mercury, ...
     'radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
     'mu',0,'surft',0,'kappa',1.4,'vapor',1, ...
     'req',40e-6,'tvector',linspace(0,1e-6,41));
-[t,R] = f_imr_nodal(args{:});
+[t,R] = imr.solve_nodal(args{:});
 ```
 
 Zero viscosity and surface tension above select an idealized demonstration. For physical simulations provide measured values at the selected conditions. `surft` and bubble-gas `kappa` are required; `mu` is required when `stress > 0`. Thermal runs require explicit `atg`, `btg`, `atv`, `btv`, positive conductivities and gas slope, and `kappa > 1`; medium heat additionally requires positive `km`. The profile intentionally contains no fabricated transport values.
 
-For migration, `fluids.mercury()` replaces `f_mercury_parameters`, `f_fluid_properties` replaces `f_mercury_eos` and `f_mercury_pvsat`, and the SI converter replaces `f_mercury_inputs`. Use the Newtonian settings in the example to reproduce that helper's model choices. `ref.fluid.profile` and `ref.fluid.input_pairs` preserve a data snapshot for replay.
+For migration, `imr.fluids.mercury()` replaces `f_mercury_parameters`, `imr.fluid_properties` replaces `f_mercury_eos` and `f_mercury_pvsat`, and the SI converter replaces `f_mercury_inputs`. Use the Newtonian settings in the example to reproduce that helper's model choices. `ref.fluid.profile` and `ref.fluid.input_pairs` preserve a data snapshot for replay.
 
 ## Fitted liquid slices
 
-`f_fluid_properties(@fluids.mercury,P,T)` evaluates
+`imr.fluid_properties(@imr.fluids.mercury,P,T)` evaluates
 
 $$
 \rho_0=a_\rho T+b_\rho,\quad c_0=c_{0,0}+c_{0,1}T,\quad
@@ -42,7 +42,7 @@ Here $\rho_0$ and $c_0$ are the fitted zero-pressure density and sound speed at 
 
 The liquid caloric slice is `h_l = Cp_l*T + q_l`. `K0` and `n` are recomputed at each temperature; the single tabulated pair applies only at `Tref = 412.5 K`. The quadratic diagnostic coefficient `s2` is retained as metadata and is not part of these evaluators.
 
-| Parameter group in `fluids.mercury()` | Units |
+| Parameter group in `imr.fluids.mercury()` | Units |
 |---|---|
 | `liquid.rho0_a`, `rho0_b` | kg/(m³ K), kg/m³ |
 | `liquid.c0_0`, `c0_1` | m/s, m/(s K) |

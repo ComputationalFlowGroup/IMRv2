@@ -1,6 +1,6 @@
 # Parameter sweeps
 
-`f_imr_sweep` runs a full grid of input combinations and records each result or error. Its [API page](../api/f_imr_sweep.md) defines options and array layout.
+`imr.sweep` runs a full grid of input combinations and records each result or error. Its [API page](../api/f_imr_sweep.md) defines options and array layout.
 
 ## Small dimensionless grid
 
@@ -10,7 +10,7 @@ In MATLAB from the checkout root:
 % Sweep Reynolds number and elasticity with shared dimensionless inputs.
 imr_setup;
 base = {'radial', 2, 'stress', 1, 'req', 0.2};
-res = f_imr_sweep(@f_imr_nodal, base, 're', [100 300 1000], 'ca', [10 100]);
+res = imr.sweep(@imr.solve_nodal, base, 're', [100 300 1000], 'ca', [10 100]);
 failed = arrayfun(@(r) ~isempty(r.error), res);
 plot(res(2,1).out{1}, res(2,1).out{2});
 ```
@@ -23,8 +23,8 @@ Inspect `failed` and each `res(k).error` before using a result. A completed swee
 % Convert each physical case before running it on a parallel pool.
 imr_setup;
 base = {'r0', 50e-6, 'req', 10e-6, 'stress', 1, 'tvector', linspace(0, 20e-6, 200)};
-res = f_imr_sweep(@f_imr_nodal, base, 'mu', logspace(-3, -1, 8), ...
-    'g', logspace(2, 5, 8), 'transform', @f_dim2nondim, 'parallel', true);
+res = imr.sweep(@imr.solve_nodal, base, 'mu', logspace(-3, -1, 8), ...
+    'g', logspace(2, 5, 8), 'transform', @imr.nondimensionalize, 'parallel', true);
 failed = arrayfun(@(r) ~isempty(r.error), res);
 ```
 

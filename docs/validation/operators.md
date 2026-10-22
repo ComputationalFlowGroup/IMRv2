@@ -1,6 +1,6 @@
 # Differentiation operators
 
-`s_test_suite_diffmat.m` checks the differentiation operators returned by [`f_diff_mat`](../reference/functions/f_diff_mat.md). The test suites workflow `tests.yml` runs it.
+`s_test_suite_diffmat.m` checks the differentiation operators returned by [`imr.numerics.differentiation`](../reference/functions/f_diff_mat.md). The test suites workflow `tests.yml` runs it.
 
 MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
 
@@ -18,4 +18,4 @@ MATLAB checks were not run for this documentation change. The descriptions below
 
 Adds `../src/` to the path, so it runs from `toolchain/`.
 
-These assertions use analytic functions and stencil definitions, not stored simulations. Historical measurements with other node counts and tighter observed errors are separated in [reported comparisons](convergence.md#reported-measurements-f_diff_mat).
+These assertions use analytic functions and stencil definitions, not stored simulations. Historical measurements with other node counts and tighter observed errors are separated in [reported comparisons](convergence.md#reported-measurements-imrnumericsdifferentiation).

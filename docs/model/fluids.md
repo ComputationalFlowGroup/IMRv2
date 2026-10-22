@@ -1,14 +1,14 @@
 # Fluid profiles
 
-Material data live in MATLAB's `src/+fluids/` package. `fluids.water()` returns a struct of SI liquid/vapor coefficients and reference transport values; `f_fluid_properties` evaluates the selected mathematical model. The simulation call chooses the bubble gas, stress model and forcing.
+Material data live in MATLAB's `src/+imr/+fluids/` package. `imr.fluids.water()` returns a struct of SI liquid/vapor coefficients and reference transport values; `imr.fluid_properties` evaluates the selected mathematical model. The simulation call chooses the bubble gas, stress model and forcing.
 
 ```matlab
 imr_setup;
-[args, ref] = f_dim2nondim('fluid',@fluids.water, ...
+[args, ref] = imr.nondimensionalize('fluid',@imr.fluids.water, ...
     'radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
     'mu',1e-3,'surft',0.072,'kappa',1.4,'req',40e-6, ...
     'tvector',linspace(0,1e-6,41));
-[t,R] = f_imr_nodal(args{:});
+[t,R] = imr.solve_nodal(args{:});
 plot(t*ref.t0,R*ref.R0);
 ```
 
@@ -16,7 +16,7 @@ The water profile preserves the legacy reference set, including `rho8 = 1064 kg/
 
 ## Data schema
 
-Copy `water.m` to `src/+fluids/myfluid.m`, rename the function to `myfluid`, and edit the relevant data, provenance and capabilities. Select it with `'fluid',@fluids.myfluid`. Existing equation families need no new solver file or ODE-time file read.
+Copy `water.m` to `src/+imr/+fluids/myfluid.m`, rename the function to `myfluid`, and edit the relevant data, provenance and capabilities. Select it with `'fluid',@imr.fluids.myfluid`. Existing equation families need no new solver file or ODE-time file read.
 
 | Field | Purpose |
 |---|---|
@@ -50,7 +50,7 @@ $$
 
 It then evaluates $\rho=\rho_0(1+nP/K_0)^{1/n}$ and $c^2=\gamma(K_0+nP)/\rho$. Profile coefficient names are `rho0_a`, `rho0_b`, `c0_0`, `c0_1`, `gamma` and `s1`. This is a particular property-family convention, not a universal calibration for all liquids. Density and reported acoustics must be checked for thermodynamic consistency before coupling a new profile to enthalpy radial models.
 
-A genuinely new equation family needs a model branch and tests in `f_fluid_properties`. A new profile using an existing family needs only data and appropriate validation evidence.
+A genuinely new equation family needs a model branch and tests in `imr.fluid_properties`. A new profile using an existing family needs only data and appropriate validation evidence.
 
 ## Optional material add-on
 

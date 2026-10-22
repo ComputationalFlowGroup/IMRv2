@@ -11,10 +11,11 @@ The test suites live in `toolchain/` and run from that folder. The tests workflo
 | [`s_test_suite_gaussian`](gaussian.md) | A bubble returns to equilibrium after a Gaussian pressure pulse | None |
 | [`s_test_suite_permutations`](permutations.md) | Every accepted combination of the solver options runs | None |
 | [`s_test_suite_regression`](regression.md) | `R(t)` matches the stored results | `tests/reference/` |
-| [`s_test_suite_diffmat`](operators.md) | The differentiation operators of `f_diff_mat` | None |
+| [`s_test_suite_diffmat`](operators.md) | The differentiation operators of `imr.numerics.differentiation` | None |
 | `s_test_suite_polytropic` | [Constant-vapor pressure derivative and histories](polytropic.md) | None |
 | `s_test_suite_fluids` | [Water properties, defaults, overrides and custom profiles](../reference/defaults.md) | Frozen old default values |
 | `s_test_suite_mercury` | [Optional material properties and KM preparation](mercury.md) | Frozen property states and observations |
+| `s_test_suite_namespace` | [Namespace resolution, legacy calls and measured data](../reference/namespaces.md) | None |
 | `s_test_suite_structure` | [Prepared cases, states, independent Jacobians and output boundaries](../reference/internal-contracts.md#verification) | None |
 | `s_test_suite_numerics` | [Driven enthalpy, time-step limits and input guards](numerics.md) | None |
 
@@ -22,13 +23,13 @@ The generated equilibrium, Gaussian, permutation and regression suites use three
 
 | Mode | Solver |
 |---|---|
-| `nodal_fd` | `f_imr_nodal`, finite differences (`scheme = 0`) |
-| `nodal_cheb` | `f_imr_nodal`, Chebyshev collocation (`scheme = 1`) |
-| `spectral` | `f_imr_spectral` |
+| `nodal_fd` | `imr.solve_nodal`, finite differences (`scheme = 0`) |
+| `nodal_cheb` | `imr.solve_nodal`, Chebyshev collocation (`scheme = 1`) |
+| `spectral` | `imr.solve_spectral` |
 
 ## `f_test_cases(suite)`
 
-Returns the cases of `'equilibrium'`, `'gaussian'`, `'regression'` or `'permutations'` for all three modes. It builds each case from the model features, then keeps it only if the solver's own input checks (`f_call_params` and [`f_checkers`](../reference/functions/f_checkers.md)) accept it. The generator enumerates selected combinations and filters them through the rules behind the [compatibility matrix](../reference/compatibility.md). It does not exhaust every possible parameter value or prove that every pairwise-compatible collection of features is valid.
+Returns the cases of `'equilibrium'`, `'gaussian'`, `'regression'` or `'permutations'` for all three modes. It builds each case from the model features, then keeps it only if the solver's own input checks (`imr.configuration.legacy_options` and [`imr.configuration.validate_case`](../reference/functions/f_checkers.md)) accept it. The generator enumerates selected combinations and filters them through the rules behind the [compatibility matrix](../reference/compatibility.md). It does not exhaust every possible parameter value or prove that every pairwise-compatible collection of features is valid.
 
 Each case has these fields:
 
@@ -37,7 +38,7 @@ Each case has these fields:
 - `solver`: the solver function handle.
 - `args`: the dimensionless name/value pairs, grid included.
 
-The inputs are given in SI units and converted with [`f_dim2nondim`](../api/f_dim2nondim.md). The grids are:
+The inputs are given in SI units and converted with [`imr.nondimensionalize`](../api/f_dim2nondim.md). The grids are:
 
 | Suite | `nodal_fd` | `nodal_cheb` | `spectral` |
 |---|---|---|---|
@@ -71,7 +72,7 @@ status=0
 for suite in s_test_suite_equilibrium s_test_suite_gaussian \
     s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression \
     s_test_suite_polytropic s_test_suite_fluids s_test_suite_numerics \
-    s_test_suite_structure \
+    s_test_suite_structure s_test_suite_namespace \
     s_test_suite_mercury; do
     matlab -batch "$suite" || status=1
 done

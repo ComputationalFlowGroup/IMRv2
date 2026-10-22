@@ -1,6 +1,6 @@
 # Stress and viscosity
 
-`f_stress` supplies the integrated material stress to the radial equation. `f_viscosity` adds a shear-dependent contribution when `nu_model` is active.
+`imr.physics.material_stress` supplies the integrated material stress to the radial equation. `imr.physics.viscosity` adds a shear-dependent contribution when `nu_model` is active.
 
 | `stress` | Constitutive family | History |
 |---|---|---|

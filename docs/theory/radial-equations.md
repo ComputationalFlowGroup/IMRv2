@@ -1,6 +1,6 @@
 # Radial equations and equation of state
 
-`src/f_radial_eq.m` computes wall acceleration. All quantities below are dimensionless: radius is scaled by $R_0$, pressure by $P_\infty$, density by $\rho_\infty$, velocity by $U_c=\sqrt{P_\infty/\rho_\infty}$ time by $R_0/U_c$, and liquid enthalpy by $U_c^2$. A dot denotes a derivative with respect to that dimensionless time. See [parameters](../model/parameters.md) for SI conversion.
+`src/+imr/+physics/radial_acceleration.m` computes wall acceleration. All quantities below are dimensionless: radius is scaled by $R_0$, pressure by $P_\infty$, density by $\rho_\infty$, velocity by $U_c=\sqrt{P_\infty/\rho_\infty}$ time by $R_0/U_c$, and liquid enthalpy by $U_c^2$. A dot denotes a derivative with respect to that dimensionless time. See [parameters](../model/parameters.md) for SI conversion.
 
 ## Pressure forms
 

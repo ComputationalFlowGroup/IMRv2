@@ -5,14 +5,14 @@
 | Input | Role | Implementation |
 |---|---|---|
 | `bubtherm = 0` | Polytropic pressure law | Solver pressure equation |
-| `bubtherm = 1` | Bubble thermal PDE | `f_imr_nodal` or `f_imr_spectral` |
-| `medtherm = 1` | Surrounding-medium thermal PDE | Solver diffusion/advection plus `f_stress_dissipation` |
-| `vapor = 1` | Saturated far-field vapor pressure | `f_prepare_case` |
+| `bubtherm = 1` | Bubble thermal PDE | `imr.solve_nodal` or `imr.solve_spectral` |
+| `medtherm = 1` | Surrounding-medium thermal PDE | Solver diffusion/advection plus `imr.physics.stress_power` |
+| `vapor = 1` | Saturated far-field vapor pressure | `imr.configuration.prepare_case` |
 | `masstrans = 1` | Vapor diffusion and wall coupling | Nodal solver and wall closure |
 
 The [compatibility matrix](../reference/compatibility.md) owns prerequisites and exclusions. Without medium heat transfer the wall remains at the far-field temperature; this treats the liquid as an infinite heat reservoir and neglects wall cooling/heating from phase change.
 
-`f_dim2nondim` obtains saturation from the selected [fluid profile](fluids.md) through [`f_fluid_properties`](../api/f_fluid_properties.md#saturation). Without a profile, it retains the legacy water exponential fit attributed to Preston's 2004 thesis. Its historically quoted 290–310 K interval is not a validated accuracy guarantee. Overriding `pv` alone does not replace the temperature-law exponent.
+`imr.nondimensionalize` obtains saturation from the selected [fluid profile](fluids.md) through [`imr.fluid_properties`](../api/f_fluid_properties.md#saturation). Without a profile, it retains the legacy water exponential fit attributed to Preston's 2004 thesis. Its historically quoted 290–310 K interval is not a validated accuracy guarantee. Overriding `pv` alone does not replace the temperature-law exponent.
 
 The wall law uses dimensionless temperature $\tau=T/T_\infty$ and pressure:
 
@@ -43,6 +43,6 @@ k_{v,w}=\left[1+r\left(\frac{P}{p_{\mathrm{sat}}(\tau_w)}-1\right)\right]^{-1},
 =\frac{\Theta_v}{\tau^2}p_{\mathrm{sat}}(\tau).
 $$
 
-This follows by writing partial vapor pressure from the ideal gas mixture, with the local vapor assumed saturated. Admissible mixtures require $0<p_{\mathrm{sat}}(\tau_w)<P$, hence $0<k_{v,w}<1$. As saturation pressure tends to zero at fixed total pressure, the wall vapor fraction tends to zero. The shared `f_saturation_pressure` evaluates pressure and derivative; the private nodal factory imposes the wall fraction. The [fluid suite](../validation/tests.md) checks saturation derivatives and [system checks](../reference/internal-contracts.md#verification) check reconstructed wall saturation.
+This follows by writing partial vapor pressure from the ideal gas mixture, with the local vapor assumed saturated. Admissible mixtures require $0<p_{\mathrm{sat}}(\tau_w)<P$, hence $0<k_{v,w}<1$. As saturation pressure tends to zero at fixed total pressure, the wall vapor fraction tends to zero. The shared `imr.physics.saturation_pressure` evaluates pressure and derivative; the nodal factory imposes the wall fraction. The [fluid suite](../validation/tests.md) checks saturation derivatives and [system checks](../reference/internal-contracts.md#verification) check reconstructed wall saturation.
 
 Bubble conductivity is linear in temperature. The [wall method](../method/wall-boundaries.md) explains the Kirchhoff transform, saturated vapor closure and the known stored-mixture-coefficient limitation. The [stress-heating theory](../theory/stress-heating.md) states the full-stress-power convention, including elastic heating and cooling.

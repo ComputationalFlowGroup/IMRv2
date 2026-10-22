@@ -1,6 +1,6 @@
-# `f_dual_ops`
+# `imr.numerics.dual_operations`
 
-`d = f_dual_ops(n)` returns the operations used by the analytic Jacobians [`f_jacobian_nodal`](f_jacobian_nodal.md) and [`f_jacobian_spectral`](f_jacobian_spectral.md). A quantity is carried as a struct with its value `v` and its sparse derivative `J = dv/dX` with respect to the `n`-dimensional state `X`, so composing the operations applies the chain rule exactly.
+`d = imr.numerics.dual_operations(n)` returns the operations used by the analytic Jacobians [`imr.numerics.jacobian_nodal`](f_jacobian_nodal.md) and [`imr.numerics.jacobian_spectral`](f_jacobian_spectral.md). A quantity is carried as a struct with its value `v` and its sparse derivative `J = dv/dX` with respect to the `n`-dimensional state `X`, so composing the operations applies the chain rule exactly.
 
 ## Operations
 

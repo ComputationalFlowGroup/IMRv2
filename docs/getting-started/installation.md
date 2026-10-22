@@ -26,8 +26,8 @@ In MATLAB, from the checkout root:
 
 ```matlab
 imr_setup;
-which f_imr_nodal
-which f_imr_spectral
+which imr.solve_nodal
+which imr.solve_spectral
 ```
 
 `which` must resolve both functions inside this checkout's `src/`. `imr_setup` also exposes the example scripts and the root setup function, so these remain callable after changing folders. It does not use `genpath`, add test fixtures or save paths permanently. Run it once per session, or persist the resulting paths with MATLAB's `savepath` if desired. The [quick start](quick-start.md) exercises the solver; resolving a function alone does not validate a simulation.

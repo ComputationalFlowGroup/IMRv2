@@ -1,6 +1,6 @@
 # Radial dynamics
 
-`src/f_radial_eq.m` evaluates the wall acceleration for six choices of `radial`. The selector changes the liquid compressibility model and how pressure enters the radial equation.
+`src/+imr/+physics/radial_acceleration.m` evaluates the wall acceleration for six choices of `radial`. The selector changes the liquid compressibility model and how pressure enters the radial equation.
 
 | `radial` | Equation | Liquid description |
 |---|---|---|

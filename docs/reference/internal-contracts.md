@@ -1,12 +1,12 @@
 # Prepared cases and numerical systems
 
-The public entry points remain `f_imr_nodal` and `f_imr_spectral`. Internally they prepare a named case, construct a numerical system, integrate it, then reconstruct the eight public outputs. These developer contracts replace positional option vectors inside the solvers; they are not additional simulation options.
+The public entry points remain `imr.solve_nodal` and `imr.solve_spectral`. Internally they prepare a named case, construct a numerical system, integrate it, then reconstruct the eight public outputs. These developer contracts replace positional option vectors inside the solvers; they are not additional simulation options.
 
 ```matlab
-c = f_prepare_case('nodal','radial',2,'Req',1,'Nt',12);
-system = f_imr_system(c);
+c = imr.configuration.prepare_case('nodal','radial',2,'Req',1,'Nt',12);
+system = imr.solvers.build(c);
 n = c.numerics;
-[t,X] = f_odesolve(system.rhs,system.initial,n.method,n.divisions, ...
+[t,X] = imr.numerics.integrate(system.rhs,system.initial,n.method,n.divisions, ...
     c.time,system.jacobian,n.rtol,n.atol);
 out = system.outputs(t,X);
 R = out{2};
@@ -27,13 +27,13 @@ R = out{2};
 | `inputs` | Public requested/default record, preserving the existing replay semantics |
 | `layout` | Effective state blocks after compatibility normalization |
 
-`default_case` owns default values and derives physical groups through the SI converter. `f_parameter_schema` owns public/internal names and unconditional choice/count rules. `f_checkers` owns physical ranges and coupled compatibility constraints. `f_prepare_case` applies overrides, computes derived groups and initializes collapse when requested. The [parameter table](../model/parameters.md) remains the user-facing definition of each input.
+`imr.configuration.defaults` owns default values and derives physical groups through the SI converter. `imr.configuration.schema` owns public/internal names and unconditional choice/count rules. `imr.configuration.validate_case` owns physical ranges and coupled compatibility constraints. `imr.configuration.prepare_case` applies overrides, computes derived groups and initializes collapse when requested. The [parameter table](../model/parameters.md) remains the user-facing definition of each input.
 
-For example, `inputs.nv` records the requested count while `numerics.Nv` records the count selected for the active stress model. This distinction preserves the existing [input-record limits](../running/output.md). `f_call_params` remains a compatibility adapter that serializes the named case into its original twelve outputs; new solver code should use named fields.
+For example, `inputs.nv` records the requested count while `numerics.Nv` records the count selected for the active stress model. This distinction preserves the existing [input-record limits](../running/output.md). `imr.configuration.legacy_options` remains a compatibility adapter that serializes the named case into its original twelve outputs; new solver code should use named fields.
 
 ## State and shape contract
 
-`f_state_layout` assigns disjoint row-vector index blocks in the order `R`, `Rdot`, `P`, `bubble`, `medium`, `vapor`, `stress1`, `stress2`, `polymer`. Empty blocks represent disabled fields. `count` is the total number of states. No negative grid order is used as an inactivity marker.
+`imr.solvers.state_layout` assigns disjoint row-vector index blocks in the order `R`, `Rdot`, `P`, `bubble`, `medium`, `vapor`, `stress1`, `stress2`, `polymer`. Empty blocks represent disabled fields. `count` is the total number of states. No negative grid order is used as an inactivity marker.
 
 | Quantity | Nodal | Spectral |
 |---|---|---|
@@ -48,7 +48,7 @@ Stress blocks depend on the constitutive model; the [code map](code-map.md#3-int
 
 ## Numerical system
 
-`f_imr_system` chooses `src/private/imr_nodal_system.m` or `imr_spectral_system.m`. MATLAB resolves this `private` directory through the parent `src` function; users need only `imr_setup`, with no extra path arguments.
+`imr.solvers.build` chooses `imr.solvers.build_nodal` or `imr.solvers.build_spectral`. Both implementations live in `src/+imr/+solvers/`. MATLAB resolves their fully qualified names through the parent `src` directory. There is no `private` directory and no recursive path setup. Package functions remain callable for developer tests. See the [namespace layout](namespaces.md).
 
 | Member | Contract |
 |---|---|
@@ -59,7 +59,7 @@ Stress blocks depend on the constitutive model; the [code map](code-map.md#3-int
 | `operatorSizes` | Bubble and medium operator row counts; zero when disabled |
 | `layout` | The prepared case's state indices |
 
-Factories build only enabled operators. They retain local wall closures and scheme-specific discretization, while `f_thermal_inverse` and `f_saturation_pressure` share pure expressions with the Jacobians and property evaluator. System construction does not integrate time. Output reconstruction recovers algebraic wall states using the same closures as the RHS.
+Factories build only enabled operators. They retain local wall closures and scheme-specific discretization, while `imr.physics.thermal_inverse` and `imr.physics.saturation_pressure` share pure expressions with the Jacobians and property evaluator. System construction does not integrate time. Output reconstruction recovers algebraic wall states using the same closures as the RHS.
 
 ## Verification
 

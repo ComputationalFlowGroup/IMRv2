@@ -1,13 +1,13 @@
 # Collapse initial conditions
 
-`collapse = 1` initializes the bubble at maximum radius with zero wall velocity. `f_prepare_case` constructs that state before time integration; it is not a separate radial equation.
+`collapse = 1` initializes the bubble at maximum radius with zero wall velocity. `imr.configuration.prepare_case` constructs that state before time integration; it is not a separate radial equation.
 
 Use [compatibility](../reference/compatibility.md) for the exact prerequisites. The current checker requires bubble heat, medium heat, vapor pressure and mass transfer, so supported collapse uses the nodal solver with radial 1 or 2.
 
 | Stress | Initial history | User action |
 |---|---|---|
 | 0–2 | No stress history state | Start from rest at maximum radius |
-| 3–4 | `f_init_stress` shoots a subsonic growth trajectory unless `stress0` is supplied | Provide `stress0` if no admissible growth reaches maximum radius |
+| 3–4 | `imr.physics.initial_stress` shoots a subsonic growth trajectory unless `stress0` is supplied | Provide `stress0` if no admissible growth reaches maximum radius |
 | 5 | No automatic maximum-radius stress calculation | Supply the two-state `stress0`; medium heat transfer remains incompatible in the nodal solver |
 
 The stress-5 requirement is necessary but does not remove its medium-heating incompatibility. A full supported collapse configuration with stress 5 is therefore not currently available through the checker; do not infer support from the initial-stress rule alone.

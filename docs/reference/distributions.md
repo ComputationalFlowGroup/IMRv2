@@ -4,7 +4,7 @@ The main development repository keeps all supported physics and optional materia
 
 The add-on boundary consists of:
 
-- `src/+fluids/mercury.m`
+- `src/+imr/+fluids/mercury.m`
 - `examples/s_run_mercury.m`
 - `toolchain/s_test_suite_mercury.m`
 - `tests/fixtures/+imrtest/mercury_reference.m`

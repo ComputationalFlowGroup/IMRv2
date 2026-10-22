@@ -1,23 +1,23 @@
-# `f_fluid_properties`
+# `imr.fluid_properties`
 
 One MATLAB evaluator serves every fluid profile. Add `src/` to the MATLAB path; no installation of the fitting repository or external runtime is needed.
 
 ```matlab
 imr_setup;
-p = fluids.water();                 % data only, all coefficients in SI
-state = f_fluid_properties(p,101325,298.15);
+p = imr.fluids.water();                 % data only, all coefficients in SI
+state = imr.fluid_properties(p,101325,298.15);
 state.liquid.rho                      % kg/m^3
 state.liquid.c                        % m/s
-sat = f_fluid_properties(p,[],298.15); % [] explicitly selects saturation
+sat = imr.fluid_properties(p,[],298.15); % [] explicitly selects saturation
 sat.pressure                          % Pa
 sat.dpressure_dT                      % Pa/K
 ```
 
-Pass a profile struct or a zero-argument function handle such as `@fluids.water`. The evaluator dispatches on model identifiers in that data, rather than material names. See [fluid profiles](../model/fluids.md) for the schema and [unit conversion](f_dim2nondim.md#fluid-profiles) for solver preparation.
+Pass a profile struct or a zero-argument function handle such as `@imr.fluids.water`. The evaluator dispatches on model identifiers in that data, rather than material names. See [fluid profiles](../model/fluids.md) for the schema and [unit conversion](f_dim2nondim.md#fluid-profiles) for solver preparation.
 
 ## Bulk properties
 
-`state = f_fluid_properties(profile,P,T)` accepts absolute pressure in Pa and temperature in K. Scalars and compatible numeric arrays expand to the same output shape. `T` must be positive; both inputs must be finite and real and within the profile domain. At zero pressure ideal-vapor density is zero and specific volume is `Inf`.
+`state = imr.fluid_properties(profile,P,T)` accepts absolute pressure in Pa and temperature in K. Scalars and compatible numeric arrays expand to the same output shape. `T` must be positive; both inputs must be finite and real and within the profile domain. At zero pressure ideal-vapor density is zero and specific volume is `Inf`.
 
 | Field | Meaning | Units |
 |---|---|---|
@@ -32,7 +32,7 @@ The Murnaghan family also reports `liquid.rho0`, `c0`, `K0` and `K0_prime` (kg/m
 
 ## Saturation
 
-`sat = f_fluid_properties(profile,[],T)` evaluates **only saturation**, using its separate temperature range. It returns `model`, `pressure` (Pa), `dpressure_dT` (Pa/K) and `c2` (K). The exponential model returns its negative inverse-temperature coefficient as `c2`; a table returns zero because it does not supply the exponential wall law.
+`sat = imr.fluid_properties(profile,[],T)` evaluates **only saturation**, using its separate temperature range. It returns `model`, `pressure` (Pa), `dpressure_dT` (Pa/K) and `c2` (K). The exponential model returns its negative inverse-temperature coefficient as `c2`; a table returns zero because it does not supply the exponential wall law.
 
 For the exponential model,
 

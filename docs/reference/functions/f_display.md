@@ -1,6 +1,6 @@
-# `f_display`
+# `imr.solvers.describe_case`
 
-`f_display` prints a summary of the run to the command window before time integration. Both solvers call it. The summary shows:
+`imr.solvers.describe_case` prints a summary of the run to the command window before time integration. Both solvers call it. The summary shows:
 
 - the solver mode;
 - the radial model;
@@ -39,7 +39,7 @@ The label depends on the numbers as well as on `stress`:
 ## Stress representation
 
 - **Stress 0–2:** "closed form (no stress history)".
-- **Stress 3–5:** "stress integrals (ODEs)". The exceptions are stress 5 with `spectral = 1`, which prints "stress field, spectral modes", and stress 3–4 with `medtherm = 1`, which print "stress integral (ODE), and its local field for the medium heating" (see [`f_zener_field`](f_zener_field.md)).
+- **Stress 3–5:** "stress integrals (ODEs)". The exceptions are stress 5 with `spectral = 1`, which prints "stress field, spectral modes", and stress 3–4 with `medtherm = 1`, which print "stress integral (ODE), and its local field for the medium heating" (see [`imr.physics.zener_field`](f_zener_field.md)).
 
 ## Viscosity label
 

@@ -1,11 +1,11 @@
 # Model compatibility
 
-These grids show which features can run together in each solver: `f_imr_nodal`, with either differentiation scheme, and `f_imr_spectral`. Every feature appears on both axes, and only the upper triangle is filled in.
+These grids show which features can run together in each solver: `imr.solve_nodal`, with either differentiation scheme, and `imr.solve_spectral`. Every feature appears on both axes, and only the upper triangle is filled in.
 
 Legend:
 
 - **✓** the two features run together.
-- **✗** they cannot run together. `f_checkers` rejects the run with an `INPUT ERROR`.
+- **✗** they cannot run together. `imr.configuration.validate_case` rejects the run with an `INPUT ERROR`.
 - **–** the diagonal, where a feature is paired with itself.
 - **·** alternative settings of the same option, such as two radial models, which cannot be selected at once.
 
@@ -24,7 +24,7 @@ The radial models fall into three groups with the same compatibility:
 
 The enthalpy forms (radial 3–6) describe the liquid with an equation of state in pressure only, at the far-field temperature. Medium heat transfer would change the liquid temperature, so it is not available with them, and neither is collapse, which requires it. Bubble heat transfer and mass transfer remain available with radial 3–4: without medium heat transfer the wall stays at the far-field temperature, and the wall vapor fraction is the saturated value at that temperature and the bubble pressure. The liquid then acts as an infinite heat reservoir, which is consistent with the equation of state but neglects the evaporative cooling and condensation heating of the wall. Radial 5–6 remain limited to the polytropic bubble.
 
-### `f_imr_nodal`, either scheme (finite difference or Chebyshev)
+### `imr.solve_nodal`, either scheme (finite difference or Chebyshev)
 
 | | Feature | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
 |---:|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
@@ -43,7 +43,7 @@ The enthalpy forms (radial 3–6) describe the liquid with an equation of state 
 | 13 | Collapse |  |  |  |  |  |  |  |  |  |  |  |  | – | ✓ |
 | 14 | Pressure waveform |  |  |  |  |  |  |  |  |  |  |  |  |  | – |
 
-### `f_imr_spectral`
+### `imr.solve_spectral`
 
 | | Feature | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
 |---:|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
@@ -62,7 +62,7 @@ The enthalpy forms (radial 3–6) describe the liquid with an equation of state 
 | 13 | Collapse |  |  |  |  |  |  |  |  |  |  |  |  | ✗ | ✗ |
 | 14 | Pressure waveform |  |  |  |  |  |  |  |  |  |  |  |  |  | – |
 
-The finite difference and Chebyshev schemes of `f_imr_nodal` were run separately and gave the same grid. One run is worth knowing about: Rayleigh–Plesset (radial 1) with collapse on 12 Chebyshev points compressed the bubble to `R = 0.005` and `P = 3.6e6`, above the ceiling `C1_pv` of the saturation curve. The wall closure then stops with its sign-change error, since no wall vapor fraction satisfies the saturation condition there. Rayleigh–Plesset has no acoustic damping, so strong collapses are best run with radial 2.
+The finite difference and Chebyshev schemes of `imr.solve_nodal` were run separately and gave the same grid. One run is worth knowing about: Rayleigh–Plesset (radial 1) with collapse on 12 Chebyshev points compressed the bubble to `R = 0.005` and `P = 3.6e6`, above the ceiling `C1_pv` of the saturation curve. The wall closure then stops with its sign-change error, since no wall vapor fraction satisfies the saturation condition there. Rayleigh–Plesset has no acoustic damping, so strong collapses are best run with radial 2.
 
 ## Optional material add-on
 
@@ -79,28 +79,28 @@ Some features switch on others. A ✓ means the pair runs with these requirement
 
 Other rules:
 
-- **Non-Newtonian viscosity** requires a stress model with a viscous term, stress 1–5; `f_checkers` rejects it with stress 0. It enters every stress model the same way, `-6*intfnu*iDRe` in the stress integral, scaled by `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, and the medium heating uses the local non-Newtonian viscosity.
-- **Stress 3, 4 and 5** require `De >= 1e-4`. Below that the relaxation is far faster than the bubble motion, the model is its `De -> 0` limit, and `f_checkers` asks for the simpler model instead: stress 1 for stress 3, stress 2 for stress 4, and stress 1 with `Ca = Inf` for stress 5. With a non-Newtonian viscosity, the simpler model takes `DRe/LAM` in place of `DRe`, since stress 3–5 apply it to the solvent share `LAM`.
-- **Collapse with stress 3 or 4** starts from the stress of a growth from `Req` to `R = 1` ([`f_init_stress`](functions/f_init_stress.md)), including the quadratic term for stress 4. If no subsonic growth reaches `R = 1` (very small `Req`), the run stops and asks for `stress0`.
+- **Non-Newtonian viscosity** requires a stress model with a viscous term, stress 1–5; `imr.configuration.validate_case` rejects it with stress 0. It enters every stress model the same way, `-6*intfnu*iDRe` in the stress integral, scaled by `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, and the medium heating uses the local non-Newtonian viscosity.
+- **Stress 3, 4 and 5** require `De >= 1e-4`. Below that the relaxation is far faster than the bubble motion, the model is its `De -> 0` limit, and `imr.configuration.validate_case` asks for the simpler model instead: stress 1 for stress 3, stress 2 for stress 4, and stress 1 with `Ca = Inf` for stress 5. With a non-Newtonian viscosity, the simpler model takes `DRe/LAM` in place of `DRe`, since stress 3–5 apply it to the solvent share `LAM`.
+- **Collapse with stress 3 or 4** starts from the stress of a growth from `Req` to `R = 1` ([`imr.physics.initial_stress`](functions/f_init_stress.md)), including the quadratic term for stress 4. If no subsonic growth reaches `R = 1` (very small `Req`), the run stops and asks for `stress0`.
 - **Collapse with stress 0–2** starts from rest at the maximum radius. These models carry no stress history, so there is no initial stress to set, and the run says so.
 - **Collapse with stress 5** is rejected unless `stress0` is given: the stress at the maximum radius is not computed for UCM and Oldroyd-B, and starting from zero stress would be silently wrong.
 - **Stress 5** sets `Ca = Inf`, so it has no elastic contribution.
-- **Medium heating with stress 3 to 5** comes from the local polymer stress, not the Kelvin–Voigt form (see [`f_stress_dissipation`](functions/f_stress_dissipation.md)).
-    - **Stress 3 and 4:** carry that stress as a field next to `Z1` ([`f_zener_field`](functions/f_zener_field.md)).
-    - **Stress 5:** the two-state form carries only integrals of the stress. With medium heat transfer, `f_imr_spectral` switches to the stress field (feature 11) with a warning, and `f_imr_nodal` rejects the run: its UCM / Oldroyd-B with medium heat transfer cell is ✗.
+- **Medium heating with stress 3 to 5** comes from the local polymer stress, not the Kelvin–Voigt form (see [`imr.physics.stress_power`](functions/f_stress_dissipation.md)).
+    - **Stress 3 and 4:** carry that stress as a field next to `Z1` ([`imr.physics.zener_field`](functions/f_zener_field.md)).
+    - **Stress 5:** the two-state form carries only integrals of the stress. With medium heat transfer, `imr.solve_spectral` switches to the stress field (feature 11) with a warning, and `imr.solve_nodal` rejects the run: its UCM / Oldroyd-B with medium heat transfer cell is ✗.
 
 ## Historical investigation: spectral collapse
 
-The following paragraph preserves a historical experiment with relaxed checks, not a supported feature or a run performed for this documentation change. Current `f_checkers` still rejects spectral collapse.
+The following paragraph preserves a historical experiment with relaxed checks, not a supported feature or a run performed for this documentation change. Current `imr.configuration.validate_case` still rejects spectral collapse.
 
-Collapse only sets the initial state in `f_prepare_case`: the equilibrium radius, a zero wall velocity and, for stress 3 and 4, the initial stress (stress 5 needs `stress0`). No solver refers to it afterwards, and the initial-state calculation uses the vapor and gas properties but nothing from mass transfer.
+Collapse only sets the initial state in `imr.configuration.prepare_case`: the equilibrium radius, a zero wall velocity and, for stress 3 and 4, the initial stress (stress 5 needs `stress0`). No solver refers to it afterwards, and the initial-state calculation uses the vapor and gas properties but nothing from mass transfer.
 
-`f_imr_spectral` is blocked only because `f_checkers` requires mass transfer for collapse, and it has no mass transfer. That requirement dates from the original code. With it relaxed to bubble and medium heat transfer plus vapor pressure, `f_imr_nodal` and `f_imr_spectral` ran a collapse with stress 0, 1, 3 and 5.
+`imr.solve_spectral` is blocked only because `imr.configuration.validate_case` requires mass transfer for collapse, and it has no mass transfer. That requirement dates from the original code. With it relaxed to bubble and medium heat transfer plus vapor pressure, `imr.solve_nodal` and `imr.solve_spectral` ran a collapse with stress 0, 1, 3 and 5.
 
 ## Historical matrix checks
 
 These are previously reported checks, not a fresh execution of the matrix. Static ✓ marks describe intended compatibility subject to every listed prerequisite, not guaranteed success for arbitrary inputs.
 
-Each cell pairs two features on a Keller–Miksis base case, radial 2, in both solvers and both schemes of `f_imr_nodal`. Each radial model (1–6) was paired with every other feature, and every member of a feature group was run: stress 1 and 2, and stress 3 and 4 (with `alphax = 0.3` for the quadratic models). Non-Newtonian runs use Kelvin–Voigt stress unless the other feature sets a stress model. A ✓ means every run of the cell finished with a finite `R(t)`, and every ✗ is an `INPUT ERROR` from `f_checkers`. The one other failure is the Rayleigh–Plesset collapse run described above.
+Each cell pairs two features on a Keller–Miksis base case, radial 2, in both solvers and both schemes of `imr.solve_nodal`. Each radial model (1–6) was paired with every other feature, and every member of a feature group was run: stress 1 and 2, and stress 3 and 4 (with `alphax = 0.3` for the quadratic models). Non-Newtonian runs use Kelvin–Voigt stress unless the other feature sets a stress model. A ✓ means every run of the cell finished with a finite `R(t)`, and every ✗ is an `INPUT ERROR` from `imr.configuration.validate_case`. The one other failure is the Rayleigh–Plesset collapse run described above.
 
-The test suites keep the matrix honest: [`f_test_cases`](../validation/tests.md) builds every suite from the combinations `f_checkers` accepts, and [`s_test_suite_permutations`](../validation/permutations.md) runs its enumerated, accepted option combinations briefly and fails on any error that is not an `INPUT ERROR`.
+The test suites keep the matrix honest: [`f_test_cases`](../validation/tests.md) builds every suite from the combinations `imr.configuration.validate_case` accepts, and [`s_test_suite_permutations`](../validation/permutations.md) runs its enumerated, accepted option combinations briefly and fails on any error that is not an `INPUT ERROR`.

@@ -1,6 +1,6 @@
-# `f_odesolve`
+# `imr.numerics.integrate`
 
-`f_odesolve` is a wrapper that selects and executes a stiff ODE solver (`ode15s`, `ode23tb` or CVODES) with user-defined time stepping and tolerance options.
+`imr.numerics.integrate` is a wrapper that selects and executes a stiff ODE solver (`ode15s`, `ode23tb` or CVODES) with user-defined time stepping and tolerance options.
 
 ## Inputs
 

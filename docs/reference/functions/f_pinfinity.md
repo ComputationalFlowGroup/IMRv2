@@ -1,6 +1,6 @@
-# `f_pinfinity`
+# `imr.physics.far_field_pressure`
 
-`f_pinfinity` calculates the time-dependent far-field pressure `p8` and its time derivative `p8dot` that drive the bubble. All quantities are dimensionless.
+`imr.physics.far_field_pressure` calculates the time-dependent far-field pressure `p8` and its time derivative `p8dot` that drive the bubble. All quantities are dimensionless.
 
 ## Inputs
 

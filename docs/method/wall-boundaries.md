@@ -4,7 +4,7 @@ The nodal solver enforces wall heat balance algebraically instead of integrating
 
 ## Thermal-only wall
 
-The nested `f_wall_theta_exact` in `src/private/imr_nodal_system.m` solves
+The nested `f_wall_theta_exact` in `src/+imr/+solvers/build_nodal.m` solves
 `c1*Tw + c2*theta_w + K = 0`. `K` collects the other nodes' wall-row contributions. Set `ag = alpha_g`, `bg = beta_g` and
 
 $$
@@ -25,7 +25,7 @@ Then `c2*u^2 + 2*c1*u + q = 0`, where
 | `K` | Fixed contributions from all nonwall nodes; distinct from conductivity $u$ |
 | `q` | Constant term after eliminating temperature in favor of conductivity |
 
-All gradients use the moving, dimensionless coordinates and the flux scales in the prepared case. Uniform ambient fields give zero wall Kirchhoff variable. At zero quadratic coefficient the equation reduces to a linear solve; the algorithm below handles that limit explicitly. `f_thermal_inverse` supplies the common inverse transform and derivatives used by the wall residual and both Jacobians.
+All gradients use the moving, dimensionless coordinates and the flux scales in the prepared case. Uniform ambient fields give zero wall Kirchhoff variable. At zero quadratic coefficient the equation reduces to a linear solve; the algorithm below handles that limit explicitly. `imr.physics.thermal_inverse` supplies the common inverse transform and derivatives used by the wall residual and both Jacobians.
 
 - Form both roots in a cancellation-free form and discard `u < 0`.
 - If two roots remain, choose the wall `theta` closest to the previous wall value; do not hard-code the sign of `c2`.
@@ -76,4 +76,4 @@ After convergence, the solver assigns `theta(end)`, reconstructs temperature wit
 
 ## Implicit derivative
 
-[`f_wall_mass_bc`](../reference/functions/f_wall_mass_bc.md) expresses the same balance in `theta_w` and returns its gradient. `f_jacobian_nodal` uses `d(theta_w)/dx = -(dr/dx)/(dr/d(theta_w))` at the root. Positive residual scaling cancels in that ratio at a root, so the closure and derivative describe the same balance.
+[`imr.physics.wall_mass_balance`](../reference/functions/f_wall_mass_bc.md) expresses the same balance in `theta_w` and returns its gradient. `imr.numerics.jacobian_nodal` uses `d(theta_w)/dx = -(dr/dx)/(dr/d(theta_w))` at the root. Positive residual scaling cancels in that ratio at a root, so the closure and derivative describe the same balance.

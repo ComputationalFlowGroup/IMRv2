@@ -50,7 +50,7 @@ If you are planning a large change, such as a new physical model, a new solver o
 
 | Folder | Contents |
 |---|---|
-| `src/` | Everything a user calls: the solvers (`f_imr_nodal`, `f_imr_spectral`), their inputs (`f_imr_inputs`), sweeps (`f_imr_sweep`), unit conversion (`f_dim2nondim`), and the physics functions the solvers call |
+| `src/` | Everything a user calls: the solvers (`imr.solve_nodal`, `imr.solve_spectral`), their inputs (`imr.default_inputs`), sweeps (`imr.sweep`), unit conversion (`imr.nondimensionalize`), and the physics functions the solvers call |
 | `toolchain/` | Developer tooling only: the test suites, the formatter, the linter and the test generators |
 | `tests/` | Stored results: `tests/reference/` for the regression suite. The older `tests/*.mat` files are no longer used by any suite |
 | `docs/api/`, `docs/reference/functions/`, `docs/validation/` | One Markdown page per function or script |
@@ -59,21 +59,23 @@ If you are planning a large change, such as a new physical model, a new solver o
 
 ### Code conventions
 
+Use lowercase `snake_case` without an `f_` prefix for new functions. Place public calls in `+imr` and implementations in their responsibility package. The [namespace guide](namespaces.md) covers file/function naming, compatibility and runtime checks.
+
 - **Base MATLAB only.** Code in `src/` must not need any toolbox, so do not add calls to toolbox functions.
-- **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `src/f_dim2nondim.m`.
-- **Adding an input.** Follow the [extension guide](../api/extending.md): add the default in `default_case`, its public/internal mapping and discrete rule in `f_parameter_schema`, and its named prepared-case field in `f_prepare_case`. Keep coupled physical restrictions in `f_checkers`, document the input, and add an independent numerical check.
-- **Named internal contracts.** Both solvers consume `f_prepare_case` and `f_imr_system`. Use `f_state_layout` blocks for initialization, RHS, Jacobians and reconstruction. Do not add new positional unpacking to the solvers. `f_call_params` is a compatibility serializer; preserve the order of its existing vector outputs for legacy callers.
+- **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `src/+imr/nondimensionalize.m`.
+- **Adding an input.** Follow the [extension guide](../api/extending.md): add the default in `imr.configuration.defaults`, its public/internal mapping and discrete rule in `imr.configuration.schema`, and its named prepared-case field in `imr.configuration.prepare_case`. Keep coupled physical restrictions in `imr.configuration.validate_case`, document the input, and add an independent numerical check.
+- **Named internal contracts.** Both solvers consume `imr.configuration.prepare_case` and `imr.solvers.build`. Use `imr.solvers.state_layout` blocks for initialization, RHS, Jacobians and reconstruction. Do not add new positional unpacking to the solvers. `imr.configuration.legacy_options` is a compatibility serializer; preserve the order of its existing vector outputs for legacy callers.
 - **File headers.** Start every `.m` file with the same header as the existing files: the file name, a one-line summary, the license block, then the description. The license block is a separate comment block, so it stays out of MATLAB's `help` text, which shows only the first block.
 
     ```matlab
-    % file f_example.m
-    % brief contains function f_example
+    % file example_quantity.m
+    % brief contains function example_quantity
 
     % Copyright (C) The IMR developers (see README.md)
     % SPDX-License-Identifier: GPL-3.0-or-later
 
     % brief This function computes ... (one or two sentences on what it does)
-    function out = f_example(in)
+    function out = example_quantity(in)
     ```
 
     Shell scripts carry the same two license lines as `#` comments after the `#!` line.
@@ -86,7 +88,7 @@ If you are planning a large change, such as a new physical model, a new solver o
 ### Documentation
 
 - When you change a function's behavior, inputs or outputs, update its page in the appropriate topic under `docs/`. A new function gets a new page, modeled on the existing ones.
-- If your change affects which features run together, update [`docs/reference/compatibility.md`](compatibility.md) and the rules in `f_checkers.m` together.
+- If your change affects which features run together, update [`docs/reference/compatibility.md`](compatibility.md) and the rules in `imr.configuration.validate_case` together.
 - User-facing changes, such as a new model or option, also belong in the feature list of the [README](https://github.com/mrodrig6/imrv2/blob/main/README.md).
 
 ### Documentation build

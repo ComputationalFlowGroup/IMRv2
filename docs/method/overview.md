@@ -4,12 +4,12 @@ Both solvers turn a configured physical model into a coupled system of ordinary 
 
 | Stage | Implementation | Result |
 |---|---|---|
-| Convert SI, if needed | `f_dim2nondim` | Dimensionless pairs and reference scales |
-| Defaults and overrides | `default_case`, `f_parameter_schema`, `f_prepare_case` | Named, checked case and initial state |
-| Validate | `f_checkers` | Compatible settings or an error |
-| Spatial operators | `f_imr_system` and its private factory | Bubble/medium derivatives and boundary maps |
+| Convert SI, if needed | `imr.nondimensionalize` | Dimensionless pairs and reference scales |
+| Defaults and overrides | `imr.configuration.defaults`, `imr.configuration.schema`, `imr.configuration.prepare_case` | Named, checked case and initial state |
+| Validate | `imr.configuration.validate_case` | Compatible settings or an error |
+| Spatial operators | `imr.solvers.build` and its solver factory | Bubble/medium derivatives and boundary maps |
 | Evaluate derivative | System RHS callback and physics helpers | Radial, thermal, vapor and stress derivatives |
-| Integrate | `f_odesolve` and selected Jacobian | State history |
+| Integrate | `imr.numerics.integrate` and selected Jacobian | State history |
 | Reconstruct | System outputs callback and wall closure | Public arrays and input record |
 
 ## State layout
@@ -20,9 +20,9 @@ The local polymer field supplies heating, while its stress integral drives radia
 
 ## Implementation considerations
 
-Only enabled spatial operators are constructed. `f_state_layout` supplies the same indices to initialization, RHS, Jacobians and outputs. The [internal contracts](../reference/internal-contracts.md) describe named case fields and callable system components.
+Only enabled spatial operators are constructed. `imr.solvers.state_layout` supplies the same indices to initialization, RHS, Jacobians and outputs. The [internal contracts](../reference/internal-contracts.md) describe named case fields and callable system components.
 
-Constant medium and thermal-map factors are precomputed; constant forcing skips `f_pinfinity`. Nodal nested functions share names with their parent workspace, so local loop names must avoid collisions; the output loop uses `it_out`.
+Constant medium and thermal-map factors are precomputed; constant forcing skips `imr.physics.far_field_pressure`. Nodal nested functions share names with their parent workspace, so local loop names must avoid collisions; the output loop uses `it_out`.
 
 The nodal solver was formerly `f_imr_fd`. Historical reproduction and closure changes are recorded in [reported comparisons](../validation/convergence.md), rather than asserted as current numerical validation. Grid resolution needs attention for large relaxation time scales, sharp waveforms and collapse.
 
