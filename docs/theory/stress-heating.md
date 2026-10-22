@@ -24,7 +24,7 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
 - `mu_KV = 1/Re8 + fnu*iDRe`: stress 1 and 2, where the whole viscosity acts instantly.
 - `mu_s = LAM/Re8 + fnu*iDRe`: stress 3–5, where only the solvent part acts instantly.
 
-`iDRe` is `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, the same factor as in the radial equation (set in `f_call_params`).
+`iDRe` is `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, the same factor as in the radial equation (set in `f_prepare_case`).
 
 **Elastic stress difference.** With the hoop stretch `lam = r/r0`, where `r0^3 = r^3 - R^3 + Req^3`:
 

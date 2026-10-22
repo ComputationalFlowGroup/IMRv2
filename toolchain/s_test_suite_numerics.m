@@ -49,6 +49,62 @@ for radial = 3:6
 end
 fprintf('Driven enthalpy balance and independent quadrature PASSED.\n');
 
+% The Tait integral has a finite logarithmic limit at nstate = 1. Nearby
+% exponents also need a stable evaluation rather than subtracting powers.
+for exponent = [1 1-1e-8 1+1e-8 7.15]
+    power = (exponent-1)/exponent;
+    rho = @(p) ((p+gama)/sam).^(1/exponent);
+    Pwall = 1 + 1e-6;
+    Pfar = 1 - 1e-6;
+    expected = integral(@(p) 1./rho(p),Pfar,Pwall,'AbsTol',1e-15);
+    for radial = 3:4
+        actual = f_radial_eq(radial,Pwall,0,Pfar-1,0,0, ...
+            1,0,0,0,Cstar,sam,power,gama,exponent,nog,s,0,0,0);
+        assert(isfinite(actual) && abs(actual-expected) < 1e-14);
+        balanced = f_radial_eq(radial,[1 101],0,[0 100],0,0, ...
+            1,0,0,0,Cstar,sam,power,gama,exponent,nog,s,0,0,0);
+        assert(all(balanced == 0));
+    end
+end
+fprintf('Tait logarithmic limit and near-ambient pressures PASSED.\n');
+
+% Histotripsy supports zero and fractional pulse exponents. Edge values
+% follow the explicit pointwise convention, with no 0*Inf derivatives.
+om = 2;
+shift = 3;
+amplitude = -2;
+edges = shift + [-pi/om pi/om];
+times = [edges(1)-1 edges(1) shift edges(2) edges(2)+1];
+for exponent = [0 0.25 0.5 1 4]
+    args = {[om amplitude 0 shift exponent 2],[],[]};
+    [pulse, slope] = f_pinfinity(times,args);
+    assert(isequal(size(pulse),size(times)) && all(isfinite(slope)));
+    assert(pulse(3) == amplitude && slope(3) == 0);
+    assert(all(pulse([1 5]) == 0) && all(slope([1 2 4 5]) == 0));
+    if exponent == 0
+        assert(all(pulse([2 4]) == amplitude));
+    else
+        assert(all(pulse([2 4]) == 0));
+    end
+    interior = shift + [-1 -0.2 0.4 1];
+    step = 1e-6;
+    [~, slope] = f_pinfinity(interior,args);
+    numerical = (f_pinfinity(interior+step,args)-f_pinfinity(interior-step,args))/(2*step);
+    assert(max(abs(slope-numerical)) < 1e-8);
+    [column, ~] = f_pinfinity(times',args);
+    assert(isequal(column,pulse'));
+    [matrix, ~] = f_pinfinity(reshape(interior,2,2),args);
+    assert(isequal(size(matrix),[2 2]));
+    args{1}(2) = 0;
+    [pulse, slope] = f_pinfinity(times,args);
+    assert(all(pulse == 0) && all(slope == 0));
+end
+% The old 1+cos expression rounds to zero at these interior points.
+args = {[om amplitude 0 shift 0.25 2],[],[]};
+[pulse, slope] = f_pinfinity(edges + [1e-10 -1e-10],args);
+assert(all(isfinite(slope)) && all(pulse ~= 0));
+fprintf('Histotripsy edges and independent derivative checks PASSED.\n');
+
 % A nonzero start time must not enlarge MaxStep. Constant solutions remove
 % accuracy-driven step restrictions so the configured maximum is exercised.
 methods = [15 23];
@@ -74,6 +130,46 @@ c = struct('solver',@f_early_return,'args',{{}});
 [R, msg, t] = f_test_run(c);
 assert(isempty(msg) && isequal(t,[0 0.5]') && isequal(R,[1 1]'));
 fprintf('Thermal guards and test-runner time reporting PASSED.\n');
+
+% Invalid grids/time spans must fail during validation, before allocation
+% or ODE setup. Real, increasing row and column time vectors remain valid.
+for name = {'Nt','Mt','Nv','divisions'}
+    for invalid = {Inf,NaN,1+1i,[1 2],-1,0.5}
+        f_expect_failure(@() f_call_params('nodal',name{1},invalid{1}));
+    end
+end
+for invalid = {[0 1 2 3; 1 2 3 4], [0 1+1i], [0 Inf], [0 0], [1 0]}
+    f_expect_failure(@() f_call_params('nodal','tvector',invalid{1}));
+end
+f_call_params('nodal','tvector',[0 1 2]);
+f_call_params('nodal','tvector',[0 1 2]');
+fprintf('Finite integer and real time-vector validation PASSED.\n');
+
+% Disabled thermal fields allow small/zero grid counts. They must not
+% trigger invalid stencils or zero-order collocation during initialization.
+solvers = {@f_imr_nodal,@f_imr_spectral};
+for k = 1:numel(solvers)
+    solver = solvers{k};
+    schemes = 0;
+    if k == 1
+        schemes = [0 1];
+    end
+    for scheme = schemes
+        for unused = 0:2
+            [t,R,U,P,T,Tm] = solver('bubtherm',0,'medtherm',0, ...
+                'masstrans',0,'Req',1,'ee',0,'Nt',unused,'Mt',unused, ...
+                'scheme',scheme,'tfin',0.01,'progdisplay',0);
+            assert(t(end) == 0.01 && all(isfinite(P)) && isempty(T));
+            assert(max(abs(R-1)) < 1e-8 && max(abs(U)) < 1e-8);
+            assert(all(Tm == 1));
+        end
+        [t,R] = solver('bubtherm',1,'medtherm',0,'masstrans',0, ...
+            'Req',1,'ee',0,'Nt',5,'Mt',0,'scheme',scheme, ...
+            'tfin',0.01,'progdisplay',0);
+        assert(t(end) == 0.01 && max(abs(R-1)) < 1e-8);
+    end
+end
+fprintf('Inactive thermal grids in both solvers PASSED.\n');
 
 function rho = f_density(p,C,nog,s)
     A = p/C^2;

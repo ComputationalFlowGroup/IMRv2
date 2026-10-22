@@ -17,7 +17,7 @@
 | `ivisco2`    | Index of the second stress state in `X` | –     |
 | `LAM`        | Ratio of retardation to relaxation time, `lambda2/lambda1` | –     |
 | `intfnu`, `dintfnu` | Non-Newtonian stress integral and the `Rdot` part of its time derivative, from `f_viscosity` | –     |
-| `iDRe`       | Scaling of the non-Newtonian stress: `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5 (0 when `DRe = 0`), set by `f_call_params` | –     |
+| `iDRe`       | Scaling of the non-Newtonian stress: `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5 (0 when `DRe = 0`), set by `f_prepare_case` | –     |
 
 ## Outputs
 

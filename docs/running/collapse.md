@@ -1,6 +1,6 @@
 # Collapse initial conditions
 
-`collapse = 1` initializes the bubble at maximum radius with zero wall velocity. `f_call_params` constructs that state before time integration; it is not a separate radial equation.
+`collapse = 1` initializes the bubble at maximum radius with zero wall velocity. `f_prepare_case` constructs that state before time integration; it is not a separate radial equation.
 
 Use [compatibility](../reference/compatibility.md) for the exact prerequisites. The current checker requires bubble heat, medium heat, vapor pressure and mass transfer, so supported collapse uses the nodal solver with radial 1 or 2.
 

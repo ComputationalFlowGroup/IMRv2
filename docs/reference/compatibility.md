@@ -93,7 +93,7 @@ Other rules:
 
 The following paragraph preserves a historical experiment with relaxed checks, not a supported feature or a run performed for this documentation change. Current `f_checkers` still rejects spectral collapse.
 
-Collapse only sets the initial state in `f_call_params`: the equilibrium radius, a zero wall velocity and, for stress 3 and 4, the initial stress (stress 5 needs `stress0`). No solver refers to it afterwards, and the initial-state calculation uses the vapor and gas properties but nothing from mass transfer.
+Collapse only sets the initial state in `f_prepare_case`: the equilibrium radius, a zero wall velocity and, for stress 3 and 4, the initial stress (stress 5 needs `stress0`). No solver refers to it afterwards, and the initial-state calculation uses the vapor and gas properties but nothing from mass transfer.
 
 `f_imr_spectral` is blocked only because `f_checkers` requires mass transfer for collapse, and it has no mass transfer. That requirement dates from the original code. With it relaxed to bubble and medium heat transfer plus vapor pressure, `f_imr_nodal` and `f_imr_spectral` ran a collapse with stress 0, 1, 3 and 5.
 

@@ -13,7 +13,7 @@
 
 | Name     | Description                                 | Units   |
 |----------|---------------------------------------------|---------|
-| `p8`     | Far-field pressure at time `t`, `p/P8`      | –       |
+| `p8`     | Far-field pressure perturbation at time `t`; absolute dimensionless pressure is `1 + p8` | – |
 | `p8dot`  | Time derivative of `p8`                     | –       |
 
-For the algorithm and assumptions, see the [topic guide](../../running/waveforms.md). Numerical measurements are retained as [historical reports](../../validation/convergence.md).
+The [waveform guide](../../running/waveforms.md) defines every analytic and measured choice, signs, support, derivatives and endpoint conventions. The function evaluates each waveform elementwise without changing the time-array shape. Numerical measurements are retained as [historical reports](../../validation/convergence.md).

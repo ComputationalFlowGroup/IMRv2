@@ -8,7 +8,7 @@ The five workflows below run on pushes and pull requests to `main`, and support 
 | Neatness Check | `.github/workflows/lint.yml` | `checkcode` on `src/` and `toolchain/`, R2023a | `matlab -batch "addpath('toolchain'); s_lint"` from root |
 | Format check | `.github/workflows/format.yml` | Runs `s_format` and checks for a Git diff; default MATLAB release from setup action | `matlab -batch "cd('toolchain'); s_format"`, then `git diff --exit-code` |
 | Code Spellcheck | `.github/workflows/spellcheck.yml` | Code and documentation spelling | Commands below, from root |
-| Documentation build | `.github/workflows/docs.yml` | Python 3.12, installs docs requirements, `mkdocs build --strict` | Same build command from root |
+| Documentation build | `.github/workflows/docs.yml` | Strict MkDocs build, MathJax compilation and Chromium rendering/navigation | Commands below |
 
 The lint, format and spelling jobs currently use `continue-on-error: true`. Read their logs even if the overall pull request is green. The tests workflow uses a matrix with `fail-fast: false` so every suite gets a result.
 
@@ -37,3 +37,19 @@ mkdocs build --strict
 ```
 
 The build checks navigation, missing pages, links and anchors. The configured include-markdown plugin reads README as the home page and rewrites relative links. No custom Python source is bundled with IMRv2; simulation and numerical tests run in MATLAB alone. Retain the Material light/dark theme, copy buttons and MathJax configuration when adding pages. Add every new page to navigation.
+
+## Equation rendering
+
+From the checkout root, after the strict build:
+
+```bash
+npm ci --ignore-scripts --prefix toolchain/docs
+cd toolchain/docs
+npx playwright install chromium
+cd ../..
+node toolchain/docs/check.cjs site
+```
+
+The pinned documentation-only JavaScript dependencies compile every HTML `arithmatex` expression with MathJax 3 and fail on undefined commands. A deliberate invalid-command fixture checks that failure detection works. Chromium then checks radial, thermal and wall equations on initial load and navigation. The browser uses the pinned local MathJax bundle, so the check does not depend on CDN availability. A local system Chromium may be selected with `IMR_CHROMIUM=/path/to/chromium`. No JavaScript tooling is required to run IMRv2 in MATLAB.
+
+These checks validate the configured MkDocs renderer. GitHub Markdown uses its own renderer; inspect the source Markdown preview when changing delimiters or advanced TeX. No GitHub Pages build or deployment is configured.

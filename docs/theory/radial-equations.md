@@ -1,8 +1,19 @@
 # Radial equations and equation of state
 
-`src/f_radial_eq.m` computes wall acceleration. All quantities below are dimensionless: radius is scaled by $R_0$, pressure by $P_\infty$, density by $\rho_\infty$, velocity by $U_c=\sqrt{P_\infty/\rho_\infty}$ and time by $R_0/U_c$. A dot denotes a derivative with respect to that dimensionless time. See [parameters](../model/parameters.md) for SI conversion.
+`src/f_radial_eq.m` computes wall acceleration. All quantities below are dimensionless: radius is scaled by $R_0$, pressure by $P_\infty$, density by $\rho_\infty$, velocity by $U_c=\sqrt{P_\infty/\rho_\infty}$ time by $R_0/U_c$, and liquid enthalpy by $U_c^2$. A dot denotes a derivative with respect to that dimensionless time. See [parameters](../model/parameters.md) for SI conversion.
 
 ## Pressure forms
+
+| Symbol | Meaning | Code |
+|---|---|---|
+| $R$, $U$ | Radius and wall velocity | `R`, `Rdot` |
+| $P$, $p_w$, $p_f$ | Total bubble, liquid-wall and absolute far-field pressures | `P`, wall closure, `1 + Pf8` |
+| $f$, $\dot f$ | Far-field perturbation and time derivative | `Pf8`, `Pf8dot` |
+| $S$, $\dot S_0$ | Signed stress integral and acceleration-independent rate | `S`, `Sdot` |
+| $W$, $A_S$ | Surface-tension factor and acceleration-dependent stress coefficient | `iWe`, expression below |
+| $C$, $\rho$, $h$, $H$ | Sound speed, liquid density, reference enthalpy and wall/far-field difference | Radial closure |
+
+Radius must remain positive and the acceleration denominator must be nonsingular. Pressure-form Keller–Miksis keeps the ambient sound speed fixed and retains first-order wall-Mach effects. Enthalpy models additionally require admissible pressures and positive density/sound speed on their barotrope. See [compatibility](../reference/compatibility.md) for thermal restrictions.
 
 Let $U=\dot R$, let $P$ be total bubble pressure (gas plus enabled vapor), and let $f(t)$ be the imposed pressure above ambient (`Pf8`). Then the far-field absolute pressure is $p_f=1+f$. Define the liquid pressure at the wall and the driving difference by
 
@@ -79,7 +90,7 @@ h(p)=\frac{a}{m}\left[\left(\frac{p+B}{a}\right)^m-1\right],\qquad
 C(p)^2=\frac{n(p+B)}{\rho(p)}.
 $$
 
-The pressure shift must satisfy $p+B>0$. In the source, `sam = a`, `no = m`, `hB = h(p_w)`, `hF = h(p_f)` and `hH = 1/rho(p_w)`.
+The pressure shift must satisfy $p+B>0$. At $n=1$, the finite limit is $h(p)=a\ln((p+B)/a)$. The code uses this logarithmic limit exactly and evaluates the other exponents with `log1p` and `expm1` to preserve small pressure changes and exponents near one. In the source, `sam = a`, `no = m`, `hB = h(p_w)`, `hF = h(p_f)` and `hH = 1/rho(p_w)`.
 
 ### Existing Hugoniot-based relation
 

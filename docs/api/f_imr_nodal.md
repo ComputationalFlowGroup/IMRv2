@@ -17,4 +17,4 @@
 
 The [output contract](../running/output.md) defines every returned array. [Examples](../getting-started/examples.md) show invocation forms. [Compatibility](../reference/compatibility.md) defines restrictions; in particular the nodal two-state stress-5 form cannot supply medium heating.
 
-Implementation: `src/f_imr_nodal.m`, `f_call_params`, `f_diff_mat`, `f_odesolve`. Read the [numerical workflow](../method/overview.md), [wall closure](../method/wall-boundaries.md), and [integration method](../method/time-integration.md). Historical comparisons to the old `f_imr_fd` and convergence measurements live in [validation](../validation/convergence.md).
+Implementation: `f_prepare_case` → `f_imr_system` → `f_odesolve` → output reconstruction. Nodal operators and closures live in `src/private/imr_nodal_system.m`. Read the [numerical workflow](../method/overview.md), [wall closure](../method/wall-boundaries.md), and [integration method](../method/time-integration.md). Historical comparisons to the old `f_imr_fd` and convergence measurements live in [validation](../validation/convergence.md).

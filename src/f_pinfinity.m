@@ -39,12 +39,23 @@ function [p8,p8dot] = f_pinfinity(t,vararg)
         ee = wp(2);
         dt = wp(4);
         mn = wp(5);
-        on = (t >= dt - pi/om) & (t <= dt + pi/om);
         p8 = zeros(size(t));
         p8dot = zeros(size(t));
-        p8(on) = ee*(0.5 + 0.5*cos(om*(t(on) - dt))).^mn;
-        p8dot(on) = -ee*mn*(0.5+0.5*cos(om*(t(on)-dt))).^(mn-1)*0.5*om.* ...
-            sin(om*(t(on)-dt));
+        if mn == 0
+            % Rectangular pulse: use the same zero pointwise derivative
+            % convention as the Heaviside waveform, including its edges.
+            on = (t >= dt - pi/om) & (t <= dt + pi/om);
+            p8(on) = ee;
+        elseif ee ~= 0
+            % The half-angle form avoids cancellation near the pulse edges.
+            % Set the edge derivative to zero. For mn <= 1/2 the derivative
+            % has a jump or a singular one-sided limit at those edges.
+            on = (t > dt - pi/om) & (t < dt + pi/om);
+            phase = om*(t(on)-dt)/2;
+            c = cos(phase);
+            p8(on) = ee*c.^(2*mn);
+            p8dot(on) = -ee*mn*om*c.^(2*mn-1).*sin(phase);
+        end
     elseif wave_type == 3
         % heaviside impulse, the step at t = tw is measure-zero in time
         ee = wp(2);

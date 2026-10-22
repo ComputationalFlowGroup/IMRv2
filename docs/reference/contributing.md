@@ -61,12 +61,8 @@ If you are planning a large change, such as a new physical model, a new solver o
 
 - **Base MATLAB only.** Code in `src/` must not need any toolbox, so do not add calls to toolbox functions.
 - **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `src/f_dim2nondim.m`.
-- **Adding an input.** Follow the path every input takes:
-    1. Give it a default in `src/default_case.m`, and add it to the struct `d` at the end of that function.
-    2. In `src/f_call_params.m`, copy it out of the defaults (`x = d.x;`) and read it in the name/value parser. If its input name differs from its name in `default_case`, add the pair to the `renamed` list in `src/f_imr_inputs.m`.
-    3. Validate it in `src/f_checkers.m`, raising an `INPUT ERROR` for invalid values.
-    4. Document it in `docs/model/parameters.md`.
-- **Option vectors: append, never insert.** `f_call_params` passes settings to the solvers in positional vectors, such as `eqns_opts`, `solve_opts`, `init_opts` and `sigma_opts`. Add a new entry at the end of a vector. Inserting one in the middle shifts every later position and silently breaks the code that unpacks it.
+- **Adding an input.** Follow the [extension guide](../api/extending.md): add the default in `default_case`, its public/internal mapping and discrete rule in `f_parameter_schema`, and its named prepared-case field in `f_prepare_case`. Keep coupled physical restrictions in `f_checkers`, document the input, and add an independent numerical check.
+- **Named internal contracts.** Both solvers consume `f_prepare_case` and `f_imr_system`. Use `f_state_layout` blocks for initialization, RHS, Jacobians and reconstruction. Do not add new positional unpacking to the solvers. `f_call_params` is a compatibility serializer; preserve the order of its existing vector outputs for legacy callers.
 - **File headers.** Start every `.m` file with the same header as the existing files: the file name, a one-line summary, the license block, then the description. The license block is a separate comment block, so it stays out of MATLAB's `help` text, which shows only the first block.
 
     ```matlab

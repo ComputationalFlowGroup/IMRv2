@@ -1,6 +1,6 @@
 # `f_checkers`
 
-`f_checkers` validates a run before it starts. `f_call_params` calls it with a struct holding every model setting and dimensionless number. Incompatible or out-of-range inputs raise an error; valid but suspicious inputs raise a warning. It returns the struct with the settings tied to the stress model made consistent (see below).
+`f_checkers` validates a run before it starts. `f_prepare_case` calls it with a struct holding every model setting and dimensionless number. `f_parameter_schema` supplies public/internal names and discrete choice/count rules; physical ranges and coupled restrictions remain here. Incompatible or out-of-range inputs raise an error; valid but suspicious inputs raise a warning. It returns the struct with the settings tied to the stress model made consistent (see below).
 
 ## Checks
 
@@ -56,4 +56,4 @@ After the checks, `f_checkers` adjusts and returns:
 - `stress = 5` (UCM, Oldroyd-B): `Nv` stress modes with the spectral representation, one otherwise, and `Ca = Inf` (no elastic contribution).
 - `stress = 3, 4`: `Nv = 1`, except in `f_imr_spectral` with `medtherm = 1`, where `Nv` is the number of modes of the local polymer stress field.
 
-The size of a user `stress0` is checked in `f_call_params`, not here. See [`compatibility`](../compatibility.md) for the resulting grid of features that run together.
+The size of a user `stress0` is checked in `f_prepare_case`, not here. See [`compatibility`](../compatibility.md) for the resulting grid of features that run together.

@@ -17,51 +17,10 @@
 % optional inputs without a default, p0star and stress0, can be added as
 % fields. The values come from default_case.
 function p = f_imr_inputs()
-    
-    d = default_case();
-    % names in default_case that differ from the input names (the input
-    % names are those of the name/value parser in f_call_params)
-    % (one pair per row, rows separated by line breaks)
-    renamed = {
-    'Nv', 'nv'
-    'Nt', 'nt'
-    'Mt', 'mt'
-    'Lv', 'lv'
-    'Lt', 'lt'
-    'rtol', 'reltol'
-    'atol', 'abstol'
-    'TFin', 'tfin'
-    'TVector', 'tvector'
-    'Req', 'req'
-    'Rdotzero', 'rdotzero'
-    'Cstar', 'cstar'
-    'GAMa', 'gama'
-    'We', 'we'
-    'Re8', 're'
-    'Ca', 'ca'
-    'De', 'de'
-    'LAM', 'lam'
-    'DRe', 'dre'
-    'v_lambda_star', 'v_lambda'
-    'Foh', 'foh'
-    'Br', 'br'
-    'Km_star', 'kmstar'
-    'Fom', 'fom'
-    'L_heat_star', 'lheat'
-    'Rv_star', 'rv'
-    'Ra_star', 'ra'
-    'Pv_sat', 'pv'
-    };
+    defaults = default_case();
+    schema = f_parameter_schema();
     p = struct();
-    f = fieldnames(d);
-    for k = 1:numel(f)
-        j = find(strcmp(renamed(:,1), f{k}), 1);
-        if isempty(j)
-            name = f{k};
-        else
-            name = renamed{j,2};
-        end
-        p.(name) = d.(f{k});
+    for k = 1:numel(schema)
+        p.(schema(k).name) = defaults.(schema(k).field);
     end
-    
 end

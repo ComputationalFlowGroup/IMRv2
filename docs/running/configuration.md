@@ -1,6 +1,6 @@
 # Configuration
 
-`f_call_params` builds a run from `default_case`, optional input-struct changes and explicit name/value pairs. Both solvers accept dimensionless values only.
+`f_prepare_case` builds a named, checked case from `default_case`, optional input-struct changes and explicit name/value pairs. Both solvers accept dimensionless values only.
 
 ## Forms and precedence
 

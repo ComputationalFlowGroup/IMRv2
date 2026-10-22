@@ -1,7 +1,6 @@
 # `f_call_params`
 
-`f_call_params` sets up the simulation environment for the Inertial Microcavitation Rheometry (IMR) solver.
-It reads `default_case`, applies changed struct fields and explicit name/value overrides, validates them with `f_checkers`, and packages simulation parameters. It rejects the removed `casefile` option.
+`f_call_params` preserves the legacy grouped-vector interface. It delegates preparation to `f_prepare_case` and serializes the resulting named fields into the original output order. The forward solvers use the [named case/system contracts](../internal-contracts.md) directly.
 
 ## Function Signature
 
@@ -46,11 +45,11 @@ The function returns the following grouped outputs:
 
 ## Notes
 
-- Both forward solvers call `f_call_params` internally. Users normally call a solver, not this helper.
+- This adapter remains available to existing callers and test generators. Forward solvers call `f_prepare_case` directly.
 - Critical inputs must be matched correctly; otherwise, the function throws errors.
 - A struct from [`f_imr_inputs`](../../api/f_imr_inputs.md) as the first input becomes the name/value pairs of its fields that differ from the defaults, ahead of any pairs after it. The last output is the struct of the run's inputs, which the solvers return as their 8th output.
-- The defaults come from the function [`default_case`](../../model/parameters.md) and are copied into local variables one by one, then overridden by the name/value pairs. `casefile` is no longer accepted.
+- Defaults come from [`default_case`](../../model/parameters.md). `f_parameter_schema` maps public names to internal fields and supplies unconditional discrete rules; `f_checkers` owns coupled physical constraints. `casefile` is no longer accepted.
 - `f_checkers.m` and `f_init_stress.m` are required for full execution.
 - A user `stress0` must have 0 entries for stress 0–2, 1 for stress 3–4, and `2*Nv` for stress 5 (2 with `spectral = 0`).
 - With `collapse = 1`, the equilibrium radius is recomputed from the vapor and gas content (printed as `New equilibrium radius`), and the initial wall velocity is set to zero. The earlier consistency measurement is preserved in [reported comparisons](../../validation/convergence.md#reported-collapse-setup-comparison).
-- With `collapse = 1` and stress 3 or 4, the initial stress comes from [`f_init_stress`](f_init_stress.md), with `alphax` for stress 4 (quadratic) and 0 for stress 3, unless `stress0` is given. Stress 0–2 carry no stress history, so collapse only sets the initial state and prints a note saying so. Stress 5 needs `stress0` (`f_checkers` rejects it otherwise).
+- With `collapse = 1` and stress 3 or 4, the initial stress comes from [`f_init_stress`](f_init_stress.md), with `alphax` for stress 4 (quadratic) and 0 for stress 3, unless `stress0` is given. Stress 0–2 carry no stress history. Stress 5 needs `stress0` (`f_checkers` rejects it otherwise).

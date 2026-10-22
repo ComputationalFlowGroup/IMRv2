@@ -2,12 +2,6 @@
 
 Start with the workflow, then follow the implementation diagrams for the part you are changing. The function index at the end groups files by responsibility.
 
-Three changes make this map easier to use:
-
-1. **Show the user workflow before filenames.** It explains what enters and leaves a simulation without requiring knowledge of the solver internals.
-2. **Separate setup from integration.** Material evaluation happens before the ODE; physics callbacks and Jacobians run during integration. Separate diagrams make that boundary visible.
-3. **Group the function index by task.** Look under inputs, physics, numerics or verification rather than scanning one alphabetical list. Links lead to each function's contract and assumptions.
-
 ## 1. User workflow
 
 This is a flow of information, rather than a function-call graph. A user may start with SI properties or directly with dimensionless inputs.
@@ -34,9 +28,11 @@ flowchart TD
   User --> Public[f_imr_inputs: optional input struct]
   User --> Solver[f_imr_nodal or f_imr_spectral]
   Public --> Defaults[default_case]
-  Solver --> Parser[f_call_params]
+  Solver --> Parser[f_prepare_case: named checked case]
   Parser --> Defaults
+  Parser --> Schema[f_parameter_schema: input names and discrete rules]
   Parser --> Check[f_checkers]
+  Parser --> Layout[f_state_layout: enabled state blocks]
   Parser --> Init[f_init_stress: collapse when needed]
   Defaults --> SI
   Profile[MATLAB fluid profile] -. SI coefficients .-> SI
@@ -47,11 +43,11 @@ flowchart TD
 
 ## 3. Integration: one checked case becomes histories
 
-The ODE wrapper repeatedly evaluates solver callbacks. Most thermal and wall operations are local functions inside the solver files; they are not separate top-level entry points.
+The ODE wrapper repeatedly evaluates solver callbacks. Most thermal and wall operations are local functions inside the private system factories; they are not separate top-level entry points.
 
 ```mermaid
 flowchart TD
-  Solver[Selected solver: initialize state and spatial operators] --> ODE[f_odesolve]
+  Solver[f_imr_system: enabled spatial operators and callbacks] --> ODE[f_odesolve]
   ODE -->|right-hand-side callback| RHS[Coupled state derivatives]
   RHS --> Radial[f_radial_eq: wall acceleration and selected liquid EoS]
   RHS --> Stress[f_stress and f_viscosity]
@@ -59,10 +55,21 @@ flowchart TD
   Thermal --> Heating[f_stress_dissipation]
   ODE -->|selected derivative callback| Jacobian[f_jacobian_nodal or f_jacobian_spectral]
   Jacobian --> Dual[f_dual_ops and wall derivatives]
-  ODE --> Output[Solver reconstructs outputs]
+  ODE --> Output[System outputs callback reconstructs histories]
 ```
 
 Material profiles are not loaded in this loop. Pressure-form Keller–Miksis uses prepared ambient density and sound speed; enthalpy branches evaluate their own pressure-based liquid relation in `f_radial_eq`. See [radial equations](../theory/radial-equations.md), [wall boundaries](../method/wall-boundaries.md) and [Jacobians](../method/time-integration.md) for those details.
+
+| State block | Meaning | Active when |
+|---|---|---|
+| `R`, `Rdot`, `P` | Radius, wall velocity, total bubble pressure | Always |
+| `bubble` | Kirchhoff temperature values or coefficients | `bubtherm = 1` |
+| `medium` | Medium temperature values or coefficients | `medtherm = 1` |
+| `vapor` | Vapor mass fractions | `masstrans = 1`, nodal only |
+| `stress1`, `stress2` | Integrated stresses or spectral stress coefficients | Constitutive-model dependent |
+| `polymer` | Local Zener stress field for heating | Stress 3–4 with medium heat |
+
+`f_state_layout` owns these indices. Factories use the same blocks for initialization, RHS, Jacobians and reconstruction; disabled fields have empty blocks and no operators. See [internal contracts](internal-contracts.md).
 
 ## 4. Function index by responsibility
 
@@ -79,7 +86,12 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | `src/f_dim2nondim.m` | SI conversion and reference scales | [Conversion API](../api/f_dim2nondim.md) |
 | `src/+fluids/water.m` | Water reference material coefficients and transport | [Fluid profiles](../model/fluids.md) |
 | `src/f_fluid_properties.m` | Shared bulk and saturation model evaluation | [Property API](../api/f_fluid_properties.md) |
-| `src/f_call_params.m` | Parse overrides, derive state and package solver options | [Parser](functions/f_call_params.md) |
+| `src/f_prepare_case.m` | Parse, validate and prepare named case fields | [Case contract](internal-contracts.md) |
+| `src/f_parameter_schema.m` | Public/internal names and discrete validation rules | [Parameters](../model/parameters.md) |
+| `src/f_state_layout.m` | Enabled state blocks shared by every consumer | [State contract](internal-contracts.md#state-and-shape-contract) |
+| `src/f_imr_system.m` | Build scheme-specific numerical callbacks | [System contract](internal-contracts.md#numerical-system) |
+| `src/private/imr_nodal_system.m`, `imr_spectral_system.m` | Local operators, RHS, closures and reconstruction | [Workflow](../method/overview.md) |
+| `src/f_call_params.m` | Compatibility serialization of the named case | [Legacy adapter](functions/f_call_params.md) |
 | `src/f_checkers.m` | Validate ranges and feature combinations | [Checks](functions/f_checkers.md) |
 | `src/f_display.m` | Display the prepared model choices | [Display](functions/f_display.md) |
 
@@ -107,6 +119,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | `src/f_jpattern.m` | Jacobian sparsity structure | [Pattern](functions/f_jpattern.md) |
 | `src/f_jacobian_nodal.m` | Nodal state derivatives | [Nodal Jacobian](functions/f_jacobian_nodal.md) |
 | `src/f_jacobian_spectral.m` | Spectral state derivatives | [Spectral Jacobian](functions/f_jacobian_spectral.md) |
+| `src/f_thermal_inverse.m`, `f_saturation_pressure.m` | Pure transforms shared by RHS, Jacobians and property evaluation | [Thermal variables](../method/time-integration.md#thermal-variables) |
 | `src/f_dual_ops.m` | Shared value/derivative operations | [Dual operations](functions/f_dual_ops.md) |
 
 ### Verification and developer tools
@@ -125,7 +138,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 
 A single `imr_setup` call adds `src/` and `examples/`; it does not recursively add every subfolder. MATLAB packages such as `+fluids` resolve through their parent directory and are called as `fluids.water()`. Ordinary subfolders would need path setup, while a `private/` folder can hide helpers used only by its parent. Folders are therefore possible without making callers manage a long list of paths.
 
-Keep shared numerical and physics functions callable from both solvers and their tests. MATLAB local functions in a combined file are visible only within that file; combining them arbitrarily would require duplicate implementations or a dispatcher. Existing material evaluators already group model-family helpers locally, and each solver already groups its tightly coupled wall closures. Those are useful consolidation boundaries. The [extension guide](../api/extending.md) describes how to keep the state, right-hand side, Jacobian and outputs consistent.
+Keep shared numerical and physics functions callable from both solvers and their tests. MATLAB local functions in a combined file are visible only within that file; combining them arbitrarily would require duplicate implementations or a dispatcher. Existing material evaluators already group model-family helpers locally, and each private system factory groups its tightly coupled wall closures. Those are useful consolidation boundaries. The [extension guide](../api/extending.md) describes how to keep the state, right-hand side, Jacobian and outputs consistent.
 
 ## Optional material add-on
 

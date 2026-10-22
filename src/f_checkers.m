@@ -15,25 +15,16 @@ function p = f_checkers(p)
     
     % model flags and options
     
-    f_integer_in(p.radial, 1:6, 'radial', ['1 (RP), 2 (K-M pressure), ' ...
-        '3 (K-M enthalpy, Tait), 4 (Gilmore, Tait), 5 (K-M, Mie-Gruneisen), ' ...
-        '6 (Gilmore, Mie-Gruneisen)']);
-    f_integer_in(p.bubtherm, 0:1, 'bubtherm', '0 or 1');
-    f_integer_in(p.medtherm, 0:1, 'medtherm', '0 or 1');
-    f_integer_in(p.stress, 0:5, 'stress', 'an integer in 0..5');
-    f_integer_in(p.vapor, 0:1, 'vapor', '0 or 1');
-    f_integer_in(p.masstrans, 0:1, 'masstrans', '0 or 1');
-    f_integer_in(p.collapse, 0:1, 'collapse', '0 or 1');
-    f_integer_in(p.nu_model, 0:7, 'nu_model', ['0 (Newtonian), 1 (Carreau), ' ...
-        '2 (Carreau-Yasuda), 3 (Powell-Eyring), 4 (modified Powell-Eyring), ' ...
-        '5 (Cross), 6 (simplified Cross), or 7 (modified Cross)']);
-    f_integer_in(p.wave_type, -3:3, 'wave_type', 'an integer in -3..3');
-    f_integer_in(p.method, [3 15 23], 'method', ['3 (CVODES, the ode object), ' ...
-        '15 (ode15s), or 23 (ode23tb)']);
-    f_integer_in(p.spectral, 0:1, 'spectral', '0 or 1');
-    f_integer_in(p.jacobian, 0:3, 'jacobian', '0, 1, 2, or 3');
-    f_integer_in(p.scheme, 0:1, 'scheme', '0 (finite difference) or 1 (Chebyshev)');
-    f_integer_in(p.progdisplay, 0:1, 'progdisplay', '0 or 1');
+    schema = f_parameter_schema();
+    for k = 1:numel(schema)
+        item = schema(k);
+        if strcmp(item.rule,'choice')
+            f_integer_in(p.(item.field),item.allowed,item.name, ...
+                ['one of ' mat2str(item.allowed)]);
+        elseif strcmp(item.rule,'count')
+            f_nonnegative_integer(p.(item.field),item.name);
+        end
+    end
     if ~(isnumeric(p.eps3) && isscalar(p.eps3) && p.eps3 >= 0 && p.eps3 <= 0.5)
         error('INPUT ERROR: eps3 must be in [0, 0.5]');
     end
@@ -138,8 +129,9 @@ function p = f_checkers(p)
         error('INPUT ERROR: Only tvector or tfin can be specified, not both');
     end
     t = p.tvector;
-    if ~isnumeric(t) || numel(t) < 2 || any(~isfinite(t)) || any(diff(t) <= 0)
-        error('INPUT ERROR: tvector must be finite and strictly increasing');
+    valid_t = isnumeric(t) && isreal(t) && isvector(t) && numel(t) >= 2;
+    if ~valid_t || any(~isfinite(t)) || any(diff(t) <= 0)
+        error('INPUT ERROR: tvector must be a finite, real, strictly increasing vector');
     end
     if t(1) < 0
         error('INPUT ERROR: tvector must start at a nonnegative time');
@@ -148,17 +140,11 @@ function p = f_checkers(p)
     
     % solver and grid options
     
-    f_nonnegative_integer(p.Nt, 'Nt');
-    f_nonnegative_integer(p.Mt, 'Mt');
-    f_nonnegative_integer(p.Nv, 'Nv');
     if p.bubtherm == 1 && p.Nt < 3
         error('INPUT ERROR: Nt must be at least 3 when bubtherm = 1');
     end
     if p.medtherm == 1 && p.Mt < 3
         error('INPUT ERROR: Mt must be at least 3 when medtherm = 1');
-    end
-    if ~(isnumeric(p.divisions) && p.divisions >= 0 && p.divisions == round(p.divisions))
-        error('INPUT ERROR: divisions must be a nonnegative integer');
     end
     f_positive({'Lv','Lt','rtol','atol'}, {p.Lv, p.Lt, p.rtol, p.atol});
     
@@ -294,6 +280,9 @@ function p = f_checkers(p)
     else
         % UCM and Oldroyd-B: Nv stress modes for the spectral representation,
         % one otherwise, and no elastic contribution
+        if p.spectral == 1 && p.Nv < 1
+            error('IMR:stressGrid','Nv must be at least 1 for the spectral stress field.');
+        end
         p.Nv = (p.Nv - 1)*(p.spectral == 1) + 1;
         p.Ca = Inf;
     end
@@ -325,8 +314,9 @@ function f_integer_in(val, allowed, name, desc)
 end
 
 function f_nonnegative_integer(val, name)
-    if ~(isnumeric(val) && isscalar(val) && val >= 0 && val == round(val))
-        error('INPUT ERROR: %s must be a nonnegative integer', name);
+    ok = isnumeric(val) && isscalar(val) && isreal(val) && isfinite(val);
+    if ~ok || val < 0 || val ~= round(val)
+        error('INPUT ERROR: %s must be a finite, real, nonnegative integer', name);
     end
 end
 

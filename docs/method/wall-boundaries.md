@@ -4,7 +4,7 @@ The nodal solver enforces wall heat balance algebraically instead of integrating
 
 ## Thermal-only wall
 
-The nested `f_wall_theta_exact` in `src/f_imr_nodal.m` solves
+The nested `f_wall_theta_exact` in `src/private/imr_nodal_system.m` solves
 `c1*Tw + c2*theta_w + K = 0`. `K` collects the other nodes' wall-row contributions. Set `ag = alpha_g`, `bg = beta_g` and
 
 $$
@@ -17,6 +17,15 @@ Here $a_g$ and $b_g$ are the code variables `ag` and `bg`; $T_w$ is wall tempera
 
 Then `c2*u^2 + 2*c1*u + q = 0`, where
 `q = -2*c1*bg - c2*(ag+bg)^2 + 2*ag*K`.
+
+| Coefficient | Meaning |
+|---|---|
+| `c1` | Medium wall-row coefficient multiplying dimensionless wall temperature |
+| `c2` | Bubble wall-row coefficient multiplying the Kirchhoff variable |
+| `K` | Fixed contributions from all nonwall nodes; distinct from conductivity $u$ |
+| `q` | Constant term after eliminating temperature in favor of conductivity |
+
+All gradients use the moving, dimensionless coordinates and the flux scales in the prepared case. Uniform ambient fields give zero wall Kirchhoff variable. At zero quadratic coefficient the equation reduces to a linear solve; the algorithm below handles that limit explicitly. `f_thermal_inverse` supplies the common inverse transform and derivatives used by the wall residual and both Jacobians.
 
 - Form both roots in a cancellation-free form and discard `u < 0`.
 - If two roots remain, choose the wall `theta` closest to the previous wall value; do not hard-code the sign of `c2`.

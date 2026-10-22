@@ -38,9 +38,9 @@ It reuses the prefactored `A0` and Sherman–Morrison correction. The local poly
 
 ## Batched right-hand side
 
-The nodal `SVBDODE` accepts a matrix with one state per column. Its helpers evaluate each column elementwise in the same arithmetic order. The time integrators call it with one column; `jacobian = 3` uses a batch.
+The nodal system factory’s `f_rhs` accepts a matrix with one state per column. Its helpers evaluate each column elementwise in the same arithmetic order. The time integrators call it with one column; `jacobian = 3` uses a batch.
 
-It forms `F = SVBDODE(t, [X, X + diag(del)])` and
+It forms `F = f_rhs(t, [X, X + diag(del)])` and
 `J = (F(:,2:end) - F(:,1))./del.'`.
 The perturbation is `sqrt(eps)*max(abs(X),1)`, rounded to an exactly representable state increment. It zeros entries outside `f_jpattern` and returns a dense Jacobian for dense LU.
 
@@ -56,5 +56,7 @@ T=\frac{\sqrt{(\alpha+\beta)^2+2\alpha\theta}-\beta}{\alpha}.
 $$
 
 Temperature $T$ is scaled by its far-field value, so $\theta=0$ corresponds to $T=1$. The coefficients define conductivity $K(T)=\alpha T+\beta$; differentiation gives $d\theta/dT=K(T)$ and $dT/d\theta=1/K(T)$. Those factors enter the thermal Jacobian. The implemented inverse assumes a positive slope; a constant-conductivity thermal limit needs a separate inverse and is currently rejected.
+
+`f_thermal_inverse` supplies the same temperature, conductivity and coefficient derivatives to RHS, reconstruction, wall residuals and Jacobians. `f_saturation_pressure` shares the exponential law and derivative between profile evaluation and wall physics.
 
 The spectral solver uses gas coefficients. The nodal solver uses the initial mixture without mass transfer and local vapor-dependent mixture with mass transfer. Both use the supplied `alpha` and `beta`; their sum need not equal 1. The wall-condition derivative must use the same transform. See [wall boundaries](wall-boundaries.md) and the [reported correction](../validation/convergence.md#reported-kirchhoff-transform-correction).

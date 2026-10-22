@@ -66,24 +66,21 @@ function J = f_jacobian_nodal(t, X, jp)
     if jp.masstrans
         am = d.add(d.con(jp.alpha_g), d.scale(kvs, jp.alpha_v - jp.alpha_g));
         bm = d.add(d.con(jp.beta_g), d.scale(kvs, jp.beta_v - jp.beta_g));
-        ab = am.v + bm.v;
-        s = sqrt(ab.^2 + 2*am.v.*th.v);
-        Tv = (s - bm.v)./am.v;
-        T = struct('v', Tv, 'J', d.diag(1./s)*th.J + ...
-            d.diag(((ab + th.v)./s - Tv)./am.v)*am.J + ...
-            d.diag((ab./s - 1)./am.v)*bm.J);
+        [Tv,s,dTda,dTdb] = f_thermal_inverse(th.v,am.v,bm.v);
+        T = struct('v',Tv, 'J',d.diag(1./s)*th.J + ...
+            d.diag(dTda)*am.J+d.diag(dTdb)*bm.J);
     else
-        am = jp.kv0*jp.alpha_v + (1 - jp.kv0)*jp.alpha_g;
-        bm = jp.kv0*jp.beta_v + (1 - jp.kv0)*jp.beta_g;
-        s = sqrt((am + bm)^2 + 2*am*th.v);
-        T = struct('v', (s - bm)/am, 'J', d.diag(1./s)*th.J);
+        am = jp.kv0*jp.alpha_v + (1-jp.kv0)*jp.alpha_g;
+        bm = jp.kv0*jp.beta_v + (1-jp.kv0)*jp.beta_g;
+        [Tv,s] = f_thermal_inverse(th.v,am,bm);
+        T = struct('v',Tv,'J',d.diag(1./s)*th.J);
     end
     Te = d.el(T, nth);
     
     % vapor concentration, wall value saturated at (T(end), P)
     if jp.masstrans
-        Pv = d.fun(Te, jp.C1_pv*exp(jp.C2_pv/Te.v), ...
-            -jp.C1_pv*exp(jp.C2_pv/Te.v)*jp.C2_pv/Te.v^2);
+        [pv,dpv] = f_saturation_pressure(Te.v,jp.C1_pv,jp.C2_pv);
+        Pv = d.fun(Te,pv,dpv);
         dem = d.add(d.con(1 - jp.Rvg), d.scale(d.div(P, Pv), jp.Rvg));
         kv = d.set(kvs, nth, d.div(d.con(1), dem));
         dkv = d.lin(jp.D1, kv);

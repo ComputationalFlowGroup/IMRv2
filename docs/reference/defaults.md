@@ -1,6 +1,6 @@
 # Defaults, material data and units
 
-`default_case.m` is still used. Both `f_call_params` and `f_imr_inputs` call it; removing it would break the default solver API. Its physical groups are now derived through `f_dim2nondim` instead of repeating a second list of physical numbers.
+`default_case.m` is still used. Both `f_prepare_case` and `f_imr_inputs` call it; removing it would break the default solver API. Its physical groups are now derived through `f_dim2nondim` instead of repeating a second list of physical numbers.
 
 ## One source per kind of value
 
