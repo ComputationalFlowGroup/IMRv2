@@ -50,8 +50,8 @@ function J = jacobian_nodal(t, X, jp)
         else
             gTm = jp.wall.grad_Tm;
             gTr = jp.wall.grad_Tr;
-            % same root as the solver; for c2*u^2 + 2*c1*u + q(K) = 0 the
-            % implicit derivative is d(theta_w)/dK = -u/(c2*u + c1)
+            % Differentiate the wall balance c1*Tw+c2*theta_w+K=0.
+            % With u=conductivity, d(theta_w)/dK=-u/(c2*u+c1).
             theta_bw = jp.theta_bw(t,X);
             u = sqrt((jp.alpha_g + jp.beta_g)^2 + 2*jp.alpha_g*theta_bw);
             dK = -u/(gTr(1)*u + gTm(1));

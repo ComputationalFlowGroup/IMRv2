@@ -15,4 +15,14 @@ function system = build(c)
         error('IMR:solver','Solver must be nodal or spectral.');
     end
     system.layout = c.layout;
+    % A valid list of scalar inputs can still assemble an inadmissible
+    % initial state: e.g. a sonic denominator or pressure outside an EoS
+    % domain. Evaluate once here, rather than adding checks to each RHS
+    % evaluation during integration. Underlying programming errors propagate.
+    initial_rate = system.rhs(c.time(1),system.initial);
+    if ~isreal(initial_rate) || any(~isfinite(initial_rate(:)))
+        error('IMR:initialState', ...
+            ['INPUT ERROR: the assembled initial state has a nonfinite or complex derivative. ' ...
+            'Check initial pressure, velocity, stress, liquid EoS domain and forcing.']);
+    end
 end

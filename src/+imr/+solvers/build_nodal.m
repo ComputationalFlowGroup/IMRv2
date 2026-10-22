@@ -86,6 +86,7 @@ function system = build_nodal(prepared)
     v_lambda_star   = prepared.stress.v_lambda_star;
     iDRe            = prepared.stress.iDRe;
     iWe             = 1/We;
+    nonnewtonian    = nu_model ~= 0 && iDRe ~= 0;
 
     % dimensionless thermal
     Foh             = prepared.thermal.Foh;
@@ -496,7 +497,7 @@ function system = build_nodal(prepared)
         % surroundings equations of motion
 
         % viscous forces/Reynolds number
-        if nu_model ~= 0
+        if nonnewtonian
             % fnu_m: viscosity factor at the medium grid points
             [~,intfnu,dintfnu,ddintfnu,fnu_m] = imr.physics.viscosity(nu_model, ...
                 Rdot,R,v_a,v_nc,v_lambda_star,yT);
@@ -623,7 +624,7 @@ function system = build_nodal(prepared)
     % medium dissipation as a function of (R, Rdot)
     function tg = f_taugradu(Rv,Rdotv,X)
         fnu_loc = 0;
-        if nu_model ~= 0
+        if nonnewtonian
             [~,~,~,~,fnu_loc] = imr.physics.viscosity(nu_model,Rdotv,Rv,v_a,v_nc, ...
                 v_lambda_star,yT);
         end
@@ -646,7 +647,7 @@ function system = build_nodal(prepared)
         intf_loc = 0;
         dintf_loc = 0;
         ddintf_loc = 0;
-        if nu_model ~= 0
+        if nonnewtonian
             [~,intf_loc,dintf_loc,ddintf_loc] = imr.physics.viscosity(nu_model, ...
                 Rdotv,Rv,v_a,v_nc,v_lambda_star);
         end
@@ -836,44 +837,39 @@ function system = build_nodal(prepared)
             grad_Trans_coeff * vertcat(theta_bw, T_trans);
     end
 
-    % exact bubble-wall theta for the thermal-only balance. With
-    % u = sqrt((alpha_g+beta_g)^2+2*alpha_g*theta_bw), the wall
-    % conductivity, Tw = (u-beta_g)/alpha_g is linear and
-    % theta_bw = (u^2-(alpha_g+beta_g)^2)/(2*alpha_g) quadratic in u, so the
-    % residual is c2*u^2 + 2*c1*u + q = 0. Both roots are formed, u < 0 is discarded
-    % (u is a square root), and of two admissible roots the one closest to
-    % theta_bw_guess is kept (the first on a tie); the sign of c2 depends on
-    % the grid spacing and the conductivity ratio, so no branch is
-    % hard-coded. c2 = 0 is the linear case. fzero is the fallback when no
-    % admissible root exists. Tm_in and th_in may hold one state per column,
-    % giving one theta_bw per column.
+    % Solve the wall flux balance in d = Tw-1 rather than conductivity u.
+    % theta = (alpha_g+beta_g)*d + alpha_g*d^2/2 gives
+    % A*d^2 + B*d + C = 0. This avoids subtracting u^2-K(1)^2 and
+    % dividing by a tiny alpha_g. Discard roots with negative conductivity
+    % and choose the theta closest to the previous wall value.
     function theta_bw = f_wall_theta_exact(Tm_in, th_in)
         c1 = grad_Tm_coeff(1);
         c2 = grad_Trans_coeff(1);
         K = grad_Tm_coeff(2:end)*Tm_in(iwall_m,:) + ...
             grad_Trans_coeff(2:end)*th_in(iwall_b,:);
-        q = -2*c1*beta_g - c2*K1sq_g + 2*alpha_g*K;
-        if abs(c2) < eps
-            u1 = -q/(2*c1);
-            u2 = NaN(size(q));
+        A = 0.5*alpha_g*c2;
+        B = c1+c2*(alpha_g+beta_g);
+        C = c1+K;
+        if A == 0
+            d1 = -C/B;
+            d2 = NaN(size(C));
         else
-            disc = c1^2 - c2*q;
-            % cancellation-free pair of roots, none where disc < 0
-            sq = sqrt(max(disc, 0));
-            if c1 >= 0
-                qq = -(c1 + sq);
+            disc = B^2-4*A*C;
+            sq = sqrt(max(disc,0));
+            if B >= 0
+                q = -0.5*(B+sq);
             else
-                qq = -(c1 - sq);
+                q = -0.5*(B-sq);
             end
-            u1 = qq/c2;
-            u2 = q./qq;
-            u1(disc < 0) = NaN;
-            u2(disc < 0) = NaN;
+            d1 = q/A;
+            d2 = C./q;
+            d1(disc < 0) = NaN;
+            d2(disc < 0) = NaN;
         end
-        ok1 = isfinite(u1) & u1 >= 0;
-        ok2 = isfinite(u2) & u2 >= 0;
-        th1 = (u1.^2 - K1sq_g)/(2*alpha_g);
-        th2 = (u2.^2 - K1sq_g)/(2*alpha_g);
+        ok1 = isfinite(d1) & alpha_g*(1+d1)+beta_g >= 0;
+        ok2 = isfinite(d2) & alpha_g*(1+d2)+beta_g >= 0;
+        th1 = d1.*(alpha_g+beta_g+0.5*alpha_g*d1);
+        th2 = d2.*(alpha_g+beta_g+0.5*alpha_g*d2);
         pick2 = ok2 & (~ok1 | abs(th2 - theta_bw_guess) < abs(th1 - theta_bw_guess));
         theta_bw = th1;
         theta_bw(pick2) = th2(pick2);

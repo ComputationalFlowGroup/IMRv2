@@ -127,6 +127,7 @@ nav:
       - "Polytropic pressure": validation/polytropic.md
       - "Mercury": validation/mercury.md
       - "Numerical bug regressions": validation/numerics.md
+      - "Settings and initialization audit": validation/settings.md
       - "Equilibrium": validation/equilibrium.md
       - "Gaussian pulse": validation/gaussian.md
       - "Permutations": validation/permutations.md

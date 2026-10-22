@@ -83,7 +83,9 @@ function J = jacobian_spectral(t, X, jp)
                 jp.taugradu(R.v,Rdot.v-hU,X))/(2*hU);
             tg = jp.taugradu(R.v,Rdot.v,X);
             Jtg = sparse(tg_R(:))*R.J + sparse(tg_U(:))*Rdot.J;
-            dsp = -2*jp.Br*(Rdot.v/R.v)./jp.yT3.*jp.ZZT;
+            if jp.spectral_stress || jp.zener_field
+                dsp = -2*jp.Br*(Rdot.v/R.v)./jp.yT3.*jp.ZZT;
+            end
             if jp.spectral_stress
                 Nv = numel(iz)/2;
                 Jtg(:,iz(1:Nv)) = Jtg(:,iz(1:Nv)) + dsp;

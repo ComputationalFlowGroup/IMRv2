@@ -18,6 +18,7 @@ The test suites live in `toolchain/` and run from that folder. The tests workflo
 | `s_test_suite_namespace` | [Namespace resolution, legacy calls and measured data](../reference/namespaces.md) | None |
 | `s_test_suite_structure` | [Prepared cases, states, independent Jacobians and output boundaries](../reference/internal-contracts.md#verification) | None |
 | `s_test_suite_numerics` | [Driven enthalpy, time-step limits and input guards](numerics.md) | None |
+| `s_test_suite_settings` | [Explicit acceptance/rejection, phase limits and initial-state guards](settings.md) | None |
 
 The generated equilibrium, Gaussian, permutation and regression suites use three solver modes. The separate polytropic and fluid suites also exercise these modes, while the operator suite checks matrices directly:
 
@@ -59,7 +60,7 @@ Finite differences need finer grids because they are second-order accurate. The 
 
 ## Helpers
 
-- `f_test_run(c)` runs one case with the solver's console output hidden. It returns `[R, msg, t]`, with an empty message on success and the actual time history as an optional third output, or the error message if the run fails, so one failing case does not stop a suite.
+- `f_test_run(c)` runs one case with the solver's console output hidden and checks all seven physical outputs for real, finite values. It returns `[R, msg, t]`, with an empty message on success and the actual time history as an optional third output, or the error message if the run fails, so one failing case does not stop a suite.
 - `f_test_report(name, cases, failed, msg)` prints the passes per mode and every failure with its mode and key. It then raises an error if any case failed or no cases were generated. In a batch run (`matlab -batch`, as in CI) the error exits MATLAB with a nonzero code; interactively it only stops the script.
 
 ## Run the suites
@@ -72,7 +73,7 @@ status=0
 for suite in s_test_suite_equilibrium s_test_suite_gaussian \
     s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression \
     s_test_suite_polytropic s_test_suite_fluids s_test_suite_numerics \
-    s_test_suite_structure s_test_suite_namespace \
+    s_test_suite_structure s_test_suite_namespace s_test_suite_settings \
     s_test_suite_mercury; do
     matlab -batch "$suite" || status=1
 done

@@ -7,7 +7,7 @@
 ### Model flags
 
 - `radial` in 1–6, `stress` in 0–5, `nu_model` in 0–7, `wave_type` in -3–3, `method` in {3, 15, 23}, `jacobian` in 0–3, `scheme` in 0–1.
-- `bubtherm`, `medtherm`, `vapor`, `masstrans`, `collapse`, `spectral`, `progdisplay` are 0 or 1; `eps3` in [0, 0.5].
+- `bubtherm`, `medtherm`, `vapor`, `masstrans`, `collapse`, `spectral`, `progdisplay` are 0 or 1; `eps3` in [0, 0.5]. Nonzero `eps3` warns because the parameter has no implemented equation term.
 
 ### Compatibility of the conditions
 
@@ -40,6 +40,7 @@
 - `De`, `LAM`, `alphax`, `kappa - 1` nonnegative; `LAM > 1` for stress models warns.
 - `Cstar`, `GAMa`, `nstate`, `hugoniot_s`, `Req`, `Lv`, `Lt`, tolerances positive.
 - The equilibrium gas pressure `P0_star = (1 + 1/(We*Req) - Pv)*Req^n` must be nonnegative.
+- Scalar parameter types/shapes are checked before derived arithmetic; values must be real and finite except the permitted infinities above. Effective numeric settings use `double`, including integer-valued inputs. Thermal bubbles require positive initial total pressure; mass transfer also requires positive initial gas pressure and a representable nonzero gas fraction.
 - Thermal (`chi`, `Foh`, `kmstar`, conductivity coefficients) and mass-transfer (`Fom`, `lheat`, `rv`, `ra`, `pv`, `thetav`) numbers are checked when the corresponding model is on; `rv` and `ra` also with `collapse = 1`.
 - Waveform: `tw > 0` for Gaussian, `om > 0` and `mn >= 0` for histotripsy, `tw >= 0` for Heaviside, and a warning when `tvector` extends past the measured waveform data.
 - Non-Newtonian: `DRe`, `v_lambda`, `v_nc` nonnegative; `v_a > 0` for Carreau–Yasuda and modified Cross; `v_nc > 0` for Cross and modified Cross; `v_nc <= 1` and `v_lambda > 0` for modified Powell–Eyring; warning when `DRe = 0`, or with stress 3–5 when `LAM = 0` (the non-Newtonian viscosity is the solvent share `LAM`, so it vanishes).
@@ -56,4 +57,4 @@ After the checks, `imr.configuration.validate_case` adjusts and returns:
 - `stress = 5` (UCM, Oldroyd-B): `Nv` stress modes with the spectral representation, one otherwise, and `Ca = Inf` (no elastic contribution).
 - `stress = 3, 4`: `Nv = 1`, except in `imr.solve_spectral` with `medtherm = 1`, where `Nv` is the number of modes of the local polymer stress field.
 
-The size of a user `stress0` is checked in `imr.configuration.prepare_case`, not here. See [`compatibility`](../compatibility.md) for the resulting grid of features that run together.
+The type, finiteness and size of a user `stress0`, and the initial mixture conductivity, are checked in `imr.configuration.prepare_case`. `imr.solvers.build` then checks the assembled initial derivative for real, finite values before integration. See the [settings audit](../../validation/settings.md) and [`compatibility`](../compatibility.md) for coverage and limits.
