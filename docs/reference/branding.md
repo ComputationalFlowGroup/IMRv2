@@ -18,6 +18,6 @@ pdflatex -halt-on-error -output-directory=/tmp/imr-logos docs/assets/logos/imr-m
 pdftocairo -svg /tmp/imr-logos/imr-monogram.pdf docs/assets/logos/imr-monogram.svg
 ```
 
-The SVG uses a 1200-pixel intrinsic display width so the README logo fills the available content width. After rebuilding it, set the root SVG `width` to `1200`, and set its `height` to `1200 * viewBox height / viewBox width`. Preserve the original `viewBox`; this changes display size while retaining vector quality.
+The SVG uses a 400-pixel intrinsic display width (about 262 pixels high) to keep the README header compact. After rebuilding it, set the root SVG `width` to `400`, and set its `height` to `400 * viewBox height / viewBox width`. Preserve the original `viewBox`; this changes display size while retaining vector quality.
 
 PDF/SVG exports retain vector geometry. MATLAB does not need TeX or these artwork tools.
