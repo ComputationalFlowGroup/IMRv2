@@ -91,12 +91,12 @@ Use lowercase `snake_case` without an `f_` prefix for new functions. Place publi
 - If your change affects which features run together, update [`docs/reference/compatibility.md`](compatibility.md) and the rules in `imr.configuration.validate_case` together.
 - User-facing changes, such as a new model or option, also belong in the feature list of the [README](https://github.com/mrodrig6/imrv2/blob/main/README.md).
 
-### Documentation build
+### Documentation checks
 
-Build and spelling commands live in [CI](ci.md). The local Material site is configured in `mkdocs.yml`; documentation CI builds it without publishing. There is no Pages deployment.
+Source-checking and spelling commands live in [CI](ci.md). Read and review the Markdown on GitHub. The Material site configuration in `mkdocs.yml` is dormant; CI does not build or deploy a website.
 
 - Add new pages to the matching section folder and navigation.
-- The standard include-markdown plugin reads the whole README as the home page and rewrites relative links. Do not add custom Python source or duplicate README prose in other pages.
+- Keep `docs/index.md` as a normal Markdown topic index and link to the README for setup. Do not add custom Python source or duplicate README prose in other pages.
 - Use relative links between Markdown pages so they also work on GitHub. Link repository code files explicitly when useful.
 - Start a page with a short scope statement. Keep tables for parameters and contracts; link canonical facts rather than repeating them.
 - Give figures descriptive alt text and keep their source/rebuild instructions beside them.
@@ -114,7 +114,7 @@ A new case added to `toolchain/f_test_cases.m` fails the regression suite until 
 
 ## 3. Run the checks
 
-Follow [CI and local equivalents](ci.md) for spelling, MATLAB lint, formatting and the strict documentation build. Run the [numerical suites](../validation/tests.md#run-the-suites) from `toolchain/` in separate MATLAB processes and preserve failure status.
+Follow [CI and local equivalents](ci.md) for spelling, MATLAB lint, formatting and source-documentation checks. Run the [numerical suites](../validation/tests.md#run-the-suites) from `toolchain/` in separate MATLAB processes and preserve failure status.
 
 The regression suite requires approved references that are absent from the audited checkout. See [baseline availability](../validation/regression.md#baseline-availability). Do not fabricate or silently replace them.
 

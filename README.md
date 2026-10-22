@@ -1,7 +1,7 @@
 # Inertial Microcavitation Rheometry (IMR)
 
 [![Tests](https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml)
-[![Docs build](https://github.com/mrodrig6/imrv2/actions/workflows/docs.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/docs.yml)
+[![Docs checks](https://github.com/mrodrig6/imrv2/actions/workflows/docs.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/docs.yml)
 [![Lint](https://github.com/mrodrig6/imrv2/actions/workflows/lint.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/lint.yml)
 [![Formatting](https://github.com/mrodrig6/imrv2/actions/workflows/format.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/format.yml)
 [![Spelling](https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml)
@@ -52,6 +52,8 @@ p.stress = 1;
 The [complete quick start](docs/getting-started/quick-start.md) converts SI inputs and restores dimensional outputs. These examples await local MATLAB execution; no numerical output is claimed here.
 
 ## Documentation
+
+Read the [documentation index](docs/index.md) directly on GitHub. The MkDocs website is deferred; [reactivation instructions](docs/reference/ci.md#reactivating-mkdocs) are retained for later.
 
 | Section | Pages |
 |---|---|

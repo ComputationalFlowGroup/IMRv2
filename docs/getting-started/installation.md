@@ -1,6 +1,6 @@
 # Installation
 
-IMRv2 runs in MATLAB R2021a or newer. The forward solvers use base MATLAB; Python is needed only for documentation and spelling tools.
+IMRv2 runs in MATLAB R2021a or newer. The forward solvers use base MATLAB. Read documentation directly on GitHub; no website build is needed.
 
 | Component | Requirement | Scope |
 |---|---|---|
@@ -11,7 +11,8 @@ IMRv2 runs in MATLAB R2021a or newer. The forward solvers use base MATLAB; Pytho
 | Image Processing Toolbox | Optional | Video analysis outside the forward solvers |
 | Curve Fitting Toolbox | Optional | Rebuilding measured waveform derivatives with `fnder` |
 | Symbolic Math Toolbox | Check `which hypergeom` | Standalone approximate initial-stress helper, not the solver path |
-| Python | 3.12 used by documentation CI | MkDocs and codespell only |
+| Pandoc, jq and pdfLaTeX | Optional developer tools | Markdown destinations and equation syntax checks |
+| Python | Optional developer tool | Codespell; future MkDocs activation |
 
 ## Get the code
 
@@ -34,13 +35,10 @@ which imr.solve_spectral
 
 ## Documentation tools
 
-Use a virtual environment from the checkout root:
+Reading the [documentation index](../index.md) requires no installation. For source-documentation checks, install the tools listed in [CI](../reference/ci.md#source-documentation-checks), then run from the checkout root:
 
 ```bash
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -r docs/requirements.txt codespell
-mkdocs build --strict
+bash toolchain/docs/check.sh
 ```
 
-The generated `site/` directory is local output. CI builds documentation without deploying it. See [CI](../reference/ci.md) for all check commands and [troubleshooting](../running/troubleshooting.md) for common errors.
+Website configuration is retained but inactive. See [reactivating MkDocs](../reference/ci.md#reactivating-mkdocs) when a website is wanted, and [troubleshooting](../running/troubleshooting.md) for solver setup errors.

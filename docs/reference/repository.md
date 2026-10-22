@@ -4,7 +4,7 @@ The checkout separates solver functions, examples, developer tooling and documen
 
 | Path | Purpose |
 |---|---|
-| `README.md` | Short front door and source of the local documentation home |
+| `README.md` | Short front door with installation, examples and documentation links |
 | `CONTRIBUTING.md` | Pointer to the contributor guide |
 | `LICENSE` | GNU GPL version 3 or later |
 | `imr_setup.m` | One-session path setup for source and examples |
@@ -15,7 +15,7 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `src/data/d_hn.mat`, `d_mn.mat`, `d_ml.mat` | Runtime measured-waveform spline data |
 | `examples/` | Simulation scripts, large sweeps and legacy postprocessing; [inventory](../getting-started/examples.md#bundled-script-inventory) |
 | `toolchain/` | Numerical suites, helpers, formatter, linter and reference generator |
-| `toolchain/docs/` | Locked documentation-only equation and browser checks; no MATLAB dependency |
+| `toolchain/docs/` | Bash checks for Markdown destinations and LaTeX equations; no MATLAB dependency |
 | `tests/*.mat` | Older stored data, unused by the current suites |
 | `tests/reference/` | Expected regression baselines; absent from the audited checkout |
 | `benchmarks/integrators/` | Reproducible integrator comparison driver; [method](../method/integrator-benchmarks.md) |
@@ -24,11 +24,10 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `docs/waveform/` | Raw measured data and MATLAB spline rebuild script |
 | `docs/assets/logos/` | Adopted TikZ logo source and compiled SVG/PDF exports |
 | `docs/imr.jfif` | Retained original branding image; rebuild source unavailable |
-| `docs/index.md` | Includes README through standard MkDocs plugin configuration, with no custom Python source |
-| `docs/requirements.txt` | Documentation dependencies, independent of MATLAB |
-| `docs/javascripts/mathjax.js` | MathJax configuration for equations |
-| `mkdocs.yml` | Local build theme, navigation, math and strict validation |
-| `.github/workflows/` | Tests, lint, format, spelling and build-only docs workflows |
+| `docs/index.md` | GitHub-readable documentation index and future website home |
+| `docs/requirements.txt` | Dormant website dependencies, independent of MATLAB |
+| `mkdocs.yml` | Dormant website theme, navigation, math markup and strict validation settings |
+| `.github/workflows/` | Tests, lint, format, spelling and source-documentation checks |
 | `.gitignore` | Generated/local-file patterns |
 | `site/` | Ignored local documentation build output |
 

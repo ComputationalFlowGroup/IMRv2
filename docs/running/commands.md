@@ -11,14 +11,14 @@ All commands below start from the checkout root unless a directory is stated. MA
 | Bundled Gaussian case | `matlab -batch "run('examples/s_run_full_model.m')"` | Root |
 | Operator tests | `matlab -batch "s_test_suite_diffmat"` | `toolchain/` |
 | Numerical test commands | See [tests](../validation/tests.md#run-the-suites) | `toolchain/` |
-| Strict documentation build | `mkdocs build --strict` | Root |
-| Local documentation server | `mkdocs serve` | Root |
+| Source documentation checks | `bash toolchain/docs/check.sh` | Root |
+| Documentation checker failure tests | `bash toolchain/docs/test.sh` | Root |
 | Spelling, lint, formatting | See [CI](../reference/ci.md) | As listed there |
 
 | Option | Consumer | Meaning |
 |---|---|---|
 | `-batch` | MATLAB executable | Evaluates MATLAB code noninteractively and returns a failure status for an uncaught error |
-| `--strict` | MkDocs | Makes documentation warnings fail the build |
-| `--site-dir` | `mkdocs build` | Overrides the generated documentation output directory |
 
 Model choices such as `radial` and `scheme` are MATLAB name/value inputs, not shell flags. See [configuration](configuration.md) and [parameters](../model/parameters.md).
+
+The website is dormant. Future website commands are described under [reactivating MkDocs](../reference/ci.md#reactivating-mkdocs).
