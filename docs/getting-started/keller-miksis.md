@@ -4,12 +4,12 @@ This example follows water properties from SI input to the pressure-form radial 
 
 ```matlab
 imr_setup
-[args,ref] = f_dim2nondim('fluid',@fluids.water, ...
+[args,ref] = imr.nondimensionalize('fluid',@imr.fluids.water, ...
     'r0',50e-6,'req',50e-6,'p8',101325,'t8',298.15, ...
     'rho8',998,'c8',1480,'mu',1e-3,'surft',0.072,'g',0, ...
     'radial',2,'stress',1,'bubtherm',0,'medtherm',0, ...
     'vapor',0,'masstrans',0,'u0',0.1,'tfin',20e-6);
-[t,R,U,P] = f_imr_nodal(args{:});
+[t,R,U,P] = imr.solve_nodal(args{:});
 plot(t*ref.t0*1e6,R*ref.R0*1e6)
 xlabel('Time (microseconds)')
 ylabel('Radius (micrometers)')
@@ -35,12 +35,12 @@ Here $\mu$ is dynamic viscosity in Pa s and $\sigma$ is surface tension in N/m. 
 |---|---|---|
 | `ref.Uc` | 10.0761 m/s | Velocity and acoustic scaling |
 | `ref.t0` | 4.96223 microseconds | Time scaling |
-| `cstar` | 146.882 | Finite sound-speed terms in `f_radial_eq`, radial 2 |
+| `cstar` | 146.882 | Finite sound-speed terms in `imr.physics.radial_acceleration`, radial 2 |
 | `re` | 502.798 | Stress $S=-4\dot R/(\mathrm{Re}R)$ and `JdotA = 4/re` |
 | `we` | 35.1823 | Laplace pressure $1/(\mathrm{We}R)$ |
 | `req`, `ca` | 1, `Inf` | Equilibrium radius and zero elasticity |
 | `tfin` | 4.03045 | End of the dimensionless time interval |
 
-`f_dim2nondim` computes these groups once. `f_prepare_case` derives initial pressure and acceleration-dependent stress coefficients. The private nodal factory passes them by name into the RHS, which calls `f_stress` and `f_radial_eq`. The [pressure-form equation](../theory/radial-equations.md#pressure-forms) defines every term and its sign.
+`imr.nondimensionalize` computes these groups once. `imr.configuration.prepare_case` derives initial pressure and acceleration-dependent stress coefficients. The nodal factory passes them by name into the RHS, which calls `imr.physics.material_stress` and `imr.physics.radial_acceleration`. The [pressure-form equation](../theory/radial-equations.md#pressure-forms) defines every term and its sign.
 
 The equation requires positive radius and a nonsingular acceleration denominator. The Keller–Miksis approximation describes finite sound-speed effects through first-order wall-Mach terms; it is not a model for arbitrary supersonic wall motion. Increasing `cstar` should approach the [Rayleigh–Plesset limit](../theory/radial-equations.md#pressure-forms). See [numerical checks](../validation/numerics.md) and [system checks](../reference/internal-contracts.md#verification) for executable consistency tests rather than a claimed experimental accuracy.

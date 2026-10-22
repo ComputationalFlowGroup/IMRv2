@@ -5,10 +5,10 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % brief This function lists the test cases of a suite, for the three solver
-% modes: f_imr_nodal with finite differences (nodal_fd), f_imr_nodal with
-% Chebyshev collocation (nodal_cheb) and f_imr_spectral (spectral). The
+% modes: imr.solve_nodal with finite differences (nodal_fd), imr.solve_nodal with
+% Chebyshev collocation (nodal_cheb) and imr.solve_spectral (spectral). The
 % cases are built from the model features and kept only when the solver's
-% own input checks (f_call_params and f_checkers) accept them, so every
+% own input checks (imr.configuration.legacy_options and imr.configuration.validate_case) accept them, so every
 % suite covers exactly the combinations of the compatibility matrix and
 % follows it when it changes. suite is 'equilibrium', 'gaussian',
 % 'regression' or 'permutations'. Each case has the fields
@@ -28,7 +28,7 @@ function cases = f_test_cases(suite)
     % the default 150
     modes = struct( ...
         'name',   {'nodal_fd', 'nodal_cheb', 'spectral'}, ...
-        'solver', {@f_imr_nodal, @f_imr_nodal, @f_imr_spectral}, ...
+        'solver', {@imr.solve_nodal, @imr.solve_nodal, @imr.solve_spectral}, ...
         'call',   {'nodal', 'nodal', 'spectral'}, ...
         'extra',  {{'scheme', 0}, {'scheme', 1}, {}});
     
@@ -268,7 +268,7 @@ function cases = f_test_cases(suite)
     cases = struct('key', {}, 'mode', {}, 'solver', {}, 'args', {});
     for m = 1:numel(modes)
         for k = 1:size(specs, 1)
-            args = [f_dim2nondim(specs{k,2}{:}), grids{m}, modes(m).extra];
+            args = [imr.nondimensionalize(specs{k,2}{:}), grids{m}, modes(m).extra];
             if f_accepted(modes(m).call, args)
                 cases(end+1) = struct('key', specs{k,1}, ...
                     'mode', modes(m).name, 'solver', modes(m).solver, ...
@@ -284,13 +284,13 @@ function pairs = f_thermal(row)
     pairs = {'bubtherm', row{2}, 'medtherm', row{3}, 'masstrans', row{4}};
 end
 
-% true when f_call_params (and so f_checkers) accepts the inputs, with its
+% true when imr.configuration.legacy_options (and so imr.configuration.validate_case) accepts the inputs, with its
 % console output hidden; only input errors reject a case. call and args are
 % used inside the evalc string, which the code analyzer does not read
 function ok = f_accepted(call, args) %#ok<INUSD>
     ok = true;
     try
-        evalc('f_call_params(call, args{:})');
+        evalc('imr.configuration.legacy_options(call, args{:})');
     catch err
         if strncmp(err.message, 'INPUT ERROR', 11)
             ok = false;

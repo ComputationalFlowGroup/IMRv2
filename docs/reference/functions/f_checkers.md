@@ -1,6 +1,6 @@
-# `f_checkers`
+# `imr.configuration.validate_case`
 
-`f_checkers` validates a run before it starts. `f_prepare_case` calls it with a struct holding every model setting and dimensionless number. `f_parameter_schema` supplies public/internal names and discrete choice/count rules; physical ranges and coupled restrictions remain here. Incompatible or out-of-range inputs raise an error; valid but suspicious inputs raise a warning. It returns the struct with the settings tied to the stress model made consistent (see below).
+`imr.configuration.validate_case` validates a run before it starts. `imr.configuration.prepare_case` calls it with a struct holding every model setting and dimensionless number. `imr.configuration.schema` supplies public/internal names and discrete choice/count rules; physical ranges and coupled restrictions remain here. Incompatible or out-of-range inputs raise an error; valid but suspicious inputs raise a warning. It returns the struct with the settings tied to the stress model made consistent (see below).
 
 ## Checks
 
@@ -21,18 +21,18 @@
 | `collapse = 1` with stress 5 and no `stress0` (the stress at the maximum radius is not computed for UCM and Oldroyd-B) | error |
 | `stress = 3, 4, 5` with `De < 1e-4` | error: the model is then its `De -> 0` limit, so the message names the simpler model to run: stress 1 for stress 3, stress 2 for stress 4, stress 1 with `Ca = Inf` for stress 5 (with `nu_model > 0`, `DRe/LAM` in place of `DRe`) |
 | `nu_model > 0` with `stress = 0` | error: the non-Newtonian viscosity needs a viscous stress model (stress 1–5) |
-| `stress = 5` with `medtherm = 1` and `spectral = 0` | error in `f_imr_nodal`; `f_imr_spectral` sets `spectral = 1` and warns |
+| `stress = 5` with `medtherm = 1` and `spectral = 0` | error in `imr.solve_nodal`; `imr.solve_spectral` sets `spectral = 1` and warns |
 | `stress = 3, 4` with `(1-LAM)/Re8 < De/Ca` (negative dashpot viscosity of the Zener branch) | warning |
 | both `tvector` and `tfin` | error |
 | `tvector` not finite and strictly increasing, or starting below 0 | error |
 | `Nt < 3` with `bubtherm = 1`, or `Mt < 3` with `medtherm = 1` | error |
 | `divisions` not a nonnegative integer | error |
 | `vapor = 1` with `Pv >= 1` (boiling liquid) | warning `IMR:parameters` |
-| `masstrans = 1` in the spectral solver | error: use `f_imr_nodal` |
-| `jacobian = 3` in the spectral solver | error: batched finite differences are in `f_imr_nodal` only |
+| `masstrans = 1` in the spectral solver | error: use `imr.solve_nodal` |
+| `jacobian = 3` in the spectral solver | error: batched finite differences are in `imr.solve_nodal` only |
 | `method = 3` (CVODES) before MATLAB R2024a, which lacks the `ode` object's `cvodesstiff` solver | error: use 15 or 23 |
-| `spectral = 1` (spectral stress representation) in the nodal solver | error: `f_imr_spectral` only |
-| `scheme ~= 0` in the spectral solver | error: `scheme` is for `f_imr_nodal` |
+| `spectral = 1` (spectral stress representation) in the nodal solver | error: `imr.solve_spectral` only |
+| `scheme ~= 0` in the spectral solver | error: `scheme` is for `imr.solve_nodal` |
 
 ### Dimensionless numbers
 
@@ -50,10 +50,10 @@ Warning `IMR:dimensional` when `Req < 1e-3`, the final time `< 1e-3`, `Cstar < 1
 
 ### Settings consistent with the stress model
 
-After the checks, `f_checkers` adjusts and returns:
+After the checks, `imr.configuration.validate_case` adjusts and returns:
 
 - `stress <= 4`: `spectral = 0`; `Nv = 1` for stress 3, 4 (one stress state) and `Nv = 0` otherwise.
 - `stress = 5` (UCM, Oldroyd-B): `Nv` stress modes with the spectral representation, one otherwise, and `Ca = Inf` (no elastic contribution).
-- `stress = 3, 4`: `Nv = 1`, except in `f_imr_spectral` with `medtherm = 1`, where `Nv` is the number of modes of the local polymer stress field.
+- `stress = 3, 4`: `Nv = 1`, except in `imr.solve_spectral` with `medtherm = 1`, where `Nv` is the number of modes of the local polymer stress field.
 
-The size of a user `stress0` is checked in `f_prepare_case`, not here. See [`compatibility`](../compatibility.md) for the resulting grid of features that run together.
+The size of a user `stress0` is checked in `imr.configuration.prepare_case`, not here. See [`compatibility`](../compatibility.md) for the resulting grid of features that run together.

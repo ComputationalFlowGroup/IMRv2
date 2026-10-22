@@ -1,6 +1,6 @@
 # Pressure waveforms
 
-`f_pinfinity(t,{[om,ee,tw,dt,mn,wave_type],poly,dpoly})` returns a pressure **perturbation** $f$ and its time derivative. Absolute far-field pressure is $p_f=1+f$, in units of ambient pressure. Time is in units of $t_0=R_0/U_c$; derivatives are with respect to that dimensionless time. See the [radial equations](../theory/radial-equations.md#pressure-forms) for how $f$ and $\dot f$ drive acceleration.
+`imr.physics.far_field_pressure(t,{[om,ee,tw,dt,mn,wave_type],poly,dpoly})` returns a pressure **perturbation** $f$ and its time derivative. Absolute far-field pressure is $p_f=1+f$, in units of ambient pressure. Time is in units of $t_0=R_0/U_c$; derivatives are with respect to that dimensionless time. See the [radial equations](../theory/radial-equations.md#pressure-forms) for how $f$ and $\dot f$ drive acceleration.
 
 | Symbol | Input | Meaning |
 |---|---|---|
@@ -10,7 +10,7 @@
 | $d$ | `dt` | Gaussian/histotripsy center time |
 | $m$ | `mn` | Histotripsy exponent |
 
-The sign convention depends on the waveform: positive `ee` raises pressure for type 0 and type 2, and lowers pressure for type 1 and type 3. `f_dim2nondim` scales SI `pa`, `omega`, `tw` and `dt` before preparation. Scalar and array times preserve their input shape.
+The sign convention depends on the waveform: positive `ee` raises pressure for type 0 and type 2, and lowers pressure for type 1 and type 3. `imr.nondimensionalize` scales SI `pa`, `omega`, `tw` and `dt` before preparation. Scalar and array times preserve their input shape.
 
 ## Analytic choices
 
@@ -72,14 +72,14 @@ Please cite this paper if you use these waveforms.
 | `patterson_waveform_data.mat` | The three waveforms, stored as dimensionless time and pressure columns: mostly linear (ML), moderately nonlinear (MN) and highly nonlinear (HN) |
 | `r_patterson_data.m` | Fits a cubic spline to each waveform and its derivative, plots them, and saves them as `ml.mat`, `mn.mat` and `hn.mat`. It uses `fnder` from the Curve Fitting Toolbox. |
 
-Preparation loads the spline fits from `src/`, through `f_prepare_case`:
+Preparation loads the spline fits from `src/`, through `imr.configuration.prepare_case`:
 
 | `wave_type` | File | Waveform |
 |---|---|---|
-| -1 | `src/d_hn.mat` | Highly nonlinear |
-| -2 | `src/d_mn.mat` | Moderately nonlinear |
-| -3 | `src/d_ml.mat` | Mostly linear |
+| -1 | `src/data/d_hn.mat` | Highly nonlinear |
+| -2 | `src/data/d_mn.mat` | Moderately nonlinear |
+| -3 | `src/data/d_ml.mat` | Mostly linear |
 
-Each file holds the spline `poly` of the dimensionless pressure and its derivative `dpoly`, over dimensionless times up to 15. [`f_pinfinity`](../reference/functions/f_pinfinity.md) evaluates them.
+Each file holds the spline `poly` of the dimensionless pressure and its derivative `dpoly`, over dimensionless times up to 15. [`imr.physics.far_field_pressure`](../reference/functions/f_pinfinity.md) evaluates them.
 
 Measured choices use the stored spline directly: `ee`, `dt` and `om` do not rescale or shift it. Outside its stored breakpoints, `ppval` extrapolates; preparation warns if the requested time interval extends outside the data. This is not additional measured evidence beyond that interval.

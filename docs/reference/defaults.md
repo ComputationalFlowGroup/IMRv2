@@ -1,15 +1,15 @@
 # Defaults, material data and units
 
-`default_case.m` is still used. Both `f_prepare_case` and `f_imr_inputs` call it; removing it would break the default solver API. Its physical groups are now derived through `f_dim2nondim` instead of repeating a second list of physical numbers.
+`imr.configuration.defaults` is still used. Both `imr.configuration.prepare_case` and `imr.default_inputs` call it; removing it would break the default solver API. Its physical groups are now derived through `imr.nondimensionalize` instead of repeating a second list of physical numbers.
 
 ## One source per kind of value
 
 | Kind of value | Source | Consumer |
 |---|---|---|
-| Liquid/vapor coefficients and reference transport | `src/+fluids/water.m` or an explicitly selected material profile | `f_fluid_properties` and SI preparation |
-| Reference geometry, ambient conditions, gas conductivity and dimensional stress/forcing choices | `src/f_dim2nondim.m` | Conversion to dimensionless groups |
-| Numerical/model choices, grid sizes, tolerances and default output times | `src/default_case.m` | Parser and public input struct |
-| Physical dimensionless groups | Calculated by `f_dim2nondim`, used by `default_case` | Both solvers |
+| Liquid/vapor coefficients and reference transport | `src/+imr/+fluids/water.m` or an explicitly selected material profile | `imr.fluid_properties` and SI preparation |
+| Reference geometry, ambient conditions, gas conductivity and dimensional stress/forcing choices | `src/+imr/nondimensionalize.m` | Conversion to dimensionless groups |
+| Numerical/model choices, grid sizes, tolerances and default output times | `src/+imr/+configuration/defaults.m` | Parser and public input struct |
+| Physical dimensionless groups | Calculated by `imr.nondimensionalize`, used by `imr.configuration.defaults` | Both solvers |
 | Frozen old values used to detect regressions | `tests/fixtures/+imrtest/default_physics.m` | Tests only |
 
 The snapshot in `tests/fixtures` is intentionally independent of the current implementation. Replacing it with a call to the converter would make a default-change regression test unable to detect a mistake.

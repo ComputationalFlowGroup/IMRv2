@@ -9,9 +9,9 @@ addpath('../src');
 fprintf('MATLAB %s, %s\n',version,computer);
 for solver = {'nodal','spectral'}
     started = tic;
-    c = f_prepare_case(solver{1},'Req',1,'radial',2, ...
+    c = imr.configuration.prepare_case(solver{1},'Req',1,'radial',2, ...
         'bubtherm',1,'medtherm',1,'Nt',12,'Mt',12,'jacobian',2);
-    sys = f_imr_system(c);
+    sys = imr.solvers.build(c);
     construction = toc(started);
     state = sys.initial;
     state(2) = 0.01;

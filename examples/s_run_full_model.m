@@ -50,9 +50,9 @@ varin = {'progdisplay',0,...
          'tw',tw,...
          'pA',pA};
 % dimensional (SI) values converted to the solver's dimensionless inputs
-varin = f_dim2nondim(varin{:});
+varin = imr.nondimensionalize(varin{:});
 
-[t3,R3,U3,P3] = f_imr_nodal(varin{:},'Nt',50,'Mt',50);
+[t3,R3,U3,P3] = imr.solve_nodal(varin{:},'Nt',50,'Mt',50);
 
 figure(1)
 hold on;

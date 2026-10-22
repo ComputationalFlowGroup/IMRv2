@@ -56,7 +56,7 @@ varin = {'progdisplay',1,...
     'Nt',Nresolved,...
     'Mt',Nresolved};
 % dimensional (SI) values converted to the solver's dimensionless inputs
-varin = f_dim2nondim(varin{:});
+varin = imr.nondimensionalize(varin{:});
 
-[tvec,Rvec] = f_imr_nodal(varin{:});
+[tvec,Rvec] = imr.solve_nodal(varin{:});
 save("fd_Nt_1024_Mt_1024.mat","tvec","Rvec");

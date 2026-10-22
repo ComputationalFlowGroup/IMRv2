@@ -1,20 +1,20 @@
-# `f_dim2nondim`
+# `imr.nondimensionalize`
 
-`f_dim2nondim` is a side function that converts dimensional (SI) physical properties into the dimensionless inputs taken by `f_imr_nodal` and `f_imr_spectral`. The solvers never call it: they accept only dimensionless inputs.
+`imr.nondimensionalize` is a side function that converts dimensional (SI) physical properties into the dimensionless inputs taken by `imr.solve_nodal` and `imr.solve_spectral`. The solvers never call it: they accept only dimensionless inputs.
 
 See the [complete quick start](../getting-started/quick-start.md) for a runnable SI-to-solver example.
 
 ## Fluid profiles
 
-Select `'fluid',@fluids.water`, a new MATLAB profile function, or a resolved profile struct. Profile data are evaluated once during preparation; the solver receives dimensionless numbers rather than a callback.
+Select `'fluid',@imr.fluids.water`, a new MATLAB profile function, or a resolved profile struct. Profile data are evaluated once during preparation; the solver receives dimensionless numbers rather than a callback.
 
 ```matlab
 imr_setup;
-[args, ref] = f_dim2nondim('fluid',@fluids.water, ...
+[args, ref] = imr.nondimensionalize('fluid',@imr.fluids.water, ...
     'radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
     't8',298.15,'p8',101325,'mu',1e-3,'surft',0.072,'kappa',1.4, ...
     'r0',50e-6,'req',40e-6,'tvector',linspace(0,1e-6,41));
-[t,R] = f_imr_nodal(args{:});
+[t,R] = imr.solve_nodal(args{:});
 ```
 
 Explicit SI transport inputs override reference values in `profile.transport`. Protected EoS-derived inputs are listed in `profile.derived_inputs`; conflicting overrides and dimensionless physical overrides such as `cstar` or `re` are rejected. Model, grid, numerical and forcing choices remain ordinary inputs. Calls without `fluid` preserve legacy conversion and pass-through behavior.
@@ -25,7 +25,7 @@ Profile errors use `IMR:fluidMissingInput`, `IMR:fluidOverride`, `IMR:fluidRadia
 
 ## Inputs (SI)
 
-These defaults come from `src/f_dim2nondim.m`. Give inputs as name/value pairs; repeated dimensional names use the last value. Explicit `du` overrides the viscosity difference derived from `mu0` and `mu`.
+These defaults come from `src/+imr/nondimensionalize.m`. Give inputs as name/value pairs; repeated dimensional names use the last value. Explicit `du` overrides the viscosity difference derived from `mu0` and `mu`.
 
 | Name | Meaning | Default | Units |
 |---|---|---|---|
@@ -69,15 +69,15 @@ Without a profile, other names (model flags, grid sizes, `kappa`, `alphax`, `nst
 
 ## Outputs
 
-- `varin`: dimensionless name/value pairs (see [`default_case`](../model/parameters.md) for their definitions).
+- `varin`: dimensionless name/value pairs (see [`imr.configuration.defaults`](../model/parameters.md) for their definitions).
 - `ref`: reference scales `R0`, `Uc`, `t0`, `P8`, `T8`, `rho8`.
 
-Saturation is evaluated by [`f_fluid_properties`](f_fluid_properties.md#saturation). For the exponential model, `thetav = -c2/T8`; a saturation table sets `thetav = 0` and cannot enable the exponential wall closure.
+Saturation is evaluated by [`imr.fluid_properties`](f_fluid_properties.md#saturation). For the exponential model, `thetav = -c2/T8`; a saturation table sets `thetav = 0` and cannot enable the exponential wall closure.
 
 With an explicit profile, `ref.fluid` records the resolved `profile`, unmodified evaluated `properties`, effective SI settings in `SI`, selected ambient `Pv`, original `input_pairs` with the profile snapshot, and the pressure-form KM assumption. For constant-property profiles, an SI override can differ from the original `properties`; `SI` and the top-level reference scales record the values actually used. Preserve `ref` alongside solver outputs. Replay with:
 
 ```matlab
-[args, ref] = f_dim2nondim(ref.fluid.input_pairs{:});
+[args, ref] = imr.nondimensionalize(ref.fluid.input_pairs{:});
 ```
 
 The snapshot avoids depending on later edits to the profile file. The solver's eighth output alone does not reconstruct the dimensional material state.

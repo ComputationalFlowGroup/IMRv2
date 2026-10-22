@@ -1,5 +1,7 @@
 # Examples
 
+Run `imr_setup; run_water_case` from the checkout root for the small, namespaced water example. See [namespaces and migration](../reference/namespaces.md#run-a-case).
+
 These recipes use the public MATLAB functions from the checkout root. Their interfaces were checked against source; execution and numerical results remain pending local MATLAB validation.
 
 ## Configure a run as a struct
@@ -7,10 +9,10 @@ These recipes use the public MATLAB functions from the checkout root. Their inte
 ```matlab
 % Start from dimensionless defaults and change two model choices.
 imr_setup;
-p = f_imr_inputs();
+p = imr.default_inputs();
 p.radial = 2;
 p.stress = 1;
-[t, R, ~, ~, ~, ~, ~, used] = f_imr_nodal(p);
+[t, R, ~, ~, ~, ~, ~, used] = imr.solve_nodal(p);
 ```
 
 ## Switch spatial discretization
@@ -18,7 +20,7 @@ p.stress = 1;
 ```matlab
 % Run the nodal solver with Chebyshev differentiation.
 imr_setup;
-[t, R] = f_imr_nodal('radial',2,'stress',1,'bubtherm',1,'scheme',1);
+[t, R] = imr.solve_nodal('radial',2,'stress',1,'bubtherm',1,'scheme',1);
 ```
 
 ## Sweep inputs and save outputs

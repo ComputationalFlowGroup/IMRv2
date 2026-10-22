@@ -117,6 +117,7 @@ nav:
       - "Wall boundaries": method/wall-boundaries.md
       - "Initial stress": method/initial-stress.md
       - "Benchmarks": method/integrator-benchmarks.md
+      - "Namespace timing": method/namespace-benchmark.md
   - Theory:
       - "Radial equations": theory/radial-equations.md
       - "Stress heating": theory/stress-heating.md
@@ -136,6 +137,7 @@ nav:
       - "Compatibility": reference/compatibility.md
       - "Code map": reference/code-map.md
       - "Internal contracts": reference/internal-contracts.md
+      - "Namespaces and migration": reference/namespaces.md
       - "Defaults and units": reference/defaults.md
       - "Logo": reference/branding.md
       - "Distributions": reference/distributions.md

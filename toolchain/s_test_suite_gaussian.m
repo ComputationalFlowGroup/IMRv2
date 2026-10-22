@@ -6,8 +6,8 @@
 
 % brief This script drives a bubble at equilibrium with a Gaussian pressure
 % pulse and checks that it returns to its equilibrium radius, in the three
-% solver modes: f_imr_nodal with finite differences and with Chebyshev
-% collocation, and f_imr_spectral. It covers every radial, thermal
+% solver modes: imr.solve_nodal with finite differences and with Chebyshev
+% collocation, and imr.solve_spectral. It covers every radial, thermal
 % (without mass transfer), vapor and viscous stress model that the
 % compatibility matrix allows (f_test_cases). It needs no stored results.
 % Run it from toolchain/.

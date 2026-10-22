@@ -11,11 +11,11 @@
 clear;
 % Run imr_setup once from the checkout root before this example.
 
-[args, ref] = f_dim2nondim('fluid',@fluids.mercury,'t8',298.15,'p8',101325, ...
+[args, ref] = imr.nondimensionalize('fluid',@imr.fluids.mercury,'t8',298.15,'p8',101325, ...
     'radial',2,'stress',1,'g',0,'lambda1',0,'lambda2',0, ...
     'r0',50e-6,'req',40e-6,'mu',0,'surft',0,'kappa',1.4, ...
     'vapor',1,'tvector',linspace(0,12e-6,200));
-[t, R] = f_imr_nodal(args{:});
+[t, R] = imr.solve_nodal(args{:});
 fprintf('Hg ambient density: %.6f kg/m^3\n', ref.rho8);
 fprintf('Hg ambient sound speed: %.6f m/s\n', ref.fluid.properties.liquid.c);
 fprintf('Hg ambient saturation pressure: %.6f Pa\n', ref.fluid.Pv);

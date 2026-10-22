@@ -1,6 +1,6 @@
 # Integrator comparison
 
-`s_compare_integrators.m` compares the stiff time integrators of the nodal solver `f_imr_nodal` on six cases, from a polytropic Rayleigh–Plesset bubble to mass transfer with Chebyshev differentiation:
+`s_compare_integrators.m` compares the stiff time integrators of the nodal solver `imr.solve_nodal` on six cases, from a polytropic Rayleigh–Plesset bubble to mass transfer with Chebyshev differentiation:
 
 | Integrator | `method` | Notes |
 |------------|----------|-------|
@@ -37,6 +37,6 @@ Without the `ode` object, the CVODES runs are skipped with a message.
 
 CVODES is compiled, but it still calls the model's right-hand side and Jacobian, which are MATLAB code. It saves the integrator's own work: step control, error estimates and the Newton iterations.
 
-The batched Jacobian costs about 3 right-hand-side calls. The analytic one costs 25–40. See the batched right-hand side section of the `f_imr_nodal` documentation for the measurements.
+The batched Jacobian costs about 3 right-hand-side calls. The analytic one costs 25–40. See the batched right-hand side section of the `imr.solve_nodal` documentation for the measurements.
 
 The error column shows whether a faster combination is also as accurate. Differences at the level of the tolerance (`1e-8` relative per step, a few `1e-7` to `1e-6` accumulated over a run) are expected.

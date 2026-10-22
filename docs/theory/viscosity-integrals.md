@@ -1,6 +1,6 @@
 # Viscosity integrals
 
-`f_viscosity` reduces the radial non-Newtonian stress to two integrals. One has a closed form; the other uses a fixed graded Gauss–Legendre rule.
+`imr.physics.viscosity` reduces the radial non-Newtonian stress to two integrals. One has a closed form; the other uses a fixed graded Gauss–Legendre rule.
 
 With `gammadot = gammadot_R*(R/r)^3`, `gammadot_R = -2*Rdot/R`, and the substitution `u = R/r`, the integrals over `r` in `[R, Inf)` become integrals over `u` in `[0, 1]`, with `x_R = lambda*|gammadot_R|`:
 

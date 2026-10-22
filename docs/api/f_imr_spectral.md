@@ -1,9 +1,9 @@
-# `f_imr_spectral`
+# `imr.solve_spectral`
 
-`f_imr_spectral` integrates bubble dynamics and thermal fields with Chebyshev expansions. It also provides a spectral representation of UCM/Oldroyd-B polymer stresses.
+`imr.solve_spectral` integrates bubble dynamics and thermal fields with Chebyshev expansions. It also provides a spectral representation of UCM/Oldroyd-B polymer stresses.
 
 ```matlab
-[t, R, Rdot, P, T, Tm, kv, inputs] = f_imr_spectral(varargin);
+[t, R, Rdot, P, T, Tm, kv, inputs] = imr.solve_spectral(varargin);
 ```
 
 Inputs follow the same dimensionless [configuration forms](../running/configuration.md) as the nodal solver. The [parameter table](../model/parameters.md) owns accepted names and defaults. `kv`, output 7, is always empty; other arrays follow the [shared output contract](../running/output.md).
@@ -20,4 +20,4 @@ Inputs follow the same dimensionless [configuration forms](../running/configurat
 
 Vapor mass transfer and currently supported collapse are unavailable. With stress 5 and medium heat, the checker selects the local stress field and warns. See [compatibility](../reference/compatibility.md).
 
-Implementation: `f_prepare_case` → `f_imr_system` → `f_odesolve` → output reconstruction. Spectral operators and closures live in `src/private/imr_spectral_system.m`. See [discretization](../method/discretization.md), [stress heating theory](../theory/stress-heating.md) and [reported comparisons](../validation/convergence.md).
+Implementation: `imr.configuration.prepare_case` → `imr.solvers.build` → `imr.numerics.integrate` → output reconstruction. Spectral operators and closures live in `src/+imr/+solvers/build_spectral.m`. See [discretization](../method/discretization.md), [stress heating theory](../theory/stress-heating.md) and [reported comparisons](../validation/convergence.md).

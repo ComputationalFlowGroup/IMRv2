@@ -18,7 +18,7 @@ s = 1.65;
 % pressure subtraction violates this identity whenever forcing is nonzero.
 forcing = [-0.5 0 5 100];
 for radial = 3:6
-    accel = f_radial_eq(radial,1+forcing,0.2,forcing,0.2,0, ...
+    accel = imr.physics.radial_acceleration(radial,1+forcing,0.2,forcing,0.2,0, ...
         1,0,0,0,Cstar,sam,no,gama,n,nog,s,0,0,0);
     assert(max(abs(accel)) < 1e-12);
     % Independently integrate dP/rho between the two pressures. Check both
@@ -43,7 +43,7 @@ for radial = 3:6
     H = integral(@(p) 1./rho(p),Pfar,Pwall,'AbsTol',1e-10,'RelTol',1e-12);
     Hdot = Pdot/rho(Pwall) - Fdot/rho(Pfar);
     expected = ((1+U/C)*H + Hdot/C - 1.5*(1-U/(3*C))*U^2)/(1-U/C);
-    actual = f_radial_eq(radial,Pwall,Pdot,Pfar-1,Fdot,0, ...
+    actual = imr.physics.radial_acceleration(radial,Pwall,Pdot,Pfar-1,Fdot,0, ...
         1,U,0,0,Cstar,sam,no,gama,n,nog,s,0,0,0);
     assert(abs(actual-expected)/max(1,abs(expected)) < 1e-8);
 end
@@ -58,10 +58,10 @@ for exponent = [1 1-1e-8 1+1e-8 7.15]
     Pfar = 1 - 1e-6;
     expected = integral(@(p) 1./rho(p),Pfar,Pwall,'AbsTol',1e-15);
     for radial = 3:4
-        actual = f_radial_eq(radial,Pwall,0,Pfar-1,0,0, ...
+        actual = imr.physics.radial_acceleration(radial,Pwall,0,Pfar-1,0,0, ...
             1,0,0,0,Cstar,sam,power,gama,exponent,nog,s,0,0,0);
         assert(isfinite(actual) && abs(actual-expected) < 1e-14);
-        balanced = f_radial_eq(radial,[1 101],0,[0 100],0,0, ...
+        balanced = imr.physics.radial_acceleration(radial,[1 101],0,[0 100],0,0, ...
             1,0,0,0,Cstar,sam,power,gama,exponent,nog,s,0,0,0);
         assert(all(balanced == 0));
     end
@@ -77,7 +77,7 @@ edges = shift + [-pi/om pi/om];
 times = [edges(1)-1 edges(1) shift edges(2) edges(2)+1];
 for exponent = [0 0.25 0.5 1 4]
     args = {[om amplitude 0 shift exponent 2],[],[]};
-    [pulse, slope] = f_pinfinity(times,args);
+    [pulse, slope] = imr.physics.far_field_pressure(times,args);
     assert(isequal(size(pulse),size(times)) && all(isfinite(slope)));
     assert(pulse(3) == amplitude && slope(3) == 0);
     assert(all(pulse([1 5]) == 0) && all(slope([1 2 4 5]) == 0));
@@ -88,20 +88,20 @@ for exponent = [0 0.25 0.5 1 4]
     end
     interior = shift + [-1 -0.2 0.4 1];
     step = 1e-6;
-    [~, slope] = f_pinfinity(interior,args);
-    numerical = (f_pinfinity(interior+step,args)-f_pinfinity(interior-step,args))/(2*step);
+    [~, slope] = imr.physics.far_field_pressure(interior,args);
+    numerical = (imr.physics.far_field_pressure(interior+step,args)-imr.physics.far_field_pressure(interior-step,args))/(2*step);
     assert(max(abs(slope-numerical)) < 1e-8);
-    [column, ~] = f_pinfinity(times',args);
+    [column, ~] = imr.physics.far_field_pressure(times',args);
     assert(isequal(column,pulse'));
-    [matrix, ~] = f_pinfinity(reshape(interior,2,2),args);
+    [matrix, ~] = imr.physics.far_field_pressure(reshape(interior,2,2),args);
     assert(isequal(size(matrix),[2 2]));
     args{1}(2) = 0;
-    [pulse, slope] = f_pinfinity(times,args);
+    [pulse, slope] = imr.physics.far_field_pressure(times,args);
     assert(all(pulse == 0) && all(slope == 0));
 end
 % The old 1+cos expression rounds to zero at these interior points.
 args = {[om amplitude 0 shift 0.25 2],[],[]};
-[pulse, slope] = f_pinfinity(edges + [1e-10 -1e-10],args);
+[pulse, slope] = imr.physics.far_field_pressure(edges + [1e-10 -1e-10],args);
 assert(all(isfinite(slope)) && all(pulse ~= 0));
 fprintf('Histotripsy edges and independent derivative checks PASSED.\n');
 
@@ -112,7 +112,7 @@ if exist('ode','class') == 8 && ~isMATLABReleaseOlderThan('R2024a')
     methods(end+1) = 3;
 end
 for method = methods
-    [t, X] = f_odesolve(@(~,x) zeros(size(x)),1,method,40,[1000 1001]);
+    [t, X] = imr.numerics.integrate(@(~,x) zeros(size(x)),1,method,40,[1000 1001]);
     assert(t(1) == 1000 && t(end) == 1001);
     assert(max(diff(t)) <= 1/40 + 1e-10);
     assert(max(abs(X-1)) < 1e-12);
@@ -121,10 +121,10 @@ fprintf('Nonzero-start maximum time step PASSED.\n');
 
 % The implemented thermal transform needs positive gas slope. Preserve
 % existing kappa=1 limits and allow unused zero vapor conductivity.
-f_call_params('nodal','bubtherm',0,'kappa',1);
-f_call_params('nodal','bubtherm',1,'kappa',1);
-f_expect_failure(@() f_call_params('nodal','bubtherm',1,'alpha_g',0));
-f_call_params('nodal','bubtherm',1,'alpha_v',0,'beta_v',0);
+imr.configuration.legacy_options('nodal','bubtherm',0,'kappa',1);
+imr.configuration.legacy_options('nodal','bubtherm',1,'kappa',1);
+f_expect_failure(@() imr.configuration.legacy_options('nodal','bubtherm',1,'alpha_g',0));
+imr.configuration.legacy_options('nodal','bubtherm',1,'alpha_v',0,'beta_v',0);
 f_expect_failure(@() f_test_report('Empty',[],false(1,0),{}));
 c = struct('solver',@f_early_return,'args',{{}});
 [R, msg, t] = f_test_run(c);
@@ -135,19 +135,19 @@ fprintf('Thermal guards and test-runner time reporting PASSED.\n');
 % or ODE setup. Real, increasing row and column time vectors remain valid.
 for name = {'Nt','Mt','Nv','divisions'}
     for invalid = {Inf,NaN,1+1i,[1 2],-1,0.5}
-        f_expect_failure(@() f_call_params('nodal',name{1},invalid{1}));
+        f_expect_failure(@() imr.configuration.legacy_options('nodal',name{1},invalid{1}));
     end
 end
 for invalid = {[0 1 2 3; 1 2 3 4], [0 1+1i], [0 Inf], [0 0], [1 0]}
-    f_expect_failure(@() f_call_params('nodal','tvector',invalid{1}));
+    f_expect_failure(@() imr.configuration.legacy_options('nodal','tvector',invalid{1}));
 end
-f_call_params('nodal','tvector',[0 1 2]);
-f_call_params('nodal','tvector',[0 1 2]');
+imr.configuration.legacy_options('nodal','tvector',[0 1 2]);
+imr.configuration.legacy_options('nodal','tvector',[0 1 2]');
 fprintf('Finite integer and real time-vector validation PASSED.\n');
 
 % Disabled thermal fields allow small/zero grid counts. They must not
 % trigger invalid stencils or zero-order collocation during initialization.
-solvers = {@f_imr_nodal,@f_imr_spectral};
+solvers = {@imr.solve_nodal,@imr.solve_spectral};
 for k = 1:numel(solvers)
     solver = solvers{k};
     schemes = 0;

@@ -1,6 +1,6 @@
-# `f_approx_init_stress`
+# `imr.approximate_initial_stress`
 
-`f_approx_init_stress` computes an approximate initial Cauchy stress at the bubble maximum radius using analytical corrections for viscoelastic, compressibility, and compressive effects.  
+`imr.approximate_initial_stress` computes an approximate initial Cauchy stress at the bubble maximum radius using analytical corrections for viscoelastic, compressibility, and compressive effects.
 This provides a lower-fidelity but faster estimate compared to the numerical shooting method. The solvers do not call it; it is kept as a standalone estimate.
 
 ## Inputs
@@ -26,7 +26,7 @@ This provides a lower-fidelity but faster estimate compared to the numerical sho
 ## Notes
 
 - Throws an error if the aggregated stress correction (`fsum`) exceeds 1.
-- Analytical method is faster but less accurate than `f_init_stress` numerical shooting.
+- Analytical method is faster but less accurate than `imr.physics.initial_stress` numerical shooting.
 
 For the algorithm and assumptions, see the [topic guide](../../method/initial-stress.md). Numerical measurements are retained as [historical reports](../../validation/convergence.md).
 

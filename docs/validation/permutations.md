@@ -1,6 +1,6 @@
 # Option permutations
 
-`s_test_suite_permutations.m` checks that its enumerated option combinations run when `f_checkers` accepts them. An input that passes the checks and then fails inside a solver is a bug: either the solver must handle it, or `f_checkers` must reject it with an `INPUT ERROR`. The suite needs no stored results, and it always runs in CI.
+`s_test_suite_permutations.m` checks that its enumerated option combinations run when `imr.configuration.validate_case` accepts them. An input that passes the checks and then fails inside a solver is a bug: either the solver must handle it, or `imr.configuration.validate_case` must reject it with an `INPUT ERROR`. The suite needs no stored results, and it always runs in CI.
 
 MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
 
@@ -16,7 +16,7 @@ From [`f_test_cases('permutations')`](tests.md), in the three solver modes. The 
 - **Collapse:** radial 1 and 2, every stress model (stress 5 with `stress0`), alone and with each limit above.
 - **Other inputs:** the stress 5 field (`spectral = 1`), `eps3`, a moving start, a given initial pressure and stress, the end time as `tfin`, and the integrator given by name.
 
-Combinations that `f_checkers` rejects are left out automatically. This includes CVODES before MATLAB R2024a, which lacks the `ode` object's `cvodesstiff` solver, and `jacobian = 3` in `f_imr_spectral`.
+Combinations that `imr.configuration.validate_case` rejects are left out automatically. This includes CVODES before MATLAB R2024a, which lacks the `ode` object's `cvodesstiff` solver, and `jacobian = 3` in `imr.solve_spectral`.
 
 Most runs use 0 to 2 µs for a 50 µm bubble with five output times and coarse grids. Collapse cases override that geometry and time span. Earlier notes compared its cost to one other suite; that timing was not rerun here.
 
