@@ -1,12 +1,12 @@
 # IMR logo
 
-The IMR logo depicts a cavitation bubble coupled to radial motion, transport and a deformable medium. Its editable TikZ source and compiled SVG/PDF exports are bundled with the code.
+The IMR monogram integrates an open bubble ring with the letter R. The full name, **Inertial Microcavitation Rheometry**, appears underneath. Its editable TikZ source and SVG/PDF vector exports are bundled with the code.
 
-![IMR: a bubble with radial motion, transport arrows and surrounding material fields.](../assets/logos/imr-bubble-field.svg)
+![IMR monogram with an open bubble ring. Inertial Microcavitation Rheometry.](../assets/logos/imr-monogram.svg)
 
-The bubble anchors the mark. Blue arcs suggest acoustic propagation, orange arrows suggest heat/mass exchange, and the surrounding teal field suggests a deformable medium. The artwork is schematic, rather than a computed simulation result.
+The mark preserves the original palette: navy lettering (`#122D4A`), blue (`#2776C9`), orange (`#DF8D32`) and teal (`#168B88`) ring segments. The ring suggests a bubble while keeping the identity compact. It contains no arrows or center dot.
 
-[TeX source](../assets/logos/imr-bubble-field.tex) · [Vector PDF](../assets/logos/imr-bubble-field.pdf) · [SVG](../assets/logos/imr-bubble-field.svg)
+[TeX source](../assets/logos/imr-monogram.tex) · [Vector PDF](../assets/logos/imr-monogram.pdf) · [SVG](../assets/logos/imr-monogram.svg)
 
 ## Rebuild
 
@@ -14,10 +14,10 @@ From the checkout root, with TeX Live's `standalone`, TikZ and Latin Modern pack
 
 ```bash
 mkdir -p /tmp/imr-logos
-pdflatex -halt-on-error -output-directory=/tmp/imr-logos docs/assets/logos/imr-bubble-field.tex
-pdftocairo -svg /tmp/imr-logos/imr-bubble-field.pdf docs/assets/logos/imr-bubble-field.svg
+pdflatex -halt-on-error -output-directory=/tmp/imr-logos docs/assets/logos/imr-monogram.tex
+pdftocairo -svg /tmp/imr-logos/imr-monogram.pdf docs/assets/logos/imr-monogram.svg
 ```
 
-The SVG uses a 1200-pixel intrinsic display width so the README logo fills the available content width. After rebuilding it, keep the root SVG attributes `width="1200"` and `height="508.7"` with the original `viewBox`. This enlarges the display without rasterizing or changing the artwork.
+The SVG uses a 1200-pixel intrinsic display width so the README logo fills the available content width. After rebuilding it, set the root SVG `width` to `1200`, and set its `height` to `1200 * viewBox height / viewBox width`. Preserve the original `viewBox`; this changes display size while retaining vector quality.
 
 PDF/SVG exports retain vector geometry. MATLAB does not need TeX or these artwork tools.

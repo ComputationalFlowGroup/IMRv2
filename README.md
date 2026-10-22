@@ -9,7 +9,7 @@
 
 IMR simulates a spherical cavitation bubble in a viscoelastic material. Researchers use its bubble-radius histories to compare with high-speed measurements and study soft materials at high strain rates.
 
-![IMR: a cavitation bubble coupled to motion, transport and a deformable medium.](docs/assets/logos/imr-bubble-field.svg)
+![IMR monogram with an open bubble ring. Inertial Microcavitation Rheometry.](docs/assets/logos/imr-monogram.svg)
 
 [Logo source and vector exports](docs/reference/branding.md).
 
