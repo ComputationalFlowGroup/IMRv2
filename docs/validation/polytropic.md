@@ -1,6 +1,6 @@
 # Constant-vapor polytropic validation
 
-`toolchain/s_test_suite_polytropic.m` checks the common gas/vapor pressure law in both solvers. From `toolchain/`, run `matlab -batch "s_test_suite_polytropic"`.
+`tests/suites/s_test_suite_polytropic.m` checks the common gas/vapor pressure law in both solvers. From `toolchain/`, run `matlab -batch "imr_test_setup; s_test_suite_polytropic"`.
 
 For fixed ambient vapor pressure, total bubble pressure is
 

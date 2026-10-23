@@ -4,9 +4,8 @@
 % Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
-% Run from toolchain/. Requires base MATLAB, no stored reference files.
+% Run from tests/ after imr_test_setup. Requires base MATLAB, no stored reference files.
 clear;
-addpath('../src');
 
 R = [0.7 1 1.3];
 U = [-0.2 0 0.3];

@@ -1,10 +1,10 @@
 # Settings and initialization audit
 
-`toolchain/s_test_suite_settings.m` declares cases that must be accepted or rejected. Unlike the generated permutation suite, it does not filter cases through the checker first. A regression that rejects a supported boundary therefore fails this suite.
+`tests/suites/s_test_suite_settings.m` declares cases that must be accepted or rejected. Unlike the generated permutation suite, it does not filter cases through the checker first. A regression that rejects a supported boundary therefore fails this suite.
 
 ```bash
-cd toolchain
-matlab -batch "s_test_suite_settings"
+cd tests
+matlab -batch "imr_test_setup; s_test_suite_settings"
 ```
 
 ## Corrected failure paths

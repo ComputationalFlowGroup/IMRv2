@@ -4,9 +4,8 @@
 % Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
-% Run from toolchain/. Uses base MATLAB and bundled .m references only.
+% Run from tests/ after imr_test_setup. Uses base MATLAB and bundled .m references only.
 clear;
-addpath('../src','../tests/fixtures');
 [grid, observations] = imrtest.mercury_reference();
 p = imr.fluids.mercury();
 properties = @(P,T) imr.fluid_properties(p,P,T);

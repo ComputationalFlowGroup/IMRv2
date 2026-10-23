@@ -62,5 +62,6 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: |
-            cd toolchain;
+            cd tests;
+            imr_test_setup;
             ${{ matrix.suite }};

@@ -13,15 +13,15 @@
 % materials, and the non-Newtonian models, driving waveforms, the stress
 % field representation and collapse. A case fails if its run fails, if it
 % has no stored result, or if the L2 norm of its relative error over the
-% output times exceeds the threshold. Run it from toolchain/.
+% output times exceeds the threshold. Run it from tests/ after imr_test_setup.
 clc;
 clear;
 
-addpath('../src/');
 
 % largest allowed L2 norm of R./R_ref - 1 over the output times
 threshold = 1e-4;
-refdir = fullfile('..', 'tests', 'reference');
+testRoot = fileparts(fileparts(mfilename('fullpath')));
+refdir = fullfile(testRoot,'reference');
 
 cases = f_test_cases('regression');
 modes = unique({cases.mode});

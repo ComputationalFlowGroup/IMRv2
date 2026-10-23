@@ -9,7 +9,7 @@ All commands below start from the checkout root unless a directory is stated. MA
 | Minimal solver call | `matlab -batch "imr_setup; [t,R]=imr.solve_nodal('radial',2,'stress',1);"` | Root |
 | Function help | `matlab -batch "imr_setup; help imr.solve_nodal"` | Root |
 | Bundled Gaussian case | `matlab -batch "run('examples/s_run_full_model.m')"` | Root |
-| Operator tests | `matlab -batch "s_test_suite_diffmat"` | `toolchain/` |
+| Operator tests | `matlab -batch "imr_test_setup; s_test_suite_diffmat"` | `tests/` |
 | Numerical test commands | See [tests](../validation/tests.md#run-the-suites) | `toolchain/` |
 | Source documentation checks | `bash toolchain/docs/check.sh` | Root |
 | Documentation checker failure tests | `bash toolchain/docs/test.sh` | Root |

@@ -3,7 +3,10 @@
 
 % Namespace resolution, measured data and documented compatibility adapters.
 clear;
-addpath('../src');
+testRoot = fileparts(fileparts(mfilename('fullpath')));
+assert(strcmp(which('f_test_cases'),fullfile(testRoot,'helpers','f_test_cases.m')));
+assert(strcmp(which('imrtest.default_physics'),fullfile(testRoot,'+imrtest','default_physics.m')));
+assert(strcmp(which('s_test_suite_structure'),fullfile(testRoot,'suites','s_test_suite_structure.m')));
 assert(isequaln(imr.default_inputs(),f_imr_inputs()));
 assert(isequaln(imr.configuration.defaults(),default_case()));
 assert(isequaln(imr.fluids.water(),fluids.water()));

@@ -1,10 +1,10 @@
 # Numerical bug regressions
 
-`toolchain/s_test_suite_numerics.m` covers the corrections below using base MATLAB, with no stored baseline files. Run from the checkout root:
+`tests/suites/s_test_suite_numerics.m` covers the corrections below using base MATLAB, with no stored baseline files. Run from the checkout root:
 
 ```bash
-cd toolchain
-matlab -batch "s_test_suite_numerics"
+cd tests
+matlab -batch "imr_test_setup; s_test_suite_numerics"
 ```
 
 ## Driven enthalpy equations

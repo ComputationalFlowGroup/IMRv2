@@ -3,7 +3,6 @@
 
 % Generic fluid/default checks, independent of any optional material profile.
 clear;
-addpath('../src','../tests/fixtures');
 [water, water_ref] = imr.nondimensionalize();
 assert(water_ref.rho8 == 1064);
 assert(abs(f_pair(water,'cstar')*water_ref.Uc - 1484) < 1e-12);

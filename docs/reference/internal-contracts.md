@@ -63,7 +63,7 @@ Factories build only enabled operators. They retain local wall closures and sche
 
 ## Verification
 
-`toolchain/s_test_suite_structure.m` checks public-name/default consistency, struct versus pair overrides, legacy serialization, state activation and independent centered differences of the complete RHS against each available Jacobian. It covers nodal schemes, thermal/vapor combinations, constitutive laws and spectral stress fields. It also checks reconstructed wall temperature/saturation, the common polytropic ODE limit for all six radial models, and a small thermal nodal/spectral comparison.
+`tests/suites/s_test_suite_structure.m` checks public-name/default consistency, struct versus pair overrides, legacy serialization, state activation and independent centered differences of the complete RHS against each available Jacobian. It covers nodal schemes, thermal/vapor combinations, constitutive laws and spectral stress fields. It also checks reconstructed wall temperature/saturation, the common polytropic ODE limit for all six radial models, and a small thermal nodal/spectral comparison.
 
 The suite also rejects a zero-mode active spectral stress field before construction; otherwise its collocation matrix would divide by zero. Disabled fields may still have zero grid counts.
 
