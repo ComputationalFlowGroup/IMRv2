@@ -19,7 +19,6 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `examples/` | Simulation scripts, large sweeps and legacy postprocessing; [inventory](../getting-started/examples.md#bundled-script-inventory) |
 | `toolchain/` | Formatter, linter, profiling aids and guarded reference generator |
 | `toolchain/docs/` | Bash checks for Markdown destinations and LaTeX equations; no MATLAB dependency |
-| `archive/legacy-tests/` | [2,328 preserved older histories](../../archive/legacy-tests/README.md), unused by current suites |
 | `tests/reference/` | Expected regression baselines; absent from the audited checkout |
 | `benchmarks/integrators/` | Reproducible integrator comparison driver; [method](../method/integrator-benchmarks.md) |
 | `benchmarks/scaling/` | Legacy resolution scripts, cluster templates and stored results; [provenance](../validation/convergence.md#legacy-scaling-data) |
