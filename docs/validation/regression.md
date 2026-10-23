@@ -45,7 +45,7 @@ The suite also notes stored results that no case uses any more.
 
 ## Generating the stored results
 
-`s_generate_references.m` runs every regression case and writes `tests/reference/nodal_fd.mat`, `nodal_cheb.mat` and `spectral.mat`. Each file holds:
+The shared `tests/helpers/generate_references.m` runs every regression case and writes `tests/reference/nodal_fd.mat`, `nodal_cheb.mat` and `spectral.mat`. The controller and the existing `toolchain/s_generate_references.m` script call this same implementation. Each file holds:
 
 - `keys`: the case keys.
 - `R`: the results.
@@ -53,7 +53,15 @@ The suite also notes stored results that no case uses any more.
 
 Regenerate them only when a change of results is intended and agreed (see Contributing).
 
-The maintainers will recreate the missing baselines locally in MATLAB. From the checkout root:
+The maintainers will recreate the missing baselines locally in MATLAB. From the checkout root, run independent prechecks, generate the baselines only if they pass, and then run regression:
+
+```bash
+matlab -batch "cd tests; run_validation('generate-and-test')"
+```
+
+For generation only, use `run_validation('generate')` from `tests/`. To replace existing files deliberately, pass `true` as the third argument, for example `run_validation('generate-and-test','all',true)`. See [all runner modes and suite selection](../../tests/README.md#one-command-for-all-tests). Ordinary test mode never invokes the generator.
+
+The existing script remains available from the checkout root:
 
 ```bash
 cd toolchain
@@ -69,7 +77,7 @@ matlab -batch "imr_test_setup; s_test_suite_regression"
 
 - **Overwrite guard.** It refuses to overwrite existing files unless `overwrite = true` is set in the script.
 - **Parallel runs.** It runs the cases with `parfor`, which uses the default parallel pool when the Parallel Computing Toolbox is available and runs in series otherwise.
-- **All or nothing.** If any case fails, it lists the failures and writes nothing. Otherwise it writes all files to a temporary folder and then moves them into place.
+- **Completed simulations.** If any case fails, stops early or returns mismatched output times, it lists the failures and publishes nothing. Otherwise it stages all files in a temporary folder and then moves them into place. Temporary staging files are cleaned up on failure, and overwrite protection is checked again before publishing.
 - **Cross-mode report.** For the cases the modes share, it reports the largest relative difference between them, and lists any case above `1e-2`. This is a sanity check on the new results, not a test: the grids differ, and violent runs may differ more.
 
 A new case added to `f_test_cases` fails the suite until its result is stored.

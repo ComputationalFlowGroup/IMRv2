@@ -11,6 +11,7 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `tests/` | [Test setup and organization](../../tests/README.md) |
 | `tests/suites/` | Executable MATLAB test suites |
 | `tests/helpers/` | Shared case generation, output checking and reports |
+| `tests/s_run_validation.m`, `run_validation.m` | Editable script and callable controller for suites and explicit golden-data generation |
 | `tests/+imrtest/` | Independent frozen data functions; not part of the solver runtime |
 | `src/` | MATLAB solver, parser, conversion and physics modules; [code map](code-map.md) |
 | `src/+imr/` | Public namespace and implementation packages; [organization](namespaces.md) |

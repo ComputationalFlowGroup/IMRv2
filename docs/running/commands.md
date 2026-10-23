@@ -10,7 +10,11 @@ All commands below start from the checkout root unless a directory is stated. MA
 | Function help | `matlab -batch "imr_setup; help imr.solve_nodal"` | Root |
 | Bundled Gaussian case | `matlab -batch "run('examples/s_run_full_model.m')"` | Root |
 | Operator tests | `matlab -batch "imr_test_setup; s_test_suite_diffmat"` | `tests/` |
-| Numerical test commands | See [tests](../validation/tests.md#run-the-suites) | `toolchain/` |
+| All numerical suites | `matlab -batch "run('tests/s_run_validation.m')"` | Root |
+| Selected suites | `matlab -batch "run_validation('tests',{'diffmat','solver'})"` | `tests/` |
+| Generate golden data | `matlab -batch "run_validation('generate')"` | `tests/` |
+| Precheck, generate and compare | `matlab -batch "run_validation('generate-and-test')"` | `tests/` |
+| Numerical test commands | See [tests](../validation/tests.md#run-the-suites) | `tests/` |
 | Source documentation checks | `bash toolchain/docs/check.sh` | Root |
 | Documentation checker failure tests | `bash toolchain/docs/test.sh` | Root |
 | Spelling, lint, formatting | See [CI](../reference/ci.md) | As listed there |
