@@ -53,7 +53,6 @@ If you are planning a large change, such as a new physical model, a new solver o
 | `src/` | Everything a user calls: the solvers (`imr.solve_nodal`, `imr.solve_spectral`), their inputs (`imr.default_inputs`), sweeps (`imr.sweep`), unit conversion (`imr.nondimensionalize`), and the physics functions the solvers call |
 | `toolchain/` | Formatter, linter, profiling aids and the guarded golden-history generator |
 | `tests/` | Suites, helpers, independent frozen references and setup; see the [test guide](../../tests/README.md). Approved regression histories belong in `tests/reference/` |
-| `archive/legacy-tests/` | Preserved older histories, with original bytes and filenames; unused by current suites |
 | `docs/api/`, `docs/reference/functions/`, `docs/validation/` | One Markdown page per function or script |
 | `docs/reference/compatibility.md` | Which features run together in each solver |
 | `examples/`, `benchmarks/` | Example scripts (including the `f_multirun` study and its cluster job), scaling benchmarks, and the integrator comparison (`benchmarks/integrators`) |

@@ -53,6 +53,20 @@ The suite also notes stored results that no case uses any more.
 
 Regenerate them only when a change of results is intended and agreed (see Contributing).
 
+The maintainers will recreate the missing baselines locally in MATLAB. From the checkout root:
+
+```bash
+cd toolchain
+matlab -batch "s_generate_references"
+```
+
+The default `overwrite = false` allows creating absent files. Set `overwrite = true` only when intentionally replacing existing baselines. Review the cross-mode report and record the code revision alongside the generated files; `info` records the generation time and MATLAB version. Then, from the checkout root, run the comparison:
+
+```bash
+cd tests
+matlab -batch "imr_test_setup; s_test_suite_regression"
+```
+
 - **Overwrite guard.** It refuses to overwrite existing files unless `overwrite = true` is set in the script.
 - **Parallel runs.** It runs the cases with `parfor`, which uses the default parallel pool when the Parallel Computing Toolbox is available and runs in series otherwise.
 - **All or nothing.** If any case fails, it lists the failures and writes nothing. Otherwise it writes all files to a temporary folder and then moves them into place.
@@ -62,6 +76,6 @@ A new case added to `f_test_cases` fails the suite until its result is stored.
 
 ## Baseline availability
 
-The audited checkout does not contain `tests/reference/nodal_fd.mat`, `nodal_cheb.mat` or `spectral.mat`. The current regression suite therefore reports missing stored results; it has not passed here. Older `archive/legacy-tests/*.mat` files are not substitutes for the keyed baseline format.
+The current checkout does not contain `tests/reference/nodal_fd.mat`, `nodal_cheb.mat` or `spectral.mat`. The regression suite therefore reports missing stored results; it has not passed here. The unused older `.mat` histories have been removed, and no legacy archive is retained.
 
-Obtain approved baselines from the maintainers before running this comparison. Generating new results from the current code only creates a new reference; it cannot establish agreement with an independently approved prior version. Do not regenerate or overwrite references as part of documentation work.
+Generating new results from the current code creates a new reference; it cannot establish agreement with an independently approved prior version. Review the generated results using the analytic suites and cross-mode comparisons before accepting them as baselines. A regression run against freshly generated files checks storage and repeatability, not independent numerical accuracy.
