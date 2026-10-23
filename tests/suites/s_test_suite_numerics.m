@@ -2,9 +2,8 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % Focused regressions for pressure forcing, time stepping and input limits.
-% Run from toolchain/ in base MATLAB. No stored reference files are needed.
+% Run from tests/ after imr_test_setup in base MATLAB. No stored reference files are needed.
 clear;
-addpath('../src');
 n = 7.15;
 gama = 3009.26;
 sam = 1 + gama;

@@ -5,11 +5,11 @@ The mercury MATLAB suite checks the optional material profile, properties and KM
 From the checkout root in a shell with licensed MATLAB:
 
 ```bash
-cd toolchain
-matlab -batch "s_test_suite_mercury"
+cd tests
+matlab -batch "imr_test_setup; s_test_suite_mercury"
 ```
 
-Or change to `toolchain/` in MATLAB and run the script there. It runs as a separate job in the existing MATLAB CI workflow.
+Or change to `tests/` in MATLAB, call `imr_test_setup`, then run the suite by name. It runs as a separate job in the existing MATLAB CI workflow.
 
 ## Claims checked
 
@@ -20,7 +20,7 @@ Or change to `toolchain/` in MATLAB and run the script there. It runs as a separ
 - Input preparation uses Hg density, acoustics, gas constant and saturation pressure, derives consistent scales, records replay metadata and rejects missing transport values or conflicting overrides.
 - The nodal FD, nodal Chebyshev and spectral KM calls match equivalent explicitly supplied SI properties and preserve an equilibrium bubble.
 
-`tests/fixtures/+imrtest/mercury_reference.m` stores source calculations and observations as MATLAB literals with the source commit and original data citation. They were prepared from the original evaluator independently of the MATLAB port, not regenerated from the implementation under test. The reference-state property values were checked while preparing this change; they are not MATLAB execution results.
+`tests/+imrtest/mercury_reference.m` stores source calculations and observations as MATLAB literals with the source commit and original data citation. They were prepared from the original evaluator independently of the MATLAB port, not regenerated from the implementation under test. The reference-state property values were checked while preparing this change; they are not MATLAB execution results.
 
 ## Execution status and scientific limits
 

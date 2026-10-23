@@ -6,8 +6,8 @@ The add-on boundary consists of:
 
 - `src/+imr/+fluids/mercury.m`
 - `examples/s_run_mercury.m`
-- `toolchain/s_test_suite_mercury.m`
-- `tests/fixtures/+imrtest/mercury_reference.m`
+- `tests/suites/s_test_suite_mercury.m`
+- `tests/+imrtest/mercury_reference.m`
 - `docs/model/mercury.md` and `docs/validation/mercury.md`
 - Small optional-material links and the material-specific CI entry.
 

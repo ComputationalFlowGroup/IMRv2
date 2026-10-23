@@ -14,7 +14,7 @@ jobs:
 
   lint:
 
-    name: Linter for toolchain and src
+    name: Linter for source, tests and toolchain
     runs-on: ubuntu-latest
 
     env:

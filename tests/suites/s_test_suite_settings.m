@@ -2,9 +2,8 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % Explicit acceptance/rejection cases: never filter through the checker.
-% Run from toolchain/ in base MATLAB, with no stored trajectory files.
+% Run from tests/ after imr_test_setup in base MATLAB, with no stored trajectory files.
 clear;
-addpath('../src');
 
 % Malformed values must produce input errors before arithmetic/allocation.
 bad = {

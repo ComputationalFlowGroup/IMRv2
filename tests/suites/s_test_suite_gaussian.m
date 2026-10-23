@@ -10,11 +10,10 @@
 % collocation, and imr.solve_spectral. It covers every radial, thermal
 % (without mass transfer), vapor and viscous stress model that the
 % compatibility matrix allows (f_test_cases). It needs no stored results.
-% Run it from toolchain/.
+% Run it from tests/ after imr_test_setup.
 clc;
 clear;
 
-addpath('../src/');
 
 % largest allowed difference between the final and initial radius
 threshold = 1e-2;

@@ -16,6 +16,6 @@ MATLAB checks were not run for this documentation change. The descriptions below
 - Console output with the maximum error of each check.
 - An error if any check fails, which exits a batch run (`matlab -batch`, as in CI) with a nonzero code.
 
-Adds `../src/` to the path, so it runs from `toolchain/`.
+Run from `tests/` after calling `imr_test_setup`, which exposes the source and suites without recursive path additions.
 
 These assertions use analytic functions and stencil definitions, not stored simulations. Historical measurements with other node counts and tighter observed errors are separated in [reported comparisons](convergence.md#reported-measurements-imrnumericsdifferentiation).

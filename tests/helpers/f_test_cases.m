@@ -17,7 +17,7 @@
 %   mode    'nodal_fd', 'nodal_cheb' or 'spectral'
 %   solver  the solver function handle
 %   args    the dimensionless name/value pairs of the run, grids included
-% Run it from toolchain/, with src/ on the path.
+% Run imr_test_setup from tests/ before calling this helper.
 function cases = f_test_cases(suite)
     
     % solver modes and their grids: the finite difference grid is fine

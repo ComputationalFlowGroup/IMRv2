@@ -3,7 +3,7 @@
 
 MATLAB checks were not run in this cloud task. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
 
-The test suites live in `toolchain/` and run from that folder. The tests workflow `tests.yml` also runs the shared [fluid/default checks](../reference/defaults.md) and [constant-vapor suite](polytropic.md), independently of stored trajectory references. It runs each suite in its own MATLAB process on every pull request, and fails if any suite fails.
+The test suites live in `tests/suites/`. From `tests/`, call `imr_test_setup` once to expose the suites, helpers, reference functions and source. The [test directory guide](../../tests/README.md) explains the layout and the distinction between frozen references and golden trajectories. The tests workflow `tests.yml` runs each suite in its own MATLAB process on every pull request and fails if any suite fails.
 
 | Suite | Checks | Stored results |
 |---|---|---|
@@ -68,14 +68,14 @@ Finite differences need finer grids because they are second-order accurate. The 
 From the checkout root, use a shell with licensed MATLAB on its path. Each suite starts a fresh MATLAB process. The loop preserves failure status while allowing all suites to finish.
 
 ```bash
-cd toolchain
+cd tests
 status=0
 for suite in s_test_suite_equilibrium s_test_suite_gaussian \
     s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression \
     s_test_suite_polytropic s_test_suite_fluids s_test_suite_numerics \
     s_test_suite_structure s_test_suite_namespace s_test_suite_settings \
     s_test_suite_mercury; do
-    matlab -batch "$suite" || status=1
+    matlab -batch "imr_test_setup; $suite" || status=1
 done
 exit "$status"
 ```

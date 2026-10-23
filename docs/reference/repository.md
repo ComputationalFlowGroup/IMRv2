@@ -8,15 +8,18 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `CONTRIBUTING.md` | Pointer to the contributor guide |
 | `LICENSE` | GNU GPL version 3 or later |
 | `imr_setup.m` | One-session path setup for source and examples |
-| `tests/fixtures/+imrtest/` | Frozen test data; not part of the solver runtime |
+| `tests/` | [Test setup and organization](../../tests/README.md) |
+| `tests/suites/` | Executable MATLAB test suites |
+| `tests/helpers/` | Shared case generation, output checking and reports |
+| `tests/+imrtest/` | Independent frozen data functions; not part of the solver runtime |
 | `src/` | MATLAB solver, parser, conversion and physics modules; [code map](code-map.md) |
 | `src/+imr/` | Public namespace and implementation packages; [organization](namespaces.md) |
 | `src/+imr/+solvers/` | Shared runner and scheme-specific builders |
 | `src/data/d_hn.mat`, `d_mn.mat`, `d_ml.mat` | Runtime measured-waveform spline data |
 | `examples/` | Simulation scripts, large sweeps and legacy postprocessing; [inventory](../getting-started/examples.md#bundled-script-inventory) |
-| `toolchain/` | Numerical suites, helpers, formatter, linter and reference generator |
+| `toolchain/` | Formatter, linter, profiling aids and guarded reference generator |
 | `toolchain/docs/` | Bash checks for Markdown destinations and LaTeX equations; no MATLAB dependency |
-| `tests/*.mat` | Older stored data, unused by the current suites |
+| `archive/legacy-tests/` | [2,328 preserved older histories](../../archive/legacy-tests/README.md), unused by current suites |
 | `tests/reference/` | Expected regression baselines; absent from the audited checkout |
 | `benchmarks/integrators/` | Reproducible integrator comparison driver; [method](../method/integrator-benchmarks.md) |
 | `benchmarks/scaling/` | Legacy resolution scripts, cluster templates and stored results; [provenance](../validation/convergence.md#legacy-scaling-data) |

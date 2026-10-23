@@ -51,8 +51,9 @@ If you are planning a large change, such as a new physical model, a new solver o
 | Folder | Contents |
 |---|---|
 | `src/` | Everything a user calls: the solvers (`imr.solve_nodal`, `imr.solve_spectral`), their inputs (`imr.default_inputs`), sweeps (`imr.sweep`), unit conversion (`imr.nondimensionalize`), and the physics functions the solvers call |
-| `toolchain/` | Developer tooling only: the test suites, the formatter, the linter and the test generators |
-| `tests/` | Stored results: `tests/reference/` for the regression suite. The older `tests/*.mat` files are no longer used by any suite |
+| `toolchain/` | Formatter, linter, profiling aids and the guarded golden-history generator |
+| `tests/` | Suites, helpers, independent frozen references and setup; see the [test guide](../../tests/README.md). Approved regression histories belong in `tests/reference/` |
+| `archive/legacy-tests/` | Preserved older histories, with original bytes and filenames; unused by current suites |
 | `docs/api/`, `docs/reference/functions/`, `docs/validation/` | One Markdown page per function or script |
 | `docs/reference/compatibility.md` | Which features run together in each solver |
 | `examples/`, `benchmarks/` | Example scripts (including the `f_multirun` study and its cluster job), scaling benchmarks, and the integrator comparison (`benchmarks/integrators`) |
@@ -110,11 +111,11 @@ The files in `tests/reference/` are the stored results that `s_test_suite_regres
 1. Explain in the pull request which results change, why, and by how much.
 2. Regenerate them only after the maintainers agree, with `toolchain/s_generate_references.m` in MATLAB (set `overwrite = true` in the script). It writes nothing unless every case succeeds.
 
-A new case added to `toolchain/f_test_cases.m` fails the regression suite until its result is stored.
+A new case added to `tests/helpers/f_test_cases.m` fails the regression suite until its result is stored.
 
 ## 3. Run the checks
 
-Follow [CI and local equivalents](ci.md) for spelling, MATLAB lint, formatting and source-documentation checks. Run the [numerical suites](../validation/tests.md#run-the-suites) from `toolchain/` in separate MATLAB processes and preserve failure status.
+Follow [CI and local equivalents](ci.md) for spelling, MATLAB lint, formatting and source-documentation checks. Run the [numerical suites](../validation/tests.md#run-the-suites) from `tests/` after `imr_test_setup`, in separate MATLAB processes, and preserve failure status.
 
 The regression suite requires approved references that are absent from the audited checkout. See [baseline availability](../validation/regression.md#baseline-availability). Do not fabricate or silently replace them.
 

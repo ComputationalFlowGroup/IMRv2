@@ -126,11 +126,11 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 
 | Location | Responsibility |
 |---|---|
-| `toolchain/s_test_suite_*.m` | Executable numerical suites; [test index](../validation/tests.md) |
-| `tests/fixtures/+imrtest/` | Frozen reference data, outside the runtime source path |
-| `toolchain/f_test_cases.m` | Generate accepted cases |
-| `toolchain/f_test_run.m` | Capture one run, errors and actual times |
-| `toolchain/f_test_report.m` | Report outcomes and reject failures or empty suites |
+| `tests/suites/s_test_suite_*.m` | Executable numerical suites; [test index](../validation/tests.md) |
+| `tests/+imrtest/` | Frozen reference data, outside the runtime source path |
+| `tests/helpers/f_test_cases.m` | Generate accepted cases |
+| `tests/helpers/f_test_run.m` | Capture one run, errors and actual times |
+| `tests/helpers/f_test_report.m` | Report outcomes and reject failures or empty suites |
 | `toolchain/s_generate_references.m` | Guarded regeneration of approved trajectory baselines |
 | `toolchain/s_lint.m`, `s_format.m` | MATLAB lint and repository formatting |
 
@@ -144,4 +144,4 @@ Local functions retain tightly coupled wall operations in their owning builder. 
 
 ## Optional material add-on
 
-The full distribution also includes `src/+imr/+fluids/mercury.m`, the [mercury model](../model/mercury.md), `toolchain/s_test_suite_mercury.m` and its frozen data in `tests/fixtures/+imrtest/mercury_reference.m`. None is required by the generic defaults or water tests.
+The full distribution also includes `src/+imr/+fluids/mercury.m`, the [mercury model](../model/mercury.md), `tests/suites/s_test_suite_mercury.m` and its frozen data in `tests/+imrtest/mercury_reference.m`. None is required by the generic defaults or water tests.

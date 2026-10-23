@@ -13,11 +13,11 @@ clear;
 toolchainPath = fileparts(mfilename('fullpath'));
 srcPath = fullfile(toolchainPath, '..', 'src');
 rootPath = fileparts(toolchainPath);
-fixturePath = fullfile(rootPath, 'tests', 'fixtures');
+testPath = fullfile(rootPath, 'tests');
 
 files = [dir(fullfile(toolchainPath, '**', '*.m'));
 dir(fullfile(srcPath, '**', '*.m'));
-dir(fullfile(fixturePath, '**', '*.m'));
+dir(fullfile(testPath, '**', '*.m'));
 dir(fullfile(rootPath, 'imr_setup.m'))];
 
 errorFound = false; % Track if any issues are detected

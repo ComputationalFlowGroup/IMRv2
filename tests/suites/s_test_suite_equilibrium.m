@@ -9,11 +9,10 @@
 % finite differences and with Chebyshev collocation, and imr.solve_spectral.
 % It covers every radial, thermal (without mass transfer), vapor and stress
 % model that the compatibility matrix allows (f_test_cases). It needs no
-% stored results. Run it from toolchain/.
+% stored results. Run it from tests/ after imr_test_setup.
 clc;
 clear;
 
-addpath('../src/');
 
 % largest allowed deviation of R from 1: rounding only
 threshold = 1e-13;

@@ -10,9 +10,9 @@
 | Reference geometry, ambient conditions, gas conductivity and dimensional stress/forcing choices | `src/+imr/nondimensionalize.m` | Conversion to dimensionless groups |
 | Numerical/model choices, grid sizes, tolerances and default output times | `src/+imr/+configuration/defaults.m` | Parser and public input struct |
 | Physical dimensionless groups | Calculated by `imr.nondimensionalize`, used by `imr.configuration.defaults` | Both solvers |
-| Frozen old values used to detect regressions | `tests/fixtures/+imrtest/default_physics.m` | Tests only |
+| Frozen old values used to detect regressions | `tests/+imrtest/default_physics.m` | Tests only |
 
-The snapshot in `tests/fixtures` is intentionally independent of the current implementation. Replacing it with a call to the converter would make a default-change regression test unable to detect a mistake.
+The snapshot in `tests/+imrtest` is intentionally independent of the current implementation. Replacing it with a call to the converter would make a default-change regression test unable to detect a mistake.
 
 ## Why the old `p.defaults` group was confusing
 

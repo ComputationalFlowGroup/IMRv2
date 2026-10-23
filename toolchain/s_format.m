@@ -10,7 +10,8 @@ close;
 clear;
 clc;
 
-folders = ["../toolchain", "../src","../docs","../benchmarks","../tests/fixtures"];
+rootPath = fileparts(fileparts(mfilename('fullpath')));
+folders = fullfile(string(rootPath), ["toolchain","src","docs","benchmarks","tests"]);
 fileList = cell(100,1);
 count = 1;
 thisScriptFile = strcat('s_format', '.m');

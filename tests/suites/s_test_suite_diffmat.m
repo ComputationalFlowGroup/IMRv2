@@ -11,7 +11,6 @@
 clc;
 clear;
 
-addpath('../src/');
 
 failed = 0;
 fprintf('Checking imr.numerics.differentiation...\n');

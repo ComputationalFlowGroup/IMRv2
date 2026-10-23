@@ -2,9 +2,8 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % Independent contracts for preparation, field activation and Jacobians.
-% Run from toolchain/ using base MATLAB, without trajectory baseline files.
+% Run from tests/ after imr_test_setup using base MATLAB, without trajectory baseline files.
 clear;
-addpath('../src','../tests/fixtures');
 schema = imr.configuration.schema();
 public = imr.default_inputs();
 d = imr.configuration.defaults();
@@ -17,7 +16,8 @@ for k = 1:numel(schema)
 end
 % Parameter names in the guide must cover the executable schema. Defaults
 % stay numeric in MATLAB, while the guide may round them for readability.
-guide = fileread('../docs/model/parameters.md');
+testRoot = fileparts(fileparts(mfilename('fullpath')));
+guide = fileread(fullfile(testRoot,'..','docs','model','parameters.md'));
 rows = regexp(guide,'(?m)^\|\s*([^|]+)\|','tokens');
 documented = {};
 for k = 1:numel(rows)

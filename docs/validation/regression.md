@@ -62,6 +62,6 @@ A new case added to `f_test_cases` fails the suite until its result is stored.
 
 ## Baseline availability
 
-The audited checkout does not contain `tests/reference/nodal_fd.mat`, `nodal_cheb.mat` or `spectral.mat`. The current regression suite therefore reports missing stored results; it has not passed here. Older `tests/*.mat` files are not substitutes for the keyed baseline format.
+The audited checkout does not contain `tests/reference/nodal_fd.mat`, `nodal_cheb.mat` or `spectral.mat`. The current regression suite therefore reports missing stored results; it has not passed here. Older `archive/legacy-tests/*.mat` files are not substitutes for the keyed baseline format.
 
 Obtain approved baselines from the maintainers before running this comparison. Generating new results from the current code only creates a new reference; it cannot establish agreement with an independently approved prior version. Do not regenerate or overwrite references as part of documentation work.

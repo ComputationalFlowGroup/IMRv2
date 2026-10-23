@@ -18,13 +18,15 @@
 clc;
 clear;
 
-addpath('../src/');
+rootPath = fileparts(fileparts(mfilename('fullpath')));
+addpath(fullfile(rootPath,'tests'));
+imr_test_setup;
 
 % replace existing stored results
 overwrite = false;
 % cross-mode differences above this are listed for a look
 report_level = 1e-2;
-refdir = fullfile('..', 'tests', 'reference');
+refdir = fullfile(rootPath,'tests','reference');
 
 cases = f_test_cases('regression');
 modes = unique({cases.mode});
