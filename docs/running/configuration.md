@@ -6,12 +6,14 @@
 
 | Form | Example | Behavior |
 |---|---|---|
-| Name/value pairs | `imr.solve_nodal('radial',2,'stress',1)` | Overrides defaults in order; later repeated names win |
-| Cell array | `args = {'radial',2}; imr.solve_nodal(args{:})` | Expands to name/value pairs |
-| Struct | `p = imr.default_inputs(); p.radial = 2; imr.solve_nodal(p)` | Passes only fields differing from the defaults |
-| Struct plus pairs | `imr.solve_nodal(p,'radial',1)` | Explicit pairs override changed struct fields |
+| Name/value pairs | `imr.solve('radial',2,'stress',1)` | Overrides defaults in order; later repeated names win |
+| Cell array | `args = {'radial',2}; imr.solve(args{:})` | Expands to name/value pairs |
+| Struct | `p = imr.default_inputs(); p.radial = 2; imr.solve(p)` | Passes only fields differing from the defaults |
+| Struct plus pairs | `imr.solve(p,'solver','spectral')` | Explicit pairs override changed struct fields |
 
 Names in the name/value parser are case-insensitive. Use the lowercase fields returned by [`imr.default_inputs`](../api/f_imr_inputs.md) for structs. Optional `p0star` and `stress0` fields have no default and can be added when needed.
+
+`imr.solve` defaults to the nodal solver. Select the spectral solver with `'solver','spectral'` or an added `p.solver` field. The default struct is solver-neutral; the selected solver is added to the returned input record for replay. Existing `imr.solve_nodal` and `imr.solve_spectral` wrappers fix the selection and reject conflicting options. The `spectral` stress flag remains independent. See [solver selection](../api/solve.md).
 
 The full accepted names, meanings and defaults live in [parameters](../model/parameters.md). Internal variables such as `Rzero`, `Pb_star`, `Szero`, `tspan`, `wave_poly` and `wave_dpoly` are not accepted public option names.
 

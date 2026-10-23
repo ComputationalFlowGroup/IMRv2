@@ -4,6 +4,7 @@ Use the public functions below from MATLAB with `src/` on the path. All solver i
 
 | Function | Purpose |
 |---|---|
+| [`imr.solve`](solve.md) | Common entry point; choose nodal or spectral with `solver` |
 | [`imr.solve_nodal`](f_imr_nodal.md) | Nodal solver with finite-difference or Chebyshev operators |
 | [`imr.solve_spectral`](f_imr_spectral.md) | Spectral solver with optional local stress field |
 | [`imr.default_inputs`](f_imr_inputs.md) | Default input struct |

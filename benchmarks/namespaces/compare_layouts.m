@@ -55,7 +55,7 @@ function report = compare_layouts(baseline_root,candidate_root,repetitions,limit
         base_output = f_once(base_solver,args);
         candidate_solver = f_select(candidate_root,mode,true);
         candidate_output = f_once(candidate_solver,args);
-        f_equal(base_output,candidate_output);
+        f_equal(base_output,candidate_output,mode);
         timings = zeros(repetitions,2);
         for repeat = 1:repetitions
             order = [1 2];
@@ -111,7 +111,7 @@ function out = f_once(solver,args)
     evalc(['[out{:}] = solver(args{:})' char(59)]);
 end
 
-function f_equal(a,b)
+function f_equal(a,b,mode)
     for k = 1:7
         assert(isequal(size(a{k}),size(b{k})));
         if ~isempty(a{k})
@@ -120,6 +120,16 @@ function f_equal(a,b)
             assert(max(abs(a{k}-b{k}),[],'all') <= 5e-9*scale, ...
                 'The layouts produced different numerical outputs.');
         end
+    end
+    % New records include the selected solver for unified replay. Validate
+    % that field separately before comparing every original input value.
+    if isfield(b{8},'solver') && ~isfield(a{8},'solver')
+        expected = 'nodal';
+        if strcmp(mode,'spectral')
+            expected = 'spectral';
+        end
+        assert(strcmp(b{8}.solver,expected));
+        b{8} = rmfield(b{8},'solver');
     end
     assert(isequaln(a{8},b{8}));
 end

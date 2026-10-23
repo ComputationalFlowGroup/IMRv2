@@ -2,7 +2,7 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % Scheme-specific operators, closures and reconstruction for one checked case.
-% Public calls and time integration remain in imr.solve_spectral.
+% Public calls and time integration share imr.solvers.run.
 function system = build_spectral(prepared)
     inputs = prepared.inputs;
     layout = prepared.layout;
@@ -257,6 +257,7 @@ function system = build_spectral(prepared)
     end
     system.initial = init;
     system.rhs = bubble;
+    system.output_rhs = @(t,X) f_rhs(t,X,true);
     system.jacobian = Sp;
     system.outputs = @f_outputs;
     system.operatorSizes = [size(gA,1) size(mA,1)];
@@ -313,10 +314,10 @@ function system = build_spectral(prepared)
     end
 
     % solver function
-    function dXdt = f_rhs(t,X)
+    function dXdt = f_rhs(t,X,quiet)
 
         % showing output
-        if progdisplay
+        if progdisplay && (nargin < 3 || ~quiet)
             disp(t/tspan(end));
         end
 

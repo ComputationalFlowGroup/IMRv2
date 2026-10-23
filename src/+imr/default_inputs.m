@@ -14,8 +14,10 @@
 %   [t, R] = imr.solve_nodal(p);
 % Only the fields that differ from these defaults are passed on, so the
 % struct and the name/value pairs describe a run the same way. The
-% optional inputs without a default, p0star and stress0, can be added as
-% fields. The values come from imr.configuration.defaults.
+% optional inputs p0star and stress0 can be added as fields. This struct is
+% solver-neutral: imr.solve defaults to nodal, or takes an added solver
+% field/name-value option ('nodal' or 'spectral'). The values come from
+% imr.configuration.defaults.
 function p = default_inputs()
     defaults = imr.configuration.defaults();
     schema = imr.configuration.schema();

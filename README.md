@@ -13,7 +13,7 @@ IMR simulates a spherical cavitation bubble in a viscoelastic material. Research
 
 [Logo source and vector exports](docs/reference/branding.md).
 
-- Bubble radius, wall velocity and pressure with Rayleigh–Plesset, Keller–Miksis or Gilmore dynamics.
+- Bubble radius, wall velocity, optional wall acceleration and pressure with Rayleigh–Plesset, Keller–Miksis or Gilmore dynamics.
 - Bubble and medium temperatures, with optional vapor mass transfer in the nodal solver.
 - Viscoelastic stress models and Newtonian or shear-dependent viscosity.
 - Parameter sweeps, measured driving waveforms and numerical test suites.
@@ -36,7 +36,7 @@ cd imrv2
 # Read the input-struct help.
 matlab -batch "imr_setup; help imr.default_inputs"
 # Run a dimensionless Kelvin–Voigt case.
-matlab -batch "imr_setup; [t,R]=imr.solve_nodal('radial',2,'stress',1);"
+matlab -batch "imr_setup; [t,R]=imr.solve('radial',2,'stress',1);"
 ```
 
 Or use the core API from MATLAB at the checkout root:
@@ -46,10 +46,12 @@ imr_setup;
 p = imr.default_inputs();
 p.radial = 2;
 p.stress = 1;
-[t, R] = imr.solve_nodal(p);
+[t, R] = imr.solve(p,'solver','nodal');
 ```
 
 The [complete quick start](docs/getting-started/quick-start.md) converts SI inputs and restores dimensional outputs. These examples await local MATLAB execution; no numerical output is claimed here.
+
+Use `'solver','spectral'` to select the spectral solver. Both existing solver functions remain supported. See the [unified solver API](docs/api/solve.md) and [optional acceleration output](docs/running/output.md#wall-acceleration).
 
 ## Documentation
 

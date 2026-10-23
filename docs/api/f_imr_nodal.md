@@ -3,10 +3,12 @@
 `imr.solve_nodal` integrates radial bubble dynamics with optional heat transfer, vapor mass transfer and viscoelastic stress. Fields are carried at nodes; `scheme` chooses the differentiation matrices.
 
 ```matlab
-[t, R, Rdot, P, T, Tm, kv, inputs] = imr.solve_nodal(varargin);
+[t, R, Rdot, P, T, Tm, kv, inputs, Rddot] = imr.solve_nodal(varargin);
 ```
 
 `varargin` accepts dimensionless name/value pairs or a struct from [`imr.default_inputs`](f_imr_inputs.md), optionally followed by overriding pairs. See [configuration](../running/configuration.md) and the canonical [parameter table](../model/parameters.md).
+
+The first eight outputs retain their positions; optional output 9 is wall acceleration. Use [`imr.solve(...,'solver','nodal')`](solve.md) for the common entry point. This wrapper fixes the nodal solver and rejects a conflicting `solver` value.
 
 | Choice | Behavior |
 |---|---|

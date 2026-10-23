@@ -6,6 +6,7 @@ Public MATLAB functions live in the `imr` namespace. Add only the parent `src` d
 imr_setup.m
 src/
   +imr/
+    solve.m
     solve_nodal.m
     solve_spectral.m
     default_inputs.m
@@ -37,7 +38,7 @@ imr_setup
     'r0',50e-6,'req',50e-6,'u0',0.1,'g',0, ...
     'radial',2,'stress',1,'bubtherm',0,'medtherm',0, ...
     'vapor',0,'masstrans',0,'tfin',20e-6);
-[t,R,U,P] = imr.solve_nodal(args{:});
+[t,R,U,P] = imr.solve(args{:},'solver','nodal');
 plot(t*ref.t0*1e6,R*ref.R0*1e6)
 xlabel('Time (microseconds)')
 ylabel('Radius (micrometers)')
@@ -49,7 +50,7 @@ The bundled `run_water_case` script performs this call. From a terminal at the c
 matlab -batch "imr_setup; run_water_case"
 ```
 
-The small initial velocity starts oscillation about the equilibrium radius. Water properties use the documented legacy reference set; this example does not introduce a new calibrated water EoS. Replace `imr.solve_nodal` with `imr.solve_spectral` for the spectral solver. See the [Keller–Miksis example](../getting-started/keller-miksis.md) for SI scaling and the [API](../api/index.md) for output shapes.
+The small initial velocity starts oscillation about the equilibrium radius. Water properties use the documented legacy reference set; this example does not introduce a new calibrated water EoS. Change the `solver` value to `'spectral'` for the spectral solver. Both existing solver wrappers remain supported. See the [Keller–Miksis example](../getting-started/keller-miksis.md) for SI scaling and the [API](../api/index.md) for output shapes.
 
 ## Compatibility and naming
 
@@ -74,6 +75,6 @@ Use lowercase `snake_case`, descriptive quantities or verbs, and a primary funct
 
 The organization adds no path setup, file reads or validation inside numerical callbacks. Existing kernels retain their equations and call counts; their names become qualified. The shared runner executes once per simulation. Legacy adapters are not used by the namespaced RHS or Jacobians.
 
-MATLAB name resolution and dispatch performance can vary by release. Source consistency and static checks cannot establish that runtime is unchanged. The [layout benchmark](../method/namespace-benchmark.md) compares all seven numerical outputs and the input record, then times four representative workloads against the pre-namespace checkout. It alternates timing order, isolates source paths and flags a configured slowdown threshold. MATLAB was unavailable in the cloud environment; this timing gate remains for local execution before merging.
+MATLAB name resolution and dispatch performance can vary by release. Source consistency and static checks cannot establish that runtime is unchanged. The [layout benchmark](../method/namespace-benchmark.md) compares all seven original numerical outputs and the original input fields, validates the newly added solver label separately, then times four representative workloads against the pre-namespace checkout. It alternates timing order, isolates source paths and flags a configured slowdown threshold. MATLAB was unavailable in the cloud environment; this timing gate remains for local execution before merging.
 
 `s_test_suite_namespace` checks public namespace calls, legacy adapters and measured waveform loading. The existing numerical suites now call the namespaced implementations directly. No trajectory baselines are regenerated. Markdown and LaTeX source checks remain separate from MATLAB numerical validation.

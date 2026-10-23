@@ -4,6 +4,9 @@
 % Internal numerical system for a checked imr.configuration.prepare_case result.
 % initial: column state, rhs(t,X): column or nodal batch, jacobian: function
 % or sparsity matrix, outputs(t,X): the eight public outputs as a cell row.
+% output_rhs(t,X): the same derivatives with progress display suppressed,
+% used only when the shared runner is asked to return acceleration.
+% reset_output_rhs(X): optional wall-cache reset before a new output history.
 % No integration is performed. This contract also permits independent RHS
 % and Jacobian checks without adding diagnostic arguments to public solvers.
 function system = build(c)

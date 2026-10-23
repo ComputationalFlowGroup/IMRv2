@@ -10,7 +10,7 @@
 
 | Name | Description |
 |------|-------------|
-| `solver` | Function handle, `@imr.solve_nodal` or `@imr.solve_spectral` |
+| `solver` | Function handle, `@imr.solve`, `@imr.solve_nodal` or `@imr.solve_spectral` |
 | `base` | Inputs shared by every run: a cell array of name/value pairs (`{}` for the defaults) or a struct from [`imr.default_inputs`](f_imr_inputs.md). A transform needs the cell array form. |
 | `name_k`, `values_k` | A solver input and the values it takes, a numeric vector or a cell array. Every combination is run. |
 
@@ -19,7 +19,7 @@ Options, given after the swept inputs:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `'transform'` | none | Function handle applied to each run's name/value pairs before the solver, for example `@imr.nondimensionalize` to sweep SI values |
-| `'outputs'` | 2 | Number of solver outputs to keep (`t`, `R`, `Rdot`, `P`, `T`, `Tm`, `kv`) |
+| `'outputs'` | 2 | Number of solver outputs to keep, up to 9: `t`, `R`, `Rdot`, `P`, `T`, `Tm`, `kv`, `inputs`, `Rddot` |
 | `'parallel'` | `false` | `true` runs the grid with `parfor` on a parallel pool (Parallel Computing Toolbox); `false` runs it in series in base MATLAB |
 | `'quiet'` | `true` | Hides the solver's console output |
 

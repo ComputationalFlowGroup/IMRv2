@@ -109,6 +109,8 @@ for kind = {'nodal','spectral'}
                 time = 0.1;
                 rhs = sys.rhs(time,state);
                 assert(all(isfinite(rhs)) && numel(rhs) == idx.count);
+                quiet_rhs = sys.output_rhs(time,state);
+                assert(max(abs(quiet_rhs-rhs)) < 1e-9*max(1,norm(rhs,Inf)));
                 if isa(sys.jacobian,'function_handle')
                     J = full(sys.jacobian(time,state));
                     independent = f_central(sys.rhs,time,state);

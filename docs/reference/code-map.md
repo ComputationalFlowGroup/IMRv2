@@ -10,7 +10,7 @@ This is a flow of information, rather than a function-call graph. A user may sta
 flowchart LR
   Case[Material and model choices] --> Prepare[Prepare dimensionless inputs]
   Prepare --> Solve[Choose nodal or spectral solver]
-  Solve --> Histories[Radius, velocity, pressure, temperature and vapor histories]
+  Solve --> Histories[Radius, velocity, optional acceleration, pressure and field histories]
   Histories --> Compare[Restore SI units, plot and compare]
 ```
 
@@ -26,7 +26,8 @@ Solid arrows below mean a function calls or uses the target. The dotted arrow su
 flowchart TD
   User[User script] --> SI[imr.nondimensionalize: optional SI conversion]
   User --> Public[imr.default_inputs: optional input struct]
-  User --> Solver[imr.solvers.run: public entry points share orchestration]
+  User --> Entry[imr.solve: choose nodal or spectral]
+  Entry --> Solver[imr.solvers.run: public entry points share orchestration]
   Public --> Defaults[imr.configuration.defaults]
   Solver --> Parser[imr.configuration.prepare_case: named checked case]
   Parser --> Defaults
@@ -78,6 +79,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | File | Responsibility | Contract |
 |---|---|---|
 | `imr_setup.m` | Session path setup for public source and examples | [Installation](../getting-started/installation.md) |
+| `src/+imr/solve.m` | Common solver selection and optional acceleration | [Unified API](../api/solve.md) |
 | `src/+imr/solve_nodal.m` | FD or Chebyshev nodal solver | [Nodal API](../api/f_imr_nodal.md) |
 | `src/+imr/solve_spectral.m` | Spectral solver | [Spectral API](../api/f_imr_spectral.md) |
 | `src/+imr/sweep.m` | Repeated runs over a full parameter grid | [Sweep API](../api/f_imr_sweep.md) |

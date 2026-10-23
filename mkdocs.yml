@@ -92,6 +92,7 @@ nav:
       - "Troubleshooting": running/troubleshooting.md
   - MATLAB API:
       - "Overview": api/index.md
+      - "Unified solver": api/solve.md
       - "Nodal solver": api/f_imr_nodal.md
       - "Spectral solver": api/f_imr_spectral.md
       - "Inputs": api/f_imr_inputs.md

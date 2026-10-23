@@ -5,9 +5,14 @@
 % c groups checked model, numerics, initial state, forcing and physics.
 % c.inputs records requested public inputs; c.layout describes effective
 % states after compatibility adjustments (for example stress mode counts).
+% An empty solver selects from the public 'solver' option, default nodal.
+% A fixed solver (the existing wrappers) rejects a conflicting selection.
 function c = prepare_case(solver,varargin)
-    if ~any(strcmp(solver,{'nodal','spectral'}))
-        error('IMR:solver','Solver must be nodal or spectral.');
+    select_solver = ischar(solver) && isempty(solver);
+    if select_solver
+        solver = 'nodal';
+    else
+        solver = f_solver_name(solver);
     end
     disp('--- Inertial Microcavitation Rheometry forward solver ---');
     if ~isempty(varargin) && isstruct(varargin{1})
@@ -24,6 +29,7 @@ function c = prepare_case(solver,varargin)
     names = {schema.name};
     requested = imr.default_inputs();
     specified = struct('p0star',false,'stress0',false,'tfin',false,'tvector',false);
+    selected_solver = solver;
     unknown = {};
     for k = 1:2:numel(varargin)
         key = varargin{k};
@@ -40,6 +46,8 @@ function c = prepare_case(solver,varargin)
             p.P0_star = value;
         elseif strcmp(name,'stress0')
             p.Szero = value;
+        elseif strcmp(name,'solver')
+            selected_solver = value;
         elseif strcmp(name,'casefile')
             error('INPUT ERROR: casefile is no longer supported. Pass dimensionless name/value pairs.');
         else
@@ -53,6 +61,13 @@ function c = prepare_case(solver,varargin)
     if ~isempty(unknown)
         error('INPUT ERROR: unrecognized input(s): %s. Use imr.nondimensionalize for SI inputs.',strjoin(unknown,', '));
     end
+    selected_solver = f_solver_name(selected_solver);
+    if ~select_solver && ~strcmp(solver,selected_solver)
+        error('IMR:solverConflict', ...
+            'INPUT ERROR: imr.solve_%s cannot select solver = %s. Use imr.solve instead.', ...
+            solver,selected_solver);
+    end
+    solver = selected_solver;
     p.method = f_method_code(p.method);
     if specified.tfin && ~specified.tvector
         valid_end = isnumeric(p.TFin) && isscalar(p.TFin) && isreal(p.TFin) && isfinite(p.TFin);
@@ -236,8 +251,17 @@ function c = prepare_case(solver,varargin)
     c.output.progress = p.progdisplay;
     requested.tvector = c.time;
     requested.tfin = c.time(end);
+    requested.solver = solver;
     c.inputs = requested;
     c.layout = imr.solvers.state_layout(c);
+end
+
+function solver = f_solver_name(solver)
+    valid_text = (ischar(solver) && isrow(solver)) || (isstring(solver) && isscalar(solver));
+    if ~valid_text || ~any(strcmpi(solver,{'nodal','spectral'}))
+        error('IMR:solver','INPUT ERROR: solver must be ''nodal'' or ''spectral''.');
+    end
+    solver = lower(char(solver));
 end
 
 % integrator code of the method input, which may also be given by name:

@@ -10,6 +10,8 @@
 % values, and the spatial discretization is selected by the differentiation
 % matrices of imr.numerics.differentiation: scheme = 0 second-order finite differences,
 % scheme = 1 Chebyshev collocation. Everything else is shared.
+% Outputs: [t,R,Rdot,P,T,Tm,kv,inputs,Rddot]; acceleration is evaluated only
+% when output 9 is requested. Use imr.solve to select the solver by name.
 function varargout = solve_nodal(varargin)
     [varargout{1:nargout}] = imr.solvers.run('nodal',varargin{:});
 end
