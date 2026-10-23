@@ -88,11 +88,12 @@ end
 % write all files to a temporary folder, then move them into place
 tmp = tempname;
 mkdir(tmp);
+generated_at = char(datetime('now','Format','yyyy-MM-dd HH:mm:ss'));
+info = sprintf('generated %s with MATLAB %s', generated_at, version);
 for m = 1:numel(modes)
     in = strcmp({cases.mode}, modes{m});
     keys = {cases(in).key};
     R = Rs(in);
-    info = sprintf('generated %s with MATLAB %s', datestr(now, 31), version);
     save(fullfile(tmp, [modes{m} '.mat']), 'keys', 'R', 'info', '-v7');
 end
 if ~exist(refdir, 'dir')

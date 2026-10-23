@@ -62,6 +62,9 @@ fprintf('Floating-point input normalization and thermal inverse limits PASSED.\n
 % dropping any case that the checker rejects. All three discretizations,
 % every compatible radial/thermal family and all supported Jacobians.
 checked = 0;
+thermal_cases = [0 0;
+1 0;
+1 1];
 for mode = 1:3
     solver = 'nodal';
     scheme = mode-1;
@@ -72,16 +75,8 @@ for mode = 1:3
         jacobians = 0:2;
     end
     for radial = 1:6
-        thermal = [0 0];
-        if radial <= 4
-            thermal = [thermal;
-            1 0];
-        end
-        if radial <= 2
-            thermal = [thermal;
-            1 1];
-        end
-        for flags = thermal'
+        thermal_count = 1+(radial <= 4)+(radial <= 2);
+        for flags = thermal_cases(1:thermal_count,:)'
             for jacobian = jacobians
                 args = {'Req',1,'radial',radial,'bubtherm',flags(1), ...
                     'medtherm',flags(2),'masstrans',0,'vapor',1,'pv',0, ...

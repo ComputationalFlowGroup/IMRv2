@@ -19,13 +19,8 @@ end
 testRoot = fileparts(fileparts(mfilename('fullpath')));
 guide = fileread(fullfile(testRoot,'..','docs','model','parameters.md'));
 rows = regexp(guide,'(?m)^\|\s*([^|]+)\|','tokens');
-documented = {};
-for k = 1:numel(rows)
-    tokens = regexp(rows{k}{1},'`([^`]+)`','tokens');
-    for j = 1:numel(tokens)
-        documented{end+1} = lower(tokens{j}{1}); %#ok<AGROW>
-    end
-end
+tokens = regexp(strjoin([rows{:}],' '),'`([^`]+)`','tokens');
+documented = cellfun(@(token) lower(token{1}),tokens,'UniformOutput',false);
 assert(all(ismember({schema.name},documented)));
 % Independently differentiate the shared inverse with respect to all three
 % arguments; do not compare the helper with a second copy of its algebra.
@@ -64,20 +59,21 @@ catch err
 end
 
 checked = 0;
+thermal_cases = [0 0 0;
+1 0 0;
+1 1 0;
+1 0 1;
+1 1 1];
 for kind = {'nodal','spectral'}
     solver = kind{1};
     schemes = 0;
-    heat = [0 0 0;
-    1 0 0;
-    1 1 0];
+    thermal_count = 3;
     if strcmp(solver,'nodal')
         schemes = [0 1];
-        heat = [heat;
-        1 0 1;
-        1 1 1];
+        thermal_count = 5;
     end
     for scheme = schemes
-        for flags = heat'
+        for flags = thermal_cases(1:thermal_count,:)'
             for stress = [0 1 3 4 5]
                 medium = flags(2);
                 if stress == 5 && medium && strcmp(solver,'nodal')
@@ -174,7 +170,7 @@ assert(max(abs(Rn-Rs)) < 5e-4 && max(abs(Pn-Ps)) < 5e-4);
 fprintf('Shared ODE physics and thermal nodal/spectral comparison PASSED.\n');
 
 function J = f_central(rhs,t,x)
-    J = zeros(numel(x));
+    J = zeros(numel(x),numel(x));
     for k = 1:numel(x)
         step = eps^(1/3)*max(1,abs(x(k)));
         plus = x;

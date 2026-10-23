@@ -194,7 +194,6 @@ function system = build_nodal(prepared)
     end
 
     % State indices are shared by initialization, RHS, Jacobian and outputs.
-    Nt = numel(layout.bubble);
     Mt = numel(layout.medium);
     ibubtherm = layout.bubble;
     imedtherm = layout.medium;

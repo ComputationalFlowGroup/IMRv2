@@ -271,8 +271,8 @@ function pairs = f_struct_pairs(p)
         changed(k) = ~isfield(d, f{k}) || ~isequaln(p.(f{k}), d.(f{k}));
     end
     if isfield(p, 'tvector') && isfield(p, 'tfin')
-        it = find(strcmp(f, 'tvector'));
-        jf = find(strcmp(f, 'tfin'));
+        it = strcmp(f, 'tvector');
+        jf = strcmp(f, 'tfin');
         valid_time = isnumeric(p.tvector) && isvector(p.tvector) && ~isempty(p.tvector);
         if changed(it) && changed(jf) && valid_time && isequal(p.tvector(end),p.tfin)
             changed(jf) = false;
