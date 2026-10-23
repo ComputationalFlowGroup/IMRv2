@@ -3,10 +3,12 @@
 `imr.solve_spectral` integrates bubble dynamics and thermal fields with Chebyshev expansions. It also provides a spectral representation of UCM/Oldroyd-B polymer stresses.
 
 ```matlab
-[t, R, Rdot, P, T, Tm, kv, inputs] = imr.solve_spectral(varargin);
+[t, R, Rdot, P, T, Tm, kv, inputs, Rddot] = imr.solve_spectral(varargin);
 ```
 
 Inputs follow the same dimensionless [configuration forms](../running/configuration.md) as the nodal solver. The [parameter table](../model/parameters.md) owns accepted names and defaults. `kv`, output 7, is always empty; other arrays follow the [shared output contract](../running/output.md).
+
+The first eight outputs retain their positions; optional output 9 is wall acceleration. Use [`imr.solve(...,'solver','spectral')`](solve.md) for the common entry point. This wrapper fixes the spectral solver and rejects a conflicting `solver` value.
 
 | Input | Spectral-specific behavior |
 |---|---|

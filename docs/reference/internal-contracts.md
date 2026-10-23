@@ -1,6 +1,6 @@
 # Prepared cases and numerical systems
 
-The public entry points remain `imr.solve_nodal` and `imr.solve_spectral`. Internally they prepare a named case, construct a numerical system, integrate it, then reconstruct the eight public outputs. These developer contracts replace positional option vectors inside the solvers; they are not additional simulation options.
+The common public entry point is [`imr.solve`](../api/solve.md); `imr.solve_nodal` and `imr.solve_spectral` remain supported wrappers. Internally they prepare a named case, construct a numerical system, integrate it, then reconstruct the original eight outputs and optional wall acceleration. These developer contracts replace positional option vectors inside the solvers; they are not additional simulation options.
 
 ```matlab
 c = imr.configuration.prepare_case('nodal','radial',2,'Req',1,'Nt',12);
@@ -29,6 +29,8 @@ R = out{2};
 
 `imr.configuration.defaults` owns default values and derives physical groups through the SI converter. `imr.configuration.schema` owns public/internal names and unconditional choice/count rules. `imr.configuration.validate_case` owns physical ranges and coupled compatibility constraints. `imr.configuration.prepare_case` applies overrides, computes derived groups and initializes collapse when requested. The [parameter table](../model/parameters.md) remains the user-facing definition of each input.
 
+`prepare_case('',...)` selects the solver from the routing option, defaulting to nodal. A fixed first argument rejects a conflicting public selector. The selector is parsed separately from the numerical/physical schema, keeping `imr.default_inputs` solver-neutral. The normalized selection is recorded as `inputs.solver` for replay.
+
 For example, `inputs.nv` records the requested count while `numerics.Nv` records the count selected for the active stress model. This distinction preserves the existing [input-record limits](../running/output.md). `imr.configuration.legacy_options` remains a compatibility adapter that serializes the named case into its original twelve outputs; new solver code should use named fields.
 
 ## State and shape contract
@@ -54,12 +56,16 @@ Stress blocks depend on the constitutive model; the [code map](code-map.md#3-int
 |---|---|
 | `initial` | Column of length `layout.count` |
 | `rhs(t,X)` | State derivative with matching shape; nodal supports batches |
+| `output_rhs(t,X)` | Same derivatives with progress display suppressed; used for requested acceleration |
+| `reset_output_rhs(X)` | Optional nodal wall-cache reset at the first state of an output history |
 | `jacobian` | Selected derivative handle, sparsity matrix or empty fallback |
-| `outputs(t,X)` | Cell row containing the eight unchanged public outputs |
+| `outputs(t,X)` | Cell row containing the first eight public outputs |
 | `operatorSizes` | Bubble and medium operator row counts; zero when disabled |
 | `layout` | The prepared case's state indices |
 
 Factories build only enabled operators. They retain local wall closures and scheme-specific discretization, while `imr.physics.thermal_inverse` and `imr.physics.saturation_pressure` share pure expressions with the Jacobians and property evaluator. System construction does not integrate time. Output reconstruction recovers algebraic wall states using the same closures as the RHS.
+
+When output 9 is requested, the shared runner resets the nodal wall cache to the same starting guess used by field reconstruction, evaluates `output_rhs` once per returned state and extracts index `layout.Rdot`. It appends this history after the eight entries from `outputs`. Other calls perform no acceleration postprocessing and preserve the numerical callbacks used for integration.
 
 ## Verification
 

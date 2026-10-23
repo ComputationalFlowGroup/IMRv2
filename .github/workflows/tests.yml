@@ -39,6 +39,7 @@ jobs:
           - s_test_suite_settings
           - s_test_suite_structure
           - s_test_suite_namespace
+          - s_test_suite_solver
 
     steps:
       - name: Checkout Repository

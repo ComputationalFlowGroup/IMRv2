@@ -7,7 +7,7 @@
     'r0',50e-6,'req',50e-6,'u0',0.1,'g',0, ...
     'radial',2,'stress',1,'bubtherm',0,'medtherm',0, ...
     'vapor',0,'masstrans',0,'tfin',20e-6);
-[t,R,U,P] = imr.solve_nodal(args{:});
+[t,R,U,P] = imr.solve(args{:},'solver','nodal');
 plot(t*ref.t0*1e6,R*ref.R0*1e6);
 xlabel('Time (microseconds)');
 ylabel('Radius (micrometers)');

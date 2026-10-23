@@ -35,6 +35,7 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 
 | Input | Variable | Description | Default | Units |
 |-------|----------|-------------|------------|---|
+| `solver` | `solver` | Routing option of `imr.solve`: `'nodal'` or `'spectral'`. Optional struct field, absent from the solver-neutral `imr.default_inputs`; fixed-solver wrappers reject conflicting values | `'nodal'` for `imr.solve` | Text selector |
 | `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 | 1 (dimensionless) |
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` | 1 (dimensionless) |
 | `method` | `method` | Stiff time integrator: 23 `ode23tb`, 15 `ode15s`, 3 CVODES (MATLAB R2024a or later). The names `'ode23tb'`, `'ode15s'` and `'cvodes'` are also accepted | 23 | 1 (dimensionless) |
@@ -117,6 +118,6 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 
 ## Input validation
 
-- All inputs are validated by [`imr.configuration.validate_case`](../reference/functions/f_checkers.md); inputs that look dimensional raise the `IMR:dimensional` warning.
+- Numerical and physical inputs are validated by [`imr.configuration.validate_case`](../reference/functions/f_checkers.md); the routing option `solver` is validated during case preparation. Inputs that look dimensional raise the `IMR:dimensional` warning.
 - [Configuration](../running/configuration.md) explains structs, cell arrays and precedence. There are no case files: a case is the list of inputs that differ from these defaults, kept as a struct from [`imr.default_inputs`](../api/f_imr_inputs.md) or as a cell array `varin` passed as `imr.solve_nodal(varin{:})`. The former `casefile` input now raises an error that says so. To run many cases, see [`imr.sweep`](../api/f_imr_sweep.md).
 - See [`compatibility`](../reference/compatibility.md) for which features run together in each solver.

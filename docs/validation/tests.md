@@ -16,9 +16,12 @@ The test suites live in `tests/suites/`. From `tests/`, call `imr_test_setup` on
 | `s_test_suite_fluids` | [Water properties, defaults, overrides and custom profiles](../reference/defaults.md) | Frozen old default values |
 | `s_test_suite_mercury` | [Optional material properties and KM preparation](mercury.md) | Frozen property states and observations |
 | `s_test_suite_namespace` | [Namespace resolution, legacy calls and measured data](../reference/namespaces.md) | None |
+| `s_test_suite_solver` | [Unified selection, replay and optional acceleration](../api/solve.md) | None |
 | `s_test_suite_structure` | [Prepared cases, states, independent Jacobians and output boundaries](../reference/internal-contracts.md#verification) | None |
 | `s_test_suite_numerics` | [Driven enthalpy, time-step limits and input guards](numerics.md) | None |
 | `s_test_suite_settings` | [Explicit acceptance/rejection, phase limits and initial-state guards](settings.md) | None |
+
+`s_test_suite_solver` checks struct/pair selection precedence, conflicting wrapper selections, existing compatibility errors, wrapper equivalence and replay. Acceleration is compared with independent Rayleigh–Plesset and pressure-form Keller–Miksis equations under Gaussian forcing at nonzero absolute times, and with differences of sampled velocity. The suite also covers available time integrators, adaptive output times, equilibrium for all six radial models, coupled thermal/vapor/stress fields and quiet RHS evaluation. It does not generate or require golden data.
 
 The generated equilibrium, Gaussian, permutation and regression suites use three solver modes. The separate polytropic and fluid suites also exercise these modes, while the operator suite checks matrices directly:
 
@@ -74,6 +77,7 @@ for suite in s_test_suite_equilibrium s_test_suite_gaussian \
     s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression \
     s_test_suite_polytropic s_test_suite_fluids s_test_suite_numerics \
     s_test_suite_structure s_test_suite_namespace s_test_suite_settings \
+    s_test_suite_solver \
     s_test_suite_mercury; do
     matlab -batch "imr_test_setup; $suite" || status=1
 done

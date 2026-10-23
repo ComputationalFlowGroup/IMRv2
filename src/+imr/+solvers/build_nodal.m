@@ -2,7 +2,7 @@
 % SPDX-License-Identifier: GPL-3.0-or-later
 
 % Scheme-specific operators, closures and reconstruction for one checked case.
-% Public calls and time integration remain in imr.solve_nodal.
+% Public calls and time integration share imr.solvers.run.
 function system = build_nodal(prepared)
     inputs = prepared.inputs;
     layout = prepared.layout;
@@ -275,6 +275,8 @@ function system = build_nodal(prepared)
     end
     system.initial = init;
     system.rhs = bubble;
+    system.output_rhs = @(t,X) f_rhs(t,X,true);
+    system.reset_output_rhs = @f_reset_output_wall;
     system.jacobian = Sp;
     system.outputs = @f_outputs;
     system.operatorSizes = [size(dmatrix_Tkv,1) size(dmatrix_Tm,1)];
@@ -296,8 +298,7 @@ function system = build_nodal(prepared)
                 % (the loop index is named it_out because a nested function shares
                 % any variable name that the parent also uses)
                 kv_w = zeros(numel(t),1);
-                theta_bw_guess = theta(1,end);
-                kv_w_guess = NaN;
+                f_reset_output_wall(X(1,:).');
                 for it_out = 1:numel(t)
                     if masstrans
                         [theta(it_out,end), kv_w(it_out)] = f_wall_mass_closure( ...
@@ -353,8 +354,17 @@ function system = build_nodal(prepared)
 
     end
 
+    % Each history starts with the same wall-root guess, rather than the
+    % final integration/output cache. Later times retain their warm starts.
+    function f_reset_output_wall(X)
+        if bubtherm && medtherm
+            theta_bw_guess = X(ibubtherm(end));
+            kv_w_guess = NaN;
+        end
+    end
+
     % solver function
-    function [dXdt] = f_rhs(t,X)
+    function [dXdt] = f_rhs(t,X,quiet)
 
         % X holds one state per column, so a batch of states (the
         % finite-difference Jacobian) costs about one call; every operation
@@ -362,7 +372,7 @@ function system = build_nodal(prepared)
         % a single state, so one column gives the same result bit for bit
 
         % showing output
-        if progdisplay
+        if progdisplay && (nargin < 3 || ~quiet)
             disp(t/tspan(end));
         end
 

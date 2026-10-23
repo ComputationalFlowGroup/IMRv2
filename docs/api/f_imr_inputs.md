@@ -23,6 +23,8 @@ p.re = 300;
 
 The optional eighth solver output records requested/default inputs and the time vector. See [save and replay](../running/output.md#save-and-replay-a-run) for a complete example and the distinction between recorded inputs and internal checker adjustments.
 
+`imr.default_inputs` stays solver-neutral. Add `p.solver = 'spectral'` or pass `'solver','spectral'` to [`imr.solve`](solve.md) when needed. The returned record includes the selected solver so `imr.solve(used)` replays either implementation.
+
 ## Sweeps
 
 [`imr.sweep`](f_imr_sweep.md) accepts the struct as its shared `base`: `imr.sweep(@imr.solve_nodal, p, 'ca', [10 100])`.
