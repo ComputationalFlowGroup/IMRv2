@@ -14,7 +14,6 @@ The test suites live in `tests/suites/`. From `tests/`, call `imr_test_setup` on
 | [`s_test_suite_diffmat`](operators.md) | The differentiation operators of `imr.numerics.differentiation` | None |
 | `s_test_suite_polytropic` | [Constant-vapor pressure derivative and histories](polytropic.md) | None |
 | `s_test_suite_fluids` | [Water properties, defaults, overrides and custom profiles](../reference/defaults.md) | Frozen old default values |
-| `s_test_suite_mercury` | [Optional material properties and KM preparation](mercury.md) | Frozen property states and observations |
 | `s_test_suite_namespace` | [Namespace resolution, legacy calls and measured data](../reference/namespaces.md) | None |
 | `s_test_suite_solver` | [Unified selection, replay and optional acceleration](../api/solve.md) | None |
 | `s_test_suite_validation` | [Runner modes, workspace isolation and golden-data safeguards](../../tests/README.md#one-command-for-all-tests) | Temporary synthetic fixtures only |

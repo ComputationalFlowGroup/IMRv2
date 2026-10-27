@@ -33,7 +33,6 @@ Use the complete recipes in [parameter sweeps](../running/sweeps.md) and [output
 |---|---|---|
 | `examples/s_run_fdmodel.m` | Polytropic nodal Keller–Miksis case with vapor pressure and viscous stress | Does not enable heat or mass transfer |
 | `examples/s_run_full_model.m` | Gaussian-driven polytropic Kelvin–Voigt case | Despite the name, bubble heat, medium heat and mass transfer are off |
-| `examples/s_run_mercury.m` | Pressure-form KM with fitted Hg ambient density/acoustics and equilibrium vapor | Explicit inviscid, zero-surface-tension demonstration, not a measured transport parameter set |
 | `examples/f_multirun.m` | Five large material studies | Expensive parallel study, described in [sweeps](../running/sweeps.md) |
 | `examples/matlab-submitjob.sh` | Submits the large study on a cluster | Site-specific `sbatch` and `matlab-threaded` commands |
 | `examples/f_contour_field.m` | Legacy stress-contour postprocessing fragment | Needs existing workspace variables and output directories; not standalone |

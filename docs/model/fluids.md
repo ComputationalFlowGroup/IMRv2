@@ -51,7 +51,3 @@ $$
 It then evaluates $\rho=\rho_0(1+nP/K_0)^{1/n}$ and $c^2=\gamma(K_0+nP)/\rho$. Profile coefficient names are `rho0_a`, `rho0_b`, `c0_0`, `c0_1`, `gamma` and `s1`. This is a particular property-family convention, not a universal calibration for all liquids. Density and reported acoustics must be checked for thermodynamic consistency before coupling a new profile to enthalpy radial models.
 
 A genuinely new equation family needs a model branch and tests in `imr.fluid_properties`. A new profile using an existing family needs only data and appropriate validation evidence.
-
-## Optional material add-on
-
-The full distribution includes a [mercury profile](mercury.md) with its own measured-data provenance, input requirements and restrictions. Its profile, example, test suite and fixtures are independent of the water reference path.

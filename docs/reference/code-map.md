@@ -143,7 +143,3 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 There is no `private/` folder. Each nodal/spectral implementation exists once, in its solver builder. The two public entry points delegate to `imr.solvers.run`, which shares preparation, integration and reconstruction outside the numerical callbacks. Legacy public names are small adapters in `src`; the numerical kernels call the namespace implementations directly. See [organization and migration](namespaces.md).
 
 Local functions retain tightly coupled wall operations in their owning builder. Shared physical/numerical kernels stay accessible to both solvers and tests. Moving a file into a package changes its qualified name; it does not require an additional runtime dispatcher inside the RHS. The [extension guide](../api/extending.md) describes keeping state, equations, Jacobians and outputs consistent.
-
-## Optional material add-on
-
-The full distribution also includes `src/+imr/+fluids/mercury.m`, the [mercury model](../model/mercury.md), `tests/suites/s_test_suite_mercury.m` and its frozen data in `tests/+imrtest/mercury_reference.m`. None is required by the generic defaults or water tests.

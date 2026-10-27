@@ -65,7 +65,7 @@ The small initial velocity starts oscillation about the equilibrium radius. Wate
 | `f_approx_init_stress` | `imr.approximate_initial_stress` |
 | `default_case` | `imr.configuration.defaults` |
 | `f_call_params` | `imr.configuration.legacy_options` |
-| `fluids.water`, `fluids.mercury` | `imr.fluids.water`, `imr.fluids.mercury` |
+| `fluids.water` | `imr.fluids.water` |
 
 These old public names remain small forwarding adapters with unchanged inputs/output order and no repeated implementation. Internal helpers have moved to their responsibility package; code that called an internal helper directly must use its qualified name from the [code map](code-map.md). Do not `import imr.*` in library code; explicit names avoid ambiguity and make dependencies visible.
 
