@@ -92,9 +92,19 @@ function system = build_spectral(prepared)
     Br              = prepared.thermal.Br;
     alpha_g         = prepared.thermal.alpha_g;
     beta_g          = prepared.thermal.beta_g;
-    % Vapor conductivity coefficients are used by the nodal solver only.
+    alpha_v         = prepared.thermal.alpha_v;
+    beta_v          = prepared.thermal.beta_v;
     chi             = prepared.thermal.chi;
     iota            = prepared.thermal.iota;
+
+    % dimensionless mass transfer: this solver has no evolving vapor field,
+    % but with vapor present the bubble is a frozen gas-vapor mixture at
+    % its initial fraction kv0, same effective conductivity imr.solve_nodal
+    % uses without mass transfer (kv0 = 0 without vapor, so alpha_m0 and
+    % beta_m0 reduce exactly to alpha_g and beta_g)
+    kv0             = prepared.mass.kv0;
+    alpha_m0        = kv0*alpha_v + (1-kv0)*alpha_g;
+    beta_m0         = kv0*beta_v + (1-kv0)*beta_g;
 
     % pre_process code
 
@@ -121,7 +131,7 @@ function system = build_spectral(prepared)
         mDDA = mAPdd*mA;
     end
     % thermal boundary condition system: only its first row varies in time,
-    % linearly through s = alpha_g*(T(1)-1)+1, so factor the reference
+    % linearly through s = alpha_m0*(T(1)-1)+1, so factor the reference
     % matrix at s = 1 once and apply a Sherman-Morrison rank-one update
     if bubtherm && medtherm
         Q = [gA(2:end,:) zeros(Nt,Mt+1);
@@ -180,9 +190,9 @@ function system = build_spectral(prepared)
     xi_adv = (1+xi)/(2*Lt) - 1./yT;
     yT_adv = 1./yT2 - yT;
     diff_m = Foh/4*(1+xi).^4;
-    % Kirchhoff transform of K = alpha_g*T + beta_g,
-    % theta = alpha_g*(T^2 - 1)/2 + beta_g*(T - 1), inverted as
-    % T = (sqrt((alpha_g + beta_g)^2 + 2*alpha_g*theta) - beta_g)/alpha_g
+    % Kirchhoff transform of K = alpha_m0*T + beta_m0, the frozen mixture
+    % conductivity, theta = alpha_m0*(T^2 - 1)/2 + beta_m0*(T - 1), inverted
+    % as T = (sqrt((alpha_m0 + beta_m0)^2 + 2*alpha_m0*theta) - beta_m0)/alpha_m0
     nn = [];
     if bubtherm
         nn = sparse(((-1).^(0:Nt).*(0:Nt).^2)');
@@ -214,6 +224,12 @@ function system = build_spectral(prepared)
         init(ib(1)) = 1;
     end
     init(iz) = Szero;
+    % The local field and the stress integral must agree through their
+    % integral relation (2*int_1^Inf sp/y dy = Z1/R^3); a zero field with
+    % a nonzero Z1 gives the wrong initial medium heating.
+    if zener_field
+        init(izf) = f_zener_field_init(Szero);
+    end
 
     % solver start
     imr.solvers.describe_case(radial, bubtherm, medtherm, 0, stress, spectral,...
@@ -228,7 +244,7 @@ function system = build_spectral(prepared)
             'gDDA',gDDA, 'gAI',gAI, 'mDA',mDA, 'mDDA',mDDA, ...
             'y',y, 'xi',xi, 'yT',yT, 'yT2',yT2, 'yT3',yT3, 'Lt',Lt, ...
             'Foh',Foh, 'Br',Br, 'chi',chi, 'kappa',kappa, 'kapover',kapover, ...
-            'alpha_g',alpha_g, 'beta_g',beta_g, 'nn',nn, 'Pb_star',Pb_star, ...
+            'alpha_m0',alpha_m0, 'beta_m0',beta_m0, 'nn',nn, 'Pb_star',Pb_star, ...
             'Pv_star',Pv_star, 'ZZT',ZZT, 'cdd',cdd, 'LAM',LAM, 'Re8',Re8, ...
             'closure',@f_closure, 'closure_s',@f_closure_s, ...
             'taugradu',@f_taugradu, 'zener_field',zener_field, ...
@@ -286,7 +302,7 @@ function system = build_spectral(prepared)
         a = X(:,ia)';
         b = X(:,ib)';
         if bubtherm
-            T = imr.physics.thermal_inverse(gA*a,alpha_g,beta_g);
+            T = imr.physics.thermal_inverse(gA*a,alpha_m0,beta_m0);
             if medtherm
                 Tm = mA*b;
             end
@@ -347,8 +363,8 @@ function system = build_spectral(prepared)
             dtheta = gDA*X(ia);
             ddtheta = gDDA*X(ia);
             % temperature and thermal diffusivity fields
-            T = imr.physics.thermal_inverse(theta,alpha_g,beta_g);
-            D = kapover*(alpha_g*T.^2 + beta_g*T)/P;
+            T = imr.physics.thermal_inverse(theta,alpha_m0,beta_m0);
+            D = kapover*(alpha_m0*T.^2 + beta_m0*T)/P;
 
             % bubble pressure equation
             Pdot = 3/R*((kappa-1)*chi/R*dtheta(1) - kappa*P*Rdot);
@@ -381,7 +397,7 @@ function system = build_spectral(prepared)
                 % enforce boundary condition and solve A*x=b problem with
                 % the Sherman-Morrison update of the prefactored system
                 Tmdot(end) = 0;
-                s = alpha_g*T(1) + beta_g;
+                s = alpha_m0*T(1) + beta_m0;
                 rhs = vertcat(0, thetadot(2:end), Tmdot(2:end), 0);
                 y0 = QA0*(UA0\(LA0\(PA0*rhs)));
                 qdot = y0 + w1*(((s-1)*(vrow'*y0)) / (1 - (s-1)*vw1));
@@ -448,6 +464,52 @@ function system = build_spectral(prepared)
         else
             sp = [];
         end
+    end
+
+    % Initial Zener field coefficients for the initial Z1 = Szero, mirroring
+    % the stopgap of imr.solve_nodal (f_zener_field_init there). From rest
+    % (Z1 = 0) the field is 0. Otherwise the field takes the shape of the
+    % elastic stress difference se at the initial radius, scaled so that
+    % 2*int_1^Inf sp/y dy = Z1/R^3 holds, then projected onto the Nv stress
+    % modes with sCI, the same values-to-coefficients map f_zener_rhs uses.
+    % Without elasticity (Ca = Inf) or at R = Req, where se = 0, it takes
+    % the viscous shape y^-3 instead. The basis T_n(z) - 1 (n = 1..Nv)
+    % already vanishes at z = 1 (y -> Inf), so no endpoint needs forcing.
+    function e0 = f_zener_field_init(Z1)
+        % Initialize the Zener field coefficients from the stress integral Z1.
+        % DESIGN CHOICE: among infinitely many spatial distributions that
+        % satisfy the integral constraint 2*int_1^inf sp/y dy = Z1/R^3, this
+        % function picks the elastic restoring profile se(y) (derived from the
+        % elasticity PDE at rest). This choice is canonical because:
+        %   1. The field will immediately evolve via f_zener_rhs, which solves
+        %      the polymer stress PDE; starting with a shape that matches the
+        %      elasticity equations minimizes transients.
+        %   2. Consistency with build_nodal.m, which uses the same shape.
+        %   3. No startup noise in initial heating/stress.
+        % An alternative (e.g., uniform, power-law, or viscous shape) would
+        % also satisfy the integral constraint but would reshape on the first
+        % RHS call. The elastic shape is preferred because it is already the
+        % shape the field PDE "wants" to be in.
+        e0 = zeros(Nf,1);
+        if Z1 == 0
+            return
+        end
+        Rst = Req/Rzero;
+        a4 = alphax*(stress == 4);
+        yV2 = yV.^2;
+        x2 = (yV3 - 1 + Rst^3).^(2/3);
+        lam2 = yV2./x2;
+        lam4i = x2.^2./yV2.^2;
+        se = (lam4i - lam2)/Ca.*(1 + a4*(lam4i + 2*lam2 - 3));
+        % elastic stress integral 2*int se/y dy, as in imr.physics.material_stress
+        Se = (3*a4 - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + (2*a4/Ca)*(27/40 + ...
+            (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst);
+        if isfinite(Ca) && abs(Se) > 0
+            sp = Z1/(Rzero^3*Se)*se;
+        else
+            sp = 1.5*Z1/Rzero^3./yV3;
+        end
+        e0 = sCI*sp;
     end
 
     % time derivative of the Chebyshev coefficients e of the Zener field

@@ -152,8 +152,9 @@ function system = build_nodal(prepared)
     % constant mixture coefficients of kv0 (as in f_theta_of_T)
     alpha_m0 = kv0.*alpha_v + (1-kv0).*alpha_g;
     beta_m0 = kv0.*beta_v + (1-kv0).*beta_g;
-    % the same for the gas alone, used by the thermal wall balance
-    K1sq_g = (alpha_g + beta_g)^2;
+    % the thermal-only wall balance (masstrans = 0) uses the same frozen
+    % mixture, so the wall shares one conductivity with the bulk equation
+    K1sq_m0 = (alpha_m0 + beta_m0)^2;
     om_kv0 = 1-kv0;
     % dimensionless saturated vapor pressure, Pv(T) = C1_pv*exp(C2_pv/T)
     % with Pv(1) = Pv_star
@@ -837,27 +838,29 @@ function system = build_nodal(prepared)
     end
 
     % temperature boundary condition at the bubble wall, thermal only:
-    % residual of the heat flux balance
+    % residual of the heat flux balance. The wall uses the same frozen
+    % mixture conductivity (alpha_m0, beta_m0) as the bulk equation, so a
+    % run with vapor present and masstrans = 0 is thermally consistent.
     function theta_w = f_bubble_wall_thermal_bc(theta_bw, Tm_in, th_in)
         Tm_trans = Tm_in(iwall_m);
         T_trans = th_in(iwall_b);
-        Tw_prelim = imr.physics.thermal_inverse(theta_bw,alpha_g,beta_g);
+        Tw_prelim = imr.physics.thermal_inverse(theta_bw,alpha_m0,beta_m0);
         theta_w = grad_Tm_coeff * vertcat(Tw_prelim, Tm_trans) + ...
             grad_Trans_coeff * vertcat(theta_bw, T_trans);
     end
 
     % Solve the wall flux balance in d = Tw-1 rather than conductivity u.
-    % theta = (alpha_g+beta_g)*d + alpha_g*d^2/2 gives
+    % theta = (alpha_m0+beta_m0)*d + alpha_m0*d^2/2 gives
     % A*d^2 + B*d + C = 0. This avoids subtracting u^2-K(1)^2 and
-    % dividing by a tiny alpha_g. Discard roots with negative conductivity
+    % dividing by a tiny alpha_m0. Discard roots with negative conductivity
     % and choose the theta closest to the previous wall value.
     function theta_bw = f_wall_theta_exact(Tm_in, th_in)
         c1 = grad_Tm_coeff(1);
         c2 = grad_Trans_coeff(1);
         K = grad_Tm_coeff(2:end)*Tm_in(iwall_m,:) + ...
             grad_Trans_coeff(2:end)*th_in(iwall_b,:);
-        A = 0.5*alpha_g*c2;
-        B = c1+c2*(alpha_g+beta_g);
+        A = 0.5*alpha_m0*c2;
+        B = c1+c2*(alpha_m0+beta_m0);
         C = c1+K;
         if A == 0
             d1 = -C/B;
@@ -875,10 +878,10 @@ function system = build_nodal(prepared)
             d1(disc < 0) = NaN;
             d2(disc < 0) = NaN;
         end
-        ok1 = isfinite(d1) & alpha_g*(1+d1)+beta_g >= 0;
-        ok2 = isfinite(d2) & alpha_g*(1+d2)+beta_g >= 0;
-        th1 = d1.*(alpha_g+beta_g+0.5*alpha_g*d1);
-        th2 = d2.*(alpha_g+beta_g+0.5*alpha_g*d2);
+        ok1 = isfinite(d1) & alpha_m0*(1+d1)+beta_m0 >= 0;
+        ok2 = isfinite(d2) & alpha_m0*(1+d2)+beta_m0 >= 0;
+        th1 = d1.*(alpha_m0+beta_m0+0.5*alpha_m0*d1);
+        th2 = d2.*(alpha_m0+beta_m0+0.5*alpha_m0*d2);
         pick2 = ok2 & (~ok1 | abs(th2 - theta_bw_guess) < abs(th1 - theta_bw_guess));
         theta_bw = th1;
         theta_bw(pick2) = th2(pick2);
@@ -906,7 +909,7 @@ function system = build_nodal(prepared)
             else
                 u = max(-c1/c2, 0);
             end
-            theta_bw = (u^2 - K1sq_g)/(2*alpha_g);
+            theta_bw = (u^2 - K1sq_m0)/(2*alpha_m0);
         end
     end
 

@@ -26,6 +26,11 @@ function J = jacobian_nodal(t, X, jp)
     iz = jp.iz;
     nth = numel(ith);
     d = imr.numerics.dual_operations(n);
+    % frozen gas-vapor mixture conductivity at kv0, shared by the bulk
+    % temperature inversion and the thermal-only wall balance (masstrans
+    % = 0); kv0 = 0 without vapor, so this is alpha_g, beta_g unchanged
+    am0 = jp.kv0*jp.alpha_v + (1-jp.kv0)*jp.alpha_g;
+    bm0 = jp.kv0*jp.beta_v + (1-jp.kv0)*jp.beta_g;
 
     R = d.var(X, 1);
     Rdot = d.var(X, 2);
@@ -51,9 +56,11 @@ function J = jacobian_nodal(t, X, jp)
             gTm = jp.wall.grad_Tm;
             gTr = jp.wall.grad_Tr;
             % Differentiate the wall balance c1*Tw+c2*theta_w+K=0.
-            % With u=conductivity, d(theta_w)/dK=-u/(c2*u+c1).
+            % With u=conductivity, d(theta_w)/dK=-u/(c2*u+c1). The wall
+            % uses the same frozen mixture conductivity (am0, bm0) as the
+            % bulk temperature below.
             theta_bw = jp.theta_bw(t,X);
-            u = sqrt((jp.alpha_g + jp.beta_g)^2 + 2*jp.alpha_g*theta_bw);
+            u = sqrt((am0 + bm0)^2 + 2*am0*theta_bw);
             dK = -u/(gTr(1)*u + gTm(1));
             row = sparse(1, [itm(jp.wall.iwall_m) ith(jp.wall.iwall_b)], ...
                 dK*[gTm(2:end) gTr(2:end)], 1, n);
@@ -70,9 +77,7 @@ function J = jacobian_nodal(t, X, jp)
         T = struct('v',Tv, 'J',d.diag(1./s)*th.J + ...
             d.diag(dTda)*am.J+d.diag(dTdb)*bm.J);
     else
-        am = jp.kv0*jp.alpha_v + (1-jp.kv0)*jp.alpha_g;
-        bm = jp.kv0*jp.beta_v + (1-jp.kv0)*jp.beta_g;
-        [Tv,s] = imr.physics.thermal_inverse(th.v,am,bm);
+        [Tv,s] = imr.physics.thermal_inverse(th.v,am0,bm0);
         T = struct('v',Tv,'J',d.diag(1./s)*th.J);
     end
     Te = d.el(T, nth);
@@ -119,9 +124,7 @@ function J = jacobian_nodal(t, X, jp)
         Kv = d.add(d.scale(T, jp.alpha_v), d.con(jp.beta_v));
         Kst = d.add(Kg, d.mul(kv, d.sub(Kv, Kg)));
     else
-        Ka = jp.kv0*jp.alpha_v + (1 - jp.kv0)*jp.alpha_g;
-        Kb = jp.kv0*jp.beta_v + (1 - jp.kv0)*jp.beta_g;
-        Kst = d.add(d.scale(T, Ka), d.con(Kb));
+        Kst = d.add(d.scale(T, am0), d.con(bm0));
     end
 
     % bubble temperature equation
