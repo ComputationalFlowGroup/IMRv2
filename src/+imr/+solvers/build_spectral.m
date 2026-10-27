@@ -476,6 +476,20 @@ function system = build_spectral(prepared)
     % the viscous shape y^-3 instead. The basis T_n(z) - 1 (n = 1..Nv)
     % already vanishes at z = 1 (y -> Inf), so no endpoint needs forcing.
     function e0 = f_zener_field_init(Z1)
+        % Initialize the Zener field coefficients from the stress integral Z1.
+        % DESIGN CHOICE: among infinitely many spatial distributions that
+        % satisfy the integral constraint 2*int_1^inf sp/y dy = Z1/R^3, this
+        % function picks the elastic restoring profile se(y) (derived from the
+        % elasticity PDE at rest). This choice is canonical because:
+        %   1. The field will immediately evolve via f_zener_rhs, which solves
+        %      the polymer stress PDE; starting with a shape that matches the
+        %      elasticity equations minimizes transients.
+        %   2. Consistency with build_nodal.m, which uses the same shape.
+        %   3. No startup noise in initial heating/stress.
+        % An alternative (e.g., uniform, power-law, or viscous shape) would
+        % also satisfy the integral constraint but would reshape on the first
+        % RHS call. The elastic shape is preferred because it is already the
+        % shape the field PDE "wants" to be in.
         e0 = zeros(Nf,1);
         if Z1 == 0
             return
