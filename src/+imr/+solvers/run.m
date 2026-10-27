@@ -11,7 +11,9 @@ function varargout = run(solver,varargin)
     n = prepared.numerics;
     [t,X] = imr.numerics.integrate(system.rhs,system.initial,n.method, ...
         n.divisions,prepared.time,system.jacobian,n.rtol,n.atol);
-    varargout = system.outputs(t,X);
+    % Pass nargout to outputs so expensive reconstructions (wall resolution,
+    % history computation) are skipped if their outputs are not requested
+    varargout = system.outputs(t,X,nargout);
     if nargout == 9
         % Reuse the coupled RHS at the actual returned states and times.
         % No differentiation of sampled velocity, new ODE state or extra

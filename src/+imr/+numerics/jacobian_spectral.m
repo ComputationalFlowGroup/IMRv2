@@ -12,8 +12,22 @@
 % factored once, is differentiated as dq = A(s)\(d(rhs) + e1*(v'*q)*ds).
 % The low-dimensional closure (radial model, closed-form stress models,
 % viscosity, medium dissipation) is differentiated by central differences
-% of the closure alone. The struct jp holds the indices, operators,
-% constants and closure handles set up by imr.solve_spectral.
+% of the closure alone.
+%
+% The struct jp (prepared by build_spectral) holds:
+%   State indices: ia, ib, iz, izf (Chebyshev mode indices).
+%   Spectral operators: gA/gAI (thermal basis forward/inverse), gDA/gDDA
+%     (thermal derivatives), sCA/sCI (stress/polymer basis).
+%   Constants: thermal conductivity (alpha_m0, beta_m0), dimensional
+%     parameters (chi, kappa, kapover, Br, De).
+%   Functions: closure, closure_s, taugradu, zener_rhs.
+%   Wall data: A0, UA0, PA0, QA0 (Sherman-Morrison factorization matrices),
+%     e1, v (rank-one update vectors).
+%
+% Unlike the nodal solver, the spectral solver computes thermal field
+% histories directly from Chebyshev modes (A*a) at output times, avoiding
+% wall resolution loops. Frozen-mixture conductivity is precomputed in
+% build_spectral and passed as jp.alpha_m0, jp.beta_m0.
 function J = jacobian_spectral(t, X, jp)
 
     n = numel(X);

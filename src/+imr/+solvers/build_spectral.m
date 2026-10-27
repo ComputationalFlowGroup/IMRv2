@@ -3,6 +3,34 @@
 
 % Scheme-specific operators, closures and reconstruction for one checked case.
 % Public calls and time integration share imr.solvers.run.
+%
+% BUILDER STRUCTURE (roughly in order):
+%  1. Parameter unpacking: extract model equations (radial, bubtherm, etc.),
+%     solver options (Nv/Nt/Mt/Lv/Lt: spectral grid sizes), and the initial
+%     state (Rzero, Pb_star, Szero).
+%  2. Spectral basis setup: Chebyshev collocation grids (yV, zV), forward/
+%     inverse projection maps (sCA/sCI for stress field if present, gA/gAI
+%     for thermal).
+%  3. Operator setup: derivative matrices in spectral space, mapped to
+%     physical grids.
+%  4. Physical constants: conductivity coefficients, saturation pressure,
+%     gas constants, non-dimensional parameters.
+%  5. Thermal operators and coefficients (Kirchhoff transform, Sherman-
+%     Morrison terms for the thermal boundary condition).
+%  6. State layout and indices: maps state to R, Rdot, P, thermal/medium
+%     coefficients, stress modes, polymer field modes.
+%  7. Initial condition assembly: populate init from prepared values.
+%  8. Jacobian setup: conditionally build jp struct (parameters for analytic
+%     Jacobian) or set up finite-difference Jacobian.
+%  9. System assembly: package system.initial, system.rhs, system.jacobian,
+%     system.outputs.
+% 10. Nested functions: f_outputs, f_rhs and all RHS helpers (f_zener_rhs,
+%     f_spectral_stress, f_closure, etc.).
+%
+% Spectral representation: fields are represented as Chebyshev mode
+% coefficients. For example, bubble temperature theta(y,t) = gA*a(t) where
+% a are the coefficients and gA is the forward basis matrix. The inverse
+% map gAI projects node values back to coefficients (= gA^{-1}).
 function system = build_spectral(prepared)
     inputs = prepared.inputs;
     layout = prepared.layout;
@@ -279,7 +307,10 @@ function system = build_spectral(prepared)
     system.operatorSizes = [size(gA,1) size(mA,1)];
 
     % Reconstruct boundary values and preserve the public output tuple.
-    function out = f_outputs(t,X)
+    % nargout: number of outputs requested by the caller. Expensive
+    % reconstructions (temperature/medium-temperature history) are only
+    % computed if their outputs are actually requested.
+    function out = f_outputs(t,X,nargout_req)
 
         % post processing
 
@@ -298,27 +329,33 @@ function system = build_spectral(prepared)
         R = X(:,1);
         Rdot = X(:,2);
         P = X(:,3);
-        % extracting the Chebyshev coefficients
-        a = X(:,ia)';
-        b = X(:,ib)';
-        if bubtherm
+        % Default to returning all outputs if nargout not provided
+        if nargin < 3
+            nargout_req = 8;
+        end
+        % only compute temperature if requested
+        if bubtherm && nargout_req >= 5
+            % extracting the Chebyshev coefficients
+            a = X(:,ia)';
             T = imr.physics.thermal_inverse(gA*a,alpha_m0,beta_m0);
-            if medtherm
+            if medtherm && nargout_req >= 6
+                b = X(:,ib)';
                 Tm = mA*b;
             end
         end
 
-        % outputs
+        % outputs: only populate outputs that caller requested
+        out = cell(1,8);
         out{1} = t;
         out{2} = R;
         out{3} = Rdot;
         out{4} = P;
-        if bubtherm == 1
+        if bubtherm == 1 && nargout_req >= 5
             out{5} = T;
         else
             out{5} = [];
         end
-        if medtherm == 1
+        if medtherm == 1 && bubtherm && nargout_req >= 6
             out{6} = Tm;
         else
             out{6} = ones(size(t,1),1);

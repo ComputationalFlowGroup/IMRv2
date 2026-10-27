@@ -14,9 +14,20 @@
 % through the implicit function theorem on the wall balance. Only the
 % low-dimensional closure (radial model, stress model, viscosity, medium
 % dissipation) is differentiated by central differences of the closure
-% alone. The struct jp holds the state indices, operators, constants and
-% the closure handles set up by imr.solve_nodal, for either differentiation
-% scheme.
+% alone.
+%
+% The struct jp (prepared by build_nodal) holds:
+%   State indices: ith, itm, ikv, iz, izf.
+%   Operators: D1/D2 (spatial derivatives), wall gradients (grad_Tm, grad_Tr).
+%   Constants: conductivity coefficients (alpha_g/v, beta_g/v, kv0), gas
+%     constants (Rg, Rva, Rvg), dissipation parameters (Br, De).
+%   Functions: closure, taugradu, theta_bw (wall temperature from state).
+%   Wall struct: iwall_m, iwall_b (medium and bubble wall node indices),
+%     grad_Tm, grad_Tr (wall thermal gradients).
+%
+% Frozen-mixture conductivity (am0, bm0) is computed once at the top
+% (lines 29-33) and reused throughout, rather than recomputed at each
+% site, to reduce allocation and maintain consistency.
 function J = jacobian_nodal(t, X, jp)
 
     n = numel(X);
