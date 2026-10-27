@@ -108,9 +108,11 @@ Source-checking and spelling commands live in [CI](ci.md). Read and review the M
 The files in `tests/reference/` are the stored results that `s_test_suite_regression` compares against, one file per solver mode with each result under its case key (such as `r2_bubble+medium_s3_mat1`). Do not edit or regenerate them as part of an ordinary change. If your change deliberately changes the results, for example by fixing a physics bug:
 
 1. Explain in the pull request which results change, why, and by how much.
-2. Regenerate them only after the maintainers agree, with `toolchain/s_generate_references.m` in MATLAB (set `overwrite = true` in the script). It writes nothing unless every case succeeds.
+2. Regenerate them only after the maintainers agree. From `tests/`, `run_validation('generate-and-test','all',true)` runs independent prechecks, explicitly replaces baselines only if those checks pass, then runs regression. The existing `toolchain/s_generate_references.m` script remains available with `overwrite = true`. Both use one helper, which publishes nothing unless every case succeeds and reaches the requested times.
 
 A new case added to `tests/helpers/f_test_cases.m` fails the regression suite until its result is stored.
+
+Reviewed regression baselines under `tests/reference/` are distinct from ordinary generated run outputs. Keep their changes explicit in the pull request and retain the generation metadata.
 
 ## 3. Run the checks
 

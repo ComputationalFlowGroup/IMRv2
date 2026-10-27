@@ -17,6 +17,7 @@ The test suites live in `tests/suites/`. From `tests/`, call `imr_test_setup` on
 | `s_test_suite_mercury` | [Optional material properties and KM preparation](mercury.md) | Frozen property states and observations |
 | `s_test_suite_namespace` | [Namespace resolution, legacy calls and measured data](../reference/namespaces.md) | None |
 | `s_test_suite_solver` | [Unified selection, replay and optional acceleration](../api/solve.md) | None |
+| `s_test_suite_validation` | [Runner modes, workspace isolation and golden-data safeguards](../../tests/README.md#one-command-for-all-tests) | Temporary synthetic fixtures only |
 | `s_test_suite_structure` | [Prepared cases, states, independent Jacobians and output boundaries](../reference/internal-contracts.md#verification) | None |
 | `s_test_suite_numerics` | [Driven enthalpy, time-step limits and input guards](numerics.md) | None |
 | `s_test_suite_settings` | [Explicit acceptance/rejection, phase limits and initial-state guards](settings.md) | None |
@@ -68,17 +69,22 @@ Finite differences need finer grids because they are second-order accurate. The 
 
 ## Run the suites
 
-From the checkout root, use a shell with licensed MATLAB on its path. Each suite starts a fresh MATLAB process. The loop preserves failure status while allowing all suites to finish.
+From the checkout root, use a shell with licensed MATLAB on its path. The combined runner discovers all suites, isolates their function workspaces within one MATLAB process, continues after failures and returns a nonzero batch status if any stage fails:
+
+```bash
+matlab -batch "run('tests/s_run_validation.m')"
+```
+
+Use `run_validation('tests',{'diffmat','solver'})` from `tests/` for a subset, or `run_validation('generate-and-test')` for independent prechecks followed by explicit generation and regression. See [runner modes, selection and overwrite protection](../../tests/README.md#one-command-for-all-tests).
+
+For separate MATLAB processes, the following shell loop also discovers the available suites and preserves failure status:
 
 ```bash
 cd tests
 status=0
-for suite in s_test_suite_equilibrium s_test_suite_gaussian \
-    s_test_suite_permutations s_test_suite_diffmat s_test_suite_regression \
-    s_test_suite_polytropic s_test_suite_fluids s_test_suite_numerics \
-    s_test_suite_structure s_test_suite_namespace s_test_suite_settings \
-    s_test_suite_solver \
-    s_test_suite_mercury; do
+for file in suites/s_test_suite_*.m; do
+    suite=${file##*/}
+    suite=${suite%.m}
     matlab -batch "imr_test_setup; $suite" || status=1
 done
 exit "$status"

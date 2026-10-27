@@ -53,6 +53,16 @@ The [complete quick start](docs/getting-started/quick-start.md) converts SI inpu
 
 Use `'solver','spectral'` to select the spectral solver. Both existing solver functions remain supported. See the [unified solver API](docs/api/solve.md) and [optional acceleration output](docs/running/output.md#wall-acceleration).
 
+## Validation
+
+Run all available MATLAB test suites from the checkout root:
+
+```matlab
+run('tests/s_run_validation.m');
+```
+
+The [validation runner](tests/README.md#one-command-for-all-tests) supports selected suites, explicit golden-data generation and generation followed by regression. Its default test mode never generates or overwrites baselines.
+
 ## Documentation
 
 Read the [documentation index](docs/index.md) directly on GitHub. The MkDocs website is deferred; [reactivation instructions](docs/reference/ci.md#reactivating-mkdocs) are retained for later.
