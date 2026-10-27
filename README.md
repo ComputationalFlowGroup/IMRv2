@@ -11,8 +11,6 @@ IMR simulates a spherical cavitation bubble in a viscoelastic material. Research
 
 ![IMR monogram with an open bubble ring. Inertial Microcavitation Rheometry.](docs/assets/logos/imr-monogram.svg)
 
-[Logo source and vector exports](docs/reference/branding.md).
-
 - Bubble radius, wall velocity, optional wall acceleration and pressure with Rayleigh–Plesset, Keller–Miksis or Gilmore dynamics.
 - Bubble and medium temperatures, with optional vapor mass transfer in the nodal solver.
 - Viscoelastic stress models and Newtonian or shear-dependent viscosity.
@@ -79,10 +77,6 @@ Read the [documentation index](docs/index.md) directly on GitHub. The MkDocs web
 | Reference | [Compatibility](docs/reference/compatibility.md) · [Code map](docs/reference/code-map.md) · [Namespaces](docs/reference/namespaces.md) · [Repository map](docs/reference/repository.md) · [CI](docs/reference/ci.md) · [Contributing](docs/reference/contributing.md) · [Citation](docs/reference/references.md) · [People](docs/reference/about.md) |
 
 IMR accompanies the inertial-cavitation methods described by Estrada et al. (2017) and Warnez and Johnsen (2015). See [references and citation](docs/reference/references.md) for the project BibTeX and the papers to cite for measured waveforms.
-
-## Optional material add-on
-
-The full distribution includes a [mercury liquid/vapor profile](docs/model/mercury.md), its [validation suite](docs/validation/mercury.md) and a runnable MATLAB example. Generic physics and water validation do not depend on that add-on.
 
 ## License
 
