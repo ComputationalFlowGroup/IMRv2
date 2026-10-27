@@ -279,7 +279,10 @@ function system = build_spectral(prepared)
     system.operatorSizes = [size(gA,1) size(mA,1)];
 
     % Reconstruct boundary values and preserve the public output tuple.
-    function out = f_outputs(t,X)
+    % nargout: number of outputs requested by the caller. Expensive
+    % reconstructions (temperature/medium-temperature history) are only
+    % computed if their outputs are actually requested.
+    function out = f_outputs(t,X,nargout_req)
 
         % post processing
 
@@ -298,27 +301,33 @@ function system = build_spectral(prepared)
         R = X(:,1);
         Rdot = X(:,2);
         P = X(:,3);
-        % extracting the Chebyshev coefficients
-        a = X(:,ia)';
-        b = X(:,ib)';
-        if bubtherm
+        % Default to returning all outputs if nargout not provided
+        if nargin < 3
+            nargout_req = 8;
+        end
+        % only compute temperature if requested
+        if bubtherm && nargout_req >= 5
+            % extracting the Chebyshev coefficients
+            a = X(:,ia)';
             T = imr.physics.thermal_inverse(gA*a,alpha_m0,beta_m0);
-            if medtherm
+            if medtherm && nargout_req >= 6
+                b = X(:,ib)';
                 Tm = mA*b;
             end
         end
 
-        % outputs
+        % outputs: only populate outputs that caller requested
+        out = cell(1,8);
         out{1} = t;
         out{2} = R;
         out{3} = Rdot;
         out{4} = P;
-        if bubtherm == 1
+        if bubtherm == 1 && nargout_req >= 5
             out{5} = T;
         else
             out{5} = [];
         end
-        if medtherm == 1
+        if medtherm == 1 && bubtherm && nargout_req >= 6
             out{6} = Tm;
         else
             out{6} = ones(size(t,1),1);

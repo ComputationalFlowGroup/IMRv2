@@ -283,13 +283,21 @@ function system = build_nodal(prepared)
     system.operatorSizes = [size(dmatrix_Tkv,1) size(dmatrix_Tm,1)];
 
     % Reconstruct boundary values and preserve the public output tuple.
-    function out = f_outputs(t,X)
+    % nargout: number of outputs requested by the caller. Expensive
+    % reconstructions (wall resolution, temperature history, vapor history)
+    % are only computed if their outputs are actually requested.
+    function out = f_outputs(t,X,nargout_req)
 
         % extract result
         R    = X(:,1);
         Rdot = X(:,2);
         P    = X(:,3);
-        if bubtherm
+        % Default to returning all outputs if nargout not provided
+        if nargin < 3
+            nargout_req = 8;
+        end
+        % Skip expensive thermal/vapor reconstructions if outputs are not requested
+        if bubtherm && nargout_req >= 5
             theta = X(:,ibubtherm);
             if medtherm
                 Tm = X(:,imedtherm);
@@ -313,39 +321,42 @@ function system = build_nodal(prepared)
                 end
             end
         end
-        if masstrans
-            % T with the stored kv(end), as in the right-hand side, then the
-            % wall vapor concentration
-            kv = X(:,imass);
-            T = f_theta_of_T(theta,kv);
-            if medtherm
-                kv(:,end) = kv_w;
+        if bubtherm && nargout_req >= 5
+            if masstrans
+                % T with the stored kv(end), as in the right-hand side, then the
+                % wall vapor concentration
+                kv = X(:,imass);
+                T = f_theta_of_T(theta,kv);
+                if medtherm
+                    kv(:,end) = kv_w;
+                else
+                    kv(:,end) = f_kv_of_T(T(:,end),P);
+                end
             else
-                kv(:,end) = f_kv_of_T(T(:,end),P);
+                T = f_theta_of_T(theta,kv0);
             end
-        elseif bubtherm
-            T = f_theta_of_T(theta,kv0);
         end
-        if medtherm
+        if medtherm && bubtherm && nargout_req >= 6
             Tm(:,1) = T(:,end);
         end
 
-        % outputs assembly
+        % outputs assembly: only populate outputs that caller requested
+        out = cell(1,8);
         out{1} = t;
         out{2} = R;
         out{3} = Rdot;
         out{4} = P;
-        if bubtherm
+        if bubtherm && nargout_req >= 5
             out{5} = T;
         else
             out{5} = [];
         end
-        if medtherm == 1
+        if medtherm == 1 && nargout_req >= 6
             out{6} = Tm;
         else
             out{6} = ones(size(t,1),1);
         end
-        if masstrans == 1
+        if masstrans == 1 && nargout_req >= 7
             out{7} = kv;
         else
             out{7} = [];
