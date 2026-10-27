@@ -34,10 +34,10 @@ function J = jacobian_spectral(t, X, jp)
         th = d.lin(jp.gA, aC);
         dth = d.lin(jp.gDA, aC);
         ddth = d.lin(jp.gDDA, aC);
-        [Tv,sq] = imr.physics.thermal_inverse(th.v,jp.alpha_g,jp.beta_g);
+        [Tv,sq] = imr.physics.thermal_inverse(th.v,jp.alpha_m0,jp.beta_m0);
         T = d.fun(th,Tv,1./sq);
-        D = d.scale(d.div(d.add(d.scale(d.mul(T, T), jp.alpha_g), ...
-            d.scale(T, jp.beta_g)), P), jp.kapover);
+        D = d.scale(d.div(d.add(d.scale(d.mul(T, T), jp.alpha_m0), ...
+            d.scale(T, jp.beta_m0)), P), jp.kapover);
         dth1 = d.el(dth, 1);
         % bubble pressure
         inner = d.sub(d.scale(d.div(dth1, R), (jp.kappa - 1)*jp.chi), ...
@@ -96,7 +96,7 @@ function J = jacobian_spectral(t, X, jp)
             Tmdot = d.add(Tmdot, struct('v', tg, 'J', Jtg));
             Tmdot = d.set(Tmdot, numel(Tmdot.v), d.con(0));
             % boundary condition solve with the Sherman-Morrison update
-            s = d.add(d.scale(d.el(T, 1), jp.alpha_g), d.con(jp.beta_g));
+            s = d.add(d.scale(d.el(T, 1), jp.alpha_m0), d.con(jp.beta_m0));
             rv = vertcat(0, thdot.v(2:end), Tmdot.v(2:end), 0);
             rJ = vertcat(sparse(1,n), thdot.J(2:end,:), Tmdot.J(2:end,:), ...
                 sparse(1,n));
