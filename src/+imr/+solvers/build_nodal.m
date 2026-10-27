@@ -3,6 +3,41 @@
 
 % Scheme-specific operators, closures and reconstruction for one checked case.
 % Public calls and time integration share imr.solvers.run.
+%
+% BUILDER STRUCTURE (roughly in order):
+%  1. Parameter unpacking: extract model equations (radial, bubtherm, etc.),
+%     solver options (scheme, jacobian type, grid sizes), and the initial
+%     state (Rzero, Pb_star, Szero).
+%  2. Operator setup: discretization matrices for temperature and medium
+%     temperature fields (D1/D2 for nodal derivatives, based on scheme).
+%  3. Physical constants: conductivity coefficients (alpha_g, beta_g,
+%     alpha_v, beta_v), saturation pressure constants, gas constants.
+%  4. Thermal/mass-transfer operators and coefficients, especially the
+%     Kirchhoff transform and wall boundary gradients.
+%  5. State layout and index arrays: maps state vector to R, Rdot, P,
+%     bubble temperature, medium temperature, vapor concentration, stress.
+%  6. Initial condition assembly: populate init vector from prepared values.
+%  7. Wall closure helpers: functions f_wall_theta_exact, f_wall_mass_closure
+%     and their supporting machinery (fzero options, wall constant struct).
+%  8. Jacobian setup: conditionally build jp (parameters for analytic Jacobian)
+%     or set up finite-difference Jacobian.
+%  9. System assembly: package system.initial, system.rhs, system.jacobian,
+%     system.outputs into the struct returned to run.m.
+% 10. Nested functions: f_outputs, f_reset_output_wall, f_rhs and all RHS
+%     helpers (f_taugradu, f_closure, etc.).
+%
+% Variables are named to hint at their physical meaning. For example:
+%   D1/D2   = first and second-derivative matrices (spatial operators)
+%   dmatrix = D1 mapped to the working grid; ddmatrix = D2 mapped.
+%   alpha/beta = Kirchhoff transform coefficients for thermal conductivity.
+%   theta   = transformed bubble temperature (state variable).
+%   T       = physical temperature (reconstructed from theta).
+%   Tm      = medium temperature.
+%   kv      = vapor mole fraction (dimensionless).
+%   S/Z1    = stress integral (large scalar); Z1dot its time derivative.
+%   cp      = polymer stress (state variable if Zener model).
+%   yT*     = spatial grids and related factors (yT = y*T where T is the
+%     thermal diffusion length, used for non-dimensionalization).
 function system = build_nodal(prepared)
     inputs = prepared.inputs;
     layout = prepared.layout;
