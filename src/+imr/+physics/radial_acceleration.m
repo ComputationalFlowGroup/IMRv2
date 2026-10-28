@@ -57,10 +57,11 @@ else
             C = Cstar;
         end
     else
-        % Mie-Gruneisen EoS
+        % Mie-Gruneisen EoS (imr.physics.mie_gruneisen_eos, the general
+        % dimensionless p(rho,e)-style evaluator; see that file)
         Pb = P - iWe./R + S;
-        [C, hB, hH] = f_mie_gruneisen_eos_scalar(Pb);
-        [~, hF, hFprime] = f_mie_gruneisen_eos_scalar(1 + Pf8);
+        [C, hB, hH] = imr.physics.mie_gruneisen_eos(Pb, Cstar, hugoniot_s, nog);
+        [~, hF, hFprime] = imr.physics.mie_gruneisen_eos(1 + Pf8, Cstar, hugoniot_s, nog);
         if radial == 5
             C = Cstar;
         end
@@ -70,57 +71,6 @@ else
         - 1.5*(1 - Rdot./(3*C)).*Rdot.^2) ./ ((1 - Rdot./C).*R + ...
         JdotA*hH./C + 6*hH.*R.*ddintfnu*iDRe./C);
 
-end
-
-% computes mu, rho, enthalpy h, and hH = 1/rho at a scalar pressure P
-% using the Mie–Grüneisen EoS (elementwise, pval may be a row vector)
-function [C, hB, hH] = f_mie_gruneisen_eos_scalar(pval)
-
-    % normalize pressure
-    A = pval / Cstar^2;
-    As = A*hugoniot_s;
-    As2 = A*hugoniot_s^2;
-
-    % quadratic coefficients for solving mu
-    a = As2 - nog;
-    b = -2*As - 1;
-    % discriminant calculation
-    d = b.^2 - 4*a.*A;
-
-    % density strain, small (physical) root in numerically stable form:
-    % mu -> A as A -> 0, i.e. drho/rho ~ p/(rho*c^2). The other root is the
-    % spurious -1/nog branch since a < 0 near ambient
-    mu = 2*A ./ (-b + sqrt(d));
-    C = Cstar*sqrt(((1+2*nog*mu).*(1-hugoniot_s*mu).^2+ ...
-        2*hugoniot_s*mu.*(1+nog*mu).*(1-hugoniot_s*mu))./(1-hugoniot_s*mu).^4);
-
-    %   hH  - 1 / ρ(P) (for dot{h} = hH * dot{P})
-    hH = 1./(1 + mu);
-
-    % enthalpy h(P) = ∫_1^P dp/ρ in closed form. With p = Cstar^2*g(mu),
-    % g = mu*(1 + nog*mu)/(1 - s*mu)^2, integration by parts gives
-    % h = [p/(1 + mu)] + Cstar^2*∫ g/(1 + mu)^2 dmu, and the partial
-    % fractions of g/(1 + mu)^2 have poles at mu = -1 and mu = 1/s. The
-    % differences are written so that they hold for s = 0 and near P = 1.
-    s = hugoniot_s;
-    mu1 = f_mie_mu(1);
-    dmu = mu - mu1;
-    A1 = -(2*nog + s - 1)/(1 + s)^3;
-    A2 = (nog - 1)/(1 + s)^2;
-    B2 = (s + nog)/(1 + s)^2;
-    G = A1*(log1p(dmu/(1 + mu1)) - log1p(-s*dmu/(1 - s*mu1))) + ...
-        A2*dmu./((1 + mu)*(1 + mu1)) + B2*dmu./((1 - s*mu)*(1 - s*mu1));
-    hB = pval./(1 + mu) - 1/(1 + mu1) + Cstar^2*G;
-
-end
-
-% density strain mu = rho - 1 of the Mie-Gruneisen EoS at pressure p
-function mu = f_mie_mu(p)
-    A = p/Cstar^2;
-    a = A*hugoniot_s^2 - nog;
-    b = -2*A*hugoniot_s - 1;
-    d = b^2 - 4*a*A;
-    mu = 2*A/(-b + sqrt(d));
 end
 
 end

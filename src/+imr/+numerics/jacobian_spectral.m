@@ -21,8 +21,8 @@
 %   Constants: thermal conductivity (alpha_m0, beta_m0), dimensional
 %     parameters (chi, kappa, kapover, Br, De).
 %   Functions: closure, closure_s, taugradu, zener_rhs.
-%   Wall data: A0, UA0, PA0, QA0 (Sherman-Morrison factorization matrices),
-%     e1, v (rank-one update vectors).
+%   Wall data: A0, UA0, PA0, QA0, LA0 (Sherman-Morrison factorization
+%     matrices), e1, v (rank-one update vectors).
 %
 % Unlike the nodal solver, the spectral solver computes thermal field
 % histories directly from Chebyshev modes (A*a) at output times, avoiding
