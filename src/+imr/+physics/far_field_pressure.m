@@ -26,13 +26,14 @@ function [p8,p8dot] = far_field_pressure(t,vararg)
         p8 = wp(2)*ones(size(t));
         p8dot = zeros(size(t));
     elseif wave_type == 1
-        % Gaussian wave
+        % Gaussian wave: positive ee = compressive (positive pressure rise),
+        % negative ee = tensile (rarefaction)
         ee = wp(2);
         tw = wp(3);
         dt = wp(4);
         g = exp(-((t-dt).^2) / tw^2);
-        p8 = - ee * g;
-        p8dot = ee * (2*(t-dt)/tw^2) .* g;
+        p8 = ee * g;
+        p8dot = -ee * (2*(t-dt)/tw^2) .* g;
     elseif wave_type == 2
         % histotripsy wave
         om = wp(1);
@@ -57,10 +58,11 @@ function [p8,p8dot] = far_field_pressure(t,vararg)
             p8dot(on) = -ee*mn*om*c.^(2*mn-1).*sin(phase);
         end
     elseif wave_type == 3
-        % heaviside impulse, the step at t = tw is measure-zero in time
+        % Heaviside step: positive ee = compressive (positive pressure rise),
+        % negative ee = tensile (rarefaction). Step at t = tw is measure-zero.
         ee = wp(2);
         tw = wp(3);
-        p8 = -ee*(t < tw);
+        p8 = ee*(t < tw);
         p8dot = zeros(size(t));
     end
 

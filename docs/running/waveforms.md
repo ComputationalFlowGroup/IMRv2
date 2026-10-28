@@ -10,7 +10,7 @@
 | $d$ | `dt` | Gaussian/histotripsy center time |
 | $m$ | `mn` | Histotripsy exponent |
 
-The sign convention depends on the waveform: positive `ee` raises pressure for type 0 and type 2, and lowers pressure for type 1 and type 3. `imr.nondimensionalize` scales SI `pa`, `omega`, `tw` and `dt` before preparation. Scalar and array times preserve their input shape.
+**Sign convention:** Positive `ee` always drives compressive waves (positive far-field pressure rise); negative `ee` drives tensile (rarefaction) waves. Physically: tension pulls material apart (negative stress), and compression pushes it together (positive stress). This convention is consistent across all waveform types. `imr.nondimensionalize` scales SI `pa`, `omega`, `tw` and `dt` before preparation. Scalar and array times preserve their input shape.
 
 ## Analytic choices
 
@@ -27,11 +27,11 @@ The legacy code calls this an impulse, but it is a constant pressure offset over
 For positive width $w$, set $z=(t-d)/w$:
 
 $$
-f(t)=-A e^{-z^2},\qquad
-\dot f(t)=\frac{2A(t-d)}{w^2}e^{-z^2}.
+f(t)=A e^{-z^2},\qquad
+\dot f(t)=-\frac{2A(t-d)}{w^2}e^{-z^2}.
 $$
 
-Positive amplitude gives a rarefaction centered at $d$; its derivative changes sign there. The pulse has infinite mathematical support and decays smoothly. The [Gaussian suite](../validation/gaussian.md) checks return toward equilibrium after forcing.
+Positive amplitude gives a compression pulse (pressure rise) centered at $d$; its derivative changes sign there. Negative amplitude gives a rarefaction (tensile) pulse. The pulse has infinite mathematical support and decays smoothly. The [Gaussian suite](../validation/gaussian.md) checks return toward equilibrium after forcing.
 
 ### Histotripsy pulse: type 2
 
@@ -51,11 +51,11 @@ Endpoint derivatives are a pointwise numerical convention. A rectangular pulse h
 For $w\geq0$:
 
 $$
-f(t)=\begin{cases}-A,&t<w,\\0,&t\geq w,\end{cases}
+f(t)=\begin{cases}A,&t<w,\\0,&t\geq w,\end{cases}
 \qquad \dot f(t)=0.
 $$
 
-The derivative omits the distributional impulse at $w$. With `tw = 0` the perturbation is zero for every allowed nonnegative simulation time. For a discontinuous drive, choose the requested time span and step resolution deliberately; a zero returned derivative does not make the waveform smooth.
+Positive amplitude $A$ (positive `ee`) gives a constant compressive pressure rise before the step at $t=w$; negative amplitude gives a constant tensile pressure drop (rarefaction). The derivative omits the distributional impulse at $w$. With `tw = 0` the perturbation is zero for every allowed nonnegative simulation time. For a discontinuous drive, choose the requested time span and step resolution deliberately; a zero returned derivative does not make the waveform smooth.
 
 ## Measured waveforms
 
