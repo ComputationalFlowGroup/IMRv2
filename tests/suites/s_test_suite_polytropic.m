@@ -28,11 +28,16 @@ fprintf('Polytropic gas derivative and constant-vapor invariance PASSED.\n');
 % pressure law during actual motion, including the spectral analytic path.
 solvers = {@imr.solve_nodal, @imr.solve_nodal, @imr.solve_spectral};
 extra = {{'scheme',0}, {'scheme',1}, {}};
+tvec = linspace(0,0.2,41);
 for mode = 1:numel(solvers)
     args = {'radial',2,'stress',0,'vapor',1,'pv',Pv,'req',0.8, ...
-        'we',Inf,'tvector',linspace(0,0.2,41),'reltol',1e-10, ...
+        'we',Inf,'tvector',tvec,'reltol',1e-10, ...
         'abstol',1e-10,'nt',8,'mt',8,'jacobian',2};
-    [~, radius, ~, pressure] = solvers{mode}(args{:}, extra{mode}{:});
+    [t, radius, ~, pressure] = solvers{mode}(args{:}, extra{mode}{:});
+    % An early stop (NaN, event, integration failure) would otherwise show
+    % up only as a confusing size mismatch below, not a clear diagnosis.
+    [is_complete, completion_msg] = imrtest.completion_check(t, tvec(end));
+    assert(is_complete, 'Mode %d did not complete: %s', mode, completion_msg);
     initial_gas = (1 - Pv)*0.8^(3*1.47);
     expected = initial_gas*radius.^(-3*1.47) + Pv;
     assert(max(abs(radius - radius(1))) > 1e-4);

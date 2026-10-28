@@ -54,8 +54,7 @@ for k = 1:numel(cases)
             msg{k} = exec_msg;
         else
             % Check completion first
-            t_request = c.args{find(strcmpi(c.args, 'tfin'), 1) + 1};
-            [is_complete, completion_msg] = imrtest.completion_check(t, t_request);
+            [is_complete, completion_msg] = imrtest.completion_check(t, c.t_request);
 
             if ~is_complete
                 failed(k) = true;
