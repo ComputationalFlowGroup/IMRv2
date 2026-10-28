@@ -7,13 +7,14 @@
 [![Spelling](https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://github.com/mrodrig6/imrv2/blob/main/LICENSE)
 
-IMR simulates a spherical cavitation bubble in a viscoelastic material. Researchers use its bubble-radius histories to compare with high-speed measurements and study soft materials at high strain rates.
+IMR simulates a spherical cavitation bubble in a viscoelastic material. Researchers use its bubble-radius histories to compare with high-speed measurements and study soft materials at high strain rates. This is the **water-only distribution**; the [main repository](https://github.com/mrodrig6/imrv2) includes additional mercury fluid support.
 
 ![IMR monogram with an open bubble ring. Inertial Microcavitation Rheometry.](docs/assets/logos/imr-monogram.svg)
 
 - Bubble radius, wall velocity, optional wall acceleration and pressure with Rayleigh–Plesset, Keller–Miksis or Gilmore dynamics.
 - Bubble and medium temperatures, with optional vapor mass transfer in the nodal solver.
 - Viscoelastic stress models and Newtonian or shear-dependent viscosity.
+- Water ambient fluid with extensible profile architecture; add custom fluids via the data schema.
 - Parameter sweeps, measured driving waveforms and numerical test suites.
 
 Extend IMR by adding inputs or constitutive equations along its [documented MATLAB extension path](docs/api/extending.md).
