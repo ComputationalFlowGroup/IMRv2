@@ -21,13 +21,24 @@ cases = f_test_cases('equilibrium');
 failed = false(1, numel(cases));
 msg = cell(1, numel(cases));
 for k = 1:numel(cases)
-    [R, msg{k}] = f_test_run(cases(k));
-    if isempty(msg{k})
-        err = max(abs(R - 1));
-        failed(k) = ~(err <= threshold);
-        msg{k} = sprintf('max |R - 1| = %.3e', err);
+    [R, exec_msg, t] = f_test_run(cases(k));
+    if isempty(exec_msg)
+        % Check completion first
+        t_request = cases(k).args{find(strcmpi(cases(k).args, 'tfin'), 1) + 1};
+        [is_complete, completion_msg] = imrtest.completion_check(t, t_request);
+
+        if ~is_complete
+            failed(k) = true;
+            msg{k} = completion_msg;
+        else
+            % Check equilibrium condition
+            err = max(abs(R - 1));
+            failed(k) = ~(err <= threshold);
+            msg{k} = sprintf('%s | max|ΔR| = %.3e', completion_msg, err);
+        end
     else
         failed(k) = true;
+        msg{k} = exec_msg;
     end
     fprintf('%-10s %-28s %s\n', cases(k).mode, cases(k).key, msg{k});
 end

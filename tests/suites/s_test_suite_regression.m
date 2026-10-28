@@ -47,17 +47,27 @@ for k = 1:numel(cases)
         failed(k) = true;
         msg{k} = 'no stored result, run s_generate_references';
     else
-        [R, msg{k}] = f_test_run(c);
+        [R, exec_msg, t] = f_test_run(c);
         R_ref = ref.(c.mode).R{j};
-        if ~isempty(msg{k})
+        if ~isempty(exec_msg)
             failed(k) = true;
-        elseif ~isequal(size(R), size(R_ref))
-            failed(k) = true;
-            msg{k} = 'output size differs from the stored result';
+            msg{k} = exec_msg;
         else
-            err = norm(abs(R./R_ref - 1), 2);
-            failed(k) = ~(err <= threshold);
-            msg{k} = sprintf('L2 relative error = %.3e', err);
+            % Check completion first
+            t_request = c.args{find(strcmpi(c.args, 'tfin'), 1) + 1};
+            [is_complete, completion_msg] = imrtest.completion_check(t, t_request);
+
+            if ~is_complete
+                failed(k) = true;
+                msg{k} = completion_msg;
+            elseif ~isequal(size(R), size(R_ref))
+                failed(k) = true;
+                msg{k} = 'output size differs from the stored result';
+            else
+                err = norm(abs(R./R_ref - 1), 2);
+                failed(k) = ~(err <= threshold);
+                msg{k} = sprintf('L2 error = %.3e', err);
+            end
         end
     end
     fprintf('%-10s %-30s %s\n', c.mode, c.key, msg{k});
