@@ -26,19 +26,18 @@ msg = cell(1, numel(cases));
 for k = 1:numel(cases)
     [R, exec_msg, t] = f_test_run(cases(k));
     if isempty(exec_msg)
-        % Determine requested final time (tvector or tfin)
-        kt = find(strcmp(cases(k).args, 'tvector'), 1);
+        % Expected output count: tvector's length if given (last occurrence
+        % wins, matching how imr.nondimensionalize itself resolves a
+        % repeated name), else unconstrained (a bare tfin has no fixed count).
+        kt = find(strcmp(cases(k).args, 'tvector'), 1, 'last');
         if isempty(kt)
-            kfin = find(strcmp(cases(k).args, 'tfin'), 1, 'last');
-            t_request = cases(k).args{kfin + 1};
             nt = numel(R);
         else
-            t_request = cases(k).args{kt + 1}(end);
             nt = numel(cases(k).args{kt + 1});
         end
 
         % Check completion
-        [is_complete, completion_msg] = imrtest.completion_check(t, t_request);
+        [is_complete, completion_msg] = imrtest.completion_check(t, cases(k).t_request);
 
         if ~is_complete
             failed(k) = true;

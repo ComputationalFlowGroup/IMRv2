@@ -265,18 +265,39 @@ function cases = f_test_cases(suite)
     end
     
     % every case in every mode, kept when the solver's input checks accept it
-    cases = struct('key', {}, 'mode', {}, 'solver', {}, 'args', {});
+    cases = struct('key', {}, 'mode', {}, 'solver', {}, 'args', {}, 't_request', {});
     for m = 1:numel(modes)
         for k = 1:size(specs, 1)
             args = [imr.nondimensionalize(specs{k,2}{:}), grids{m}, modes(m).extra];
             if f_accepted(modes(m).call, args)
                 cases(end+1) = struct('key', specs{k,1}, ...
                     'mode', modes(m).name, 'solver', modes(m).solver, ...
-                    'args', {args}); %#ok<AGROW>
+                    'args', {args}, 't_request', f_t_request(args)); %#ok<AGROW>
             end
         end
     end
-    
+
+end
+
+% The requested final time of a case: the last entry of tvector if given,
+% else tfin, with the last occurrence of either winning (matching how
+% imr.nondimensionalize itself resolves a name repeated in args, by
+% sequential overwrite). Computed once here, where the full concatenated
+% args list for this case/mode/grid is already in hand, instead of each
+% test suite re-deriving it downstream with its own ad hoc, easily
+% mismatched strcmp/strcmpi lookup.
+function t_request = f_t_request(args)
+    kt = find(strcmp(args, 'tvector'), 1, 'last');
+    if ~isempty(kt)
+        t_request = args{kt+1}(end);
+        return
+    end
+    kf = find(strcmpi(args, 'tfin'), 1, 'last');
+    if ~isempty(kf)
+        t_request = args{kf+1};
+        return
+    end
+    error('f_test_cases: case has neither tvector nor tfin.');
 end
 
 % name/value pairs of a row of the thermal table
