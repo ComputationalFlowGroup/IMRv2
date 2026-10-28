@@ -53,7 +53,7 @@ fprintf(fid, 'Timestamp: %s\n', timestamp);
 fprintf(fid, 'Total cases: %d\n\n', n_cases);
 fprintf(fid, '%-12s | %-12s | %-8s | %-10s | %-10s | %-10s | %-12s | %-10s\n', ...
     'Solver', 'Stress', 'Grid', 'Time(s)', 'RHS Evals', 'Jac Evals', 'History(MB)', 'Memory(MB)');
-fprintf(fid, ['%s\n', repmat('-', 1, 110)]);
+fprintf(fid, '%s\n', repmat('-', 1, 110));
 
 % Collect results
 results = struct();
@@ -139,8 +139,6 @@ fprintf('Results written: %s\n', results_file);
 fclose(fid);
 
 fprintf('\nBenchmark suite complete.\n');
-
-end
 
 %% Local functions
 

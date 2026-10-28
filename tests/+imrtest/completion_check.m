@@ -28,12 +28,15 @@ function [is_complete, reason, warnings] = completion_check(t, t_request, tol)
 %   end
 
     arguments
-        t (:,1) double
+        t (:,:) double {mustBeVector}
         t_request (1,1) double {mustBePositive}
         tol (1,1) double = 1e-9
     end
 
-    warnings = {};
+    % Ensure t is a column vector
+    if isrow(t)
+        t = t(:);
+    end
 
     % Validate input time vector
     if isempty(t)
