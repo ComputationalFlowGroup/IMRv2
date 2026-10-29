@@ -10,7 +10,6 @@
 % It covers every radial, thermal (without mass transfer), vapor and stress
 % model that the compatibility matrix allows (f_test_cases). It needs no
 % stored results. Run it from tests/ after imr_test_setup.
-clc;
 clear;
 
 
