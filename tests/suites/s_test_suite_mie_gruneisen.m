@@ -25,15 +25,19 @@ for row = 1:numel(param_sets)
     nog = p(3);
     eos = @(pval) imr.physics.mie_gruneisen_eos(pval, Cstar, hugoniot_s, nog);
 
-    % At the ambient reference state (p = 1), the EoS must reduce to the
-    % ambient sound speed with zero enthalpy and unit specific volume,
-    % for any hugoniot_s/nog: this is what makes coupling a new fluid
-    % profile's ambient (rho8, c8) to this EoS always consistent at the
-    % reference point (docs/model/fluids.md).
-    [C1, hB1, hH1] = eos(1);
-    assert(abs(C1/Cstar - 1) < 1e-13);
+    % The density/sound-speed relation p/Cstar^2 = g(mu) (docs/theory/
+    % radial-equations.md) has mu = rho - 1 = 0 at p = 0, not p = 1: g(0)
+    % = 0 by construction of the quadratic, for any hugoniot_s/nog. At
+    % that state the EoS must reduce to the far-field sound speed and
+    % unit specific volume.
+    [C0, ~, hH0] = eos(0);
+    assert(abs(C0/Cstar - 1) < 1e-13);
+    assert(abs(hH0 - 1) < 1e-13);
+    % hB's own reference is a separate, free choice of integration
+    % constant: hB(p) = integral from 1 to p of 1/rho, so hB(1) = 0
+    % regardless of where mu itself is zero.
+    [~, hB1] = eos(1);
     assert(abs(hB1) < 1e-13);
-    assert(abs(hH1 - 1) < 1e-13);
 
     % Thermodynamic identity: hB(p) = integral from 1 to p of hH(p') dp',
     % i.e. d(hB)/dp = hH (hH = 1/rho, hB = enthalpy). Check the closed

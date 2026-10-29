@@ -18,13 +18,18 @@
 % was previously private to imr.physics.radial_acceleration, pulled out
 % here so it can be tested and reused on its own.
 %
-% At p = 1 (the ambient reference state) mu = 0, hB = 0 and C = Cstar by
-% construction, for any hugoniot_s and nog: coupling a new profile's
-% ambient (rho8, c8) to this equation of state is always thermodynamically
-% consistent at the reference point. hugoniot_s away from 0 is the part
-% that needs a material-specific fit; hugoniot_s = 0 is the defensible
-% fallback (a purely linear/acoustic equation of state, no shock
-% stiffening) when no such fit exists.
+% The density/sound-speed relation p/Cstar^2 = g(mu) (docs/theory/
+% radial-equations.md) gives mu = rho - 1 = 0, C = Cstar and hH = 1 at
+% p = 0 (not p = 1): g(0) = 0 by construction of the quadratic below,
+% for any hugoniot_s and nog. hB's reference is a separate, free choice
+% of integration constant (see its own description below): hB(1) = 0,
+% independent of where mu itself is zero. Callers only ever use
+% differences between a wall and a far-field evaluation
+% (imr.physics.radial_acceleration), so this offset never enters the
+% dynamics; it matters only when evaluating the EoS in isolation.
+% hugoniot_s away from 0 is the part that needs a material-specific fit;
+% hugoniot_s = 0 is the defensible fallback (a purely linear/acoustic
+% equation of state, no shock stiffening) when no such fit exists.
 %
 % Inputs:
 %   pval        dimensionless pressure (scalar or array)
