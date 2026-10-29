@@ -48,6 +48,11 @@ function files = generate_references(overwrite,refdir,cases,parallel)
     if parallel && license('test','Distrib_Computing_Toolbox') && ~isempty(ver('parallel'))
         workers = Inf;
     end
+    % Close any pool this call starts once this function is done with it;
+    % leave one the caller already had open alone.
+    if workers ~= 0 && isempty(gcp('nocreate'))
+        pool_cleanup = onCleanup(@() delete(gcp('nocreate')));
+    end
     parfor (k = 1:n, workers)
         [Rs{k}, msgs{k}] = f_complete_case(cases(k));
     end
