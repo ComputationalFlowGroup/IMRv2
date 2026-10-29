@@ -56,7 +56,7 @@ Stress blocks depend on the constitutive model; the [code map](code-map.md#3-int
 |---|---|
 | `initial` | Column of length `layout.count` |
 | `rhs(t,X)` | State derivative with matching shape; nodal supports batches |
-| `output_rhs(t,X)` | Same derivatives with progress display suppressed; used for requested acceleration |
+| `output_rhs(t,X)` | `[dXdt,S,Sdot]`, derivatives plus the stress integral and its time derivative, with progress display suppressed; used for requested acceleration, `S` and `Sdot` |
 | `reset_output_rhs(X)` | Optional nodal wall-cache reset at the first state of an output history |
 | `jacobian` | Selected derivative handle, sparsity matrix or empty fallback |
 | `outputs(t,X)` | Cell row containing the first eight public outputs |
@@ -65,7 +65,7 @@ Stress blocks depend on the constitutive model; the [code map](code-map.md#3-int
 
 Factories build only enabled operators. They retain local wall closures and scheme-specific discretization, while `imr.physics.thermal_inverse` and `imr.physics.saturation_pressure` share pure expressions with the Jacobians and property evaluator. System construction does not integrate time. Output reconstruction recovers algebraic wall states using the same closures as the RHS.
 
-When output 9 is requested, the shared runner resets the nodal wall cache to the same starting guess used by field reconstruction, evaluates `output_rhs` once per returned state and extracts index `layout.Rdot`. It appends this history after the eight entries from `outputs`. Other calls perform no acceleration postprocessing and preserve the numerical callbacks used for integration.
+When output 9, 10 or 11 is requested, the shared runner resets the nodal wall cache to the same starting guess used by field reconstruction, evaluates `output_rhs` once per returned state, extracts index `layout.Rdot` for `Rddot` and reads `S`/`Sdot` straight from `output_rhs`'s other two outputs -- one evaluation serves all three, so requesting 10 or 11 costs the same as requesting 9 alone. It appends this history after the eight entries from `outputs`. Other calls perform no acceleration/stress postprocessing and preserve the numerical callbacks used for integration.
 
 ## Verification
 

@@ -19,7 +19,7 @@ Options, given after the swept inputs:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `'transform'` | none | Function handle applied to each run's name/value pairs before the solver, for example `@imr.nondimensionalize` to sweep SI values |
-| `'outputs'` | 2 | Number of solver outputs to keep, up to 9: `t`, `R`, `Rdot`, `P`, `T`, `Tm`, `kv`, `inputs`, `Rddot` |
+| `'outputs'` | 2 | Number of solver outputs to keep, up to 11: `t`, `R`, `Rdot`, `P`, `T`, `Tm`, `kv`, `inputs`, `Rddot`, `S`, `Sdot` |
 | `'parallel'` | `false` | `true` runs the grid with `parfor` on a parallel pool (Parallel Computing Toolbox); `false` runs it in series in base MATLAB |
 | `'quiet'` | `true` | Hides the solver's console output |
 

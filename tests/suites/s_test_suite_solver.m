@@ -82,7 +82,11 @@ for solver = {'nodal','spectral'}
                 'cstar',100,'kappa',1.4,'wave_type',1,'ee',0.03, ...
                 'tw',0.02,'dt',0.25,'tvector',times, ...
                 'reltol',1e-10,'abstol',1e-12};
-            [t,R,U,P,~,~,~,used,A] = imr.solve(args{:});
+            [t,R,U,P,~,~,~,used,A,S,Sdot] = imr.solve(args{:});
+            % stress = 0 above: the stress integral and its derivative
+            % (outputs 10, 11) must be exactly zero at every returned time.
+            assert(isequal(size(S),size(t)) && isequal(size(Sdot),size(t)));
+            assert(all(S == 0) && all(Sdot == 0));
             % imr.physics.far_field_pressure's Gaussian wave is
             % p8 = ee*g, p8dot = -ee*(2*(t-dt)/tw^2).*g; match that sign
             % convention here (radial_acceleration subtracts Pf8 as-is).
@@ -170,7 +174,7 @@ function f_input_error(fun)
 end
 
 function f_too_many_outputs()
-    out = cell(1,10);
+    out = cell(1,12);
     [out{:}] = imr.solve();
-    assert(numel(out) == 10);
+    assert(numel(out) == 12);
 end
