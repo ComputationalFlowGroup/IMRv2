@@ -1,11 +1,11 @@
 # Inertial Microcavitation Rheometry (IMR)
 
-[![Tests](https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/tests.yml)
-[![Docs checks](https://github.com/mrodrig6/imrv2/actions/workflows/docs.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/docs.yml)
-[![Lint](https://github.com/mrodrig6/imrv2/actions/workflows/lint.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/lint.yml)
-[![Formatting](https://github.com/mrodrig6/imrv2/actions/workflows/format.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/format.yml)
-[![Spelling](https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml/badge.svg)](https://github.com/mrodrig6/imrv2/actions/workflows/spellcheck.yml)
-[![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://github.com/mrodrig6/imrv2/blob/main/LICENSE)
+[![Tests](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/tests.yml/badge.svg)](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/tests.yml)
+[![Docs checks](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/docs.yml/badge.svg)](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/docs.yml)
+[![Lint](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/lint.yml/badge.svg)](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/lint.yml)
+[![Formatting](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/format.yml/badge.svg)](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/format.yml)
+[![Spelling](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/spellcheck.yml/badge.svg)](https://github.com/ComputationalFlowGroup/IMRv2/actions/workflows/spellcheck.yml)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://github.com/ComputationalFlowGroup/IMRv2/blob/main/LICENSE)
 
 IMR simulates a spherical cavitation bubble in a viscoelastic material. Researchers use its bubble-radius histories to compare with high-speed measurements and study soft materials at high strain rates. This is the **water-only distribution**; the [main repository](https://github.com/mrodrig6/imrv2) includes additional mercury fluid support.
 
