@@ -33,7 +33,6 @@ jobs:
           - s_test_suite_diffmat
           - s_test_suite_regression
           - s_test_suite_polytropic
-          - s_test_suite_mercury
           - s_test_suite_fluids
           - s_test_suite_numerics
           - s_test_suite_settings

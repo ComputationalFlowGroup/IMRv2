@@ -83,9 +83,12 @@ for solver = {'nodal','spectral'}
                 'tw',0.02,'dt',0.25,'tvector',times, ...
                 'reltol',1e-10,'abstol',1e-12};
             [t,R,U,P,~,~,~,used,A] = imr.solve(args{:});
+            % imr.physics.far_field_pressure's Gaussian wave is
+            % p8 = ee*g, p8dot = -ee*(2*(t-dt)/tw^2).*g; match that sign
+            % convention here (radial_acceleration subtracts Pf8 as-is).
             pulse = exp(-((t-0.25)/0.02).^2);
-            pf = -0.03*pulse;
-            pf_dot = 2*0.03*(t-0.25)/0.02^2.*pulse;
+            pf = 0.03*pulse;
+            pf_dot = -2*0.03*(t-0.25)/0.02^2.*pulse;
             pressure_rate = -3*1.4*P.*U./R;
             if radial == 1
                 expected = (P-1-pf-0.1./R-1.5*U.^2)./R;

@@ -25,7 +25,8 @@ function s = fluid_properties(profile, P, T)
     if any(T(:) < profile.sound_temperature_range(1) | T(:) > profile.sound_temperature_range(2))
         warning('IMR:fluidExtrapolation', '%s sound speed is outside its measured temperature range.', profile.name);
     end
-    shape = size(double(P) + T);
+    broadcast = double(P) + T;
+    shape = size(broadcast);
     P = double(P) + zeros(shape);
     T = T + zeros(shape);
     l = profile.liquid;
