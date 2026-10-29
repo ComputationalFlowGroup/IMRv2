@@ -14,7 +14,6 @@
 % field representation and collapse. A case fails if its run fails, if it
 % has no stored result, or if the L2 norm of its relative error over the
 % output times exceeds the threshold. Run it from tests/ after imr_test_setup.
-clc;
 clear;
 
 

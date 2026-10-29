@@ -8,7 +8,6 @@
 % difference stencils (scheme 0) against their defining values, and the
 % Chebyshev operators (scheme 1) for spectral accuracy on smooth test
 % functions and for annihilating constants
-clc;
 clear;
 
 

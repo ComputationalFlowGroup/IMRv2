@@ -16,7 +16,6 @@
 % run to the final time with finite results, so an input that passes the
 % checks and then fails is caught here. The runs are short and on coarse
 % grids, and the suite needs no stored results. Run it from tests/ after imr_test_setup.
-clc;
 clear;
 
 
