@@ -143,24 +143,24 @@ fprintf('\nBenchmark suite complete.\n');
 %% Local functions
 
 function args = setup_benchmark_case(stress, Mt, Nt)
-% Configure a representative test case.
+    % Configure a representative test case.
 
     % Base case: Keller-Miksis, constant pressure, water
     [args, ref] = imr.nondimensionalize(...
         'fluid', @imr.fluids.water, ...
         'r0', 50e-6, ...         % 50 µm initial radius
-        'req', 50e-6, ...        % 50 µm equilibrium
-        'u0', 0.1, ...           % 0.1 m/s initial velocity
-        'g', 0, ...              % No gravity
-        'radial', 2, ...         % Keller-Miksis
-        'stress', stress, ...    % Variable stress model
-        'bubtherm', 0, ...       % No bubble heating
-        'medtherm', 0, ...       % No medium heating
-        'vapor', 0, ...          % No vapor
-        'masstrans', 0, ...      % No mass transfer
-        'tfin', 20e-6, ...       % 20 µs final time
-        'Mt', Mt, ...            % Material grid points
-        'Nt', Nt);               % Radial grid points
+    'req', 50e-6, ...        % 50 µm equilibrium
+    'u0', 0.1, ...           % 0.1 m/s initial velocity
+    'g', 0, ...              % No gravity
+    'radial', 2, ...         % Keller-Miksis
+    'stress', stress, ...    % Variable stress model
+    'bubtherm', 0, ...       % No bubble heating
+    'medtherm', 0, ...       % No medium heating
+    'vapor', 0, ...          % No vapor
+    'masstrans', 0, ...      % No mass transfer
+    'tfin', 20e-6, ...       % 20 µs final time
+    'Mt', Mt, ...            % Material grid points
+    'Nt', Nt);               % Radial grid points
 
 end
 
@@ -168,30 +168,30 @@ function [t, R, wall_time, rhs_evals, jac_evals, hist_size, peak_mem] = ...
     run_benchmark_case(solver_fn, args)
 % Execute a benchmark case and measure metrics.
 
-    % Profile RHS and Jacobian calls
-    persistent rhs_count jac_count mem_start;
-    rhs_count = 0;
-    jac_count = 0;
-    mem_start = memory;
+% Profile RHS and Jacobian calls
+persistent rhs_count jac_count mem_start;
+rhs_count = 0;
+jac_count = 0;
+mem_start = memory;
 
-    % Time the solve
-    tic;
-    [t, R] = solver_fn(args{:});
-    wall_time = toc;
+% Time the solve
+tic;
+[t, R] = solver_fn(args{:});
+wall_time = toc;
 
-    % Estimate metrics
-    rhs_evals = rhs_count + 1; % At least one evaluation
-    jac_evals = jac_count;
+% Estimate metrics
+rhs_evals = rhs_count + 1; % At least one evaluation
+jac_evals = jac_count;
 
-    % Compute history size (rough estimate)
-    if ~isempty(t)
-        hist_size = (numel(t) + numel(R)) * 8 / 1024 / 1024; % MB, assuming double
-    else
-        hist_size = 0;
-    end
+% Compute history size (rough estimate)
+if ~isempty(t)
+    hist_size = (numel(t) + numel(R)) * 8 / 1024 / 1024; % MB, assuming double
+else
+    hist_size = 0;
+end
 
-    % Estimate peak memory (rough)
-    mem_end = memory;
-    peak_mem = (mem_end.MemUsedMATLAB - mem_start.MemUsedMATLAB) / 1024 / 1024;
+% Estimate peak memory (rough)
+mem_end = memory;
+peak_mem = (mem_end.MemUsedMATLAB - mem_start.MemUsedMATLAB) / 1024 / 1024;
 
 end

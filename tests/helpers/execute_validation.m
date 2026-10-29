@@ -38,7 +38,7 @@ function result = f_run_stage(name,action)
     previous_path = path;
     previous_folder = pwd;
     previous_warnings = warning;
-    cleanup = onCleanup(@() f_restore(previous_path,previous_folder,previous_warnings)); %#ok<NASGU>
+    cleanup = onCleanup(@() f_restore(previous_path,previous_folder,previous_warnings));
     result = struct('name',name,'status','passed','seconds',0,'message','','identifier','');
     fprintf('\nRunning %s...\n',name);
     stage_timer = tic;
