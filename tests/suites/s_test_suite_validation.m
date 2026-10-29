@@ -117,14 +117,14 @@ clear cleanup;
 function f_write(file,contents)
     fid = fopen(file,'w');
     assert(fid >= 0);
-    cleanup = onCleanup(@() fclose(fid)); %#ok<NASGU>
+    cleanup = onCleanup(@() fclose(fid));
     fprintf(fid,'%s',contents);
 end
 
 function bytes = f_bytes(file)
     fid = fopen(file,'r');
     assert(fid >= 0);
-    cleanup = onCleanup(@() fclose(fid)); %#ok<NASGU>
+    cleanup = onCleanup(@() fclose(fid));
     bytes = fread(fid,Inf,'*uint8');
 end
 

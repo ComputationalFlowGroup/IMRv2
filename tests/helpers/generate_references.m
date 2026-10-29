@@ -94,7 +94,7 @@ function files = generate_references(overwrite,refdir,cases,parallel)
     % write all files to a temporary folder, then move them into place
     tmp = tempname;
     mkdir(tmp);
-    cleanup = onCleanup(@() f_remove_temporary(tmp)); %#ok<NASGU>
+    cleanup = onCleanup(@() f_remove_temporary(tmp));
     generated_at = char(datetime('now','Format','yyyy-MM-dd HH:mm:ss'));
     info = sprintf('generated %s with MATLAB %s', generated_at, version);
     for m = 1:numel(modes)

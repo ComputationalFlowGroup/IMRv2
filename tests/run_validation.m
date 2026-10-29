@@ -54,7 +54,7 @@ function report = run_validation(mode,suites,overwrite)
 
     previous_path = path;
     previous_folder = pwd;
-    cleanup = onCleanup(@() f_restore(previous_path,previous_folder)); %#ok<NASGU>
+    cleanup = onCleanup(@() f_restore(previous_path,previous_folder));
     imr_test_setup;
     fprintf('IMR validation: %s, MATLAB %s\n',mode,version);
     report = execute_validation(mode,files,@() generate_references(overwrite),regression_file);
@@ -97,7 +97,7 @@ function selected = f_select(suites,available)
             return
         end
         if ~startsWith(name,'s_test_suite_')
-            name = ['s_test_suite_' name];
+            name = ['s_test_suite_' name]; %#ok<AGROW>
         end
         if ~any(strcmp(name,available))
             error('IMR:validationOptions','Unknown suite: %s. Use ''all'' or a script in tests/suites.',name);

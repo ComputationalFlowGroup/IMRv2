@@ -13,9 +13,9 @@ clear;
 % linear/acoustic) limit recommended when no material-specific Hugoniot
 % fit is available, and an arbitrary third point away from both.
 param_sets = {
-    [1.0, 1.65, 3.075]   % Cstar, hugoniot_s, nog: water's schema defaults
-    [0.735, 0, 3.075]    % hugoniot_s = 0: linear/acoustic EoS, any fluid
-    [2.1, 0.9, 1.4]      % an arbitrary third point
+[1.0, 1.65, 3.075]   % Cstar, hugoniot_s, nog: water's schema defaults
+[0.735, 0, 3.075]    % hugoniot_s = 0: linear/acoustic EoS, any fluid
+[2.1, 0.9, 1.4]      % an arbitrary third point
 };
 
 for row = 1:numel(param_sets)
