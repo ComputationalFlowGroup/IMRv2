@@ -6,7 +6,7 @@ Use [`imr.solve`](../api/solve.md) with `solver = 'nodal'` (default) or `'spectr
 |---|---|---|
 | Nodal finite differences | `imr.solve(...,'solver','nodal','scheme',0)` | Default, second-order spatial differences |
 | Nodal Chebyshev | `imr.solve(...,'solver','nodal','scheme',1)` | Same physical code with Chebyshev differentiation matrices |
-| Spectral | `imr.solve(...,'solver','spectral')` | Chebyshev expansions, including optional UCM/Oldroyd-B stress field |
+| Spectral | `imr.solve(...,'solver','spectral')` | Chebyshev expansions, including optional UCM/Oldroyd-B, PTT or Giesekus stress field |
 
 The existing `imr.solve_nodal` and `imr.solve_spectral` calls remain supported as fixed-solver wrappers. All entry points use [`imr.numerics.integrate`](../reference/functions/f_odesolve.md) for time integration. Selection happens once at setup. `scheme` selects only the nodal differentiation matrices; the input named `spectral` selects a stress representation, not the solver function.
 

@@ -23,9 +23,9 @@ function cases = f_test_cases(suite)
     % solver modes and their grids: the finite difference grid is fine
     % enough for second-order accuracy, and the Chebyshev and spectral
     % expansions converge spectrally on far fewer points. The spectral
-    % solver's Nv stress modes (the stress 5 field, and the Zener field of
-    % stress 3 and 4 with medium heat transfer) are set to 32, well below
-    % the default 150
+    % solver's Nv stress modes (the stress 5-7 field, and the Zener field
+    % of stress 3 and 4 with medium heat transfer) are set to 32, well
+    % below the default 150
     modes = struct( ...
         'name',   {'nodal_fd', 'nodal_cheb', 'spectral'}, ...
         'solver', {@imr.solve_nodal, @imr.solve_nodal, @imr.solve_spectral}, ...
@@ -54,17 +54,18 @@ function cases = f_test_cases(suite)
         for radial = 1:6
             for it = 1:3
                 for vapor = 0:1
-                    for stress = 0:5
+                    for stress = 0:7
                         key = sprintf('r%d_%s_v%d_s%d', radial, ...
                             thermal{it,1}, vapor, stress);
                         specs(end+1,:) = {key, [base, ...
                             f_thermal(thermal(it,:)), {'radial', radial, ...
-                            'vapor', vapor, 'stress', stress}]}; %#ok<AGROW>
+                            'vapor', vapor, 'stress', stress}, ...
+                            f_gies(stress)]}; %#ok<AGROW>
                     end
                 end
             end
         end
-        
+
         case 'gaussian'
         % a bubble returns to equilibrium after a Gaussian pressure pulse:
         % every radial, thermal (without mass transfer), vapor and viscous
@@ -78,12 +79,13 @@ function cases = f_test_cases(suite)
         for radial = 1:6
             for it = 1:3
                 for vapor = 0:1
-                    for stress = 1:5
+                    for stress = 1:7
                         key = sprintf('r%d_%s_v%d_s%d', radial, ...
                             thermal{it,1}, vapor, stress);
                         specs(end+1,:) = {key, [base, ...
                             f_thermal(thermal(it,:)), {'radial', radial, ...
-                            'vapor', vapor, 'stress', stress}]}; %#ok<AGROW>
+                            'vapor', vapor, 'stress', stress}, ...
+                            f_gies(stress)]}; %#ok<AGROW>
                     end
                 end
             end
@@ -176,12 +178,13 @@ function cases = f_test_cases(suite)
         % non-Newtonian viscosity: every model with every viscous stress
         % model, with and without medium heat transfer
         for nu = 1:7
-            for stress = 1:5
+            for stress = 1:7
                 for it = 2:3
                     specs(end+1,:) = {sprintf('nu%d_s%d_%s', nu, stress, ...
                         thermal{it,1}), [base, nonnewt, ...
                         f_thermal(thermal(it,:)), {'radial', 2, ...
-                        'stress', stress, 'nu_model', nu}]}; %#ok<AGROW>
+                        'stress', stress, 'nu_model', nu}, ...
+                        f_gies(stress)]}; %#ok<AGROW>
                 end
             end
         end
@@ -198,28 +201,36 @@ function cases = f_test_cases(suite)
         for method = [3 15 23]
             for jacobian = 0:3
                 for it = 1:5
-                    for stress = [0 1 3 5]
+                    for stress = [0 1 3 5 6 7]
                         specs(end+1,:) = {sprintf('m%d_j%d_%s_s%d', method, ...
                             jacobian, thermal{it,1}, stress), [base, ...
                             f_thermal(thermal(it,:)), {'radial', 2, ...
                             'stress', stress, 'method', method, ...
-                            'jacobian', jacobian}]}; %#ok<AGROW>
+                            'jacobian', jacobian}, f_gies(stress)]}; %#ok<AGROW>
                     end
                 end
             end
         end
         % no viscosity, surface tension or elasticity (Re, We, Ca = Inf)
-        % (one pair per row, rows separated by line breaks)
+        % (one pair per row, rows separated by line breaks). PTT (6) and
+        % Giesekus (7) multiply their new terms by Re8, which are 0*Inf
+        % (NaN) from rest at the inviscid limit (mu = 0, Re8 = Inf), so that
+        % limit is skipped for them: it is not a case those models are
+        % meant to run at.
         limits = {
         'mu', 0
         'surft', 0
         'G', 0
         };
         for il = 1:3
-            for stress = 0:5
+            for stress = 0:7
+                if stress >= 6 && strcmp(limits{il,1}, 'mu')
+                    continue
+                end
                 specs(end+1,:) = {sprintf('inf_%s_s%d', limits{il,1}, ...
                     stress), [base, f_thermal(thermal(3,:)), {'radial', 2, ...
-                    'stress', stress, limits{il,1}, limits{il,2}}]}; %#ok<AGROW>
+                    'stress', stress, limits{il,1}, limits{il,2}}, ...
+                    f_gies(stress)]}; %#ok<AGROW>
             end
         end
         % collapse with every stress model (stress 5 needs stress0) and the
@@ -303,6 +314,17 @@ end
 % name/value pairs of a row of the thermal table
 function pairs = f_thermal(row)
     pairs = {'bubtherm', row{2}, 'medtherm', row{3}, 'masstrans', row{4}};
+end
+
+% a nonzero Giesekus mobility factor for stress 7, so its cases exercise
+% the quadratic term and are not the eps3 = 0 limit that reduces exactly
+% to stress 5; empty (no override) for every other stress
+function pairs = f_gies(stress)
+    if stress == 7
+        pairs = {'eps3', 0.3};
+    else
+        pairs = {};
+    end
 end
 
 % true when imr.configuration.legacy_options (and so imr.configuration.validate_case) accepts the inputs, with its

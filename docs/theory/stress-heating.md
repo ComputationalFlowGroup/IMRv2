@@ -17,14 +17,14 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
 | 1 | `12*mu_KV*a^2 - 2*a*se`, neo-Hookean `se` |
 | 2 | the same with the quadratic `se` |
 | 3, 4 | `12*mu_s*a^2 - 2*a*sp`, with the Zener polymer field `sp` of [`imr.physics.zener_field`](../reference/functions/f_zener_field.md) |
-| 5 | `12*mu_s*a^2 - 2*a*(tau_rr - tau_tt)`, from the spectral stress field |
+| 5, 6, 7 | `12*mu_s*a^2 - 2*a*(tau_rr - tau_tt)`, from the spectral stress field (UCM/Oldroyd-B, PTT or Giesekus) |
 
 **Viscosities**, with `fnu` the non-Newtonian factor at the medium points:
 
 - `mu_KV = 1/Re8 + fnu*iDRe`: stress 1 and 2, where the whole viscosity acts instantly.
-- `mu_s = LAM/Re8 + fnu*iDRe`: stress 3–5, where only the solvent part acts instantly.
+- `mu_s = LAM/Re8 + fnu*iDRe`: stress 3–7, where only the solvent part acts instantly.
 
-`iDRe` is `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–5, the same factor as in the radial equation (set in `imr.configuration.prepare_case`).
+`iDRe` is `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–7, the same factor as in the radial equation (set in `imr.configuration.prepare_case`).
 
 **Elastic stress difference.** With the hoop stretch `lam = r/r0`, where `r0^3 = r^3 - R^3 + Req^3`:
 
@@ -83,13 +83,14 @@ So:
 
 ## Spectral stress field
 
-For stress 5, `imr.solve_spectral` expands `tau_rr` and `tau_tt` in `T_n(z) - 1`, `n = 1..Nv`, with
+For stress 5, 6 and 7, `imr.solve_spectral` expands `tau_rr` and `tau_tt` in `T_n(z) - 1`, `n = 1..Nv`, with
 `z = 1 - 2/(1 + (r/R - 1)/Lv)` and collocation points `z_j = cos(pi*j/Nv)`.
 If `c` and `d` are their coefficients, the stress integral is
-`S = 2*cdd'*(c - d) - 4*LAM/Re8*Rdot/R - 6*intfnu*iDRe`.
+`S = 2*cdd'*(c - d) - 4*LAM/Re8*Rdot/R - 6*intfnu*iDRe`, the same for all three models: only the
+local evolution of `c` and `d` differs (see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-6-7) for the PTT and Giesekus terms added to the UCM/Oldroyd-B closure, from [Warnez and Johnsen (2015)](../reference/references.md)).
 
 The weights are
 `cdd(n) = 2*Lv*int_{-1}^{1} (T_n(x) - 1)/((Lv*(1 + x) + 1 - x)*(1 - x)) dx`.
 One Gauss–Legendre rule with `Nv + 64` points in `theta = acos(x)` evaluates them, where the integrands are smooth. The local field supplies the polymer part of medium stress power. See [reported comparisons](../validation/convergence.md#reported-spectral-stress-comparisons) for historical quadrature, timing and resolution measurements.
 
-Stress 3–4 keep their integral `Z1` and use the same basis for the local field when medium heat is on. For stress 5 without that field, only `Z1` and `Z2` are available; the [compatibility rules](../reference/compatibility.md) explain why these cannot supply local heating.
+Stress 3–4 keep their integral `Z1` and use the same basis for the local field when medium heat is on. For stress 5 without that field, only `Z1` and `Z2` are available; the [compatibility rules](../reference/compatibility.md) explain why these cannot supply local heating. Stress 6 and 7 always run with the field (`spectral = 1` is forced), so this restriction does not apply to them.

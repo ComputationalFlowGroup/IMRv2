@@ -84,7 +84,11 @@ elseif stress == 3 || stress == 4
         const = ['linear Zener with solvent viscosity, ' elastic ' spring'];
     end
 else
-    if LAM == 0
+    if stress == 6
+        const = 'PTT (linear Phan-Thien-Tanner)';
+    elseif stress == 7
+        const = 'Giesekus';
+    elseif LAM == 0
         const = 'upper-convected Maxwell';
     else
         const = 'Oldroyd-B';

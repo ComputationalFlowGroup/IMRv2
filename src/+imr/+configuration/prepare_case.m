@@ -165,7 +165,7 @@ function c = prepare_case(solver,varargin)
     nstress = 0;
     if p.stress == 3 || p.stress == 4
         nstress = 1;
-    elseif p.stress == 5
+    elseif p.stress == 5 || p.stress == 6 || p.stress == 7
         nstress = 2*p.Nv;
     end
     if specified.stress0

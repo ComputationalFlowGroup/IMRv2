@@ -31,15 +31,18 @@ The label depends on the numbers as well as on `stress`:
 | 3, 4 | finite | `LAM > 0` | linear Zener with solvent viscosity, with the same spring |
 | 5 | (always `Inf`) | `LAM = 0` | upper-convected Maxwell |
 | 5 | (always `Inf`) | `LAM > 0` | Oldroyd-B |
+| 6 | (always `Inf`) | | PTT (linear Phan-Thien-Tanner) |
+| 7 | (always `Inf`) | | Giesekus |
 
 - **Stress 3 and 4 without a spring:** with `Ca = Inf`, stress 3 and 4 are the same model, since the quadratic law only affects the spring.
-- **Stress field:** with `spectral = 1`, stress 5 adds "(spectral stress field)".
+- **Stress field:** with `spectral = 1`, stress 5 adds "(spectral stress field)"; stress 6 and 7 always add it, since `spectral = 1` is forced for them.
 - **Viscosity line:** for stress 0 it reads "none", since there is no viscous stress.
+- **`eps3`:** shown as ", eps3 = <value>" whenever nonzero (stress 7, the Giesekus mobility factor).
 
 ## Stress representation
 
 - **Stress 0–2:** "closed form (no stress history)".
-- **Stress 3–5:** "stress integrals (ODEs)". The exceptions are stress 5 with `spectral = 1`, which prints "stress field, spectral modes", and stress 3–4 with `medtherm = 1`, which print "stress integral (ODE), and its local field for the medium heating" (see [`imr.physics.zener_field`](f_zener_field.md)).
+- **Stress 3–7:** "stress integrals (ODEs)". The exceptions are stress 5–7 with `spectral = 1` (always on for 6, 7), which prints "stress field, spectral modes", and stress 3–4 with `medtherm = 1`, which print "stress integral (ODE), and its local field for the medium heating" (see [`imr.physics.zener_field`](f_zener_field.md)).
 
 ## Viscosity label
 

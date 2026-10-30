@@ -74,16 +74,28 @@ for kind = {'nodal','spectral'}
     end
     for scheme = schemes
         for flags = thermal_cases(1:thermal_count,:)'
-            for stress = [0 1 3 4 5]
+            for stress = [0 1 3 4 5 6 7]
                 medium = flags(2);
                 if stress == 5 && medium && strcmp(solver,'nodal')
                     continue
+                end
+                % PTT (6) and Giesekus (7) have no closed-form reduction
+                % and run in imr.solve_spectral only
+                if (stress == 6 || stress == 7) && strcmp(solver,'nodal')
+                    continue
+                end
+                gies_args = {};
+                if stress == 7
+                    % a nonzero mobility factor, so the Jacobian check below
+                    % exercises the Giesekus quadratic term, not its eps3 = 0
+                    % limit (stress 5)
+                    gies_args = {'eps3',0.3};
                 end
                 c = imr.configuration.prepare_case(solver,'Req',1,'radial',2, ...
                     'bubtherm',flags(1),'medtherm',medium, ...
                     'masstrans',flags(3),'vapor',flags(3), ...
                     'stress',stress,'spectral',double(strcmp(solver,'spectral')), ...
-                    'Nv',6,'Nt',7,'Mt',7, ...
+                    'Nv',6,'Nt',7,'Mt',7,gies_args{:}, ...
                     'scheme',scheme,'jacobian',2,'progdisplay',0);
                 sys = imr.solvers.build(c);
                 idx = c.layout;

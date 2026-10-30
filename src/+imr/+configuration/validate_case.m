@@ -42,8 +42,14 @@ function p = validate_case(p)
     if ~(isnumeric(p.eps3) && isscalar(p.eps3) && p.eps3 >= 0 && p.eps3 <= 0.5)
         error('INPUT ERROR: eps3 must be in [0, 0.5]');
     end
-    if p.eps3 ~= 0
-        warning('IMR:unusedParameter','eps3 is reserved and does not enter the implemented equations.');
+    if p.eps3 ~= 0 && p.stress ~= 7
+        warning('IMR:unusedParameter', ['eps3 only enters the Giesekus model ' ...
+            '(stress = 7); it is otherwise reserved and unused.']);
+    end
+    if p.stress == 7 && p.eps3 == 0
+        warning('IMR:parameters', ['stress = 7 (Giesekus) with eps3 = 0 ' ...
+            'reduces to stress = 5 (UCM, Oldroyd-B); set eps3 in (0, 0.5] ' ...
+            'for the Giesekus mobility factor']);
     end
 
     % These values enter compatibility warnings and initial pressure
@@ -97,6 +103,11 @@ function p = validate_case(p)
         error(['INPUT ERROR: the spectral stress representation (spectral = 1) ' ...
             'is available in imr.solve_spectral only']);
     end
+    if strcmp(p.solver,'nodal') && (p.stress == 6 || p.stress == 7)
+        error(['INPUT ERROR: stress = 6 (PTT) and stress = 7 (Giesekus) have ' ...
+            'no closed-form (two-ODE) reduction and are available in ' ...
+            'imr.solve_spectral only']);
+    end
     full_model = p.bubtherm == 1 && p.medtherm == 1 && p.masstrans == 1 && p.vapor == 1;
     if p.collapse == 1 && ~full_model
         error('INPUT ERROR: collapse must have full model with vapor');
@@ -104,12 +115,12 @@ function p = validate_case(p)
     % collapse sets the equilibrium radius and a zero wall velocity, and for
     % stress 3 and 4 the stress at the maximum radius (imr.physics.initial_stress). Stress
     % 0-2 carry no stress history, so there is nothing more to set. For stress
-    % 5 that stress is not computed, and a zero stress would be silently wrong
-    if p.collapse == 1 && p.stress == 5 && ~p.stress0set
-        error(['INPUT ERROR: collapse = 1 is not available for stress = 5 ' ...
-            '(UCM, Oldroyd-B): the stress at the maximum radius is not ' ...
-            'computed for it. Give the initial stress with stress0, or use ' ...
-            'stress 3 or 4']);
+    % 5-7 that stress is not computed, and a zero stress would be silently wrong
+    if p.collapse == 1 && any(p.stress == [5 6 7]) && ~p.stress0set
+        error(['INPUT ERROR: collapse = 1 is not available for stress = 5, 6, 7 ' ...
+            '(UCM/Oldroyd-B, PTT, Giesekus): the stress at the maximum radius ' ...
+            'is not computed for them. Give the initial stress with stress0, ' ...
+            'or use stress 3 or 4']);
     end
     % below De = 1e-4 the relaxation is far faster than the bubble motion:
     % the model is then its De -> 0 limit, which the instantaneous models
@@ -137,6 +148,14 @@ function p = validate_case(p)
                 'two-state form does not carry']);
             p.spectral = 1;
         end
+    end
+    % stress 6 (PTT) and 7 (Giesekus) have no closed-form reduction, so
+    % imr.solve_spectral always runs them with the spectral stress field
+    if (p.stress == 6 || p.stress == 7) && p.spectral == 0
+        warning('IMR:parameters', ['stress = %d (PTT/Giesekus) has no closed-' ...
+            'form reduction and requires the spectral stress field; forcing ' ...
+            'spectral = 1'], p.stress);
+        p.spectral = 1;
     end
     % the linear Zener model is a spring 1/Ca in parallel with a Maxwell
     % branch whose dashpot viscosity is (1-LAM)/Re8 - De/Ca
@@ -331,8 +350,9 @@ function p = validate_case(p)
             p.Nv = 0;
         end
     else
-        % UCM and Oldroyd-B: Nv stress modes for the spectral representation,
-        % one otherwise, and no elastic contribution
+        % UCM, Oldroyd-B, PTT and Giesekus (stress 5-7): Nv stress modes for
+        % the spectral representation (always on for stress 6, 7), one
+        % otherwise, and no elastic contribution
         if p.spectral == 1 && p.Nv < 1
             error('IMR:stressGrid','Nv must be at least 1 for the spectral stress field.');
         end

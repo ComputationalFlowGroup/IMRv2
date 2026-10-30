@@ -6,7 +6,7 @@
 
 | Name         | Description                            | Units |
 |--------------|----------------------------------------|-------|
-| `stress`     | Model selector (0–5)                  | –     |
+| `stress`     | Model selector (0–5); stress 6, 7 (PTT, Giesekus) never reach this function, since `imr.configuration.validate_case` forces the spectral stress field for them | –     |
 | `X`          | State vector, which holds the stress states | –     |
 | `Req`, `R`   | Equilibrium and current radius         | –     |
 | `Ca`, `De`   | Cauchy and Deborah numbers             | –     |
@@ -30,6 +30,6 @@
 
 ## Notes
 
-- The spectral stress representation (`imr.solve_spectral`, `stress = 5`, `spectral = 1`) does not use this function.
+- The spectral stress representation (`imr.solve_spectral`, `stress = 5, 6, 7`, `spectral = 1`) does not use this function; `f_spectral_stress` in `imr.solvers.build_spectral` implements it instead, including the PTT and Giesekus closures (see [stress and viscosity](../../model/stress-viscosity.md#ptt-and-giesekus-stress-6-7)).
 - The non-Newtonian contribution enters every stress model with a viscous term (stress 1–5) as `-6*intfnu*iDRe` in `S` and `-6*dintfnu*iDRe` in `Sdot`, so that `Sdot` is the time derivative of `S` (the `Rddot` part is carried by `ddintfnu` in [`imr.physics.radial_acceleration`](f_radial_eq.md)). For stress 3–5 the non-Newtonian viscosity takes the place of the solvent viscosity `LAM/Re8`, which gives the `LAM/DRe` scaling. `imr.configuration.validate_case` rejects `nu_model > 0` with stress 0.
 - `R`, `Rdot` and the other state inputs may be row vectors, with `X` holding one state per column (the batched right-hand side of [`imr.solve_nodal`](../../method/time-integration.md#batched-right-hand-side)). Every operation is elementwise across the columns, in the same order as for one state, so a single state gives the same result as before bit for bit.

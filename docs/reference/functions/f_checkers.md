@@ -6,8 +6,8 @@
 
 ### Model flags
 
-- `radial` in 1–6, `stress` in 0–5, `nu_model` in 0–7, `wave_type` in -3–3, `method` in {3, 15, 23}, `jacobian` in 0–3, `scheme` in 0–1.
-- `bubtherm`, `medtherm`, `vapor`, `masstrans`, `collapse`, `spectral`, `progdisplay` are 0 or 1; `eps3` in [0, 0.5]. Nonzero `eps3` warns because the parameter has no implemented equation term.
+- `radial` in 1–6, `stress` in 0–7, `nu_model` in 0–7, `wave_type` in -3–3, `method` in {3, 15, 23}, `jacobian` in 0–3, `scheme` in 0–1.
+- `bubtherm`, `medtherm`, `vapor`, `masstrans`, `collapse`, `spectral`, `progdisplay` are 0 or 1; `eps3` in [0, 0.5]. Nonzero `eps3` warns unless `stress = 7` (Giesekus), the only model it enters; `stress = 7` with `eps3 = 0` warns too, since it then reduces to stress 5.
 
 ### Compatibility of the conditions
 
@@ -18,10 +18,12 @@
 | Mie–Grüneisen (`radial = 5, 6`) with `bubtherm`, `medtherm` or `masstrans` | error: polytropic bubble only |
 | Enthalpy forms (`radial = 3, 4`) with `medtherm = 1` | error: the liquid is taken at the far-field temperature |
 | `collapse = 1` without `bubtherm`, `medtherm`, `vapor` and `masstrans` | error |
-| `collapse = 1` with stress 5 and no `stress0` (the stress at the maximum radius is not computed for UCM and Oldroyd-B) | error |
-| `stress = 3, 4, 5` with `De < 1e-4` | error: the model is then its `De -> 0` limit, so the message names the simpler model to run: stress 1 for stress 3, stress 2 for stress 4, stress 1 with `Ca = Inf` for stress 5 (with `nu_model > 0`, `DRe/LAM` in place of `DRe`) |
-| `nu_model > 0` with `stress = 0` | error: the non-Newtonian viscosity needs a viscous stress model (stress 1–5) |
+| `collapse = 1` with stress 5, 6 or 7 and no `stress0` (the stress at the maximum radius is not computed for UCM/Oldroyd-B, PTT or Giesekus) | error |
+| `stress = 3, 4, 5, 6, 7` with `De < 1e-4` | error: the model is then its `De -> 0` limit, so the message names the simpler model to run: stress 1 for stress 3, stress 2 for stress 4, stress 1 with `Ca = Inf` for stress 5–7 (with `nu_model > 0`, `DRe/LAM` in place of `DRe`) |
+| `nu_model > 0` with `stress = 0` | error: the non-Newtonian viscosity needs a viscous stress model (stress 1–7) |
 | `stress = 5` with `medtherm = 1` and `spectral = 0` | error in `imr.solve_nodal`; `imr.solve_spectral` sets `spectral = 1` and warns |
+| `stress = 6, 7` in `imr.solve_nodal` | error: no closed-form (two-ODE) reduction, `imr.solve_spectral` only |
+| `stress = 6, 7` with `spectral = 0` in `imr.solve_spectral` | warning; sets `spectral = 1` |
 | `stress = 3, 4` with `(1-LAM)/Re8 < De/Ca` (negative dashpot viscosity of the Zener branch) | warning |
 | both `tvector` and `tfin` | error |
 | `tvector` not finite and strictly increasing, or starting below 0 | error |
@@ -55,6 +57,7 @@ After the checks, `imr.configuration.validate_case` adjusts and returns:
 
 - `stress <= 4`: `spectral = 0`; `Nv = 1` for stress 3, 4 (one stress state) and `Nv = 0` otherwise.
 - `stress = 5` (UCM, Oldroyd-B): `Nv` stress modes with the spectral representation, one otherwise, and `Ca = Inf` (no elastic contribution).
+- `stress = 6, 7` (PTT, Giesekus): `spectral` forced to 1; `Nv` stress modes with the spectral representation, and `Ca = Inf` (no elastic contribution).
 - `stress = 3, 4`: `Nv = 1`, except in `imr.solve_spectral` with `medtherm = 1`, where `Nv` is the number of modes of the local polymer stress field.
 
 The type, finiteness and size of a user `stress0`, and the initial mixture conductivity, are checked in `imr.configuration.prepare_case`. `imr.solvers.build` then checks the assembled initial derivative for real, finite values before integration. See the [settings audit](../../validation/settings.md) and [`compatibility`](../compatibility.md) for coverage and limits.

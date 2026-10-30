@@ -25,11 +25,13 @@ matlab -batch "imr_test_setup; s_test_suite_settings"
 | Collapse initialization without a positive stable equilibrium | Scalar-start root finding could probe negative vapor mass or retry without a bound | Bracket the positive equilibrium radius and reject cases without a stable root |
 | Finite radius with nonfinite pressure, velocity or temperature | Shared test runner inspected only radius | Inspect all seven physical outputs for real, finite values |
 
-`eps3` remains a reserved input with no implemented equation term. A nonzero value now raises `IMR:unusedParameter` so this is visible during setup.
+`eps3` enters only the Giesekus model (`stress = 7`); for every other stress it remains reserved, with no implemented equation term. A nonzero value raises `IMR:unusedParameter` unless `stress = 7`, and `stress = 7` with `eps3 = 0` (identical to stress 5) raises `IMR:parameters`, so both are visible during setup.
 
 ## Boundaries preserved
 
 The suite explicitly checks all three discretizations, compatible radial/thermal families, supported Jacobian options, minimum active thermal grids, inactive grids of size zero, `kappa = 1`, and zero vapor pressure. An inactive vapor component does not enter the mixture fraction. A frozen pure-vapor mixture without mass transfer remains accepted when its conductivity is positive, including constant vapor conductivity. The gas wall-closure implementation still requires `alpha_g > 0` for thermal models.
+
+`stress = 6` (PTT) and `7` (Giesekus) are rejected in `imr.solve_nodal` and forced to the spectral stress field in `imr.solve_spectral`. Giesekus at `eps3 = 0` is checked to give the exact same right-hand side, Jacobian and initial state as `stress = 5` (UCM/Oldroyd-B), not only a close one.
 
 All seven non-Newtonian laws are checked at zero wall shear with each viscous stress family. Separate cases ensure a disabled viscosity law cannot contaminate the solution through overflow. Known temperatures are mapped forward and inverted to check the conductivity limit independently.
 
