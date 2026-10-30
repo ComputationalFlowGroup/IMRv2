@@ -18,7 +18,7 @@ function layout = state_layout(c)
                 counts(6) = n.Nv;
             end
         end
-    elseif m.stress == 5
+    elseif m.stress == 5 || m.stress == 6 || m.stress == 7
         counts(4:5) = n.Nv;
     end
     names = {'bubble','medium','vapor','stress1','stress2','polymer'};

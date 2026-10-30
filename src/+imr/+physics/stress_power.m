@@ -12,16 +12,16 @@
 %   stress 1, 2  Kelvin-Voigt: 12*mu*a^2 - 2*a*se, with the viscosity
 %                mu = 1/Re8 + fnu*iDRe acting instantly and the neo-Hookean
 %                (1) or quadratic (2) elastic stress difference se
-%   stress 3-5   12*mu_s*a^2 - 2*a*sp, with the solvent viscosity
+%   stress 3-7   12*mu_s*a^2 - 2*a*sp, with the solvent viscosity
 %                mu_s = LAM/Re8 + fnu*iDRe and the local polymer stress
 %                difference sp, which carries the stress history: the Zener
 %                field of imr.physics.zener_field (stress 3, 4) or the spectral stress
-%                field tau_rr - tau_thetatheta (stress 5)
+%                field tau_rr - tau_thetatheta (stress 5, 6, 7)
 % fnu is the non-Newtonian viscosity factor at the medium points (0 for a
 % Newtonian run) and iDRe the factor of its stress term, 1/DRe for stress
-% 1 and 2 and LAM/DRe for stress 3 to 5, as in the radial equation. sp is
+% 1 and 2 and LAM/DRe for stress 3 to 7, as in the radial equation. sp is
 % the polymer stress difference at the medium points, needed for stress 3
-% to 5 and ignored otherwise. R and Rdot may be row vectors with sp holding
+% to 7 and ignored otherwise. R and Rdot may be row vectors with sp holding
 % one state per column, giving one column of taugradu per state.
 function [taugradu] = stress_power(stress,Req,R,Rdot,Ca,Br,Re8, ...
     LAM,alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu,sp)
@@ -55,7 +55,7 @@ elseif stress == 1 || stress == 2
     end
 
 else
-    % stress 3-5: the solvent part acts instantly, the polymer part through
+    % stress 3-7: the solvent part acts instantly, the polymer part through
     % its local stress difference sp, which remembers the history
     if isempty(sp)
         error(['imr.physics.stress_power: stress = %d needs the local polymer ' ...

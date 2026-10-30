@@ -7,7 +7,7 @@ The forward solvers compute radial motion coupled to selected heat, vapor and st
 | Part | Choices | Canonical detail |
 |---|---|---|
 | Radial dynamics | Rayleigh–Plesset, Keller–Miksis and Gilmore variants | [Radial models](radial-dynamics.md) |
-| Constitutive response | Kelvin–Voigt, Maxwell/Jeffreys/Zener, UCM/Oldroyd-B | [Stress and viscosity](stress-viscosity.md) |
+| Constitutive response | Kelvin–Voigt, Maxwell/Jeffreys/Zener, UCM/Oldroyd-B, PTT, Giesekus | [Stress and viscosity](stress-viscosity.md) |
 | Transport | Polytropic bubble, heat and vapor mass transfer | [Heat and mass transfer](heat-mass-transfer.md) |
 | Forcing | Constant, Gaussian, histotripsy, Heaviside and measured waveforms | [Waveforms](../running/waveforms.md) |
 | Discretization | Nodal finite differences, nodal Chebyshev or spectral expansions | [Methods](../method/discretization.md) |

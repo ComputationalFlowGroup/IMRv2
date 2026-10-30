@@ -26,8 +26,8 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `radial` | `radial` | 1 Rayleigh–Plesset, 2 Keller–Miksis (pressure), 3 Keller–Miksis (enthalpy, Tait), 4 Gilmore (Tait), 5 Keller–Miksis (Mie–Grüneisen), 6 Gilmore (Mie–Grüneisen). Radial 3–6 do not allow medium heat transfer, and radial 5 and 6 support only the polytropic bubble. | 1 | 1 (dimensionless) |
 | `bubtherm` | `bubtherm` | Thermal PDE in the bubble (0/1) | 0 | 1 (dimensionless) |
 | `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1` and `radial` 1 or 2) | 0 | 1 (dimensionless) |
-| `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B | 0 | 1 (dimensionless) |
-| `eps3` | `eps3` | Second-order strain term, in [0, 0.5]; currently unused by the stress models | 0 | 1 (dimensionless) |
+| `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B, 6 PTT, 7 Giesekus. Stress 6, 7 need `imr.solve_spectral` (forced `spectral = 1`) | 0 | 1 (dimensionless) |
+| `eps3` | `eps3` | Giesekus mobility factor, in [0, 0.5]; enters only `stress = 7`, where 0 reduces it to stress 5 (a warning says so). Unused by every other stress model | 0 | 1 (dimensionless) |
 | `vapor` | `vapor` | Vapor pressure (0/1) | 0 | 1 (dimensionless) |
 | `masstrans` | `masstrans` | Vapor mass transfer (0/1, requires `bubtherm = vapor = 1`) | 0 | 1 (dimensionless) |
 
@@ -39,9 +39,9 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 | 1 (dimensionless) |
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` | 1 (dimensionless) |
 | `method` | `method` | Stiff time integrator: 23 `ode23tb`, 15 `ode15s`, 3 CVODES (MATLAB R2024a or later). The names `'ode23tb'`, `'ode15s'` and `'cvodes'` are also accepted | 23 | 1 (dimensionless) |
-| `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `imr.solve_spectral` only (0/1) | 0 | 1 (dimensionless) |
+| `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `imr.solve_spectral` only (0/1); forced to 1 for `stress = 6, 7`, which have no other representation | 0 | 1 (dimensionless) |
 | `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 | 1 (dimensionless) |
-| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is the number of stress modes of `imr.solve_spectral`, for the stress 5 field (`spectral = 1`) and for the stress 3–4 polymer stress field with medium heat transfer | 25, 25, 150 | 1 (dimensionless) |
+| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is the number of stress modes of `imr.solve_spectral`, for the stress 5–7 field (`spectral = 1`, always on for 6, 7) and for the stress 3–4 polymer stress field with medium heat transfer | 25, 25, 150 | 1 (dimensionless) |
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 | 1 (dimensionless) |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 | 1 (dimensionless) |
 | `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (nodal solver; numerical in the spectral solver), 2 analytic, 3 batched finite differences (nodal solver only) | 2 | 1 (dimensionless) |
@@ -52,11 +52,11 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 
 | Input | Variable | Definition | Default | Units |
 |-------|----------|------------|------------|---|
-| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `imr.solve_nodal`. With stress 5 it also requires `stress0`. | 0 | 1 (dimensionless) |
+| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `imr.solve_nodal`. With stress 5–7 it also requires `stress0`. | 0 | 1 (dimensionless) |
 | `req` | `Req` | `Req/R0` | 0.2 | 1 (dimensionless) |
 | `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 | 1 (dimensionless) |
 | `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed | 1 (dimensionless) |
-| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, one value for stress 3–4, `2*Nv` values for stress 5 with `spectral = 1` and 2 values with `spectral = 0`; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise; stress 5 with `collapse = 1` must give it) | computed | 1 (dimensionless) |
+| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, one value for stress 3–4, `2*Nv` values for stress 5–7 with `spectral = 1` (always on for 6, 7) and 2 values for stress 5 with `spectral = 0`; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise; stress 5–7 with `collapse = 1` must give it) | computed | 1 (dimensionless) |
 
 ### Acoustic options
 

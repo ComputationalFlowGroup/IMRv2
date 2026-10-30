@@ -12,6 +12,7 @@ bad = {
 {'we',0}
 {'kappa',1+1i}
 {'eps3',0.1+1i}
+{'eps3',0.6}
 {'v_a',Inf,'nu_model',2,'stress',1}
 {'v_a',[1 2],'nu_model',7,'stress',1}
 {'p0star',NaN}
@@ -136,6 +137,37 @@ for solver = {'nodal','spectral'}
     end
 end
 fprintf('Inactive viscosity avoids overflow PASSED.\n');
+
+% stress = 6 (PTT) and 7 (Giesekus) have no closed-form reduction: rejected
+% in imr.solve_nodal, and forced to the spectral stress field in
+% imr.solve_spectral (a warning, since spectral is left at its default 0).
+f_input_error(@() imr.configuration.prepare_case('nodal','stress',6));
+f_input_error(@() imr.configuration.prepare_case('nodal','stress',7));
+warning('off','IMR:parameters');
+c6 = imr.configuration.prepare_case('spectral','Req',1,'stress',6, ...
+    'Nv',6,'Nt',0,'Mt',0);
+warning('on','IMR:parameters');
+assert(c6.numerics.spectral == 1);
+f_finite_system(c6,imr.solvers.build(c6));
+fprintf('PTT/Giesekus nodal rejection and forced spectral field PASSED.\n');
+
+% Giesekus (stress 7) at eps3 = 0 must reduce exactly to UCM/Oldroyd-B
+% (stress 5): the same right-hand side and Jacobian, not just a similar
+% one, since the exponential and quadratic terms both vanish identically.
+c5 = imr.configuration.prepare_case('spectral','Req',1,'stress',5, ...
+    'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
+warning('off','IMR:parameters');
+c7 = imr.configuration.prepare_case('spectral','Req',1,'stress',7, ...
+    'eps3',0,'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
+warning('on','IMR:parameters');
+sys5 = imr.solvers.build(c5);
+sys7 = imr.solvers.build(c7);
+assert(isequal(sys5.initial,sys7.initial));
+state = sys5.initial;
+state(c5.layout.stress) = state(c5.layout.stress)+1e-5;
+assert(isequal(sys5.rhs(0.1,state),sys7.rhs(0.1,state)));
+assert(isequal(full(sys5.jacobian(0.1,state)),full(sys7.jacobian(0.1,state))));
+fprintf('Giesekus eps3 = 0 reduces exactly to UCM/Oldroyd-B PASSED.\n');
 
 % Scalar compatibility alone cannot establish that the assembled radial
 % equation has a real, finite initial derivative. Check both builders.

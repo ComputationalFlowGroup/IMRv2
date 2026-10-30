@@ -29,9 +29,11 @@ function d = defaults()
     % 0 : cold fluid, 1: warm fluid assumption
     d.medtherm = 0;
     % 0 : none, 1 : NHKV, 2 : qNHKV, 3 : linear Maxwell, Jeffreys, Zener
-    % (neo-Hookean), 4 : same with quadratic neo-Hookean, 5 : UCM or OldB
+    % (neo-Hookean), 4 : same with quadratic neo-Hookean, 5 : UCM or OldB,
+    % 6 : PTT, 7 : Giesekus (6, 7 need imr.solve_spectral; see eps3)
     d.stress = 0;
-    % this value must be [0, 0.5]
+    % Giesekus mobility factor, used only by stress = 7, in [0, 0.5]; 0
+    % reduces stress = 7 to stress = 5 (UCM, Oldroyd-B). Unused otherwise.
     d.eps3 = 0;
     % 0 : ignore vapor pressure, 1 : vapor pressure
     d.vapor = 0;
@@ -55,9 +57,9 @@ function d = defaults()
     d.Nt = 25;
     % number of points outside of bubble, thermal PDE
     d.Mt = 25;
-    % number of stress modes of imr.solve_spectral: the stress 5 field
-    % (spectral = 1), and the stress 3, 4 polymer stress field with medium
-    % heat transfer
+    % number of stress modes of imr.solve_spectral: the stress 5, 6, 7
+    % field (spectral = 1, always on for 6, 7), and the stress 3, 4 polymer
+    % stress field with medium heat transfer
     d.Nv = 150;
     % grid stretching length of the stress field of imr.solve_spectral
     d.Lv = 3;

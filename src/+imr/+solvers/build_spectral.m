@@ -172,11 +172,17 @@ function system = build_spectral(prepared)
         w1 = QA0*(UA0\(LA0\(PA0*e1)));
         vw1 = vrow'*w1;
     end
-    % spectral stress representation (UCM, Oldroyd-B): tau_rr and
-    % tau_thetatheta are expanded in T_n(z) - 1, n = 1..Nv, which vanish at
-    % z = 1 (r -> Inf), with z = 1 - 2/(1 + (r/R - 1)/Lv) and collocation
-    % points z_j = cos(pi*j/Nv), j = 1..Nv (z = -1 is the bubble wall)
-    spectral_stress = (stress == 5 && spectral == 1);
+    % spectral stress representation (UCM/Oldroyd-B, PTT, Giesekus): tau_rr
+    % and tau_thetatheta are expanded in T_n(z) - 1, n = 1..Nv, which vanish
+    % at z = 1 (r -> Inf), with z = 1 - 2/(1 + (r/R - 1)/Lv) and collocation
+    % points z_j = cos(pi*j/Nv), j = 1..Nv (z = -1 is the bubble wall).
+    % Stress 6 (PTT) and 7 (Giesekus) have no closed-form reduction and run
+    % only here (imr.configuration.validate_case forces spectral = 1 for them)
+    spectral_stress = (stress == 5 || stress == 6 || stress == 7) && spectral == 1;
+    % PTT: stress == 6 sets the Warnez & Johnsen (2015) eps2 = 1 exponential
+    % closure (f_spectral_stress). Giesekus (stress == 7) instead uses their
+    % eps3 as the quadratic mobility factor; eps3 = 0 for stress 5 and 6.
+    ptt = (stress == 6);
     % the linear Maxwell, Jeffreys and Zener models (stress 3, 4) carry,
     % with medium heat transfer, the local polymer stress difference as a
     % field in the same basis (imr.physics.zener_field), for the medium heating
@@ -294,6 +300,10 @@ function system = build_spectral(prepared)
             jp.yV = yV;
             jp.De = De;
             jp.etap = etap;
+        end
+        if spectral_stress
+            jp.ptt = ptt;
+            jp.eps3 = eps3;
         end
         Sp = @(t,X) imr.numerics.jacobian_spectral(t,X,jp);
     else
@@ -560,11 +570,20 @@ function system = build_spectral(prepared)
         edot = sCI*spdot;
     end
 
-    % UCM and Oldroyd-B stress fields in the spectral representation. The
+    % UCM/Oldroyd-B, PTT and Giesekus stress fields in the spectral
+    % representation (Warnez & Johnsen, "Numerical modeling of bubble
+    % dynamics in viscoelastic media with relaxation," Phys. Fluids 27,
+    % 063103 (2015), https://doi.org/10.1063/1.4922598, Eq. 13). The
     % polymer stresses obey, along material points with a = R^2*Rdot/r^3,
-    %   D(tau_rr)/Dt = -tau_rr/De - 4*a*tau_rr - 4*etap*a/De
-    %   D(tau_tt)/Dt = -tau_tt/De + 2*a*tau_tt + 2*etap*a/De
-    % with etap = (1-LAM)/Re8; in the moving coordinate z the material
+    %   D(tau_rr)/Dt = -tau_rr/De*exp(ptt*Re8*De*(tau_rr+2*tau_tt))
+    %       - 4*a*tau_rr - eps3*Re8*tau_rr^2 - 4*etap*a/De
+    %   D(tau_tt)/Dt = -tau_tt/De*exp(ptt*Re8*De*(tau_rr+2*tau_tt))
+    %       + 2*a*tau_tt - eps3*Re8*tau_tt^2 + 2*etap*a/De
+    % with etap = (1-LAM)/Re8. stress = 5 (UCM, Oldroyd-B) has ptt = 0 and
+    % eps3 = 0, recovering the original linear closure exactly. stress = 6
+    % (PTT) sets ptt = 1, their linear (eps2 = 1) exponential closure.
+    % stress = 7 (Giesekus) keeps ptt = 0 and takes eps3 in (0, 0.5] as
+    % their mobility factor. In the moving coordinate z the material
     % derivative adds the advection dz/dt*d(tau)/dz, where
     % dz/dt = dz/d(r/R)*(Rdot/R)*((r/R)^-2 - r/R). The solvent viscosity
     % LAM/Re8 enters the stress integral directly.
@@ -575,8 +594,11 @@ function system = build_spectral(prepared)
         ttt = sCA*d;
         av = (Rdot/R)./yV3;
         dzdt = dzdy.*(Rdot/R).*yV_adv;
-        trrdot = -dzdt.*(sCAd*c) - trr/De - 4*av.*trr - 4*etap*av/De;
-        tttdot = -dzdt.*(sCAd*d) - ttt/De + 2*av.*ttt + 2*etap*av/De;
+        exptau = exp(ptt*Re8*De*(trr + 2*ttt));
+        trrdot = -dzdt.*(sCAd*c) - exptau.*trr/De - 4*av.*trr - ...
+            eps3*Re8*trr.^2 - 4*etap*av/De;
+        tttdot = -dzdt.*(sCAd*d) - exptau.*ttt/De + 2*av.*ttt - ...
+            eps3*Re8*ttt.^2 + 2*etap*av/De;
         cdot = sCI*trrdot;
         ddot = sCI*tttdot;
         S = 2*cdd'*(c - d) - 4*LAM/Re8*Rdot/R - 6*intfnu*iDRe;
