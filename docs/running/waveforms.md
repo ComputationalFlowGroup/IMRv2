@@ -4,11 +4,11 @@
 
 | Symbol | Input | Meaning |
 |---|---|---|
-| $A$ | `ee` | Signed dimensionless amplitude |
-| $\omega$ | `om` | Angular frequency times $t_0$ |
-| $w$ | `tw` | Gaussian width or step ending time |
-| $d$ | `dt` | Gaussian/histotripsy center time |
-| $m$ | `mn` | Histotripsy exponent |
+| *A* | `ee` | Signed dimensionless amplitude |
+| *ω* | `om` | Angular frequency times *t₀* |
+| *w* | `tw` | Gaussian width or step ending time |
+| *d* | `dt` | Gaussian/histotripsy center time |
+| *m* | `mn` | Histotripsy exponent |
 
 **Sign convention:** Positive `ee` always drives compressive waves (positive far-field pressure rise); negative `ee` drives tensile (rarefaction) waves. Physically: tension pulls material apart (negative stress), and compression pushes it together (positive stress). This convention is consistent across all waveform types. `imr.nondimensionalize` scales SI `pa`, `omega`, `tw` and `dt` before preparation. Scalar and array times preserve their input shape.
 

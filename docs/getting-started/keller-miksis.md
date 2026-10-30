@@ -36,8 +36,8 @@ Here $\mu$ is dynamic viscosity in Pa s and $\sigma$ is surface tension in N/m. 
 | `ref.Uc` | 10.0761 m/s | Velocity and acoustic scaling |
 | `ref.t0` | 4.96223 microseconds | Time scaling |
 | `cstar` | 146.882 | Finite sound-speed terms in `imr.physics.radial_acceleration`, radial 2 |
-| `re` | 502.798 | Stress $S=-4\dot R/(\mathrm{Re}R)$ and `JdotA = 4/re` |
-| `we` | 35.1823 | Laplace pressure $1/(\mathrm{We}R)$ |
+| `re` | 502.798 | Stress `S = -4*Rdot/(Re*R)` and `JdotA = 4/re` |
+| `we` | 35.1823 | Laplace pressure `1/(We*R)` |
 | `req`, `ca` | 1, `Inf` | Equilibrium radius and zero elasticity |
 | `tfin` | 4.03045 | End of the dimensionless time interval |
 

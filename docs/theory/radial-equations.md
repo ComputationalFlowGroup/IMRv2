@@ -6,12 +6,12 @@
 
 | Symbol | Meaning | Code |
 |---|---|---|
-| $R$, $U$ | Radius and wall velocity | `R`, `Rdot` |
-| $P$, $p_w$, $p_f$ | Total bubble, liquid-wall and absolute far-field pressures | `P`, wall closure, `1 + Pf8` |
-| $f$, $\dot f$ | Far-field perturbation and time derivative | `Pf8`, `Pf8dot` |
-| $S$, $\dot S_0$ | Signed stress integral and acceleration-independent rate | `S`, `Sdot` |
-| $W$, $A_S$ | Surface-tension factor and acceleration-dependent stress coefficient | `iWe`, expression below |
-| $C$, $\rho$, $h$, $H$ | Sound speed, liquid density, reference enthalpy and wall/far-field difference | Radial closure |
+| *R*, *U* | Radius and wall velocity | `R`, `Rdot` |
+| *P*, *p_w*, *p_f* | Total bubble, liquid-wall and absolute far-field pressures | `P`, wall closure, `1 + Pf8` |
+| *f*, *ḟ* | Far-field perturbation and time derivative | `Pf8`, `Pf8dot` |
+| *S*, *Ṡ₀* | Signed stress integral and acceleration-independent rate | `S`, `Sdot` |
+| *W*, *A_S* | Surface-tension factor and acceleration-dependent stress coefficient | `iWe`, expression below |
+| *C*, *ρ*, *h*, *H* | Sound speed, liquid density, reference enthalpy and wall/far-field difference | Radial closure |
 
 Radius must remain positive and the acceleration denominator must be nonsingular. Pressure-form Keller–Miksis keeps the ambient sound speed fixed and retains first-order wall-Mach effects. Enthalpy models additionally require admissible pressures and positive density/sound speed on their barotrope. See [compatibility](../reference/compatibility.md) for thermal restrictions.
 
