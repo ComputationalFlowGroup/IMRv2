@@ -143,22 +143,35 @@ function J = jacobian_spectral(t, X, jp)
         dzdt = d.scale(Rr, jp.dzdy.*(1./jp.yV.^2 - jp.yV));
         trr = d.lin(jp.sCA, cC);
         ttt = d.lin(jp.sCA, dC);
-        % PTT exponential closure (jp.ptt = 0 for stress 5, 7: exptau = 1
-        % identically) and Giesekus quadratic mobility term (jp.eps3 = 0
-        % for stress 5, 6), matching f_spectral_stress exactly
-        argexp = d.scale(d.add(trr, d.scale(ttt, 2)), jp.ptt*jp.Re8*jp.De);
-        exptau = d.fun(argexp, exp(argexp.v), exp(argexp.v));
+        % PTT exponential closure and Giesekus quadratic mobility term,
+        % matching f_spectral_stress exactly. jp.ptt and jp.eps3 are fixed
+        % flags/parameters, not state-dependent: each term is skipped
+        % entirely when inactive (jp.ptt = 0 for stress 5, 7; jp.eps3 = 0
+        % for stress 5, 6), rather than forming jp.ptt*jp.Re8 or
+        % jp.eps3*jp.Re8, so an inviscid run (Re8 = Inf) with the other
+        % model does not turn an inactive term's 0*Inf into NaN
+        if jp.ptt
+            argexp = d.scale(d.add(trr, d.scale(ttt, 2)), jp.Re8*jp.De);
+            exptau = d.fun(argexp, exp(argexp.v), exp(argexp.v));
+        else
+            exptau = d.con(1);
+        end
+        if jp.eps3
+            gies_rr = d.scale(d.mul(trr, trr), jp.eps3*jp.Re8);
+            gies_tt = d.scale(d.mul(ttt, ttt), jp.eps3*jp.Re8);
+        else
+            gies_rr = d.con(0);
+            gies_tt = d.con(0);
+        end
         adv_rr = d.mul(dzdt, d.lin(jp.sCAd, cC));
         rel_rr = d.scale(d.mul(exptau, trr), 1/jp.De);
         conv_rr = d.scale(d.mul(av, trr), 4);
-        gies_rr = d.scale(d.mul(trr, trr), jp.eps3*jp.Re8);
         solv_rr = d.scale(av, 4*jp.etap/jp.De);
         trrdot = d.scale(d.add(d.add(adv_rr, rel_rr), ...
             d.add(conv_rr, d.add(gies_rr, solv_rr))), -1);
         adv_tt = d.mul(dzdt, d.lin(jp.sCAd, dC));
         rel_tt = d.scale(d.mul(exptau, ttt), 1/jp.De);
         conv_tt = d.scale(d.mul(av, ttt), 2);
-        gies_tt = d.scale(d.mul(ttt, ttt), jp.eps3*jp.Re8);
         solv_tt = d.scale(av, 2*jp.etap/jp.De);
         tttdot = d.add(d.add(d.scale(d.add(adv_tt, rel_tt), -1), conv_tt), ...
             d.sub(solv_tt, gies_tt));

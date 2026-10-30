@@ -594,11 +594,26 @@ function system = build_spectral(prepared)
         ttt = sCA*d;
         av = (Rdot/R)./yV3;
         dzdt = dzdy.*(Rdot/R).*yV_adv;
-        exptau = exp(ptt*Re8*De*(trr + 2*ttt));
+        % ptt and eps3 are fixed flags/parameters, not state-dependent: skip
+        % each term entirely when inactive, rather than forming ptt*Re8 or
+        % eps3*Re8, so an inviscid run (Re8 = Inf) with the other model
+        % does not turn an inactive term's 0*Inf into NaN
+        if ptt
+            exptau = exp(Re8*De*(trr + 2*ttt));
+        else
+            exptau = 1;
+        end
+        if eps3
+            gies_rr = eps3*Re8*trr.^2;
+            gies_tt = eps3*Re8*ttt.^2;
+        else
+            gies_rr = 0;
+            gies_tt = 0;
+        end
         trrdot = -dzdt.*(sCAd*c) - exptau.*trr/De - 4*av.*trr - ...
-            eps3*Re8*trr.^2 - 4*etap*av/De;
+            gies_rr - 4*etap*av/De;
         tttdot = -dzdt.*(sCAd*d) - exptau.*ttt/De + 2*av.*ttt - ...
-            eps3*Re8*ttt.^2 + 2*etap*av/De;
+            gies_tt + 2*etap*av/De;
         cdot = sCI*trrdot;
         ddot = sCI*tttdot;
         S = 2*cdd'*(c - d) - 4*LAM/Re8*Rdot/R - 6*intfnu*iDRe;
