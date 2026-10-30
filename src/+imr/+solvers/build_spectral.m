@@ -367,7 +367,7 @@ function system = build_spectral(prepared)
     end
 
     % solver function
-    function dXdt = f_rhs(t,X,quiet)
+    function [dXdt,S,Sdot] = f_rhs(t,X,quiet)
 
         % showing output
         if progdisplay && (nargin < 3 || ~quiet)

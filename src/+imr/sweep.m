@@ -20,7 +20,8 @@
 % values. Options:
 %   'transform' function handle applied to the name/value pairs of each
 %               run before the solver, e.g. @imr.nondimensionalize for SI inputs
-%   'outputs'   number of solver outputs to keep (default 2: t, R)
+%   'outputs'   number of solver outputs to keep (default 2: t, R), up to
+%               11: t, R, Rdot, P, T, Tm, kv, inputs, Rddot, S, Sdot
 %   'parallel'  true runs the grid with parfor on a parallel pool
 %               (Parallel Computing Toolbox), false (default) in series
 %   'quiet'     true (default) hides the solver's console output

@@ -411,7 +411,7 @@ function system = build_nodal(prepared)
     end
 
     % solver function
-    function [dXdt] = f_rhs(t,X,quiet)
+    function [dXdt,S,Sdot] = f_rhs(t,X,quiet)
 
         % X holds one state per column, so a batch of states (the
         % finite-difference Jacobian) costs about one call; every operation

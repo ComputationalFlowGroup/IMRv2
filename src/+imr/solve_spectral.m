@@ -7,8 +7,9 @@
 % brief This function features a Chebyshev spectral collocation solver of
 % the PDEs involving thermal transport and viscoelasticity coupled to the
 % radial (Rayleigh-Plesset family) dynamics
-% Outputs: [t,R,Rdot,P,T,Tm,kv,inputs,Rddot]; acceleration is evaluated only
-% when output 9 is requested. Use imr.solve to select the solver by name.
+% Outputs: [t,R,Rdot,P,T,Tm,kv,inputs,Rddot,S,Sdot]; acceleration, the
+% stress integral and its time derivative are evaluated only when
+% requested (outputs 9-11). Use imr.solve to select the solver by name.
 function varargout = solve_spectral(varargin)
     [varargout{1:nargout}] = imr.solvers.run('spectral',varargin{:});
 end
