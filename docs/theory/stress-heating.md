@@ -18,14 +18,13 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
 | 2 | the same with the quadratic `se` |
 | 3, 4 | `12*mu_s*a^2 - 2*a*sp`, with the Zener polymer field `sp` of [`imr.physics.zener_field`](../reference/functions/f_zener_field.md) |
 | 5, 6, 7 | `12*mu_s*a^2 - 2*a*(tau_rr - tau_tt)`, from the spectral stress field (UCM/Oldroyd-B, PTT or Giesekus) |
-| 8 | `12*mu_KV*a^2 - 2*a*se_wall`, with `se_wall` a wall-level (not locally resolved) approximation; see [below](#kelvin-voigt-yang-church-stress-8) |
 
 **Viscosities**, with `fnu` the non-Newtonian factor at the medium points:
 
-- `mu_KV = 1/Re8 + fnu*iDRe`: stress 1, 2 and 8, where the whole viscosity acts instantly.
+- `mu_KV = 1/Re8 + fnu*iDRe`: stress 1 and 2, where the whole viscosity acts instantly.
 - `mu_s = LAM/Re8 + fnu*iDRe`: stress 3–7, where only the solvent part acts instantly.
 
-`iDRe` is `1/DRe` for stress 1, 2 and 8 and `LAM/DRe` for stress 3–7, the same factor as in the radial equation (set in `imr.configuration.prepare_case`).
+`iDRe` is `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–7, the same factor as in the radial equation (set in `imr.configuration.prepare_case`).
 
 **Elastic stress difference.** With the hoop stretch `lam = r/r0`, where `r0^3 = r^3 - R^3 + Req^3`:
 
@@ -95,17 +94,3 @@ The weights are
 One Gauss–Legendre rule with `Nv + 64` points in `theta = acos(x)` evaluates them, where the integrands are smooth. The local field supplies the polymer part of medium stress power. See [reported comparisons](../validation/convergence.md#reported-spectral-stress-comparisons) for historical quadrature, timing and resolution measurements.
 
 Stress 3–4 keep their integral `Z1` and use the same basis for the local field when medium heat is on. For stress 5 without that field, only `Z1` and `Z2` are available; the [compatibility rules](../reference/compatibility.md) explain why these cannot supply local heating. Stress 6 and 7 always run with the field (`spectral = 1` is forced), so this restriction does not apply to them.
-
-## Kelvin-Voigt (Yang-Church, stress 8)
-
-Stress 1 and 2's elastic heating term above is the fully local one: `se` evaluated at the stretch of every medium point `y`, the rigorous choice for a hyperelastic material. Stress 8's linear spring does not (yet) have that treatment.
-
-A first attempt derived a candidate local field by matching stress 8's own radial-equation integral, `S = 2*int_1^Inf se(lam(y))/y dy`, the same relation that reproduces stress 1's `se = (lam^-4-lam^2)/Ca` exactly. Linearizing the incompressible kinematics for small strain gives `se = 6/Ca*(1-lam)`, but a numerical check of the integral against stress 8's own closed form (`S = -4/(3*Ca)*(1-Rst^3)`) shows the two disagree away from `lam = 1` — the leading-order linearization is not the exact local field, and no exact one has been found.
-
-Instead, `imr.physics.stress_power`'s stress 8 branch uses the wall-level (not locally resolved beyond the shared `1/y^6` geometric decay every model's viscous term already has) approximation of `funIMRsolver.m` (`InertialMicrocavitationRheometry/IMR_v1`) and an older spectral reference in this project's own history, both of which compute this model's medium heating the same way without a local field:
-
-```text
-taugradu = 12*Br*mu_KV*(Rdot/R)^2/y^6 + 4*Br*(Rdot/R)*(1 - Rst^3)/(Ca*y^6)
-```
-
-The viscous term's `Br`/`Re8` normalization matches `imr.physics.stress_power`'s own exactly (confirmed by expanding both forms), which is why this elastic term is trusted enough to port despite not being derived from first principles here. Upgrading this to a fully local field, if one exists for this spring, is future work.

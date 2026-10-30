@@ -26,7 +26,7 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `radial` | `radial` | 1 Rayleigh–Plesset, 2 Keller–Miksis (pressure), 3 Keller–Miksis (enthalpy, Tait), 4 Gilmore (Tait), 5 Keller–Miksis (Mie–Grüneisen), 6 Gilmore (Mie–Grüneisen). Radial 3–6 do not allow medium heat transfer, and radial 5 and 6 support only the polytropic bubble. | 1 | 1 (dimensionless) |
 | `bubtherm` | `bubtherm` | Thermal PDE in the bubble (0/1) | 0 | 1 (dimensionless) |
 | `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1` and `radial` 1 or 2) | 0 | 1 (dimensionless) |
-| `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B, 6 PTT, 7 Giesekus, 8 linear Kelvin-Voigt (Yang-Church). Stress 6, 7 need `imr.solve_spectral` (forced `spectral = 1`) | 0 | 1 (dimensionless) |
+| `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B, 6 PTT, 7 Giesekus. Stress 6, 7 need `imr.solve_spectral` (forced `spectral = 1`) | 0 | 1 (dimensionless) |
 | `eps3` | `eps3` | Giesekus mobility factor, in [0, 0.5]; enters only `stress = 7`, where 0 reduces it to stress 5 (a warning says so). Unused by every other stress model | 0 | 1 (dimensionless) |
 | `vapor` | `vapor` | Vapor pressure (0/1) | 0 | 1 (dimensionless) |
 | `masstrans` | `masstrans` | Vapor mass transfer (0/1, requires `bubtherm = vapor = 1`) | 0 | 1 (dimensionless) |
@@ -56,7 +56,7 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `req` | `Req` | `Req/R0` | 0.2 | 1 (dimensionless) |
 | `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 | 1 (dimensionless) |
 | `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed | 1 (dimensionless) |
-| `stress0` | `Szero` | Initial stress state: empty for stress 0–2 and 8, one value for stress 3–4, `2*Nv` values for stress 5–7 with `spectral = 1` (always on for 6, 7) and 2 values for stress 5 with `spectral = 0`; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise; stress 5–7 with `collapse = 1` must give it) | computed | 1 (dimensionless) |
+| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, one value for stress 3–4, `2*Nv` values for stress 5–7 with `spectral = 1` (always on for 6, 7) and 2 values for stress 5 with `spectral = 0`; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise; stress 5–7 with `collapse = 1` must give it) | computed | 1 (dimensionless) |
 
 ### Acoustic options
 

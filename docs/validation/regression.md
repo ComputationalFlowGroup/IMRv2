@@ -7,13 +7,13 @@ MATLAB checks were not run for this documentation change. The descriptions below
 
 ## Cases
 
-From [`f_test_cases('regression')`](tests.md). Only the combinations the compatibility matrix allows are kept: this was 230 cases each for `nodal_fd` and `nodal_cheb`, and 155 for `spectral`, before stress 8 (linear Kelvin-Voigt) was added to this generator; the stored references in `tests/reference/` and the new count have not been regenerated here (see the disclaimer above) and need a local MATLAB run to refresh.
+From [`f_test_cases('regression')`](tests.md). Only the combinations the compatibility matrix allows are kept: 230 cases each for `nodal_fd` and `nodal_cheb`, and 155 for `spectral`.
 
 - **Radial, thermal and stress models, for two materials.** The cases are:
 
     - Radial models 1–6.
     - Five thermal configurations: polytropic, bubble, bubble and medium, bubble with mass transfer, and bubble and medium with mass transfer.
-    - Stress models 0–5 and 8 (8 is linear Kelvin-Voigt, see [stress and viscosity](../model/stress-viscosity.md#linear-kelvin-voigt-stress-8)).
+    - Stress models 0–5.
 
     The two materials are a soft, weakly viscous one (`mu = 1e-4 Pa s`, `G = 100 Pa`, `alphax = 1e-3`, `lambda1 = 1e-7 s`) and a stiff, viscous one (`mu = 0.1 Pa s`, `G = 2.5 kPa`, `alphax = 1`, `lambda1 = 1 ms`).
 

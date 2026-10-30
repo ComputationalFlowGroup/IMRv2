@@ -57,9 +57,9 @@ Finite differences need finer grids because they are second-order accurate. The 
 
 | Suite | Cases |
 |---|---|
-| Equilibrium | 144, 144, 144 (before stress 6, 7 and 8 were added; not rerun here) |
-| Gaussian | 120, 120, 120 (before stress 6, 7 and 8 were added; not rerun here) |
-| Regression | 230, 230, 155 (before stress 8 was added; stored references need a local MATLAB regeneration) |
+| Equilibrium | 144, 144, 144 (before stress 6, 7 were added; not rerun here) |
+| Gaussian | 120, 120, 120 (before stress 6, 7 were added; not rerun here) |
+| Regression | 230, 230, 155 |
 
 ## Helpers
 

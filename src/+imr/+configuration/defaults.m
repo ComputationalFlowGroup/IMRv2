@@ -30,8 +30,7 @@ function d = defaults()
     d.medtherm = 0;
     % 0 : none, 1 : NHKV, 2 : qNHKV, 3 : linear Maxwell, Jeffreys, Zener
     % (neo-Hookean), 4 : same with quadratic neo-Hookean, 5 : UCM or OldB,
-    % 6 : PTT, 7 : Giesekus (6, 7 need imr.solve_spectral; see eps3),
-    % 8 : linear Kelvin-Voigt (Yang & Church 2005)
+    % 6 : PTT, 7 : Giesekus (6, 7 need imr.solve_spectral; see eps3)
     d.stress = 0;
     % Giesekus mobility factor, used only by stress = 7, in [0, 0.5]; 0
     % reduces stress = 7 to stress = 5 (UCM, Oldroyd-B). Unused otherwise.

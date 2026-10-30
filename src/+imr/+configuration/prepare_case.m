@@ -95,7 +95,7 @@ function c = prepare_case(solver,varargin)
     p.iota = p.Km_star/p.Lt;
     if p.DRe == 0
         p.iDRe = 0;
-    elseif p.stress >= 3 && p.stress ~= 8
+    elseif p.stress >= 3
         p.iDRe = p.LAM/p.DRe;
     else
         p.iDRe = 1/p.DRe;
@@ -116,7 +116,7 @@ function c = prepare_case(solver,varargin)
             error('INPUT ERROR: mass transfer requires a representable nonzero gas mass fraction.');
         end
     end
-    if p.stress == 1 || p.stress == 2 || p.stress == 8
+    if p.stress == 1 || p.stress == 2
         p.JdotA = 4/p.Re8;
     elseif p.stress >= 3
         p.JdotA = 4*p.LAM/p.Re8;

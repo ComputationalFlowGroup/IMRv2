@@ -35,7 +35,7 @@ The enthalpy forms (radial 3–6) describe the liquid with an equation of state 
 | 5 | Bubble heat transfer |  |  |  |  | – | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✗ |
 | 6 | Medium heat transfer |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✗ | ✗ | ✓ | ✓ | ✓ | ✗ |
 | 7 | Mass transfer |  |  |  |  |  |  | – | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ | ✗ |
-| 8 | Kelvin–Voigt stress (1, 2, 8) |  |  |  |  |  |  |  | – | · | · | · | ✓ | ✓ | ✓ | · |
+| 8 | Kelvin–Voigt stress (1, 2) |  |  |  |  |  |  |  | – | · | · | · | ✓ | ✓ | ✓ | · |
 | 9 | Maxwell / Jeffreys / Zener (3, 4) |  |  |  |  |  |  |  |  | – | · | · | ✓ | ✓ | ✓ | · |
 | 10 | UCM / Oldroyd-B, two states (5) |  |  |  |  |  |  |  |  |  | – | · | ✓ | ✗ | ✓ | · |
 | 11 | UCM / Oldroyd-B, stress field (5, `spectral = 1`) |  |  |  |  |  |  |  |  |  |  | ✗ | ✗ | ✗ | ✗ | · |
@@ -55,7 +55,7 @@ The enthalpy forms (radial 3–6) describe the liquid with an equation of state 
 | 5 | Bubble heat transfer |  |  |  |  | – | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ |
 | 6 | Medium heat transfer |  |  |  |  |  | – | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ | ✓ | ✓ |
 | 7 | Mass transfer |  |  |  |  |  |  | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| 8 | Kelvin–Voigt stress (1, 2, 8) |  |  |  |  |  |  |  | – | · | · | · | ✓ | ✗ | ✓ | · |
+| 8 | Kelvin–Voigt stress (1, 2) |  |  |  |  |  |  |  | – | · | · | · | ✓ | ✗ | ✓ | · |
 | 9 | Maxwell / Jeffreys / Zener (3, 4) |  |  |  |  |  |  |  |  | – | · | · | ✓ | ✗ | ✓ | · |
 | 10 | UCM / Oldroyd-B, two states (5) |  |  |  |  |  |  |  |  |  | – | · | ✓ | ✗ | ✓ | · |
 | 11 | UCM / Oldroyd-B, stress field (5, `spectral = 1`) |  |  |  |  |  |  |  |  |  |  | – | ✓ | ✗ | ✓ | · |
@@ -77,14 +77,13 @@ Some features switch on others. A ✓ means the pair runs with these requirement
 
 Other rules:
 
-- **Non-Newtonian viscosity** requires a stress model with a viscous term, any nonzero stress; `imr.configuration.validate_case` rejects it with stress 0. It enters every stress model the same way, `-6*intfnu*iDRe` in the stress integral, scaled by `1/DRe` for the memoryless Kelvin-Voigt family (stress 1, 2, 8) and `LAM/DRe` for the Maxwell/Zener and UCM family (stress 3–7), and the medium heating uses the local non-Newtonian viscosity.
-- **Stress 3 through 7** require `De >= 1e-4`. Below that the relaxation is far faster than the bubble motion, the model is its `De -> 0` limit, and `imr.configuration.validate_case` asks for the simpler model instead: stress 1 for stress 3, stress 2 for stress 4, and stress 1 with `Ca = Inf` for stress 5–7. With a non-Newtonian viscosity, the simpler model takes `DRe/LAM` in place of `DRe`, since stress 3–7 apply it to the solvent share `LAM`. Stress 8 has no `De` (it is already instantaneous) and is exempt.
+- **Non-Newtonian viscosity** requires a stress model with a viscous term, stress 1–7; `imr.configuration.validate_case` rejects it with stress 0. It enters every stress model the same way, `-6*intfnu*iDRe` in the stress integral, scaled by `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–7, and the medium heating uses the local non-Newtonian viscosity.
+- **Stress 3 through 7** require `De >= 1e-4`. Below that the relaxation is far faster than the bubble motion, the model is its `De -> 0` limit, and `imr.configuration.validate_case` asks for the simpler model instead: stress 1 for stress 3, stress 2 for stress 4, and stress 1 with `Ca = Inf` for stress 5–7. With a non-Newtonian viscosity, the simpler model takes `DRe/LAM` in place of `DRe`, since stress 3–7 apply it to the solvent share `LAM`.
 - **Collapse with stress 3 or 4** starts from the stress of a growth from `Req` to `R = 1` ([`imr.physics.initial_stress`](functions/f_init_stress.md)), including the quadratic term for stress 4. If no subsonic growth reaches `R = 1` (very small `Req`), the run stops and asks for `stress0`.
-- **Collapse with stress 0–2 or 8** starts from rest at the maximum radius. These models carry no stress history, so there is no initial stress to set, and the run says so.
+- **Collapse with stress 0–2** starts from rest at the maximum radius. These models carry no stress history, so there is no initial stress to set, and the run says so.
 - **Collapse with stress 5, 6 or 7** is rejected unless `stress0` is given: the stress at the maximum radius is not computed for UCM/Oldroyd-B, PTT or Giesekus, and starting from zero stress would be silently wrong. Collapse is unsupported in `imr.solve_spectral` regardless (feature 13's diagonal is ✗), so this only matters if that restriction is ever relaxed.
-- **Stress 5, 6 and 7** set `Ca = Inf`, so they have no elastic contribution. Stress 8 keeps `Ca` as given, like stress 1, 2.
+- **Stress 5, 6 and 7** set `Ca = Inf`, so they have no elastic contribution.
 - **Stress 6 (PTT) and 7 (Giesekus)** generalize stress 5 with the nonlinear terms of [Warnez and Johnsen (2015)](references.md); see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-6-7). Neither has a closed-form, two-ODE reduction, so `imr.configuration.validate_case` rejects them in `imr.solve_nodal` outright and forces `spectral = 1` in `imr.solve_spectral` (with a warning if it was 0).
-- **Stress 8** is the Kelvin-Voigt family (stress 1, 2) with a spring linear in the radial strain instead of a finite-strain invariant, named for Yang and Church (2005); see [stress and viscosity](../model/stress-viscosity.md#linear-kelvin-voigt-stress-8). Its medium heating (below) is a coarser, wall-level approximation than stress 1, 2's fully local one -- no local field has been derived for this spring.
 - **Medium heating with stress 3 to 7** comes from the local polymer stress, not the Kelvin–Voigt form (see [`imr.physics.stress_power`](functions/f_stress_dissipation.md)).
     - **Stress 3 and 4:** carry that stress as a field next to `Z1` ([`imr.physics.zener_field`](functions/f_zener_field.md)).
     - **Stress 5:** the two-state form carries only integrals of the stress. With medium heat transfer, `imr.solve_spectral` switches to the stress field (feature 11) with a warning, and `imr.solve_nodal` rejects the run: its UCM / Oldroyd-B with medium heat transfer cell is ✗.

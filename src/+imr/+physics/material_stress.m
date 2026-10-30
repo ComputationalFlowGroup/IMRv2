@@ -7,10 +7,9 @@
 % brief This function features the stress integral and its time derivative
 % solver. The solver accounts for the Kelvin-Voigt with neo-Hookean
 % elasticity, quadratic K-V neo-Hookean elasticity, linear Maxwell, linear
-% Jeffreys, linear Zener, UCM, Oldroyd-B and linear Kelvin-Voigt. R, Rdot,
-% intfnu and dintfnu may be row vectors with X holding one state per
-% column (a batch of states), every operation is elementwise across the
-% columns
+% Jeffreys, linear Zener, UCM and Oldroyd-B. R, Rdot, intfnu and dintfnu
+% may be row vectors with X holding one state per column (a batch of
+% states), every operation is elementwise across the columns
 function [S,Sdot,Z1dot,Z2dot] = material_stress(stress,X,Req,R,Ca,De,Re8,...
     Rdot,alphax,ivisco1,ivisco2,LAM,intfnu,dintfnu,iDRe)
 
@@ -78,13 +77,6 @@ elseif stress == 5
     S = (Z1 + Z2)./R.^3 - 4*LAM/Re8*Rdot./R - 6*intfnu*iDRe;
     Sdot = (Z1dot+Z2dot)./R.^3 - 3*Rdot./R.^4.*(Z1+Z2) + 4*LAM/Re8*Rdot.^2./R.^2 ...
         - 6*dintfnu*iDRe;
-
-    % linear Kelvin-Voigt (Yang & Church 2005): a spring linear in the
-    % radial strain (1 - Rst^3), rather than neo-Hookean's finite-strain
-    % invariant, with the same instantaneous dashpot as stress 1, 2
-elseif stress == 8
-    S = -4/(3*Ca)*(1 - Rst.^3) - 4/Re8*Rdot./R - 6*intfnu*iDRe;
-    Sdot = -4*Rst.^3.*Rdot./(Ca.*R) + 4/Re8*(Rdot./R).^2 - 6*dintfnu*iDRe;
 
 else
     error('stress setting is not available');

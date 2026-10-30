@@ -33,20 +33,15 @@ The label depends on the numbers as well as on `stress`:
 | 5 | (always `Inf`) | `LAM > 0` | Oldroyd-B |
 | 6 | (always `Inf`) | | PTT (linear Phan-Thien-Tanner) |
 | 7 | (always `Inf`) | | Giesekus |
-| 8 | `Inf` | `Re8 = Inf` | inviscid fluid |
-| 8 | `Inf` | `Re8` finite | Newtonian fluid |
-| 8 | finite | `Re8 = Inf` | linear elastic solid (inviscid) |
-| 8 | finite | `Re8` finite | linear Kelvin–Voigt |
 
 - **Stress 3 and 4 without a spring:** with `Ca = Inf`, stress 3 and 4 are the same model, since the quadratic law only affects the spring.
-- **Stress 8** follows the same `Ca`/`Re8` cases as stress 1, 2, with "linear" in place of "neo-Hookean"/"quadratic neo-Hookean" (its spring is linear in the radial strain, not a finite-strain invariant).
 - **Stress field:** with `spectral = 1`, stress 5 adds "(spectral stress field)"; stress 6 and 7 always add it, since `spectral = 1` is forced for them.
 - **Viscosity line:** for stress 0 it reads "none", since there is no viscous stress.
 - **`eps3`:** shown as ", eps3 = <value>" whenever nonzero (stress 7, the Giesekus mobility factor).
 
 ## Stress representation
 
-- **Stress 0–2 and 8:** "closed form (no stress history)".
+- **Stress 0–2:** "closed form (no stress history)".
 - **Stress 3–7:** "stress integrals (ODEs)". The exceptions are stress 5–7 with `spectral = 1` (always on for 6, 7), which prints "stress field, spectral modes", and stress 3–4 with `medtherm = 1`, which print "stress integral (ODE), and its local field for the medium heating" (see [`imr.physics.zener_field`](f_zener_field.md)).
 
 ## Viscosity label
@@ -69,6 +64,6 @@ With an active model, a line after the dimensionless numbers gives `DRe` and the
 The label also says when the model does not act as its name suggests:
 
 - **Inactive with `DRe = 0`** (`mu0 = mu8`): "selected but inactive (DRe = 0, mu0 = mu8): Newtonian".
-- **Inactive with `LAM = 0` for the Maxwell/Zener and UCM family (stress 3–7):** "selected but inactive (LAM = 0, no solvent share for the Maxwell/Zener and UCM family): Newtonian". For these models the non-Newtonian viscosity is the solvent share `LAM`. Stress 8 has no `LAM` and is never reported this way.
-- **Stress 3–7 (not 8), active:** ", solvent share (LAM)".
+- **Inactive with `LAM = 0` for stress 3–5:** "selected but inactive (LAM = 0, no solvent share for stress 3-5): Newtonian". For these models the non-Newtonian viscosity is the solvent share `LAM`.
+- **Stress 3–5, active:** ", solvent share (LAM)".
 - **`v_lambda = 0`:** ", v_lambda = 0 so constant viscosity mu0". The shear rate then drops out, and the viscosity is the zero-shear value.

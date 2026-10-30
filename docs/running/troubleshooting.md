@@ -16,7 +16,7 @@ The parser and `imr.configuration.validate_case` report invalid inputs before in
 | `INPUT ERROR: collapse must have full model with vapor` | Collapse prerequisites absent | Use the [collapse guide](collapse.md) |
 | `INPUT ERROR: stress0 must have %d element(s) for stress = %d` | Wrong stress-history size | Use the size for the selected stress representation |
 | `INPUT ERROR: De = %g is below 1e-4` | Relaxation model is in its small-De limit | Use the simpler stress model named by the error |
-| `INPUT ERROR: nu_model = %d needs a viscous stress model` | Non-Newtonian choice with stress 0 | Use any nonzero stress model |
+| `INPUT ERROR: nu_model = %d needs a viscous stress model` | Non-Newtonian choice with stress 0 | Use stress 1–7 |
 | `INPUT ERROR: stress = 6 (PTT) and stress = 7 (Giesekus) have no closed-form ...` | PTT or Giesekus requested in `imr.solve_nodal` | Use `imr.solve_spectral` |
 | `INPUT ERROR: method = 3 (CVODES) needs the ode object` | CVODES unavailable | Use method 15 or 23, or MATLAB R2024a+ with CVODES |
 | `INPUT ERROR: jacobian = 3 (batched finite differences) is available in imr.solve_nodal only` | Spectral solver cannot batch the Jacobian | Use Jacobian 2 there |

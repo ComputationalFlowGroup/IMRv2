@@ -107,7 +107,7 @@ fprintf('%d explicitly accepted boundary configurations PASSED.\n',checked);
 % Every non-Newtonian law at zero wall shear and with a disabled excess
 % viscosity. Infinite exponents must not turn a zero contribution into NaN.
 for nu = 1:7
-    for stress = [1 2 3 4 5 8]
+    for stress = 1:5
         for excess = [0 10]
             c = imr.configuration.prepare_case('nodal','Req',1,'stress',stress, ...
                 'nu_model',nu,'dre',excess,'v_lambda',1,'v_a',2,'v_nc',0.5, ...
@@ -168,37 +168,6 @@ state(c5.layout.stress) = state(c5.layout.stress)+1e-5;
 assert(isequal(sys5.rhs(0.1,state),sys7.rhs(0.1,state)));
 assert(isequal(full(sys5.jacobian(0.1,state)),full(sys7.jacobian(0.1,state))));
 fprintf('Giesekus eps3 = 0 reduces exactly to UCM/Oldroyd-B PASSED.\n');
-
-% Linear Kelvin-Voigt (stress 8) at Ca = Inf must reduce exactly to
-% stress 1 (neo-Hookean Kelvin-Voigt) at Ca = Inf: both lose their spring
-% entirely and leave only the identical instantaneous dashpot, the same
-% right-hand side, not just a similar one.
-for solver = {'nodal','spectral'}
-    c1 = imr.configuration.prepare_case(solver{1},'Req',1,'stress',1, ...
-        'ca',Inf,'Nt',0,'Mt',0);
-    c8 = imr.configuration.prepare_case(solver{1},'Req',1,'stress',8, ...
-        'ca',Inf,'Nt',0,'Mt',0);
-    sys1 = imr.solvers.build(c1);
-    sys8 = imr.solvers.build(c8);
-    assert(isequal(sys1.initial,sys8.initial));
-    state = sys1.initial;
-    state(1) = 0.9;
-    state(2) = -0.2;
-    assert(isequal(sys1.rhs(0.1,state),sys8.rhs(0.1,state)));
-end
-fprintf('Linear Kelvin-Voigt at Ca = Inf reduces exactly to stress 1 PASSED.\n');
-
-% Linear Kelvin-Voigt (stress 8) stays finite with medium heat transfer.
-% Its medium heating is the wall-level approximation of
-% imr.physics.stress_power's stress = 8 branch, not stress 1's fully
-% local field (see docs/theory/stress-heating.md); this only checks that
-% it runs and stays finite, not that it matches a local-field reference.
-for solver = {'nodal','spectral'}
-    c8 = imr.configuration.prepare_case(solver{1},'Req',1,'stress',8, ...
-        'bubtherm',1,'medtherm',1,'Nt',5,'Mt',5);
-    f_finite_system(c8,imr.solvers.build(c8));
-end
-fprintf('Linear Kelvin-Voigt medium heating stays finite PASSED.\n');
 
 % Scalar compatibility alone cannot establish that the assembled radial
 % equation has a real, finite initial derivative. Check both builders.
