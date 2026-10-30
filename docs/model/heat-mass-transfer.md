@@ -27,12 +27,12 @@ Thus $\tau=1$ recovers the ambient vapor pressure, and negative dimensional $c_2
 
 | Symbol | Meaning | Scale / domain |
 |---|---|---|
-| $T$, $T_\infty$ | Physical and ambient absolute temperatures | K, both positive |
-| $\tau$ | Temperature passed to the dynamic wall law | $T/T_\infty>0$ |
-| $p_v$ | Enabled ambient saturation pressure | `Pv_star`, pressure divided by $P_\infty$ |
-| $\Theta_v$ | Inverse-temperature exponent | `thetav`, positive for active mass transfer |
-| $k_v$ | Vapor mass fraction | Between zero and one |
-| $r$ | Vapor to noncondensable gas-constant ratio | `rv/ra`, dimensionless and positive |
+| *T*, *T∞* | Physical and ambient absolute temperatures | K, both positive |
+| *τ* | Temperature passed to the dynamic wall law | *T*/*T∞* > 0 |
+| *p_v* | Enabled ambient saturation pressure | `Pv_star`, pressure divided by *P∞* |
+| *Θ_v* | Inverse-temperature exponent | `thetav`, positive for active mass transfer |
+| *k_v* | Vapor mass fraction | Between zero and one |
+| *r* | Vapor to noncondensable gas-constant ratio | `rv/ra`, dimensionless and positive |
 
 For total bubble pressure $P>0$, the ideal-mixture wall fraction is
 
