@@ -9,7 +9,7 @@
 
 ![IMR monogram with an open bubble ring. Inertial Microcavitation Rheometry.](docs/assets/logos/imr-monogram.svg)
 
-IMR simulates a spherical cavitation bubble in a viscoelastic material. Researchers use its bubble-radius histories to compare with high-speed measurements and study soft materials at high strain rates. This is the **water-only distribution**; the [main repository](https://github.com/mrodrig6/imrv2) includes additional mercury fluid support.
+IMR technique forward solver simulates a spherical cavitation bubble in a viscoelastic material. Researchers use its bubble-radius histories to compare with high-speed measurements and study soft materials at high strain rates. This is the **water-only distribution**; the [main repository](https://github.com/mrodrig6/imrv2) includes additional mercury fluid support.
 
 - Bubble radius, wall velocity, optional wall acceleration and pressure with Rayleigh–Plesset, Keller–Miksis or Gilmore dynamics.
 - Bubble and medium temperatures, with optional vapor mass transfer in the nodal solver.
