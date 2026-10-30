@@ -56,12 +56,14 @@ end
 % modulus (finite Ca)
 if stress == 2 || stress == 4
     elastic = 'quadratic neo-Hookean';
+elseif stress == 8
+    elastic = 'linear';
 else
     elastic = 'neo-Hookean';
 end
 if stress == 0
     const = 'no stress applied';
-elseif stress == 1 || stress == 2
+elseif stress == 1 || stress == 2 || stress == 8
     if Ca == Inf && Re8 == Inf
         const = 'inviscid fluid';
     elseif Ca == Inf
@@ -102,9 +104,10 @@ if eps3 ~= 0
 end
 
 % non-Newtonian viscosity: the model name, and whether it acts. Its stress
-% term carries the factor iDRe = 1/DRe (stress 1-2) or LAM/DRe (stress 3-5,
-% where it is the solvent share), which vanishes for DRe = 0 or, for stress
-% 3-5, LAM = 0
+% term carries the factor iDRe = 1/DRe for the memoryless Kelvin-Voigt
+% family (stress 1, 2, 8) or LAM/DRe for the Maxwell/Zener and UCM family
+% (where it is the solvent share), which vanishes for DRe = 0 or, for the
+% solvent-share group, LAM = 0
 nu_names = {'Carreau', 'Carreau-Yasuda', 'Powell-Eyring', ...
     'Modified Powell-Eyring', 'Cross', 'Simplified Cross', 'Modified Cross'};
 nu_params = '';
@@ -119,9 +122,9 @@ else
             'Newtonian'];
     elseif iDRe == 0
         visco = [visco ' selected but inactive (LAM = 0, no solvent ' ...
-            'share for stress 3-5): Newtonian'];
+            'share for the Maxwell/Zener and UCM family): Newtonian'];
     else
-        if stress >= 3
+        if stress >= 3 && stress ~= 8
             visco = [visco ', solvent share (LAM)'];
         end
         if v_lambda == 0
@@ -144,7 +147,7 @@ end
 % ordinary differential equations for its integrals, which stress 3 and 4
 % with medium heat transfer complement with the local polymer stress field
 % for the medium heating (imr.physics.zener_field)
-if stress < 3
+if stress < 3 || stress == 8
     solut = 'closed form (no stress history)';
 elseif spectral == 1
     solut = 'stress field, spectral modes';

@@ -54,7 +54,7 @@ function cases = f_test_cases(suite)
         for radial = 1:6
             for it = 1:3
                 for vapor = 0:1
-                    for stress = 0:7
+                    for stress = 0:8
                         key = sprintf('r%d_%s_v%d_s%d', radial, ...
                             thermal{it,1}, vapor, stress);
                         specs(end+1,:) = {key, [base, ...
@@ -79,7 +79,7 @@ function cases = f_test_cases(suite)
         for radial = 1:6
             for it = 1:3
                 for vapor = 0:1
-                    for stress = 1:7
+                    for stress = 1:8
                         key = sprintf('r%d_%s_v%d_s%d', radial, ...
                             thermal{it,1}, vapor, stress);
                         specs(end+1,:) = {key, [base, ...
@@ -90,7 +90,7 @@ function cases = f_test_cases(suite)
                 end
             end
         end
-        
+
         case 'regression'
         % stored results: every radial, thermal (with mass transfer) and
         % stress model for two materials, then the other features of the
@@ -117,7 +117,7 @@ function cases = f_test_cases(suite)
         specs = {};
         for radial = 1:6
             for it = 1:5
-                for stress = 0:5
+                for stress = [0:5 8]
                     for im = 1:2
                         if thermal{it,4}
                             geom = mass;
@@ -178,7 +178,7 @@ function cases = f_test_cases(suite)
         % non-Newtonian viscosity: every model with every viscous stress
         % model, with and without medium heat transfer
         for nu = 1:7
-            for stress = 1:7
+            for stress = 1:8
                 for it = 2:3
                     specs(end+1,:) = {sprintf('nu%d_s%d_%s', nu, stress, ...
                         thermal{it,1}), [base, nonnewt, ...
@@ -201,7 +201,7 @@ function cases = f_test_cases(suite)
         for method = [3 15 23]
             for jacobian = 0:3
                 for it = 1:5
-                    for stress = [0 1 3 5 6 7]
+                    for stress = [0 1 3 5 6 7 8]
                         specs(end+1,:) = {sprintf('m%d_j%d_%s_s%d', method, ...
                             jacobian, thermal{it,1}, stress), [base, ...
                             f_thermal(thermal(it,:)), {'radial', 2, ...
@@ -213,18 +213,19 @@ function cases = f_test_cases(suite)
         end
         % no viscosity, surface tension or elasticity (Re, We, Ca = Inf)
         % (one pair per row, rows separated by line breaks). PTT (6) and
-        % Giesekus (7) multiply their new terms by Re8, which are 0*Inf
+        % Giesekus (7) multiply their active term by Re8, which is 0*Inf
         % (NaN) from rest at the inviscid limit (mu = 0, Re8 = Inf), so that
         % limit is skipped for them: it is not a case those models are
-        % meant to run at.
+        % meant to run at. Stress 8's viscous term only divides by Re8, so
+        % it is unaffected and stays in the sweep.
         limits = {
         'mu', 0
         'surft', 0
         'G', 0
         };
         for il = 1:3
-            for stress = 0:7
-                if stress >= 6 && strcmp(limits{il,1}, 'mu')
+            for stress = 0:8
+                if (stress == 6 || stress == 7) && strcmp(limits{il,1}, 'mu')
                     continue
                 end
                 specs(end+1,:) = {sprintf('inf_%s_s%d', limits{il,1}, ...
@@ -236,7 +237,7 @@ function cases = f_test_cases(suite)
         % collapse with every stress model (stress 5 needs stress0) and the
         % limits above
         for radial = 1:2
-            for stress = 0:5
+            for stress = [0 1 2 3 4 5 8]
                 for il = 0:3
                     a = [base, f_thermal(thermal(5,:)), {'radial', radial, ...
                         'stress', stress, 'R0', 2e-4, 'Req', 5e-5, ...

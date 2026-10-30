@@ -12,8 +12,9 @@
 | 5 | UCM or Oldroyd-B | Two integrals or a spectral local field |
 | 6 | PTT (linear Phan-Thien-Tanner) | Spectral local field only |
 | 7 | Giesekus | Spectral local field only |
+| 8 | Linear Kelvin–Voigt (Yang-Church) | Closed form |
 
-Actual labels depend on `Ca`, `Re8` and `LAM`; see the canonical [display-label table](../reference/functions/f_display.md#constitutive-model-label). Stress 5–7 force `Ca = Inf`. Stress 3–7 require `De >= 1e-4`; use the small-De limit named by the checker below that threshold. `eps3` is accepted and displayed, and enters only the Giesekus model (stress 7); it is otherwise unused.
+Actual labels depend on `Ca`, `Re8` and `LAM`; see the canonical [display-label table](../reference/functions/f_display.md#constitutive-model-label). Stress 5–7 force `Ca = Inf`; stress 8 keeps its elastic contribution, like stress 1, 2. Stress 3–7 require `De >= 1e-4`; stress 8 has no `De` (it is instantaneous, like stress 1, 2). `eps3` is accepted and displayed, and enters only the Giesekus model (stress 7); it is otherwise unused.
 
 ## PTT and Giesekus (stress 6, 7)
 
@@ -27,6 +28,17 @@ D(tau_tt)/Dt = -tau_tt/De*exp(eps2*Re8*De*(tau_rr+2*tau_tt))
 ```
 
 with `etap = (1-LAM)/Re8`. Stress 5 is the `eps2 = 0`, `eps3 = 0` case, recovered exactly. Stress 6 (PTT) fixes their linear closure `eps2 = 1` and takes `eps3 = 0`. Stress 7 (Giesekus) keeps `eps2 = 0` and takes the input `eps3` in `(0, 0.5]` as their mobility factor; `eps3 = 0` makes stress 7 identical to stress 5 (a warning says so). `imr.solvers.build_spectral` (`f_spectral_stress`) implements the field, and `imr.numerics.jacobian_spectral` differentiates both new terms analytically for `jacobian = 2`.
+
+## Linear Kelvin-Voigt (stress 8)
+
+Stress 8 is the same Kelvin-Voigt family as stress 1, 2 (an instantaneous dashpot plus a spring, no stress history), but with a spring linear in the radial strain instead of a finite-strain hyperelastic one, named after Yang and Church, *A model for the dynamics of gas bubbles in soft tissue*, J. Acoust. Soc. Am. 118, 3595 (2005):
+
+```text
+S    = -4/(3*Ca)*(1 - Rst^3) - 4/Re8*Rdot/R
+Sdot = -4*Rst^3*Rdot/(Ca*R) + 4/Re8*(Rdot/R)^2
+```
+
+with `Rst = Req/R`. This closed form is cross-checked against two independent public codes carrying this exact model (`funIMRsolver.m` of `InertialMicrocavitationRheometry/IMR_v1`, and an older spectral reference in this project's own history), and against its own `R`-derivative. `imr.physics.material_stress` implements it; see [stress heating theory](../theory/stress-heating.md#kelvin-voigt-yang-church-stress-8) for its medium-heating term, which is **not** the fully local stretch field stress 1, 2 use — no local closed form for this spring has been derived yet.
 
 ## Non-Newtonian viscosity
 
@@ -45,4 +57,4 @@ with `etap = (1-LAM)/Re8`. Stress 5 is the `eps2 = 0`, `eps3 = 0` case, recovere
 
 The modified Powell–Eyring model has zero added viscosity at zero shear for `n < 1`, and factor 1 for `n = 1`; do not assume every exponent yields zero-shear viscosity `mu0`. The other laws approach factor 1 as `v_lambda` tends to zero.
 
-The contribution vanishes at `DRe = 0`. For stress 3–5 it acts on the solvent share and also vanishes at `LAM = 0`. Its common factor is `iDRe = 1/DRe` for stress 1–2, `LAM/DRe` for stress 3–5, and zero when inactive. See [integral theory](../theory/viscosity-integrals.md), [heating theory](../theory/stress-heating.md) and [compatibility](../reference/compatibility.md).
+The contribution vanishes at `DRe = 0`. For the Maxwell/Zener and UCM family it acts on the solvent share and also vanishes at `LAM = 0`. Its common factor is `iDRe = 1/DRe` for the memoryless Kelvin-Voigt family (stress 1, 2, 8), `LAM/DRe` for the Maxwell/Zener and UCM family (stress 3–7), and zero when inactive. See [integral theory](../theory/viscosity-integrals.md), [heating theory](../theory/stress-heating.md) and [compatibility](../reference/compatibility.md).

@@ -33,7 +33,9 @@ The suite explicitly checks all three discretizations, compatible radial/thermal
 
 `stress = 6` (PTT) and `7` (Giesekus) are rejected in `imr.solve_nodal` and forced to the spectral stress field in `imr.solve_spectral`. Giesekus at `eps3 = 0` is checked to give the exact same right-hand side, Jacobian and initial state as `stress = 5` (UCM/Oldroyd-B), not only a close one.
 
-All seven non-Newtonian laws are checked at zero wall shear with each viscous stress family. Separate cases ensure a disabled viscosity law cannot contaminate the solution through overflow. Known temperatures are mapped forward and inverted to check the conductivity limit independently.
+`stress = 8` (linear Kelvin-Voigt, Yang-Church) at `Ca = Inf` is checked to give the exact same right-hand side and initial state as `stress = 1` (neo-Hookean Kelvin-Voigt) at `Ca = Inf`, in both solvers: both lose their spring entirely and leave the identical instantaneous dashpot. A separate case checks that `stress = 8` with medium heat transfer stays finite; its medium heating is a coarser, wall-level approximation than stress 1's fully local field (no local closed form has been derived for this spring -- see [stress heating theory](../theory/stress-heating.md#kelvin-voigt-yang-church-stress-8)), so this only checks it runs, not that it matches a local-field reference.
+
+All seven non-Newtonian laws are checked at zero wall shear with each viscous stress family, including `stress = 8`. Separate cases ensure a disabled viscosity law cannot contaminate the solution through overflow. Known temperatures are mapped forward and inverted to check the conductivity limit independently.
 
 ## Scope and execution status
 

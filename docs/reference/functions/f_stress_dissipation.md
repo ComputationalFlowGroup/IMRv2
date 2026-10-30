@@ -10,7 +10,7 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
 
 | Name | Description |
 |---|---|
-| `stress` | Stress model (0–7) |
+| `stress` | Stress model (0–8) |
 | `Req`, `R`, `Rdot` | Equilibrium radius, radius and wall velocity |
 | `Ca`, `Br`, `Re8`, `LAM` | Cauchy, Brinkman and Reynolds numbers, and the solvent fraction |
 | `alphax` | Strain-stiffening parameter (stress 2) |
@@ -31,6 +31,7 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
     - `imr.solve_spectral` evaluates the Zener field or the stress 5–7 field at the medium points with `ZZT`.
     - `imr.solve_nodal` stores the Zener field at the medium nodes.
 - **Stress 5 two-state form:** it carries only integrals of the stress, not a local field. So stress 5 with medium heat transfer uses the stress field in `imr.solve_spectral`, and is rejected in `imr.solve_nodal` (see [`imr.configuration.validate_case`](f_checkers.md)). Stress 6 and 7 always run as that stress field, so this does not arise for them.
+- **Stress 8** takes the `stress == 1 || 2` branch of this function's viscous term, but its elastic term is a separate, wall-level approximation rather than a function of `sp` or a locally evaluated `se(lam)` — no local field has been derived for this spring. See [stress heating theory](../../theory/stress-heating.md#kelvin-voigt-yang-church-stress-8).
 - **Far-field point:** at `yT = Inf` the elastic term is undefined. The solvers hold the temperature there fixed (`Tmdot(end) = 0`).
 - **Batched states:** `R`, `Rdot` and `sp` may hold one state per column, for the batched right-hand side of [`imr.solve_nodal`](../../method/time-integration.md#batched-right-hand-side).
 

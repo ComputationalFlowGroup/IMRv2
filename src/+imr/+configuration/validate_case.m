@@ -124,8 +124,9 @@ function p = validate_case(p)
     end
     % below De = 1e-4 the relaxation is far faster than the bubble motion:
     % the model is then its De -> 0 limit, which the instantaneous models
-    % give directly and without the stiffness of the 1/De relaxation
-    if p.stress >= 3 && p.De < 1e-4
+    % give directly and without the stiffness of the 1/De relaxation.
+    % stress 8 has no De (it is already instantaneous, like stress 1, 2)
+    if p.stress >= 3 && p.stress ~= 8 && p.De < 1e-4
         error(['INPUT ERROR: De = %g is below 1e-4, where stress = %d is ' ...
             'its De -> 0 limit. Run the simpler model instead: %s'], ...
             p.De, p.stress, f_small_de_model(p.stress));
@@ -234,7 +235,8 @@ function p = validate_case(p)
     % dimensionless numbers
 
     % Re, We and Ca were checked before calculating initial pressures.
-    if p.stress >= 3 && p.LAM > 1
+    % stress 8 has no solvent/polymer split (no LAM), like stress 1, 2
+    if p.stress >= 3 && p.stress ~= 8 && p.LAM > 1
         warning('IMR:parameters', ['LAM = lambda2/lambda1 = %g exceeds 1; the ' ...
             'retardation time is normally shorter than the relaxation time'], p.LAM);
     end
@@ -245,17 +247,18 @@ function p = validate_case(p)
     % non-Newtonian viscosity
     if p.nu_model > 0 && p.stress == 0
         error(['INPUT ERROR: nu_model = %d needs a viscous stress model; ' ...
-            'stress = 0 has no viscous stress, use stress = 1 to 5'], p.nu_model);
+            'stress = 0 has no viscous stress, use a nonzero stress model'], p.nu_model);
     end
     if p.nu_model > 0
         f_nonnegative({'DRe','v_lambda','v_nc'}, {p.DRe, p.v_lambda_star, p.v_nc});
         if p.DRe == 0
             warning('IMR:parameters', ['nu_model = %d with DRe = 0: the ' ...
                 'non-Newtonian contribution is zero'], p.nu_model);
-        elseif p.stress >= 3 && p.LAM == 0
+        elseif p.stress >= 3 && p.stress ~= 8 && p.LAM == 0
             warning('IMR:parameters', ['nu_model = %d with stress = %d and ' ...
                 'LAM = 0: the non-Newtonian viscosity is the solvent share LAM ' ...
-                'of stress 3-5, so its contribution is zero'], p.nu_model, p.stress);
+                'of the Maxwell/Zener and UCM-family models, so its ' ...
+                'contribution is zero'], p.nu_model, p.stress);
         end
         if (p.nu_model == 2 || p.nu_model == 7) && ~(p.v_a > 0)
             error('INPUT ERROR: nu_model = %d requires v_a > 0', p.nu_model);
@@ -337,9 +340,11 @@ function p = validate_case(p)
     % transfer, their local polymer stress as a field of Nv spectral modes
     zener_field = (p.stress == 3 || p.stress == 4) && p.medtherm == 1;
     zener_modes = zener_field && strcmp(p.solver,'spectral');
-    if p.stress <= 4
+    if p.stress <= 4 || p.stress == 8
         % closed-form or single-mode stress models, no spectral stress
-        % representation
+        % representation. Stress 8 (linear Kelvin-Voigt) carries no stress
+        % history, like stress 0-2, and keeps its elastic contribution
+        % (unlike stress 5-7, Ca is not forced to Inf)
         p.spectral = 0;
         if zener_modes
             % Nv modes of the field (the stress integral Z1 is one state)
