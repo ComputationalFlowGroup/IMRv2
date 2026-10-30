@@ -155,7 +155,7 @@ fprintf('PTT/Giesekus nodal rejection and forced spectral field PASSED.\n');
 % (stress 5): the same right-hand side and Jacobian, not just a similar
 % one, since the exponential and quadratic terms both vanish identically.
 c5 = imr.configuration.prepare_case('spectral','Req',1,'stress',5, ...
-    'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
+    'spectral',1,'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
 warning('off','IMR:parameters');
 c7 = imr.configuration.prepare_case('spectral','Req',1,'stress',7, ...
     'eps3',0,'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
