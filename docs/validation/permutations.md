@@ -9,11 +9,11 @@ MATLAB checks were not run for this documentation change. The descriptions below
 
 From [`f_test_cases('permutations')`](tests.md), in the three solver modes. The equilibrium and Gaussian suites already cross the radial, thermal, vapor and stress models; this suite crosses the remaining options:
 
-- **Non-Newtonian viscosity:** every model (`nu_model` 1–7) with every viscous stress model (1–7, Giesekus with a nonzero `eps3`), with and without medium heat transfer.
+- **Non-Newtonian viscosity:** every model (`nu_model` 1–7) with every viscous stress model (1–11, Giesekus with a nonzero `eps3`), with and without medium heat transfer.
 - **Driving waveforms:** every `wave_type` (−3 to 3, the measured waveforms included) with every radial model.
-- **Integrators and Jacobians:** `method` 3 (CVODES), 15 and 23 with `jacobian` 0–3, every thermal configuration (mass transfer included) and stress 0, 1, 3, 5, 6 and 7.
-- **Limits:** no viscosity, surface tension or elasticity (`Re`, `We` or `Ca` = `Inf`) with every stress model, except PTT and Giesekus (6, 7) with no viscosity (`Re = Inf`): their nonlinear terms multiply `Re8` directly, `0*Inf` from rest, so that limit is skipped for them.
-- **Collapse:** radial 1 and 2, stress 0–5 (stress 5 with `stress0`), alone and with each limit above. Stress 6 and 7 are left out: every mode rejects their collapse, so widening this loop would add no cases.
+- **Integrators and Jacobians:** `method` 3 (CVODES), 15 and 23 with `jacobian` 0–3, every thermal configuration (mass transfer included) and stress 0, 1, 3, 5, 6, 7, 8, 9, 10 and 11.
+- **Limits:** no viscosity, surface tension or elasticity (`Re`, `We` or `Ca` = `Inf`) with every stress model, except PTT and Giesekus (6, 7) with no viscosity (`Re = Inf`): their nonlinear terms multiply `Re8` directly, `0*Inf` from rest, so that limit is skipped for them. The 2nd-order Fung and Mooney-Rivlin springs (8–11) only divide by `Re8`, so they stay in the sweep.
+- **Collapse:** radial 1 and 2, stress 0–5, 8 and 10 (stress 5 with `stress0`), alone and with each limit above. Stress 6, 7, 9 and 11 are left out: every mode rejects their collapse, so widening this loop would add no cases.
 - **Other inputs:** the stress 5 field (`spectral = 1`), `eps3`, a moving start, a given initial pressure and stress, the end time as `tfin`, and the integrator given by name.
 
 Combinations that `imr.configuration.validate_case` rejects are left out automatically. This includes CVODES before MATLAB R2024a, which lacks the `ode` object's `cvodesstiff` solver, and `jacobian = 3` in `imr.solve_spectral`.

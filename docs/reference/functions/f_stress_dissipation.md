@@ -10,14 +10,15 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
 
 | Name | Description |
 |---|---|
-| `stress` | Stress model (0–7) |
+| `stress` | Stress model (0–11) |
 | `Req`, `R`, `Rdot` | Equilibrium radius, radius and wall velocity |
 | `Ca`, `Br`, `Re8`, `LAM` | Cauchy, Brinkman and Reynolds numbers, and the solvent fraction |
-| `alphax` | Strain-stiffening parameter (stress 2) |
+| `alphax` | Strain-stiffening parameter (stress 2, 4); the next series term reuses it for the 2nd-order Fung spring (8, 9) |
+| `C2` | Mooney-Rivlin second-modulus ratio (stress 10, 11); unused otherwise |
 | `iDRe` | Factor of the non-Newtonian stress term (`1/DRe` or `LAM/DRe`, 0 when inactive) |
 | `yT2`, `yT3`, `iyT3`, `iyT4`, `iyT6` | Powers of the medium coordinate `y = r/R` |
 | `fnu` | Non-Newtonian viscosity factor at the medium points (the `fq` output of `imr.physics.viscosity`); scalar 0 for Newtonian runs |
-| `sp` | Local polymer stress difference at the medium points (stress 3–7); ignored otherwise |
+| `sp` | Local polymer stress difference at the medium points (stress 3–7, 9, 11); ignored otherwise |
 
 ## Outputs
 
@@ -31,6 +32,8 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
     - `imr.solve_spectral` evaluates the Zener field or the stress 5–7 field at the medium points with `ZZT`.
     - `imr.solve_nodal` stores the Zener field at the medium nodes.
 - **Stress 5 two-state form:** it carries only integrals of the stress, not a local field. So stress 5 with medium heat transfer uses the stress field in `imr.solve_spectral`, and is rejected in `imr.solve_nodal` (see [`imr.configuration.validate_case`](f_checkers.md)). Stress 6 and 7 always run as that stress field, so this does not arise for them.
+- **Stress 8, 10 (Kelvin-Voigt):** the elastic stress difference `se` is the 2nd-order Fung or Mooney-Rivlin field in place of the neo-Hookean or quadratic one; the instantaneous viscosity and non-Newtonian terms are unchanged.
+- **Stress 9, 11 (Zener):** carry the corresponding spring's local field exactly as stress 3, 4 do, via `imr.physics.zener_field`.
 - **Far-field point:** at `yT = Inf` the elastic term is undefined. The solvers hold the temperature there fixed (`Tmdot(end) = 0`).
 - **Batched states:** `R`, `Rdot` and `sp` may hold one state per column, for the batched right-hand side of [`imr.solve_nodal`](../../method/time-integration.md#batched-right-hand-side).
 

@@ -54,7 +54,7 @@ function cases = f_test_cases(suite)
         for radial = 1:6
             for it = 1:3
                 for vapor = 0:1
-                    for stress = 0:7
+                    for stress = 0:11
                         key = sprintf('r%d_%s_v%d_s%d', radial, ...
                             thermal{it,1}, vapor, stress);
                         specs(end+1,:) = {key, [base, ...
@@ -79,7 +79,7 @@ function cases = f_test_cases(suite)
         for radial = 1:6
             for it = 1:3
                 for vapor = 0:1
-                    for stress = 1:7
+                    for stress = 1:11
                         key = sprintf('r%d_%s_v%d_s%d', radial, ...
                             thermal{it,1}, vapor, stress);
                         specs(end+1,:) = {key, [base, ...
@@ -90,7 +90,7 @@ function cases = f_test_cases(suite)
                 end
             end
         end
-        
+
         case 'regression'
         % stored results: every radial, thermal (with mass transfer) and
         % stress model for two materials, then the other features of the
@@ -99,8 +99,8 @@ function cases = f_test_cases(suite)
             {'Nt', 12, 'Mt', 12, 'Nv', 32}};
         % a soft, weakly viscous material and a stiff, viscous one with
         % strain stiffening and relaxation
-        mats = {{'mu', 1e-4, 'G', 1e2, 'alphax', 1e-3, 'lambda1', 1e-7}, ...
-            {'mu', 1e-1, 'G', 2.5e3, 'alphax', 1, 'lambda1', 1e-3}};
+        mats = {{'mu', 1e-4, 'G', 1e2, 'alphax', 1e-3, 'C2', 0.1, 'lambda1', 1e-7}, ...
+            {'mu', 1e-1, 'G', 2.5e3, 'alphax', 1, 'C2', 0.5, 'lambda1', 1e-3}};
         % the collapse and rebounds of a bubble released from four times
         % its equilibrium radius, and the same with mass transfer for a
         % larger bubble. The polytropic bubble loses no heat, so its
@@ -117,7 +117,7 @@ function cases = f_test_cases(suite)
         specs = {};
         for radial = 1:6
             for it = 1:5
-                for stress = 0:5
+                for stress = [0:5 8 9 10 11]
                     for im = 1:2
                         if thermal{it,4}
                             geom = mass;
@@ -155,7 +155,7 @@ function cases = f_test_cases(suite)
         % collapse, which needs the full model with mass transfer, with the
         % soft material: with the stiff one the quadratic model's collapse
         % is too violent to converge with resolution
-        for stress = [0 1 3 4]
+        for stress = [0 1 3 4 8 10]
             specs(end+1,:) = {sprintf('r2_collapse_s%d', stress), [common, ...
                 coll, mats{1}, f_thermal(thermal(5,:)), {'radial', 2, ...
                 'stress', stress}]}; %#ok<AGROW>
@@ -169,7 +169,7 @@ function cases = f_test_cases(suite)
         grids = {{'Nt', 20, 'Mt', 20}, {'Nt', 12, 'Mt', 12}, ...
             {'Nt', 8, 'Mt', 8, 'Nv', 8}};
         base = {'R0', 50e-6, 'Req', 25e-6, 'mu', 1e-2, 'G', 1e3, ...
-            'lambda1', 1e-7, 'lambda2', 3e-8, 'alphax', 0.25, ...
+            'lambda1', 1e-7, 'lambda2', 3e-8, 'alphax', 0.25, 'C2', 0.3, ...
             'tvector', linspace(0, 2e-6, 5), 'collapse', 0, 'vapor', 1};
         nonnewt = {'mu0', 5e-2, 'v_lambda', 1e-7, 'v_nc', 0.5, 'v_a', 2};
         wave = {'pA', 1e5, 'TW', 2e-7, 'DT', 1e-6, 'omega', 2*pi*1e6, ...
@@ -178,7 +178,7 @@ function cases = f_test_cases(suite)
         % non-Newtonian viscosity: every model with every viscous stress
         % model, with and without medium heat transfer
         for nu = 1:7
-            for stress = 1:7
+            for stress = 1:11
                 for it = 2:3
                     specs(end+1,:) = {sprintf('nu%d_s%d_%s', nu, stress, ...
                         thermal{it,1}), [base, nonnewt, ...
@@ -201,7 +201,7 @@ function cases = f_test_cases(suite)
         for method = [3 15 23]
             for jacobian = 0:3
                 for it = 1:5
-                    for stress = [0 1 3 5 6 7]
+                    for stress = [0 1 3 5 6 7 8 9 10 11]
                         specs(end+1,:) = {sprintf('m%d_j%d_%s_s%d', method, ...
                             jacobian, thermal{it,1}, stress), [base, ...
                             f_thermal(thermal(it,:)), {'radial', 2, ...
@@ -216,15 +216,16 @@ function cases = f_test_cases(suite)
         % Giesekus (7) multiply their new terms by Re8, which are 0*Inf
         % (NaN) from rest at the inviscid limit (mu = 0, Re8 = Inf), so that
         % limit is skipped for them: it is not a case those models are
-        % meant to run at.
+        % meant to run at. Every other model, 8-11 included, only divides
+        % by Re8, so it stays in the sweep.
         limits = {
         'mu', 0
         'surft', 0
         'G', 0
         };
         for il = 1:3
-            for stress = 0:7
-                if stress >= 6 && strcmp(limits{il,1}, 'mu')
+            for stress = 0:11
+                if any(stress == [6 7]) && strcmp(limits{il,1}, 'mu')
                     continue
                 end
                 specs(end+1,:) = {sprintf('inf_%s_s%d', limits{il,1}, ...
@@ -236,7 +237,7 @@ function cases = f_test_cases(suite)
         % collapse with every stress model (stress 5 needs stress0) and the
         % limits above
         for radial = 1:2
-            for stress = 0:5
+            for stress = [0:5 8 10]
                 for il = 0:3
                     a = [base, f_thermal(thermal(5,:)), {'radial', radial, ...
                         'stress', stress, 'R0', 2e-4, 'Req', 5e-5, ...

@@ -74,7 +74,7 @@ for kind = {'nodal','spectral'}
     end
     for scheme = schemes
         for flags = thermal_cases(1:thermal_count,:)'
-            for stress = [0 1 3 4 5 6 7]
+            for stress = [0 1 3 4 5 6 7 8 9 10 11]
                 medium = flags(2);
                 if stress == 5 && medium && strcmp(solver,'nodal')
                     continue

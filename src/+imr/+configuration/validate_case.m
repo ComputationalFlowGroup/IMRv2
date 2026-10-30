@@ -56,8 +56,8 @@ function p = validate_case(p)
     % calculations, so check their ranges before evaluating either.
     f_positive({'Re','We','Ca'}, {p.Re8, p.We, p.Ca}, true);
     f_positive({'Req'}, {p.Req});
-    f_nonnegative({'De','LAM','alphax','kappa - 1'}, ...
-        {p.De, p.LAM, p.alphax, p.kappa - 1});
+    f_nonnegative({'De','LAM','alphax','C2','kappa - 1'}, ...
+        {p.De, p.LAM, p.alphax, p.C2, p.kappa - 1});
 
     % compatibility of the model conditions
 
@@ -114,18 +114,20 @@ function p = validate_case(p)
     end
     % collapse sets the equilibrium radius and a zero wall velocity, and for
     % stress 3 and 4 the stress at the maximum radius (imr.physics.initial_stress). Stress
-    % 0-2 carry no stress history, so there is nothing more to set. For stress
-    % 5-7 that stress is not computed, and a zero stress would be silently wrong
-    if p.collapse == 1 && any(p.stress == [5 6 7]) && ~p.stress0set
-        error(['INPUT ERROR: collapse = 1 is not available for stress = 5, 6, 7 ' ...
-            '(UCM/Oldroyd-B, PTT, Giesekus): the stress at the maximum radius ' ...
-            'is not computed for them. Give the initial stress with stress0, ' ...
-            'or use stress 3 or 4']);
+    % 0-2, 8, 10 carry no stress history, so there is nothing more to set.
+    % For stress 5-7, 9, 11 that stress is not computed, and a zero stress
+    % would be silently wrong
+    if p.collapse == 1 && any(p.stress == [5 6 7 9 11]) && ~p.stress0set
+        error(['INPUT ERROR: collapse = 1 is not available for stress = 5, 6, ' ...
+            '7, 9, 11 (UCM/Oldroyd-B, PTT, Giesekus, 2nd-order Fung Zener, ' ...
+            'Mooney-Rivlin Zener): the stress at the maximum radius is not ' ...
+            'computed for them. Give the initial stress with stress0, or use ' ...
+            'stress 3, 4, 8 or 10']);
     end
     % below De = 1e-4 the relaxation is far faster than the bubble motion:
     % the model is then its De -> 0 limit, which the instantaneous models
     % give directly and without the stiffness of the 1/De relaxation
-    if p.stress >= 3 && p.De < 1e-4
+    if any(p.stress == [3 4 5 6 7 9 11]) && p.De < 1e-4
         error(['INPUT ERROR: De = %g is below 1e-4, where stress = %d is ' ...
             'its De -> 0 limit. Run the simpler model instead: %s'], ...
             p.De, p.stress, f_small_de_model(p.stress));
@@ -157,9 +159,10 @@ function p = validate_case(p)
             'spectral = 1'], p.stress);
         p.spectral = 1;
     end
-    % the linear Zener model is a spring 1/Ca in parallel with a Maxwell
-    % branch whose dashpot viscosity is (1-LAM)/Re8 - De/Ca
-    if (p.stress == 3 || p.stress == 4) && (1 - p.LAM)/p.Re8 < p.De/p.Ca
+    % the linear, 2nd-order Fung and Mooney-Rivlin Zener models are each a
+    % spring 1/Ca in parallel with a Maxwell branch whose dashpot viscosity
+    % is (1-LAM)/Re8 - De/Ca
+    if any(p.stress == [3 4 9 11]) && (1 - p.LAM)/p.Re8 < p.De/p.Ca
         warning('IMR:parameters', ['stress = %d with (1-LAM)/Re8 = %g < ' ...
             'De/Ca = %g: the implied dashpot viscosity of the Zener branch, ' ...
             '(1-LAM)/Re8 - De/Ca, is negative'], p.stress, (1 - p.LAM)/p.Re8, ...
@@ -234,7 +237,7 @@ function p = validate_case(p)
     % dimensionless numbers
 
     % Re, We and Ca were checked before calculating initial pressures.
-    if p.stress >= 3 && p.LAM > 1
+    if any(p.stress == [3 4 5 6 7 9 11]) && p.LAM > 1
         warning('IMR:parameters', ['LAM = lambda2/lambda1 = %g exceeds 1; the ' ...
             'retardation time is normally shorter than the relaxation time'], p.LAM);
     end
@@ -245,17 +248,18 @@ function p = validate_case(p)
     % non-Newtonian viscosity
     if p.nu_model > 0 && p.stress == 0
         error(['INPUT ERROR: nu_model = %d needs a viscous stress model; ' ...
-            'stress = 0 has no viscous stress, use stress = 1 to 5'], p.nu_model);
+            'stress = 0 has no viscous stress, use another stress model'], p.nu_model);
     end
     if p.nu_model > 0
         f_nonnegative({'DRe','v_lambda','v_nc'}, {p.DRe, p.v_lambda_star, p.v_nc});
         if p.DRe == 0
             warning('IMR:parameters', ['nu_model = %d with DRe = 0: the ' ...
                 'non-Newtonian contribution is zero'], p.nu_model);
-        elseif p.stress >= 3 && p.LAM == 0
+        elseif any(p.stress == [3 4 5 6 7 9 11]) && p.LAM == 0
             warning('IMR:parameters', ['nu_model = %d with stress = %d and ' ...
                 'LAM = 0: the non-Newtonian viscosity is the solvent share LAM ' ...
-                'of stress 3-5, so its contribution is zero'], p.nu_model, p.stress);
+                'of the Maxwell/Zener/UCM family, so its contribution is zero'], ...
+                p.nu_model, p.stress);
         end
         if (p.nu_model == 2 || p.nu_model == 7) && ~(p.v_a > 0)
             error('INPUT ERROR: nu_model = %d requires v_a > 0', p.nu_model);
@@ -333,18 +337,19 @@ function p = validate_case(p)
 
     % settings consistent with the stress model
 
-    % the Zener models (stress 3, 4) carry, in imr.solve_spectral with medium heat
+    % the Zener models (stress 3, 4, 9, 11) carry, in imr.solve_spectral with medium heat
     % transfer, their local polymer stress as a field of Nv spectral modes
-    zener_field = (p.stress == 3 || p.stress == 4) && p.medtherm == 1;
+    zener_field = any(p.stress == [3 4 9 11]) && p.medtherm == 1;
     zener_modes = zener_field && strcmp(p.solver,'spectral');
-    if p.stress <= 4
-        % closed-form or single-mode stress models, no spectral stress
-        % representation
+    if any(p.stress == [0 1 2 3 4 8 9 10 11])
+        % closed-form or single-mode stress models (Kelvin-Voigt and
+        % Zener families, neo-Hookean, 2nd-order Fung and Mooney-Rivlin
+        % springs alike), no spectral stress representation
         p.spectral = 0;
         if zener_modes
             % Nv modes of the field (the stress integral Z1 is one state)
             p.Nv = max(p.Nv, 1);
-        elseif p.stress == 3 || p.stress == 4
+        elseif any(p.stress == [3 4 9 11])
             p.Nv = 1;
         else
             p.Nv = 0;
@@ -374,6 +379,12 @@ function msg = f_small_de_model(stress)
     elseif stress == 4
         msg = ['stress = 2 (Kelvin-Voigt, quadratic neo-Hookean) with the ' ...
             'same Re, Ca and alphax'];
+    elseif stress == 9
+        msg = ['stress = 8 (Kelvin-Voigt, 2nd-order Fung) with the same ' ...
+            'Re, Ca and alphax'];
+    elseif stress == 11
+        msg = ['stress = 10 (Kelvin-Voigt, Mooney-Rivlin) with the same ' ...
+            'Re, Ca and C2'];
     else
         msg = 'stress = 1 with the same Re and Ca = Inf (Newtonian)';
     end

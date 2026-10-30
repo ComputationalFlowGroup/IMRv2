@@ -7,15 +7,15 @@ MATLAB checks were not run for this documentation change. The descriptions below
 
 ## Cases
 
-From [`f_test_cases('regression')`](tests.md). Only the combinations the compatibility matrix allows are kept: 230 cases each for `nodal_fd` and `nodal_cheb`, and 155 for `spectral`.
+From [`f_test_cases('regression')`](tests.md). Only the combinations the compatibility matrix allows are kept: this was 230 cases each for `nodal_fd` and `nodal_cheb`, and 155 for `spectral`, before the 2nd-order Fung and Mooney-Rivlin springs (stress 8–11) were added to this generator; the stored references in `tests/reference/` and the new count have not been regenerated here (see the disclaimer above) and need a local MATLAB run to refresh.
 
 - **Radial, thermal and stress models, for two materials.** The cases are:
 
     - Radial models 1–6.
     - Five thermal configurations: polytropic, bubble, bubble and medium, bubble with mass transfer, and bubble and medium with mass transfer.
-    - Stress models 0–5.
+    - Stress models 0–5 and 8–11 (8, 9 are 2nd-order Fung, 10, 11 are Mooney-Rivlin, see [stress and viscosity](../model/stress-viscosity.md#2nd-order-fung-stress-8-9)).
 
-    The two materials are a soft, weakly viscous one (`mu = 1e-4 Pa s`, `G = 100 Pa`, `alphax = 1e-3`, `lambda1 = 1e-7 s`) and a stiff, viscous one (`mu = 0.1 Pa s`, `G = 2.5 kPa`, `alphax = 1`, `lambda1 = 1 ms`).
+    The two materials are a soft, weakly viscous one (`mu = 1e-4 Pa s`, `G = 100 Pa`, `alphax = 1e-3`, `C2 = 0.1`, `lambda1 = 1e-7 s`) and a stiff, viscous one (`mu = 0.1 Pa s`, `G = 2.5 kPa`, `alphax = 1`, `C2 = 0.5`, `lambda1 = 1 ms`).
 
     The runs are:
 
@@ -30,7 +30,7 @@ From [`f_test_cases('regression')`](tests.md). Only the combinations the compati
     - The seven non-Newtonian viscosity models.
     - The Gaussian, histotripsy and Heaviside waveforms.
     - The UCM / Oldroyd-B stress field (`spectral = 1`, spectral solver only).
-    - Collapse with stress 0, 1, 3 and 4, with the soft material, up to the first collapse and rebound (20 µs). This is nodal solver only, since collapse needs mass transfer.
+    - Collapse with stress 0, 1, 3, 4, 8 and 10, with the soft material, up to the first collapse and rebound (20 µs). This is nodal solver only, since collapse needs mass transfer.
 
 ## Check
 

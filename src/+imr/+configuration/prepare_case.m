@@ -95,7 +95,7 @@ function c = prepare_case(solver,varargin)
     p.iota = p.Km_star/p.Lt;
     if p.DRe == 0
         p.iDRe = 0;
-    elseif p.stress >= 3
+    elseif any(p.stress == [3 4 5 6 7 9 11])
         p.iDRe = p.LAM/p.DRe;
     else
         p.iDRe = 1/p.DRe;
@@ -116,9 +116,9 @@ function c = prepare_case(solver,varargin)
             error('INPUT ERROR: mass transfer requires a representable nonzero gas mass fraction.');
         end
     end
-    if p.stress == 1 || p.stress == 2
+    if p.stress == 1 || p.stress == 2 || p.stress == 8 || p.stress == 10
         p.JdotA = 4/p.Re8;
-    elseif p.stress >= 3
+    elseif any(p.stress == [3 4 5 6 7 9 11])
         p.JdotA = 4*p.LAM/p.Re8;
     else
         p.JdotA = 0;
@@ -163,7 +163,7 @@ function c = prepare_case(solver,varargin)
         fprintf('New equilibrium radius, Req = %.8f\n',Req);
     end
     nstress = 0;
-    if p.stress == 3 || p.stress == 4
+    if any(p.stress == [3 4 9 11])
         nstress = 1;
     elseif p.stress == 5 || p.stress == 6 || p.stress == 7
         nstress = 2*p.Nv;
@@ -229,6 +229,7 @@ function c = prepare_case(solver,varargin)
     c.stress.v_lambda_star = p.v_lambda_star;
     c.stress.iDRe = p.iDRe;
     c.stress.alphax = p.alphax;
+    c.stress.C2 = p.C2;
     c.thermal.Foh = p.Foh;
     c.thermal.Br = p.Br;
     c.thermal.alpha_g = p.alpha_g;

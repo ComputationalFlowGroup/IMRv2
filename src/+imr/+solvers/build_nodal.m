@@ -73,6 +73,7 @@ function system = build_nodal(prepared)
     Pv_star         = prepared.initial.Pv;
     Req             = prepared.initial.Req;
     alphax          = prepared.stress.alphax;
+    C2              = prepared.stress.C2;
 
     % dimensionless initial stress
     Szero           = prepared.initial.stress;
@@ -578,7 +579,7 @@ function system = build_nodal(prepared)
                 sp = [];
             end
             [taugradu] = imr.physics.stress_power(stress,Req,R,Rdot,Ca,Br, ...
-                Re8,LAM,alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_m,sp);
+                Re8,LAM,alphax,C2,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_m,sp);
             % surrounding temperature evolution equation
             Tmdot = advection + diffusion + taugradu;
             % sets boundary condition on temperature
@@ -596,7 +597,7 @@ function system = build_nodal(prepared)
 
         % stress equation evolution
         [S,Sdot,Z1dot,Z2dot] = imr.physics.material_stress(stress,X,Req,R,Ca,De,Re8, ...
-            Rdot,alphax,ivisco1,ivisco2,LAM,intfnu,dintfnu,iDRe);
+            Rdot,alphax,ivisco1,ivisco2,LAM,intfnu,dintfnu,iDRe,C2);
 
         % bubble wall evolution / acceleration
         [Rddot] = imr.physics.radial_acceleration(radial, P, Pdot, Pf8, Pf8dot, iWe, R, Rdot, S, ...
@@ -644,7 +645,7 @@ function system = build_nodal(prepared)
     function spdot = f_zener_rhs(Rv,Rdotv,sp)
         adv = xi1_sq./(Lt*Rv).*(Rdotv./yT2.*om_yT3/2).*(dmatrix_Tm*sp);
         spdot = imr.physics.zener_field(sp, adv, yT, Rv, Rdotv, Req, Ca, De, Re8, LAM, ...
-            alphax*(stress == 4));
+            stress, alphax, C2);
         spdot(end,:) = 0;
     end
 
@@ -661,14 +662,29 @@ function system = build_nodal(prepared)
             return
         end
         Rst = Req/Rzero;
-        a4 = alphax*(stress == 4);
         x2 = (yT3 - 1 + Rst^3).^(2/3);
         lam2 = yT2./x2;
         lam4i = x2.^2.*iyT4;
-        se = (lam4i - lam2)/Ca.*(1 + a4*(lam4i + 2*lam2 - 3));
-        % elastic stress integral 2*int se/y dy, as in imr.physics.material_stress
-        Se = (3*a4 - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + (2*a4/Ca)*(27/40 + ...
-            (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst);
+        if stress == 11
+            lam4 = lam2.^2;
+            lam2i = x2./yT2;
+            se = (lam4i - lam2)/Ca - (C2/Ca)*(lam4 - lam2i);
+            Se = -(5 - 4*Rst - Rst^4)/(2*Ca) - (C2/Ca)*(2/Rst - Rst^2 - 1);
+        else
+            a4 = alphax*any(stress == [4 9]);
+            x = lam4i + 2*lam2 - 3;
+            factor = 1 + a4*x;
+            Se = (3*a4 - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + (2*a4/Ca)*(27/40 + ...
+                (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst);
+            if stress == 9
+                factor = factor + 0.5*a4^2*x.^2;
+                Se = Se + (a4^2/Ca)*(-2909/180 + 12/Rst - (4/3)/Rst^3 - 6*Rst^2 + ...
+                    4*Rst^3 + (9/4)*Rst^4 - (6/5)*Rst^5 + (2/3)*Rst^6 - ...
+                    (3/4)*Rst^8 + (1/9)*Rst^9 + (1/12)*Rst^12 + 4*log(Rst));
+            end
+            % elastic stress integral 2*int se/y dy, as in imr.physics.material_stress
+            se = (lam4i - lam2)/Ca.*factor;
+        end
         if isfinite(Ca) && abs(Se) > 0
             sp = Z1/(Rzero^3*Se)*se;
         else
@@ -690,7 +706,7 @@ function system = build_nodal(prepared)
             sp_loc = [];
         end
         tg = imr.physics.stress_power(stress,Req,Rv,Rdotv,Ca,Br,Re8,LAM, ...
-            alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_loc,sp_loc);
+            alphax,C2,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_loc,sp_loc);
         tg = tg.*ones(size(yT));
     end
 
@@ -715,7 +731,7 @@ function system = build_nodal(prepared)
         end
         [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = imr.physics.material_stress(stress,X,Req,Rv, ...
             Ca,De,Re8,Rdotv,alphax,ivisco1,ivisco2,LAM, ...
-            intf_loc,dintf_loc,iDRe);
+            intf_loc,dintf_loc,iDRe,C2);
         Rddot_loc = imr.physics.radial_acceleration(radial, v(3), v(4), Pf8_loc, Pf8dot_loc, ...
             iWe, Rv, Rdotv, S_loc, Sdot_loc, Cstar, sam, no, GAMa, nstate, ...
             nog, hugoniot_s, JdotA, ddintf_loc, iDRe);

@@ -33,7 +33,9 @@ The suite explicitly checks all three discretizations, compatible radial/thermal
 
 `stress = 6` (PTT) and `7` (Giesekus) are rejected in `imr.solve_nodal` and forced to the spectral stress field in `imr.solve_spectral`. Giesekus at `eps3 = 0` is checked to give the exact same right-hand side, Jacobian and initial state as `stress = 5` (UCM/Oldroyd-B), not only a close one.
 
-All seven non-Newtonian laws are checked at zero wall shear with each viscous stress family. Separate cases ensure a disabled viscosity law cannot contaminate the solution through overflow. Known temperatures are mapped forward and inverted to check the conductivity limit independently.
+The 2nd-order Fung (`stress = 8, 9`) and Mooney-Rivlin (`stress = 10, 11`) springs, at `Ca = Inf`, are checked to give the exact same right-hand side and initial state as `stress = 1` (8, 10) or `stress = 3` (9, 11), in both solvers: every elastic term of these springs divides by `Ca`, so it vanishes exactly whatever `alphax` or `C2` is, regardless of value, leaving only the textually identical viscous/solvent terms. Separate cases ensure stress 8-11 with medium heat transfer stay finite.
+
+All seven non-Newtonian laws are checked at zero wall shear with each viscous stress family, including the 2nd-order Fung and Mooney-Rivlin springs. Separate cases ensure a disabled viscosity law cannot contaminate the solution through overflow. Known temperatures are mapped forward and inverted to check the conductivity limit independently.
 
 ## Scope and execution status
 
