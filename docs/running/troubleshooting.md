@@ -18,7 +18,7 @@ The parser and `imr.configuration.validate_case` report invalid inputs before in
 | `INPUT ERROR: De = %g is below 1e-4` | Relaxation model is in its small-De limit | Use the simpler stress model named by the error |
 | `INPUT ERROR: nu_model = %d needs a viscous stress model` | Non-Newtonian choice with stress 0 | Use stress 1–11 |
 | `INPUT ERROR: stress = 10 (PTT) and stress = 11 (Giesekus) have no closed-form ...` | PTT or Giesekus requested in `imr.solve_nodal` | Use `imr.solve_spectral` |
-| `INPUT ERROR: method = 3 (CVODES) needs the ode object` | CVODES unavailable | Use method 15 or 23, or MATLAB R2024a+ with CVODES |
+| `INPUT ERROR: method = 3 (CVODES, the default) needs the ode object` | CVODES unavailable (the default method needs it) | Set method to 15 or 23, or use MATLAB R2024a+ with CVODES |
 | `INPUT ERROR: jacobian = 3 (batched finite differences) is available in imr.solve_nodal only` | Spectral solver cannot batch the Jacobian | Use Jacobian 2 there |
 | `INPUT ERROR: masstrans = 1 is not available in the spectral solver` | Unsupported solver feature | Use nodal solver |
 | `INPUT ERROR: scheme selects the differentiation matrices of imr.solve_nodal.` | Nodal option used for spectral solver | Omit scheme for spectral solver |

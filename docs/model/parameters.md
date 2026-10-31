@@ -38,7 +38,7 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `solver` | `solver` | Routing option of `imr.solve`: `'nodal'` or `'spectral'`. Optional struct field, absent from the solver-neutral `imr.default_inputs`; fixed-solver wrappers reject conflicting values | `'nodal'` for `imr.solve` | Text selector |
 | `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 | 1 (dimensionless) |
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` | 1 (dimensionless) |
-| `method` | `method` | Stiff time integrator: 23 `ode23tb`, 15 `ode15s`, 3 CVODES (MATLAB R2024a or later). The names `'ode23tb'`, `'ode15s'` and `'cvodes'` are also accepted | 23 | 1 (dimensionless) |
+| `method` | `method` | Stiff time integrator: 23 `ode23tb`, 15 `ode15s`, 3 CVODES (MATLAB R2024a or later). The names `'ode23tb'`, `'ode15s'` and `'cvodes'` are also accepted. The default needs MATLAB R2024a or later; set `method` to 15 or 23 on an older MATLAB | 3 | 1 (dimensionless) |
 | `spectral` | `spectral` | Spectral stress representation for `stress = 9`, `imr.solve_spectral` only (0/1); forced to 1 for `stress = 10, 11`, which have no other representation | 0 | 1 (dimensionless) |
 | `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 | 1 (dimensionless) |
 | `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is the number of stress modes of `imr.solve_spectral`, for the stress 9–11 field (`spectral = 1`, always on for 10, 11) and for the stress 5–8 polymer stress field with medium heat transfer | 25, 25, 150 | 1 (dimensionless) |

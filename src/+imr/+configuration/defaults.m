@@ -50,8 +50,10 @@ function d = defaults()
     % time span vector
     d.TVector = linspace(0,d.TFin,128);
     % stiff time integrator: 15 ode15s, 23 ode23tb, 3 CVODES (the ode
-    % object, MATLAB R2024a or later)
-    d.method = 23;
+    % object, MATLAB R2024a or later). CVODES is the default; set method
+    % to 15 or 23 on an older MATLAB, where imr.configuration.validate_case
+    % rejects 3
+    d.method = 3;
     % force spectral collocation solution
     d.spectral = 0;
     % minimum number of timesteps
