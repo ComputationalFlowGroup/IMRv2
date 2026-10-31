@@ -21,7 +21,7 @@ If you use IMR in your research, please cite:
 ## Numerical methods
 
 - Estrada et al., “High Strain-rate Soft Material Characterization via Inertial Cavitation,” *Journal of the Mechanics and Physics of Solids* (2017). <https://doi.org/10.1016/j.jmps.2017.12.006>
-- Warnez and Johnsen, “Numerical modeling of bubble dynamics in viscoelastic media with relaxation,” *Physics of Fluids* 27, 063103 (2015). <https://doi.org/10.1063/1.4922598>. Their Eq. 13 is the PTT and Giesekus closure of the spectral stress field, `stress = 6` and `7` (see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-6-7)).
+- Warnez and Johnsen, “Numerical modeling of bubble dynamics in viscoelastic media with relaxation,” *Physics of Fluids* 27, 063103 (2015). <https://doi.org/10.1063/1.4922598>. Their Eq. 13 is the PTT and Giesekus closure of the spectral stress field, `stress = 10` and `11` (see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-10-11)).
 
 The original project is [InertialMicrocavitationRheometry/IMRv2](https://github.com/InertialMicrocavitationRheometry/IMRv2). This checkout and its contribution instructions refer to the `mrodrig6/imrv2` fork.
 

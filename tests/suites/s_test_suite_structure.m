@@ -52,7 +52,7 @@ assert(acoustic(3) == p.kappa && wave{1}(2) == 0.02);
 fprintf('Public input schema, struct overrides and compatibility adapter PASSED.\n');
 % An active stress expansion needs a mode; an inactive field may use zero.
 try
-    imr.configuration.prepare_case('spectral','stress',5,'spectral',1,'Nv',0);
+    imr.configuration.prepare_case('spectral','stress',9,'spectral',1,'Nv',0);
     error('Expected active zero-mode stress to fail.');
 catch err
     assert(strcmp(err.identifier,'IMR:stressGrid'));
@@ -76,19 +76,19 @@ for kind = {'nodal','spectral'}
         for flags = thermal_cases(1:thermal_count,:)'
             for stress = [0 1 3 4 5 6 7 8 9 10 11]
                 medium = flags(2);
-                if stress == 5 && medium && strcmp(solver,'nodal')
+                if stress == 9 && medium && strcmp(solver,'nodal')
                     continue
                 end
-                % PTT (6) and Giesekus (7) have no closed-form reduction
+                % PTT (10) and Giesekus (11) have no closed-form reduction
                 % and run in imr.solve_spectral only
-                if (stress == 6 || stress == 7) && strcmp(solver,'nodal')
+                if (stress == 10 || stress == 11) && strcmp(solver,'nodal')
                     continue
                 end
                 gies_args = {};
-                if stress == 7
+                if stress == 11
                     % a nonzero mobility factor, so the Jacobian check below
                     % exercises the Giesekus quadratic term, not its eps3 = 0
-                    % limit (stress 5)
+                    % limit (stress 9)
                     gies_args = {'eps3',0.3};
                 end
                 c = imr.configuration.prepare_case(solver,'Req',1,'radial',2, ...

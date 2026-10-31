@@ -26,8 +26,8 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `radial` | `radial` | 1 Rayleigh–Plesset, 2 Keller–Miksis (pressure), 3 Keller–Miksis (enthalpy, Tait), 4 Gilmore (Tait), 5 Keller–Miksis (Mie–Grüneisen), 6 Gilmore (Mie–Grüneisen). Radial 3–6 do not allow medium heat transfer, and radial 5 and 6 support only the polytropic bubble. | 1 | 1 (dimensionless) |
 | `bubtherm` | `bubtherm` | Thermal PDE in the bubble (0/1) | 0 | 1 (dimensionless) |
 | `medtherm` | `medtherm` | Thermal PDE in the medium (0/1, requires `bubtherm = 1` and `radial` 1 or 2) | 0 | 1 (dimensionless) |
-| `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 Maxwell/Jeffreys/Zener (NH), 4 same (quadratic NH), 5 UCM/Oldroyd-B, 6 PTT, 7 Giesekus, 8 2nd-order Fung KV, 9 same family (2nd-order Fung spring), 10 Mooney-Rivlin KV, 11 same family (Mooney-Rivlin spring). Stress 6, 7 need `imr.solve_spectral` (forced `spectral = 1`) | 0 | 1 (dimensionless) |
-| `eps3` | `eps3` | Giesekus mobility factor, in [0, 0.5]; enters only `stress = 7`, where 0 reduces it to stress 5 (a warning says so). Unused by every other stress model | 0 | 1 (dimensionless) |
+| `stress` | `stress` | 0 none, 1 NHKV, 2 quadratic NHKV, 3 2nd-order Fung KV, 4 Mooney-Rivlin KV, 5 Maxwell/Jeffreys/Zener (NH), 6 same (quadratic NH), 7 same (2nd-order Fung spring), 8 same (Mooney-Rivlin spring), 9 UCM/Oldroyd-B, 10 PTT, 11 Giesekus. Stress 10, 11 need `imr.solve_spectral` (forced `spectral = 1`) | 0 | 1 (dimensionless) |
+| `eps3` | `eps3` | Giesekus mobility factor, in [0, 0.5]; enters only `stress = 11`, where 0 reduces it to stress 9 (a warning says so). Unused by every other stress model | 0 | 1 (dimensionless) |
 | `vapor` | `vapor` | Vapor pressure (0/1) | 0 | 1 (dimensionless) |
 | `masstrans` | `masstrans` | Vapor mass transfer (0/1, requires `bubtherm = vapor = 1`) | 0 | 1 (dimensionless) |
 
@@ -39,9 +39,9 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `tfin` | `TFin` | Final time, `TFin/t0` | 3.9034 | 1 (dimensionless) |
 | `tvector` | `TVector` | Output times, `t/t0` (give `tvector` or `tfin`, not both) | `linspace(0,TFin,128)` | 1 (dimensionless) |
 | `method` | `method` | Stiff time integrator: 23 `ode23tb`, 15 `ode15s`, 3 CVODES (MATLAB R2024a or later). The names `'ode23tb'`, `'ode15s'` and `'cvodes'` are also accepted | 23 | 1 (dimensionless) |
-| `spectral` | `spectral` | Spectral stress representation for `stress = 5`, `imr.solve_spectral` only (0/1); forced to 1 for `stress = 6, 7`, which have no other representation | 0 | 1 (dimensionless) |
+| `spectral` | `spectral` | Spectral stress representation for `stress = 9`, `imr.solve_spectral` only (0/1); forced to 1 for `stress = 10, 11`, which have no other representation | 0 | 1 (dimensionless) |
 | `divisions` | `divisions` | Minimum number of time steps (0 automatic) | 0 | 1 (dimensionless) |
-| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is the number of stress modes of `imr.solve_spectral`, for the stress 5–7 field (`spectral = 1`, always on for 6, 7) and for the stress 3, 4, 9, 11 polymer stress field with medium heat transfer | 25, 25, 150 | 1 (dimensionless) |
+| `nt`, `mt`, `nv` | `Nt`, `Mt`, `Nv` | Grid points: bubble, medium, stress. `Nt, Mt >= 3` when the thermal models are on; `Nv` is the number of stress modes of `imr.solve_spectral`, for the stress 9–11 field (`spectral = 1`, always on for 10, 11) and for the stress 5–8 polymer stress field with medium heat transfer | 25, 25, 150 | 1 (dimensionless) |
 | `lv`, `lt` | `Lv`, `Lt` | Grid stretching lengths | 3, 2 | 1 (dimensionless) |
 | `reltol`, `abstol` | `rtol`, `atol` | Integrator tolerances | 1e-8, 1e-8 | 1 (dimensionless) |
 | `jacobian` | `jacobian` | Jacobian for the stiff integrators, both solvers: 0 dense numerical, 1 sparsity pattern (nodal solver; numerical in the spectral solver), 2 analytic, 3 batched finite differences (nodal solver only) | 2 | 1 (dimensionless) |
@@ -52,11 +52,11 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 
 | Input | Variable | Definition | Default | Units |
 |-------|----------|------------|------------|---|
-| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `imr.solve_nodal`. With stress 5–7, 9, 11 it also requires `stress0`. | 0 | 1 (dimensionless) |
+| `collapse` | `collapse` | Out-of-equilibrium collapse initial condition (0/1). Requires `bubtherm = medtherm = vapor = masstrans = 1`, so it is available only in `imr.solve_nodal`. With stress 7–11 it also requires `stress0`. | 0 | 1 (dimensionless) |
 | `req` | `Req` | `Req/R0` | 0.2 | 1 (dimensionless) |
 | `rdotzero` | `Rdotzero` | `Rdot(0)/Uc` | 0 | 1 (dimensionless) |
 | `p0star` | – | `P0/P8`; computed from equilibrium at `Req` if not given | computed | 1 (dimensionless) |
-| `stress0` | `Szero` | Initial stress state: empty for stress 0–2, 8, 10, one value for stress 3, 4, 9, 11, `2*Nv` values for stress 5–7 with `spectral = 1` (always on for 6, 7) and 2 values for stress 5 with `spectral = 0`; computed if not given (from the collapse for stress 3–4 with `collapse = 1`, zero otherwise; stress 5–7, 9, 11 with `collapse = 1` must give it) | computed | 1 (dimensionless) |
+| `stress0` | `Szero` | Initial stress state: empty for stress 0–4, one value for stress 5–8, `2*Nv` values for stress 9–11 with `spectral = 1` (always on for 10, 11) and 2 values for stress 9 with `spectral = 0`; computed if not given (from the collapse for stress 5–6 with `collapse = 1`, zero otherwise; stress 7–11 with `collapse = 1` must give it) | computed | 1 (dimensionless) |
 
 ### Acoustic options
 
@@ -85,10 +85,10 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 | `we` | `We` | Weber `P8*R0/(2*S)` (Inf: no surface tension) | 36.1875 | 1 (dimensionless) |
 | `re` | `Re8` | Reynolds `P8*R0/(mu8*Uc)` (Inf: inviscid) | 623.366 | 1 (dimensionless) |
 | `ca` | `Ca` | Cauchy `P8/G` (Inf: no elasticity) | 101.325 | 1 (dimensionless) |
-| `de` | `De` | Deborah `lambda1*Uc/R0`; at least `1e-4` for stress 3–7, 9, 11 (below that, run the `De -> 0` limit named by the checker, e.g. stress 1, 2, 8, 10, or 1 with `Ca = Inf`) | 0.019517 | 1 (dimensionless) |
+| `de` | `De` | Deborah `lambda1*Uc/R0`; at least `1e-4` for stress 5–11 (below that, run the `De -> 0` limit named by the checker, e.g. stress 1–4, or 1 with `Ca = Inf`) | 0.019517 | 1 (dimensionless) |
 | `lam` | `LAM` | `lambda2/lambda1` | 0.1 | 1 (dimensionless) |
-| `alphax` | `alphax` | Strain-stiffening parameter (stress 2, 4); the next series term reuses it for the 2nd-order Fung spring (stress 8, 9) | 0.25 | 1 (dimensionless) |
-| `c2` | `C2` | Mooney-Rivlin second-modulus ratio (stress 10, 11); 0 reduces exactly to neo-Hookean. Unused by every other stress model | 0 | 1 (dimensionless) |
+| `alphax` | `alphax` | Strain-stiffening parameter (stress 2, 6); the next series term reuses it for the 2nd-order Fung spring (stress 3, 7) | 0.25 | 1 (dimensionless) |
+| `c2` | `C2` | Mooney-Rivlin second-modulus ratio (stress 4, 8); 0 reduces exactly to neo-Hookean. Unused by every other stress model | 0 | 1 (dimensionless) |
 | `dre` | `DRe` | `P8*R0/((mu0-mu8)*Uc)`, 0 for no non-Newtonian contribution | 0 | 1 (dimensionless) |
 | `v_a`, `v_nc` | `v_a`, `v_nc` | Exponents of the non-Newtonian models (see `imr.physics.viscosity`) | 0, 0 | 1 (dimensionless) |
 | `v_lambda` | `v_lambda_star` | Viscosity time scale `v_lambda/t0` | 0 | 1 (dimensionless) |

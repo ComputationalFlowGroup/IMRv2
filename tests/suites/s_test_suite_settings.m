@@ -19,8 +19,8 @@ bad = {
 {'p0star',1+1i}
 {'p0star',[1 2]}
 {'p0star','x'}
-{'stress',3,'stress0',NaN}
-{'stress',3,'stress0',1+1i}
+{'stress',5,'stress0',NaN}
+{'stress',5,'stress0',1+1i}
 {'tfin','1'}
 {'tfin',[1 2]}
 {'method',["ode15s" "ode23tb"]}
@@ -34,7 +34,7 @@ for k = 1:numel(bad)
     f_input_error(@() imr.configuration.prepare_case('nodal',bad{k}{:}));
 end
 f_input_error(@() imr.configuration.prepare_case('spectral', ...
-    'stress',5,'spectral',1,'Nv',2,'stress0',ones(2)));
+    'stress',9,'spectral',1,'Nv',2,'stress0',ones(2)));
 p = imr.default_inputs();
 f_input_error(@() imr.configuration.prepare_case('nodal',[p p]));
 fprintf('Malformed and coupled physical input guards PASSED.\n');
@@ -107,7 +107,7 @@ fprintf('%d explicitly accepted boundary configurations PASSED.\n',checked);
 % Every non-Newtonian law at zero wall shear and with a disabled excess
 % viscosity. Infinite exponents must not turn a zero contribution into NaN.
 for nu = 1:7
-    for stress = [1 2 3 4 5 8 9 10 11]
+    for stress = 1:9
         for excess = [0 10]
             c = imr.configuration.prepare_case('nodal','Req',1,'stress',stress, ...
                 'nu_model',nu,'dre',excess,'v_lambda',1,'v_a',2,'v_nc',0.5, ...
@@ -121,7 +121,7 @@ fprintf('Non-Newtonian zero-shear and zero-contribution combinations PASSED.\n')
 % DRe=0 or a zero solvent share removes the excess viscosity exactly.
 % Evaluating its unused law first can overflow and create 0*Inf=NaN.
 for solver = {'nodal','spectral'}
-    for stress = [1 3]
+    for stress = [1 5]
         args = {'Req',1,'stress',stress,'rdotzero',0.1,'bubtherm',0, ...
             'medtherm',0,'Nt',0,'Mt',0,'nu_model',1, ...
             'v_nc',1000,'v_lambda',1000,'dre',0};
@@ -130,7 +130,7 @@ for solver = {'nodal','spectral'}
         c0 = imr.configuration.prepare_case(solver{1},args{:},'nu_model',0);
         reference = imr.solvers.build(c0);
         assert(isequal(disabled.rhs(0,disabled.initial),reference.rhs(0,reference.initial)));
-        if stress == 3
+        if stress == 5
             c = imr.configuration.prepare_case(solver{1},args{:},'dre',10,'lam',0);
             f_finite_system(c,imr.solvers.build(c));
         end
@@ -138,75 +138,75 @@ for solver = {'nodal','spectral'}
 end
 fprintf('Inactive viscosity avoids overflow PASSED.\n');
 
-% stress = 6 (PTT) and 7 (Giesekus) have no closed-form reduction: rejected
+% stress = 10 (PTT) and 11 (Giesekus) have no closed-form reduction: rejected
 % in imr.solve_nodal, and forced to the spectral stress field in
 % imr.solve_spectral (a warning, since spectral is left at its default 0).
-f_input_error(@() imr.configuration.prepare_case('nodal','stress',6));
-f_input_error(@() imr.configuration.prepare_case('nodal','stress',7));
+f_input_error(@() imr.configuration.prepare_case('nodal','stress',10));
+f_input_error(@() imr.configuration.prepare_case('nodal','stress',11));
 warning('off','IMR:parameters');
-c6 = imr.configuration.prepare_case('spectral','Req',1,'stress',6, ...
+c10 = imr.configuration.prepare_case('spectral','Req',1,'stress',10, ...
     'Nv',6,'Nt',0,'Mt',0);
 warning('on','IMR:parameters');
-assert(c6.numerics.spectral == 1);
-f_finite_system(c6,imr.solvers.build(c6));
+assert(c10.numerics.spectral == 1);
+f_finite_system(c10,imr.solvers.build(c10));
 fprintf('PTT/Giesekus nodal rejection and forced spectral field PASSED.\n');
 
-% Giesekus (stress 7) at eps3 = 0 must reduce exactly to UCM/Oldroyd-B
-% (stress 5): the same right-hand side and Jacobian, not just a similar
+% Giesekus (stress 11) at eps3 = 0 must reduce exactly to UCM/Oldroyd-B
+% (stress 9): the same right-hand side and Jacobian, not just a similar
 % one, since the exponential and quadratic terms both vanish identically.
-c5 = imr.configuration.prepare_case('spectral','Req',1,'stress',5, ...
+c9 = imr.configuration.prepare_case('spectral','Req',1,'stress',9, ...
     'spectral',1,'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
 warning('off','IMR:parameters');
-c7 = imr.configuration.prepare_case('spectral','Req',1,'stress',7, ...
+c11 = imr.configuration.prepare_case('spectral','Req',1,'stress',11, ...
     'eps3',0,'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
 warning('on','IMR:parameters');
-sys5 = imr.solvers.build(c5);
-sys7 = imr.solvers.build(c7);
-assert(isequal(sys5.initial,sys7.initial));
-state = sys5.initial;
-state(c5.layout.stress) = state(c5.layout.stress)+1e-5;
-assert(isequal(sys5.rhs(0.1,state),sys7.rhs(0.1,state)));
-assert(isequal(full(sys5.jacobian(0.1,state)),full(sys7.jacobian(0.1,state))));
+sys9 = imr.solvers.build(c9);
+sys11 = imr.solvers.build(c11);
+assert(isequal(sys9.initial,sys11.initial));
+state = sys9.initial;
+state(c9.layout.stress) = state(c9.layout.stress)+1e-5;
+assert(isequal(sys9.rhs(0.1,state),sys11.rhs(0.1,state)));
+assert(isequal(full(sys9.jacobian(0.1,state)),full(sys11.jacobian(0.1,state))));
 fprintf('Giesekus eps3 = 0 reduces exactly to UCM/Oldroyd-B PASSED.\n');
 
-% At Ca = Inf every elastic term of the 2nd-order Fung (8, 9) and
-% Mooney-Rivlin (10, 11) springs divides by Ca, so it vanishes exactly
+% At Ca = Inf every elastic term of the 2nd-order Fung (3, 7) and
+% Mooney-Rivlin (4, 8) springs divides by Ca, so it vanishes exactly
 % (finite/Inf = 0 in IEEE754) whatever alphax or C2 is, leaving only the
-% viscous/solvent terms shared textually with stress 1 (8, 10) or stress 3
-% (9, 11): the same right-hand side and initial state, not just a similar
+% viscous/solvent terms shared textually with stress 1 (3, 4) or stress 5
+% (7, 8): the same right-hand side and initial state, not just a similar
 % one.
 for kind = {'nodal','spectral'}
     solver = kind{1};
     common = {'Req',1,'ca',Inf,'Nt',0,'Mt',0};
     c1 = imr.configuration.prepare_case(solver,common{:},'stress',1);
-    c8 = imr.configuration.prepare_case(solver,common{:},'stress',8);
-    c10 = imr.configuration.prepare_case(solver,common{:},'stress',10,'c2',0.4);
+    c3 = imr.configuration.prepare_case(solver,common{:},'stress',3);
+    c4 = imr.configuration.prepare_case(solver,common{:},'stress',4,'c2',0.4);
     sys1 = imr.solvers.build(c1);
-    sys8 = imr.solvers.build(c8);
-    sys10 = imr.solvers.build(c10);
-    assert(isequal(sys1.initial,sys8.initial));
-    assert(isequal(sys1.rhs(0,sys1.initial),sys8.rhs(0,sys8.initial)));
-    assert(isequal(sys1.initial,sys10.initial));
-    assert(isequal(sys1.rhs(0,sys1.initial),sys10.rhs(0,sys10.initial)));
+    sys3 = imr.solvers.build(c3);
+    sys4 = imr.solvers.build(c4);
+    assert(isequal(sys1.initial,sys3.initial));
+    assert(isequal(sys1.rhs(0,sys1.initial),sys3.rhs(0,sys3.initial)));
+    assert(isequal(sys1.initial,sys4.initial));
+    assert(isequal(sys1.rhs(0,sys1.initial),sys4.rhs(0,sys4.initial)));
 
     common3 = [common, {'de',1e-3,'lam',0.3}];
-    c3 = imr.configuration.prepare_case(solver,common3{:},'stress',3);
-    c9 = imr.configuration.prepare_case(solver,common3{:},'stress',9);
-    c11 = imr.configuration.prepare_case(solver,common3{:},'stress',11,'c2',0.4);
-    sys3 = imr.solvers.build(c3);
-    sys9 = imr.solvers.build(c9);
-    sys11 = imr.solvers.build(c11);
-    assert(isequal(sys3.initial,sys9.initial));
-    assert(isequal(sys3.rhs(0,sys3.initial),sys9.rhs(0,sys9.initial)));
-    assert(isequal(sys3.initial,sys11.initial));
-    assert(isequal(sys3.rhs(0,sys3.initial),sys11.rhs(0,sys11.initial)));
+    c5 = imr.configuration.prepare_case(solver,common3{:},'stress',5);
+    c7 = imr.configuration.prepare_case(solver,common3{:},'stress',7);
+    c8 = imr.configuration.prepare_case(solver,common3{:},'stress',8,'c2',0.4);
+    sys5 = imr.solvers.build(c5);
+    sys7 = imr.solvers.build(c7);
+    sys8 = imr.solvers.build(c8);
+    assert(isequal(sys5.initial,sys7.initial));
+    assert(isequal(sys5.rhs(0,sys5.initial),sys7.rhs(0,sys7.initial)));
+    assert(isequal(sys5.initial,sys8.initial));
+    assert(isequal(sys5.rhs(0,sys5.initial),sys8.rhs(0,sys8.initial)));
 end
 fprintf('2nd-order Fung and Mooney-Rivlin reduce exactly to neo-Hookean/linear Zener at Ca = Inf PASSED.\n');
 
-% stress 8-11 with medium heat transfer stay finite.
-for stress = [8 9 10 11]
+% stress 3, 4, 7, 8 with medium heat transfer stay finite.
+for stress = [3 4 7 8]
     args = {'Req',1,'stress',stress,'bubtherm',1,'medtherm',1,'Nt',5,'Mt',5};
-    if any(stress == [9 11])
+    if any(stress == [7 8])
         args = [args, {'de',1e-3,'lam',0.3}]; %#ok<AGROW>
     end
     c = imr.configuration.prepare_case('nodal',args{:});

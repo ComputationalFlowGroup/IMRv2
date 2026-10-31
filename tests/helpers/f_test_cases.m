@@ -23,8 +23,8 @@ function cases = f_test_cases(suite)
     % solver modes and their grids: the finite difference grid is fine
     % enough for second-order accuracy, and the Chebyshev and spectral
     % expansions converge spectrally on far fewer points. The spectral
-    % solver's Nv stress modes (the stress 5-7 field, and the Zener field
-    % of stress 3 and 4 with medium heat transfer) are set to 32, well
+    % solver's Nv stress modes (the stress 9-11 field, and the Zener field
+    % of stress 5 and 6 with medium heat transfer) are set to 32, well
     % below the default 150
     modes = struct( ...
         'name',   {'nodal_fd', 'nodal_cheb', 'spectral'}, ...
@@ -117,7 +117,7 @@ function cases = f_test_cases(suite)
         specs = {};
         for radial = 1:6
             for it = 1:5
-                for stress = [0:5 8 9 10 11]
+                for stress = 0:9
                     for im = 1:2
                         if thermal{it,4}
                             geom = mass;
@@ -151,11 +151,11 @@ function cases = f_test_cases(suite)
         specs(end+1,:) = {'r2_wave3', [km, {'stress', 1, 'wave_type', 3, ...
             'pA', 1e5, 'tw', 5e-6}]};
         % UCM / Oldroyd-B with the stress field (spectral solver only)
-        specs(end+1,:) = {'r2_s5_field', [km, {'stress', 5, 'spectral', 1}]};
+        specs(end+1,:) = {'r2_s9_field', [km, {'stress', 9, 'spectral', 1}]};
         % collapse, which needs the full model with mass transfer, with the
         % soft material: with the stiff one the quadratic model's collapse
         % is too violent to converge with resolution
-        for stress = [0 1 3 4 8 10]
+        for stress = [0 1 3 4 5 6]
             specs(end+1,:) = {sprintf('r2_collapse_s%d', stress), [common, ...
                 coll, mats{1}, f_thermal(thermal(5,:)), {'radial', 2, ...
                 'stress', stress}]}; %#ok<AGROW>
@@ -201,7 +201,7 @@ function cases = f_test_cases(suite)
         for method = [3 15 23]
             for jacobian = 0:3
                 for it = 1:5
-                    for stress = [0 1 3 5 6 7 8 9 10 11]
+                    for stress = [0 1 3 4 5 7 8 9 10 11]
                         specs(end+1,:) = {sprintf('m%d_j%d_%s_s%d', method, ...
                             jacobian, thermal{it,1}, stress), [base, ...
                             f_thermal(thermal(it,:)), {'radial', 2, ...
@@ -212,11 +212,12 @@ function cases = f_test_cases(suite)
             end
         end
         % no viscosity, surface tension or elasticity (Re, We, Ca = Inf)
-        % (one pair per row, rows separated by line breaks). PTT (6) and
-        % Giesekus (7) multiply their new terms by Re8, which are 0*Inf
+        % (one pair per row, rows separated by line breaks). PTT (10) and
+        % Giesekus (11) multiply their new terms by Re8, which are 0*Inf
         % (NaN) from rest at the inviscid limit (mu = 0, Re8 = Inf), so that
         % limit is skipped for them: it is not a case those models are
-        % meant to run at. Every other model, 8-11 included, only divides
+        % meant to run at. Every other model, the 2nd-order Fung and
+        % Mooney-Rivlin springs (3, 4, 7, 8) included, only divides
         % by Re8, so it stays in the sweep.
         limits = {
         'mu', 0
@@ -225,7 +226,7 @@ function cases = f_test_cases(suite)
         };
         for il = 1:3
             for stress = 0:11
-                if any(stress == [6 7]) && strcmp(limits{il,1}, 'mu')
+                if any(stress == [10 11]) && strcmp(limits{il,1}, 'mu')
                     continue
                 end
                 specs(end+1,:) = {sprintf('inf_%s_s%d', limits{il,1}, ...
@@ -234,10 +235,10 @@ function cases = f_test_cases(suite)
                     f_gies(stress)]}; %#ok<AGROW>
             end
         end
-        % collapse with every stress model (stress 5 needs stress0) and the
+        % collapse with every stress model (stress 9 needs stress0) and the
         % limits above
         for radial = 1:2
-            for stress = [0:5 8 10]
+            for stress = [0:6 9]
                 for il = 0:3
                     a = [base, f_thermal(thermal(5,:)), {'radial', radial, ...
                         'stress', stress, 'R0', 2e-4, 'Req', 5e-5, ...
@@ -246,7 +247,7 @@ function cases = f_test_cases(suite)
                     if il > 0
                         a = [a, limits(il,:)]; %#ok<AGROW>
                     end
-                    if stress == 5
+                    if stress == 9
                         a = [a, {'stress0', [0 0]}]; %#ok<AGROW>
                     end
                     specs(end+1,:) = {sprintf('collapse_r%d_s%d_lim%d', ...
@@ -254,17 +255,17 @@ function cases = f_test_cases(suite)
                 end
             end
         end
-        % the stress field of stress 5, the bubble-wall nonlinearity eps3,
+        % the stress field of stress 9, the bubble-wall nonlinearity eps3,
         % a moving start, a given initial pressure and stress, the end time
         % given as tfin, and the integrator named instead of numbered
         km = [base, f_thermal(thermal(3,:)), {'radial', 2}];
-        specs(end+1,:) = {'s5_field', [km, {'stress', 5, 'spectral', 1}]};
+        specs(end+1,:) = {'s9_field', [km, {'stress', 9, 'spectral', 1}]};
         specs(end+1,:) = {'eps3', [km, {'stress', 1, 'eps3', 0.5}]};
-        specs(end+1,:) = {'rdotzero', [km, {'stress', 3, 'U0', -5}]};
+        specs(end+1,:) = {'rdotzero', [km, {'stress', 5, 'U0', -5}]};
         specs(end+1,:) = {'p0', [km, {'stress', 1, 'P0', 5e4}]};
-        specs(end+1,:) = {'stress0_s3', [km, {'stress', 3, 'stress0', 1e-2}]};
-        specs(end+1,:) = {'stress0_s5', [base, f_thermal(thermal(2,:)), ...
-            {'radial', 2, 'stress', 5, 'stress0', [1e-2 2e-2]}]};
+        specs(end+1,:) = {'stress0_s5', [km, {'stress', 5, 'stress0', 1e-2}]};
+        specs(end+1,:) = {'stress0_s9', [base, f_thermal(thermal(2,:)), ...
+            {'radial', 2, 'stress', 9, 'stress0', [1e-2 2e-2]}]};
         ktv = find(strcmp(km, 'tvector'), 1);
         specs(end+1,:) = {'tfin', [km([1:ktv-1, ktv+2:end]), {'stress', 1, ...
             'tfin', 2e-6}]};
@@ -317,11 +318,11 @@ function pairs = f_thermal(row)
     pairs = {'bubtherm', row{2}, 'medtherm', row{3}, 'masstrans', row{4}};
 end
 
-% a nonzero Giesekus mobility factor for stress 7, so its cases exercise
+% a nonzero Giesekus mobility factor for stress 11, so its cases exercise
 % the quadratic term and are not the eps3 = 0 limit that reduces exactly
-% to stress 5; empty (no override) for every other stress
+% to stress 9; empty (no override) for every other stress
 function pairs = f_gies(stress)
-    if stress == 7
+    if stress == 11
         pairs = {'eps3', 0.3};
     else
         pairs = {};

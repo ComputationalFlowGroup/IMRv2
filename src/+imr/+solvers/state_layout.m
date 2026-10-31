@@ -10,7 +10,7 @@ function layout = state_layout(c)
     spectral = strcmp(c.solver,'spectral');
     counts = [m.bubtherm*(n.Nt+spectral), m.medtherm*(n.Mt+spectral), ...
         m.masstrans*n.Nt, 0, 0, 0];
-    if any(m.stress == [3 4 9 11])
+    if m.stress >= 5 && m.stress <= 8
         counts(4) = 1;
         if m.medtherm
             counts(6) = n.Mt;
@@ -18,7 +18,7 @@ function layout = state_layout(c)
                 counts(6) = n.Nv;
             end
         end
-    elseif m.stress == 5 || m.stress == 6 || m.stress == 7
+    elseif m.stress >= 9
         counts(4:5) = n.Nv;
     end
     names = {'bubble','medium','vapor','stress1','stress2','polymer'};

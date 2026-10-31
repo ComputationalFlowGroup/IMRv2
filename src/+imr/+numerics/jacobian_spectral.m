@@ -146,8 +146,8 @@ function J = jacobian_spectral(t, X, jp)
         % PTT exponential closure and Giesekus quadratic mobility term,
         % matching f_spectral_stress exactly. jp.ptt and jp.eps3 are fixed
         % flags/parameters, not state-dependent: each term is skipped
-        % entirely when inactive (jp.ptt = 0 for stress 5, 7; jp.eps3 = 0
-        % for stress 5, 6), rather than forming jp.ptt*jp.Re8 or
+        % entirely when inactive (jp.ptt = 0 for stress 9, 11; jp.eps3 = 0
+        % for stress 9, 10), rather than forming jp.ptt*jp.Re8 or
         % jp.eps3*jp.Re8, so an inviscid run (Re8 = Inf) with the other
         % model does not turn an inactive term's 0*Inf into NaN
         if jp.ptt

@@ -25,7 +25,7 @@ f_input_error(@() imr.solve_spectral('solver','nodal'));
 f_input_error(@() imr.solve('solver','spectral','bubtherm',1,'vapor',1,'masstrans',1));
 f_input_error(@() imr.solve('solver','spectral','jacobian',3));
 f_input_error(@() imr.solve('solver','spectral','scheme',1));
-f_input_error(@() imr.solve('solver','nodal','stress',5,'medtherm',1,'bubtherm',1));
+f_input_error(@() imr.solve('solver','nodal','stress',9,'medtherm',1,'bubtherm',1));
 try
     f_too_many_outputs();
     error('Expected an output-count error.');
@@ -131,10 +131,10 @@ for mode = 1:4
     solver = 'nodal';
     scheme = double(mode == 2);
     mass = double(mode <= 2);
-    stress = 3;
+    stress = 5;
     if mode >= 3
         solver = 'spectral';
-        stress = 3+2*(mode == 4);
+        stress = 5+4*(mode == 4);
     end
     args = {'solver',solver,'Req',1,'radial',2,'rdotzero',0.01, ...
         'bubtherm',1,'medtherm',1,'vapor',1,'masstrans',mass, ...

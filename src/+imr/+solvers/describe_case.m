@@ -52,21 +52,21 @@ else
     vap = 'no vapor in bubble';
 end
 
-% the elastic law of stress 2, 4 (quadratic neo-Hookean), 8, 9 (2nd-order
-% Fung) and 10, 11 (Mooney-Rivlin), which acts only with an elastic
+% the elastic law of stress 2, 6 (quadratic neo-Hookean), 3, 7 (2nd-order
+% Fung) and 4, 8 (Mooney-Rivlin), which acts only with an elastic
 % modulus (finite Ca)
-if stress == 2 || stress == 4
+if stress == 2 || stress == 6
     elastic = 'quadratic neo-Hookean';
-elseif stress == 8 || stress == 9
+elseif stress == 3 || stress == 7
     elastic = '2nd-order Fung';
-elseif stress == 10 || stress == 11
+elseif stress == 4 || stress == 8
     elastic = 'Mooney-Rivlin';
 else
     elastic = 'neo-Hookean';
 end
 if stress == 0
     const = 'no stress applied';
-elseif any(stress == [1 2 8 10])
+elseif stress >= 1 && stress <= 4
     if Ca == Inf && Re8 == Inf
         const = 'inviscid fluid';
     elseif Ca == Inf
@@ -76,7 +76,7 @@ elseif any(stress == [1 2 8 10])
     else
         const = [elastic ' Kelvin-Voigt'];
     end
-elseif any(stress == [3 4 9 11])
+elseif stress >= 5 && stress <= 8
     % a spring (finite Ca) with a Maxwell element makes the Zener model; a
     % solvent viscosity (LAM > 0) adds a dashpot in parallel
     if Ca == Inf && LAM == 0
@@ -89,9 +89,9 @@ elseif any(stress == [3 4 9 11])
         const = ['linear Zener with solvent viscosity, ' elastic ' spring'];
     end
 else
-    if stress == 6
+    if stress == 10
         const = 'PTT (linear Phan-Thien-Tanner)';
-    elseif stress == 7
+    elseif stress == 11
         const = 'Giesekus';
     elseif LAM == 0
         const = 'upper-convected Maxwell';
@@ -107,9 +107,9 @@ if eps3 ~= 0
 end
 
 % non-Newtonian viscosity: the model name, and whether it acts. Its stress
-% term carries the factor iDRe = 1/DRe (stress 1-2) or LAM/DRe (stress 3-5,
+% term carries the factor iDRe = 1/DRe (stress 1-4) or LAM/DRe (stress 5+,
 % where it is the solvent share), which vanishes for DRe = 0 or, for stress
-% 3-5, LAM = 0
+% 5+, LAM = 0
 nu_names = {'Carreau', 'Carreau-Yasuda', 'Powell-Eyring', ...
     'Modified Powell-Eyring', 'Cross', 'Simplified Cross', 'Modified Cross'};
 nu_params = '';
@@ -126,7 +126,7 @@ else
         visco = [visco ' selected but inactive (LAM = 0, no solvent ' ...
             'share for the Maxwell/Zener/UCM family): Newtonian'];
     else
-        if any(stress == [3 4 5 6 7 9 11])
+        if stress >= 5
             visco = [visco ', solvent share (LAM)'];
         end
         if v_lambda == 0
@@ -145,15 +145,15 @@ else
 end
 
 % how the stress of the history-dependent models is carried: the stress
-% field in spectral modes (stress 5, spectral = 1, imr.solve_spectral), or
-% ordinary differential equations for its integrals, which stress 3 and 4
+% field in spectral modes (stress 9, spectral = 1, imr.solve_spectral), or
+% ordinary differential equations for its integrals, which stress 5-8
 % with medium heat transfer complement with the local polymer stress field
 % for the medium heating (imr.physics.zener_field)
-if stress < 3 || stress == 8 || stress == 10
+if stress <= 4
     solut = 'closed form (no stress history)';
 elseif spectral == 1
     solut = 'stress field, spectral modes';
-elseif any(stress == [3 4 9 11]) && medtherm == 1
+elseif stress >= 5 && stress <= 8 && medtherm == 1
     solut = 'stress integral (ODE), and its local field for the medium heating';
 else
     solut = 'stress integrals (ODEs)';

@@ -28,15 +28,15 @@ function d = defaults()
     d.bubtherm = 0;
     % 0 : cold fluid, 1: warm fluid assumption
     d.medtherm = 0;
-    % 0 : none, 1 : NHKV, 2 : qNHKV, 3 : linear Maxwell, Jeffreys, Zener
-    % (neo-Hookean), 4 : same with quadratic neo-Hookean, 5 : UCM or OldB,
-    % 6 : PTT, 7 : Giesekus (6, 7 need imr.solve_spectral; see eps3),
-    % 8 : 2nd-order Fung Kelvin-Voigt, 9 : same spring with a Maxwell/Zener
-    % branch, 10 : Mooney-Rivlin Kelvin-Voigt, 11 : same spring with a
-    % Maxwell/Zener branch (see alphax, C2)
+    % Kelvin-Voigt family (no stress history): 0 : none, 1 : NHKV,
+    % 2 : quadratic NHKV, 3 : 2nd-order Fung KV, 4 : Mooney-Rivlin KV.
+    % Linear Maxwell/Jeffreys/Zener family (one stress integral), the same
+    % springs: 5 : neo-Hookean, 6 : quadratic, 7 : 2nd-order Fung,
+    % 8 : Mooney-Rivlin (see alphax, C2). 9 : UCM or OldB. 10 : PTT,
+    % 11 : Giesekus (10, 11 need imr.solve_spectral; see eps3)
     d.stress = 0;
-    % Giesekus mobility factor, used only by stress = 7, in [0, 0.5]; 0
-    % reduces stress = 7 to stress = 5 (UCM, Oldroyd-B). Unused otherwise.
+    % Giesekus mobility factor, used only by stress = 11, in [0, 0.5]; 0
+    % reduces stress = 11 to stress = 9 (UCM, Oldroyd-B). Unused otherwise.
     d.eps3 = 0;
     % 0 : ignore vapor pressure, 1 : vapor pressure
     d.vapor = 0;
