@@ -107,7 +107,7 @@ fprintf('%d explicitly accepted boundary configurations PASSED.\n',checked);
 % Every non-Newtonian law at zero wall shear and with a disabled excess
 % viscosity. Infinite exponents must not turn a zero contribution into NaN.
 for nu = 1:7
-    for stress = 1:5
+    for stress = [1 2 3 4 5 8 9 10 11]
         for excess = [0 10]
             c = imr.configuration.prepare_case('nodal','Req',1,'stress',stress, ...
                 'nu_model',nu,'dre',excess,'v_lambda',1,'v_a',2,'v_nc',0.5, ...
@@ -168,6 +168,53 @@ state(c5.layout.stress) = state(c5.layout.stress)+1e-5;
 assert(isequal(sys5.rhs(0.1,state),sys7.rhs(0.1,state)));
 assert(isequal(full(sys5.jacobian(0.1,state)),full(sys7.jacobian(0.1,state))));
 fprintf('Giesekus eps3 = 0 reduces exactly to UCM/Oldroyd-B PASSED.\n');
+
+% At Ca = Inf every elastic term of the 2nd-order Fung (8, 9) and
+% Mooney-Rivlin (10, 11) springs divides by Ca, so it vanishes exactly
+% (finite/Inf = 0 in IEEE754) whatever alphax or C2 is, leaving only the
+% viscous/solvent terms shared textually with stress 1 (8, 10) or stress 3
+% (9, 11): the same right-hand side and initial state, not just a similar
+% one.
+for kind = {'nodal','spectral'}
+    solver = kind{1};
+    common = {'Req',1,'ca',Inf,'Nt',0,'Mt',0};
+    c1 = imr.configuration.prepare_case(solver,common{:},'stress',1);
+    c8 = imr.configuration.prepare_case(solver,common{:},'stress',8);
+    c10 = imr.configuration.prepare_case(solver,common{:},'stress',10,'c2',0.4);
+    sys1 = imr.solvers.build(c1);
+    sys8 = imr.solvers.build(c8);
+    sys10 = imr.solvers.build(c10);
+    assert(isequal(sys1.initial,sys8.initial));
+    assert(isequal(sys1.rhs(0,sys1.initial),sys8.rhs(0,sys8.initial)));
+    assert(isequal(sys1.initial,sys10.initial));
+    assert(isequal(sys1.rhs(0,sys1.initial),sys10.rhs(0,sys10.initial)));
+
+    common3 = [common, {'de',1e-3,'lam',0.3}];
+    c3 = imr.configuration.prepare_case(solver,common3{:},'stress',3);
+    c9 = imr.configuration.prepare_case(solver,common3{:},'stress',9);
+    c11 = imr.configuration.prepare_case(solver,common3{:},'stress',11,'c2',0.4);
+    sys3 = imr.solvers.build(c3);
+    sys9 = imr.solvers.build(c9);
+    sys11 = imr.solvers.build(c11);
+    assert(isequal(sys3.initial,sys9.initial));
+    assert(isequal(sys3.rhs(0,sys3.initial),sys9.rhs(0,sys9.initial)));
+    assert(isequal(sys3.initial,sys11.initial));
+    assert(isequal(sys3.rhs(0,sys3.initial),sys11.rhs(0,sys11.initial)));
+end
+fprintf('2nd-order Fung and Mooney-Rivlin reduce exactly to neo-Hookean/linear Zener at Ca = Inf PASSED.\n');
+
+% stress 8-11 with medium heat transfer stay finite.
+for stress = [8 9 10 11]
+    args = {'Req',1,'stress',stress,'bubtherm',1,'medtherm',1,'Nt',5,'Mt',5};
+    if any(stress == [9 11])
+        args = [args, {'de',1e-3,'lam',0.3}]; %#ok<AGROW>
+    end
+    c = imr.configuration.prepare_case('nodal',args{:});
+    f_finite_system(c,imr.solvers.build(c));
+    c = imr.configuration.prepare_case('spectral',args{:},'Nv',6);
+    f_finite_system(c,imr.solvers.build(c));
+end
+fprintf('2nd-order Fung and Mooney-Rivlin medium heat transfer stays finite PASSED.\n');
 
 % Scalar compatibility alone cannot establish that the assembled radial
 % equation has a real, finite initial derivative. Check both builders.

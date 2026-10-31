@@ -30,7 +30,10 @@ function d = defaults()
     d.medtherm = 0;
     % 0 : none, 1 : NHKV, 2 : qNHKV, 3 : linear Maxwell, Jeffreys, Zener
     % (neo-Hookean), 4 : same with quadratic neo-Hookean, 5 : UCM or OldB,
-    % 6 : PTT, 7 : Giesekus (6, 7 need imr.solve_spectral; see eps3)
+    % 6 : PTT, 7 : Giesekus (6, 7 need imr.solve_spectral; see eps3),
+    % 8 : 2nd-order Fung Kelvin-Voigt, 9 : same spring with a Maxwell/Zener
+    % branch, 10 : Mooney-Rivlin Kelvin-Voigt, 11 : same spring with a
+    % Maxwell/Zener branch (see alphax, C2)
     d.stress = 0;
     % Giesekus mobility factor, used only by stress = 7, in [0, 0.5]; 0
     % reduces stress = 7 to stress = 5 (UCM, Oldroyd-B). Unused otherwise.
@@ -131,8 +134,12 @@ function d = defaults()
     d.De = physical.de;
     % relaxation time ratio, lambda2/lambda1
     d.LAM = physical.lam;
-    % qKV term
+    % qKV term; also the 2nd-order Fung spring's series coefficient
+    % (stress 8, 9)
     d.alphax = 0.25;
+    % Mooney-Rivlin second-modulus ratio C2/C1 (stress 10, 11); 0 reduces
+    % to neo-Hookean
+    d.C2 = 0;
 
     % viscosity variables
 

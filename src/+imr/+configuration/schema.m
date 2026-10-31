@@ -9,7 +9,7 @@ function schema = schema()
     'radial', 'radial', 'choice', 1:6
     'bubtherm', 'bubtherm', 'choice', 0:1
     'medtherm', 'medtherm', 'choice', 0:1
-    'stress', 'stress', 'choice', 0:7
+    'stress', 'stress', 'choice', 0:11
     'eps3', 'eps3', '', []
     'vapor', 'vapor', 'choice', 0:1
     'masstrans', 'masstrans', 'choice', 0:1
@@ -47,6 +47,7 @@ function schema = schema()
     'de', 'De', '', []
     'lam', 'LAM', '', []
     'alphax', 'alphax', '', []
+    'c2', 'C2', '', []
     'dre', 'DRe', '', []
     'v_a', 'v_a', '', []
     'v_nc', 'v_nc', '', []

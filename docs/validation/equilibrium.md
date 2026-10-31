@@ -12,9 +12,9 @@ From [`f_test_cases('equilibrium')`](tests.md), in the three solver modes. The c
 - Radial models 1–6.
 - The polytropic bubble, bubble heat transfer, and bubble and medium heat transfer.
 - With and without vapor.
-- Stress models 0–7 (6 and 7, PTT and Giesekus, with a nonzero `eps3` for 7, run only in `imr.solve_spectral`; see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-6-7)).
+- Stress models 0–11 (6 and 7, PTT and Giesekus, with a nonzero `eps3` for 7, run only in `imr.solve_spectral`; see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-6-7); 8, 9 are 2nd-order Fung, 10, 11 are Mooney-Rivlin).
 
-Only the combinations the compatibility matrix allows are kept. This was 144 cases per mode before stress 6 and 7 were added; the new count was not rerun here (see the disclaimer above).
+Only the combinations the compatibility matrix allows are kept. This was 144 cases per mode before stress 6 and 7 were added, and has not been rerun since 8–11 were added (see the disclaimer above).
 
 The physical inputs are `Req = R0 = 100 µm` and `T8 = 298.15 K`.
 

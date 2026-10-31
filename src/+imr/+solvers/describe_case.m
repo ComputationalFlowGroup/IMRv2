@@ -52,16 +52,21 @@ else
     vap = 'no vapor in bubble';
 end
 
-% the elastic law of stress 2 and 4, which acts only with an elastic
+% the elastic law of stress 2, 4 (quadratic neo-Hookean), 8, 9 (2nd-order
+% Fung) and 10, 11 (Mooney-Rivlin), which acts only with an elastic
 % modulus (finite Ca)
 if stress == 2 || stress == 4
     elastic = 'quadratic neo-Hookean';
+elseif stress == 8 || stress == 9
+    elastic = '2nd-order Fung';
+elseif stress == 10 || stress == 11
+    elastic = 'Mooney-Rivlin';
 else
     elastic = 'neo-Hookean';
 end
 if stress == 0
     const = 'no stress applied';
-elseif stress == 1 || stress == 2
+elseif any(stress == [1 2 8 10])
     if Ca == Inf && Re8 == Inf
         const = 'inviscid fluid';
     elseif Ca == Inf
@@ -71,7 +76,7 @@ elseif stress == 1 || stress == 2
     else
         const = [elastic ' Kelvin-Voigt'];
     end
-elseif stress == 3 || stress == 4
+elseif any(stress == [3 4 9 11])
     % a spring (finite Ca) with a Maxwell element makes the Zener model; a
     % solvent viscosity (LAM > 0) adds a dashpot in parallel
     if Ca == Inf && LAM == 0
@@ -119,9 +124,9 @@ else
             'Newtonian'];
     elseif iDRe == 0
         visco = [visco ' selected but inactive (LAM = 0, no solvent ' ...
-            'share for stress 3-5): Newtonian'];
+            'share for the Maxwell/Zener/UCM family): Newtonian'];
     else
-        if stress >= 3
+        if any(stress == [3 4 5 6 7 9 11])
             visco = [visco ', solvent share (LAM)'];
         end
         if v_lambda == 0
@@ -144,11 +149,11 @@ end
 % ordinary differential equations for its integrals, which stress 3 and 4
 % with medium heat transfer complement with the local polymer stress field
 % for the medium heating (imr.physics.zener_field)
-if stress < 3
+if stress < 3 || stress == 8 || stress == 10
     solut = 'closed form (no stress history)';
 elseif spectral == 1
     solut = 'stress field, spectral modes';
-elseif stress <= 4 && medtherm == 1
+elseif any(stress == [3 4 9 11]) && medtherm == 1
     solut = 'stress integral (ODE), and its local field for the medium heating';
 else
     solut = 'stress integrals (ODEs)';

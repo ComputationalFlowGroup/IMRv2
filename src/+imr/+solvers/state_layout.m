@@ -10,7 +10,7 @@ function layout = state_layout(c)
     spectral = strcmp(c.solver,'spectral');
     counts = [m.bubtherm*(n.Nt+spectral), m.medtherm*(n.Mt+spectral), ...
         m.masstrans*n.Nt, 0, 0, 0];
-    if m.stress == 3 || m.stress == 4
+    if any(m.stress == [3 4 9 11])
         counts(4) = 1;
         if m.medtherm
             counts(6) = n.Mt;

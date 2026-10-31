@@ -65,6 +65,7 @@ function system = build_spectral(prepared)
     Pv_star         = prepared.initial.Pv;
     Req             = prepared.initial.Req;
     alphax          = prepared.stress.alphax;
+    C2              = prepared.stress.C2;
 
     % dimensionless initial stress
     Szero           = prepared.initial.stress;
@@ -183,10 +184,10 @@ function system = build_spectral(prepared)
     % closure (f_spectral_stress). Giesekus (stress == 7) instead uses their
     % eps3 as the quadratic mobility factor; eps3 = 0 for stress 5 and 6.
     ptt = (stress == 6);
-    % the linear Maxwell, Jeffreys and Zener models (stress 3, 4) carry,
-    % with medium heat transfer, the local polymer stress difference as a
-    % field in the same basis (imr.physics.zener_field), for the medium heating
-    zener_field = (stress == 3 || stress == 4) && medtherm == 1;
+    % the linear, 2nd-order Fung and Mooney-Rivlin Zener models (stress 3,
+    % 4, 9, 11) carry, with medium heat transfer, the local polymer stress
+    % difference as a field in the same basis (imr.physics.zener_field), for the medium heating
+    zener_field = any(stress == [3 4 9 11]) && medtherm == 1;
     if spectral_stress || zener_field
         ze = cos(pi*(1:Nv)'/Nv);
         % r/R at the stress collocation points
@@ -436,7 +437,7 @@ function system = build_spectral(prepared)
                 diffusion = diff_m/(Lt^2*R^2).*(mDDA*X(ib));
                 % stress dissipation
                 [taugradu] = imr.physics.stress_power(stress,Req,R,Rdot,Ca, ...
-                    Br,Re8,LAM,alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_m, ...
+                    Br,Re8,LAM,alphax,C2,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_m, ...
                     f_polymer_field(X));
                 % surrounding temperature evolution equation
                 Tmdot = advection + diffusion + taugradu;
@@ -473,7 +474,7 @@ function system = build_spectral(prepared)
             [S,Sdot,Z1dot,Z2dot] = f_spectral_stress(R,Rdot,X);
         else
             [S,Sdot,Z1dot,Z2dot] = imr.physics.material_stress(stress,X,Req,R,Ca,De,Re8, ...
-                Rdot,alphax,ivisco1,ivisco2,LAM,intfnu,dintfnu,iDRe);
+                Rdot,alphax,ivisco1,ivisco2,LAM,intfnu,dintfnu,iDRe,C2);
         end
 
         % bubble wall evolution / acceleration
@@ -542,15 +543,30 @@ function system = build_spectral(prepared)
             return
         end
         Rst = Req/Rzero;
-        a4 = alphax*(stress == 4);
         yV2 = yV.^2;
         x2 = (yV3 - 1 + Rst^3).^(2/3);
         lam2 = yV2./x2;
         lam4i = x2.^2./yV2.^2;
-        se = (lam4i - lam2)/Ca.*(1 + a4*(lam4i + 2*lam2 - 3));
-        % elastic stress integral 2*int se/y dy, as in imr.physics.material_stress
-        Se = (3*a4 - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + (2*a4/Ca)*(27/40 + ...
-            (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst);
+        if stress == 11
+            lam4 = lam2.^2;
+            lam2i = x2./yV2;
+            se = (lam4i - lam2)/Ca - (C2/Ca)*(lam4 - lam2i);
+            Se = -(5 - 4*Rst - Rst^4)/(2*Ca) - (C2/Ca)*(2/Rst - Rst^2 - 1);
+        else
+            a4 = alphax*any(stress == [4 9]);
+            x = lam4i + 2*lam2 - 3;
+            factor = 1 + a4*x;
+            Se = (3*a4 - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + (2*a4/Ca)*(27/40 + ...
+                (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst);
+            if stress == 9
+                factor = factor + 0.5*a4^2*x.^2;
+                Se = Se + (a4^2/Ca)*(-2909/180 + 12/Rst - (4/3)/Rst^3 - 6*Rst^2 + ...
+                    9*Rst + (4/3)*Rst^3 + (9/4)*Rst^4 - (6/5)*Rst^5 + (2/3)*Rst^6 - ...
+                    (3/4)*Rst^8 + (1/9)*Rst^9 + (1/12)*Rst^12 + 4*log(Rst));
+            end
+            % elastic stress integral 2*int se/y dy, as in imr.physics.material_stress
+            se = (lam4i - lam2)/Ca.*factor;
+        end
         if isfinite(Ca) && abs(Se) > 0
             sp = Z1/(Rzero^3*Se)*se;
         else
@@ -566,7 +582,7 @@ function system = build_spectral(prepared)
         e = X(izf);
         dzdt = dzdy.*(Rdot/R).*yV_adv;
         spdot = imr.physics.zener_field(sCA*e, -dzdt.*(sCAd*e), yV, R, Rdot, Req, Ca, ...
-            De, Re8, LAM, alphax*(stress == 4));
+            De, Re8, LAM, stress, alphax, C2);
         edot = sCI*spdot;
     end
 
@@ -631,7 +647,7 @@ function system = build_spectral(prepared)
                 v_lambda_star,yT);
         end
         tg = imr.physics.stress_power(stress,Req,Rv,Rdotv,Ca,Br,Re8,LAM, ...
-            alphax,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_loc,f_polymer_field(X));
+            alphax,C2,iDRe,yT2,yT3,iyT3,iyT4,iyT6,fnu_loc,f_polymer_field(X));
         tg = tg.*ones(size(yT));
     end
 
@@ -642,7 +658,7 @@ function system = build_spectral(prepared)
         [intf_loc,dintf_loc,ddintf_loc] = f_nu(v(1),v(2));
         [S_loc,Sdot_loc,Z1dot_loc,Z2dot_loc] = imr.physics.material_stress(stress,X,Req,v(1), ...
             Ca,De,Re8,v(2),alphax,ivisco1,ivisco2,LAM, ...
-            intf_loc,dintf_loc,iDRe);
+            intf_loc,dintf_loc,iDRe,C2);
         out = vertcat(f_rddot(t,v,S_loc,Sdot_loc,ddintf_loc), Z1dot_loc, Z2dot_loc);
     end
 

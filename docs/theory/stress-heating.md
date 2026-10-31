@@ -16,26 +16,30 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
 | 0 | `0` |
 | 1 | `12*mu_KV*a^2 - 2*a*se`, neo-Hookean `se` |
 | 2 | the same with the quadratic `se` |
-| 3, 4 | `12*mu_s*a^2 - 2*a*sp`, with the Zener polymer field `sp` of [`imr.physics.zener_field`](../reference/functions/f_zener_field.md) |
+| 8 | the same with the 2nd-order Fung `se` |
+| 10 | the same with the Mooney-Rivlin `se` |
+| 3, 4, 9, 11 | `12*mu_s*a^2 - 2*a*sp`, with the Zener polymer field `sp` of [`imr.physics.zener_field`](../reference/functions/f_zener_field.md) |
 | 5, 6, 7 | `12*mu_s*a^2 - 2*a*(tau_rr - tau_tt)`, from the spectral stress field (UCM/Oldroyd-B, PTT or Giesekus) |
 
 **Viscosities**, with `fnu` the non-Newtonian factor at the medium points:
 
-- `mu_KV = 1/Re8 + fnu*iDRe`: stress 1 and 2, where the whole viscosity acts instantly.
-- `mu_s = LAM/Re8 + fnu*iDRe`: stress 3–7, where only the solvent part acts instantly.
+- `mu_KV = 1/Re8 + fnu*iDRe`: stress 1, 2, 8 and 10, where the whole viscosity acts instantly.
+- `mu_s = LAM/Re8 + fnu*iDRe`: stress 3–7, 9 and 11, where only the solvent part acts instantly.
 
-`iDRe` is `1/DRe` for stress 1–2 and `LAM/DRe` for stress 3–7, the same factor as in the radial equation (set in `imr.configuration.prepare_case`).
+`iDRe` is `1/DRe` for stress 1, 2, 8, 10 and `LAM/DRe` for stress 3–7, 9, 11, the same factor as in the radial equation (set in `imr.configuration.prepare_case`).
 
-**Elastic stress difference.** With the hoop stretch `lam = r/r0`, where `r0^3 = r^3 - R^3 + Req^3`:
+**Elastic stress difference.** With the hoop stretch `lam = r/r0`, where `r0^3 = r^3 - R^3 + Req^3`, and `x = lam^-4 + 2*lam^2 - 3` (the invariant term `I1 - 3`):
 
-- neo-Hookean: `se = (lam^-4 - lam^2)/Ca`;
-- quadratic: the same times `1 + alphax*(lam^-4 + 2*lam^2 - 3)`.
+- neo-Hookean (1, 3): `se = (lam^-4 - lam^2)/Ca`;
+- quadratic (2, 4): the same times `1 + alphax*x`, the first-order term of the series `exp(alphax*x)`;
+- 2nd-order Fung (8, 9): the same times `1 + alphax*x + (alphax^2/2)*x^2`, the next term of the same series -- unlike stress 8's own wall (radial-equation) formula, which was cross-checked against an independent codebase, this local field is derived here (the natural next term of the series) and verified only by its own consistency: it reproduces the independently-sourced wall formula exactly under `S = 2*int_1^Inf se/y dy`, and its `Rst`-derivative matches the wall formula's own `Sdot` (see `imr.physics.material_stress`);
+- Mooney-Rivlin (10, 11): `se = (1/Ca)*[(lam^-4 - lam^2) - C2*(lam^4 - lam^-2)]`, the neo-Hookean term plus one new term scaled by the second-modulus ratio `C2`; this field and its wall integral are both derived here from the two-invariant Mooney-Rivlin strain energy, with no external source, and cross-checked the same way (integral and derivative consistency).
 
-In the code, `lam^2 = yT2./x2` and `lam^-4 = x2.^2.*iyT4`, with `x2 = (yT3 - 1 + (Req/R)^3).^(2/3)`.
+In the code, `lam^2 = yT2./x2` and `lam^-4 = x2.^2.*iyT4`, with `x2 = (yT3 - 1 + (Req/R)^3).^(2/3)`; `lam^4 = (yT2.*ix2).^2` and `lam^-2 = x2./yT2` for the Mooney-Rivlin term.
 
 ## Total heating
 
-Integrating over the medium gives `4*pi*R^3*int_1^Inf y^2*Phi dy = -4*pi*R^2*Rdot*S`, with `S` the stress integral of the radial equation. This holds for every model. For stress 3 and 4 it equals `16*pi*LAM/Re8*R*Rdot^2 + 24*pi*R^2*Rdot*intfnu*iDRe - 4*pi*Rdot*Z1/R`.
+Integrating over the medium gives `4*pi*R^3*int_1^Inf y^2*Phi dy = -4*pi*R^2*Rdot*S`, with `S` the stress integral of the radial equation. This holds for every model. For stress 3, 4, 9 and 11 it equals `16*pi*LAM/Re8*R*Rdot^2 + 24*pi*R^2*Rdot*intfnu*iDRe - 4*pi*Rdot*Z1/R`.
 
 ## Equation
 
@@ -45,7 +49,7 @@ On the grid `y = r/R`, the field obeys
     ydot = (Rdot/R)*(y^-2 - y)
     sKV  = se - 6*etap*a,   a = (Rdot/R)*y^-3,   etap = (1 - LAM)/Re8
 
-- `se` is the neo-Hookean elastic stress difference for stress 3, or the quadratic one for stress 4 (see [`imr.physics.stress_power`](../reference/functions/f_stress_dissipation.md)).
+- `se` is the neo-Hookean elastic stress difference for stress 3, the quadratic one for stress 4, the 2nd-order Fung one for stress 9, or the Mooney-Rivlin one for stress 11 (see [`imr.physics.stress_power`](../reference/functions/f_stress_dissipation.md)).
 - The caller computes the advection `-ydot*d(sp)/dy` on its own grid.
 - **Boundary conditions:** none at the wall, where `ydot = 0`. `sp` is 0 at infinity.
 - **Initial condition:** `sp = 0` from rest.
@@ -93,4 +97,4 @@ The weights are
 `cdd(n) = 2*Lv*int_{-1}^{1} (T_n(x) - 1)/((Lv*(1 + x) + 1 - x)*(1 - x)) dx`.
 One Gauss–Legendre rule with `Nv + 64` points in `theta = acos(x)` evaluates them, where the integrands are smooth. The local field supplies the polymer part of medium stress power. See [reported comparisons](../validation/convergence.md#reported-spectral-stress-comparisons) for historical quadrature, timing and resolution measurements.
 
-Stress 3–4 keep their integral `Z1` and use the same basis for the local field when medium heat is on. For stress 5 without that field, only `Z1` and `Z2` are available; the [compatibility rules](../reference/compatibility.md) explain why these cannot supply local heating. Stress 6 and 7 always run with the field (`spectral = 1` is forced), so this restriction does not apply to them.
+Stress 3, 4, 9 and 11 keep their integral `Z1` and use the same basis for the local field when medium heat is on. For stress 5 without that field, only `Z1` and `Z2` are available; the [compatibility rules](../reference/compatibility.md) explain why these cannot supply local heating. Stress 6 and 7 always run with the field (`spectral = 1` is forced), so this restriction does not apply to them.
