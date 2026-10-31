@@ -177,17 +177,17 @@ function system = build_spectral(prepared)
     % and tau_thetatheta are expanded in T_n(z) - 1, n = 1..Nv, which vanish
     % at z = 1 (r -> Inf), with z = 1 - 2/(1 + (r/R - 1)/Lv) and collocation
     % points z_j = cos(pi*j/Nv), j = 1..Nv (z = -1 is the bubble wall).
-    % Stress 6 (PTT) and 7 (Giesekus) have no closed-form reduction and run
+    % Stress 10 (PTT) and 11 (Giesekus) have no closed-form reduction and run
     % only here (imr.configuration.validate_case forces spectral = 1 for them)
-    spectral_stress = (stress == 5 || stress == 6 || stress == 7) && spectral == 1;
-    % PTT: stress == 6 sets the Warnez & Johnsen (2015) eps2 = 1 exponential
-    % closure (f_spectral_stress). Giesekus (stress == 7) instead uses their
-    % eps3 as the quadratic mobility factor; eps3 = 0 for stress 5 and 6.
-    ptt = (stress == 6);
-    % the linear, 2nd-order Fung and Mooney-Rivlin Zener models (stress 3,
-    % 4, 9, 11) carry, with medium heat transfer, the local polymer stress
+    spectral_stress = (stress == 9 || stress == 10 || stress == 11) && spectral == 1;
+    % PTT: stress == 10 sets the Warnez & Johnsen (2015) eps2 = 1 exponential
+    % closure (f_spectral_stress). Giesekus (stress == 11) instead uses their
+    % eps3 as the quadratic mobility factor; eps3 = 0 for stress 9 and 10.
+    ptt = (stress == 10);
+    % the linear, 2nd-order Fung and Mooney-Rivlin Zener models (stress 5,
+    % 6, 7, 8) carry, with medium heat transfer, the local polymer stress
     % difference as a field in the same basis (imr.physics.zener_field), for the medium heating
-    zener_field = any(stress == [3 4 9 11]) && medtherm == 1;
+    zener_field = stress >= 5 && stress <= 8 && medtherm == 1;
     if spectral_stress || zener_field
         ze = cos(pi*(1:Nv)'/Nv);
         % r/R at the stress collocation points
@@ -502,8 +502,8 @@ function system = build_spectral(prepared)
     % end of solver
 
     % local polymer stress difference at the medium points, for the medium
-    % heating of stress 3-5 (empty otherwise): the stress 5 field
-    % tau_rr - tau_tt, or the Zener field
+    % heating of the Zener family (stress 5-8) and UCM/Oldroyd-B (stress 9,
+    % empty otherwise): the stress 9 field tau_rr - tau_tt, or the Zener field
     function sp = f_polymer_field(X)
         if spectral_stress
             sp = ZZT*(X(ivisco1) - X(ivisco2));
@@ -547,18 +547,18 @@ function system = build_spectral(prepared)
         x2 = (yV3 - 1 + Rst^3).^(2/3);
         lam2 = yV2./x2;
         lam4i = x2.^2./yV2.^2;
-        if stress == 11
+        if stress == 8
             lam4 = lam2.^2;
             lam2i = x2./yV2;
             se = (lam4i - lam2)/Ca - (C2/Ca)*(lam4 - lam2i);
             Se = -(5 - 4*Rst - Rst^4)/(2*Ca) - (C2/Ca)*(2/Rst - Rst^2 - 1);
         else
-            a4 = alphax*any(stress == [4 9]);
+            a4 = alphax*any(stress == [6 7]);
             x = lam4i + 2*lam2 - 3;
             factor = 1 + a4*x;
             Se = (3*a4 - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + (2*a4/Ca)*(27/40 + ...
                 (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst);
-            if stress == 9
+            if stress == 7
                 factor = factor + 0.5*a4^2*x.^2;
                 Se = Se + (a4^2/Ca)*(-2909/180 + 12/Rst - (4/3)/Rst^3 - 6*Rst^2 + ...
                     9*Rst + (4/3)*Rst^3 + (9/4)*Rst^4 - (6/5)*Rst^5 + (2/3)*Rst^6 - ...
@@ -595,10 +595,10 @@ function system = build_spectral(prepared)
     %       - 4*a*tau_rr - eps3*Re8*tau_rr^2 - 4*etap*a/De
     %   D(tau_tt)/Dt = -tau_tt/De*exp(ptt*Re8*De*(tau_rr+2*tau_tt))
     %       + 2*a*tau_tt - eps3*Re8*tau_tt^2 + 2*etap*a/De
-    % with etap = (1-LAM)/Re8. stress = 5 (UCM, Oldroyd-B) has ptt = 0 and
-    % eps3 = 0, recovering the original linear closure exactly. stress = 6
+    % with etap = (1-LAM)/Re8. stress = 9 (UCM, Oldroyd-B) has ptt = 0 and
+    % eps3 = 0, recovering the original linear closure exactly. stress = 10
     % (PTT) sets ptt = 1, their linear (eps2 = 1) exponential closure.
-    % stress = 7 (Giesekus) keeps ptt = 0 and takes eps3 in (0, 0.5] as
+    % stress = 11 (Giesekus) keeps ptt = 0 and takes eps3 in (0, 0.5] as
     % their mobility factor. In the moving coordinate z the material
     % derivative adds the advection dz/dt*d(tau)/dz, where
     % dz/dt = dz/d(r/R)*(Rdot/R)*((r/R)^-2 - r/R). The solvent viscosity

@@ -13,21 +13,21 @@
 %                   mu = 1/Re8 + fnu*iDRe acting instantly and the
 %                   neo-Hookean (1) or quadratic (2) elastic stress
 %                   difference se
-%   stress 8, 10    same instantaneous Kelvin-Voigt dashpot, with the
-%                   2nd-order Fung (8) or Mooney-Rivlin (10) elastic
+%   stress 3, 4     same instantaneous Kelvin-Voigt dashpot, with the
+%                   2nd-order Fung (3) or Mooney-Rivlin (4) elastic
 %                   stress difference se in place of the neo-Hookean one
-%   stress 3-7,9,11 12*mu_s*a^2 - 2*a*sp, with the solvent viscosity
+%   stress 5-11     12*mu_s*a^2 - 2*a*sp, with the solvent viscosity
 %                   mu_s = LAM/Re8 + fnu*iDRe and the local polymer stress
 %                   difference sp, which carries the stress history: the
-%                   Zener field of imr.physics.zener_field (stress 3, 4, 9, 11) or the
+%                   Zener field of imr.physics.zener_field (stress 5, 6, 7, 8) or the
 %                   spectral stress field tau_rr - tau_thetatheta
-%                   (stress 5, 6, 7)
+%                   (stress 9, 10, 11)
 % fnu is the non-Newtonian viscosity factor at the medium points (0 for a
 % Newtonian run) and iDRe the factor of its stress term, 1/DRe for the
-% Kelvin-Voigt family (1, 2, 8, 10) and LAM/DRe otherwise, as in the radial
+% Kelvin-Voigt family (1-4) and LAM/DRe otherwise, as in the radial
 % equation. C2 is the Mooney-Rivlin second-modulus ratio (unused outside
-% stress 10, 11). sp is the polymer stress difference at the medium
-% points, needed for stress 3-7, 9, 11 and ignored otherwise. R and Rdot
+% stress 4, 8). sp is the polymer stress difference at the medium
+% points, needed for stress 5-11 and ignored otherwise. R and Rdot
 % may be row vectors with sp holding one state per column, giving one
 % column of taugradu per state.
 function [taugradu] = stress_power(stress,Req,R,Rdot,Ca,Br,Re8, ...
@@ -37,7 +37,7 @@ if stress == 0
     % no stress
     taugradu = 0;
 
-elseif stress == 1 || stress == 2 || stress == 8 || stress == 10
+elseif stress >= 1 && stress <= 4
     % Kelvin-Voigt: the viscous and elastic stresses act instantly
     visc = 1/Re8 + fnu.*iDRe;
     % current amplification factor
@@ -54,19 +54,19 @@ elseif stress == 1 || stress == 2 || stress == 8 || stress == 10
         % neo-Hookean
         taugradu = 12*Br*visc.*(Rdot./R).^2.*iyT6 + ...
             2*Br/Ca*iyT3.*(Rdot./R).*(yT2.*ix2 - iyT4.*x4);
-    elseif stress == 2 || stress == 8
+    elseif stress == 2 || stress == 3
         % quadratic neo-Hookean (2), factor 1 + alphax*(I1 - 3); 2nd-order
-        % Fung (8) adds the next term of the same series,
+        % Fung (3) adds the next term of the same series,
         % (alphax^2/2)*(I1 - 3)^2
         x = x4.*iyT4 + 2*yT2.*ix2 - 3;
         factor = 1 + alphax*x;
-        if stress == 8
+        if stress == 3
             factor = factor + 0.5*alphax.^2.*x.^2;
         end
         taugradu = 12*Br*visc.*(Rdot./R).^2.*iyT6 + ...
             2*Br/Ca*iyT3.*(Rdot./R).*(yT2.*ix2 - iyT4.*x4).*factor;
     else
-        % Mooney-Rivlin (10): neo-Hookean term plus the C2-scaled term of
+        % Mooney-Rivlin (4): neo-Hookean term plus the C2-scaled term of
         % the second invariant, lam^4 - lam^-2
         lam4 = (yT2.*ix2).^2;
         lam2i = x2./yT2;
@@ -76,7 +76,7 @@ elseif stress == 1 || stress == 2 || stress == 8 || stress == 10
     end
 
 else
-    % stress 3-7, 9, 11: the solvent part acts instantly, the polymer part
+    % stress 5-11: the solvent part acts instantly, the polymer part
     % through its local stress difference sp, which remembers the history
     if isempty(sp)
         error(['imr.physics.stress_power: stress = %d needs the local polymer ' ...

@@ -95,7 +95,7 @@ function c = prepare_case(solver,varargin)
     p.iota = p.Km_star/p.Lt;
     if p.DRe == 0
         p.iDRe = 0;
-    elseif any(p.stress == [3 4 5 6 7 9 11])
+    elseif p.stress >= 5
         p.iDRe = p.LAM/p.DRe;
     else
         p.iDRe = 1/p.DRe;
@@ -116,9 +116,9 @@ function c = prepare_case(solver,varargin)
             error('INPUT ERROR: mass transfer requires a representable nonzero gas mass fraction.');
         end
     end
-    if p.stress == 1 || p.stress == 2 || p.stress == 8 || p.stress == 10
+    if p.stress >= 1 && p.stress <= 4
         p.JdotA = 4/p.Re8;
-    elseif any(p.stress == [3 4 5 6 7 9 11])
+    elseif p.stress >= 5
         p.JdotA = 4*p.LAM/p.Re8;
     else
         p.JdotA = 0;
@@ -163,9 +163,9 @@ function c = prepare_case(solver,varargin)
         fprintf('New equilibrium radius, Req = %.8f\n',Req);
     end
     nstress = 0;
-    if any(p.stress == [3 4 9 11])
+    if p.stress >= 5 && p.stress <= 8
         nstress = 1;
-    elseif p.stress == 5 || p.stress == 6 || p.stress == 7
+    elseif p.stress >= 9
         nstress = 2*p.Nv;
     end
     if specified.stress0
@@ -177,8 +177,8 @@ function c = prepare_case(solver,varargin)
         if numel(Szero) ~= nstress
             error('INPUT ERROR: stress0 must have %d element(s) for stress = %d',nstress,p.stress);
         end
-    elseif (p.stress == 3 || p.stress == 4) && p.collapse
-        Szero = imr.physics.initial_stress(Req,p.Re8,p.Ca,p.De,p.We,p.Cstar,p.Pv_star,p.alphax*(p.stress == 4));
+    elseif (p.stress == 5 || p.stress == 6) && p.collapse
+        Szero = imr.physics.initial_stress(Req,p.Re8,p.Ca,p.De,p.We,p.Cstar,p.Pv_star,p.alphax*(p.stress == 6));
     else
         Szero = zeros(nstress,1);
     end

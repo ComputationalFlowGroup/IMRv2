@@ -17,6 +17,6 @@ The first eight outputs retain their positions; optional output 9 is wall accele
 | `jacobian = 2` | Default hybrid analytic Jacobian when bubble heat is enabled; otherwise sparsity-pattern fallback |
 | `jacobian = 3` | Batched finite-difference Jacobian for all model configurations accepted by the checker |
 
-The [output contract](../running/output.md) defines every returned array. [Examples](../getting-started/examples.md) show invocation forms. [Compatibility](../reference/compatibility.md) defines restrictions; in particular the nodal two-state stress-5 form cannot supply medium heating.
+The [output contract](../running/output.md) defines every returned array. [Examples](../getting-started/examples.md) show invocation forms. [Compatibility](../reference/compatibility.md) defines restrictions; in particular the nodal two-state stress-9 form cannot supply medium heating.
 
 Implementation: `imr.configuration.prepare_case` → `imr.solvers.build` → `imr.numerics.integrate` → output reconstruction. Nodal operators and closures live in `src/+imr/+solvers/build_nodal.m`. Read the [numerical workflow](../method/overview.md), [wall closure](../method/wall-boundaries.md), and [integration method](../method/time-integration.md). Historical comparisons to the old `f_imr_fd` and convergence measurements live in [validation](../validation/convergence.md).

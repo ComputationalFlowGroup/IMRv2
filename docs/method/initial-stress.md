@@ -1,6 +1,6 @@
 # Initial stress
 
-`imr.physics.initial_stress` supplies the stress history at maximum radius for stress 3 and 4 collapse runs.
+`imr.physics.initial_stress` supplies the stress history at maximum radius for stress 5 and 6 collapse runs.
 The [collapse guide](../running/collapse.md) explains when it runs and when `stress0` is required.
 
 ## Shooting algorithm
@@ -13,7 +13,7 @@ The [collapse guide](../running/collapse.md) explains when it runs and when `str
 ### Internal Functions
 
 - `f_maxwell_growth_iter`: returns the maximum radius for a trial initial wall velocity.
-- `f_RP_bub_collapse_comp`: Nondimensional Keller–Miksis ODE for the growth with the stress evolution. For the Maxwell branch the stress relaxes toward the elastic stress `Se` of the (quadratic) neo-Hookean model, the same `Ze/R^3` as stress 3 and 4 in [`imr.physics.material_stress`](../reference/functions/f_stress.md): `Sdot = -4*Rdot/(Re*R*De) + dSe/dt - (S - Se)/De`.
+- `f_RP_bub_collapse_comp`: Nondimensional Keller–Miksis ODE for the growth with the stress evolution. For the Maxwell branch the stress relaxes toward the elastic stress `Se` of the (quadratic) neo-Hookean model, the same `Ze/R^3` as stress 5 and 6 in [`imr.physics.material_stress`](../reference/functions/f_stress.md): `Sdot = -4*Rdot/(Re*R*De) + dSe/dt - (S - Se)/De`.
 
 ## Standalone approximation
 

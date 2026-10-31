@@ -665,18 +665,18 @@ function system = build_nodal(prepared)
         x2 = (yT3 - 1 + Rst^3).^(2/3);
         lam2 = yT2./x2;
         lam4i = x2.^2.*iyT4;
-        if stress == 11
+        if stress == 8
             lam4 = lam2.^2;
             lam2i = x2./yT2;
             se = (lam4i - lam2)/Ca - (C2/Ca)*(lam4 - lam2i);
             Se = -(5 - 4*Rst - Rst^4)/(2*Ca) - (C2/Ca)*(2/Rst - Rst^2 - 1);
         else
-            a4 = alphax*any(stress == [4 9]);
+            a4 = alphax*any(stress == [6 7]);
             x = lam4i + 2*lam2 - 3;
             factor = 1 + a4*x;
             Se = (3*a4 - 1)*(5 - Rst^4 - 4*Rst)/(2*Ca) + (2*a4/Ca)*(27/40 + ...
                 (1/8)*Rst^8 + (1/5)*Rst^5 + Rst^2 - 2/Rst);
-            if stress == 9
+            if stress == 7
                 factor = factor + 0.5*a4^2*x.^2;
                 Se = Se + (a4^2/Ca)*(-2909/180 + 12/Rst - (4/3)/Rst^3 - 6*Rst^2 + ...
                     9*Rst + (4/3)*Rst^3 + (9/4)*Rst^4 - (6/5)*Rst^5 + (2/3)*Rst^6 - ...

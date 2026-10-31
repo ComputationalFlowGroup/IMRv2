@@ -12,9 +12,9 @@ From [`f_test_cases('gaussian')`](tests.md), in the three solver modes. The case
 - Radial models 1–6.
 - The polytropic bubble, bubble heat transfer, and bubble and medium heat transfer.
 - With and without vapor.
-- The viscous stress models 1–11 (6 and 7, PTT and Giesekus, with a nonzero `eps3` for 7, run only in `imr.solve_spectral`; see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-6-7); 8, 9 are 2nd-order Fung, 10, 11 are Mooney-Rivlin).
+- The viscous stress models 1–11 (10 and 11, PTT and Giesekus, with a nonzero `eps3` for 11, run only in `imr.solve_spectral`; see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-10-11); 3, 7 are 2nd-order Fung, 4, 8 are Mooney-Rivlin).
 
-Only the combinations the compatibility matrix allows are kept. This was 120 cases per mode before stress 6 and 7 were added, and has not been rerun since 8–11 were added (see the disclaimer above).
+Only the combinations the compatibility matrix allows are kept. This was 120 cases per mode before PTT/Giesekus and the 2nd-order Fung/Mooney-Rivlin springs were added (see the disclaimer above).
 
 The physical inputs are:
 

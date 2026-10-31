@@ -42,13 +42,13 @@ function p = validate_case(p)
     if ~(isnumeric(p.eps3) && isscalar(p.eps3) && p.eps3 >= 0 && p.eps3 <= 0.5)
         error('INPUT ERROR: eps3 must be in [0, 0.5]');
     end
-    if p.eps3 ~= 0 && p.stress ~= 7
+    if p.eps3 ~= 0 && p.stress ~= 11
         warning('IMR:unusedParameter', ['eps3 only enters the Giesekus model ' ...
-            '(stress = 7); it is otherwise reserved and unused.']);
+            '(stress = 11); it is otherwise reserved and unused.']);
     end
-    if p.stress == 7 && p.eps3 == 0
-        warning('IMR:parameters', ['stress = 7 (Giesekus) with eps3 = 0 ' ...
-            'reduces to stress = 5 (UCM, Oldroyd-B); set eps3 in (0, 0.5] ' ...
+    if p.stress == 11 && p.eps3 == 0
+        warning('IMR:parameters', ['stress = 11 (Giesekus) with eps3 = 0 ' ...
+            'reduces to stress = 9 (UCM, Oldroyd-B); set eps3 in (0, 0.5] ' ...
             'for the Giesekus mobility factor']);
     end
 
@@ -99,12 +99,12 @@ function p = validate_case(p)
         error(['INPUT ERROR: scheme selects the differentiation matrices of ' ...
             'imr.solve_nodal. imr.solve_spectral takes no scheme']);
     end
-    if strcmp(p.solver,'nodal') && p.spectral == 1 && p.stress == 5
+    if strcmp(p.solver,'nodal') && p.spectral == 1 && p.stress == 9
         error(['INPUT ERROR: the spectral stress representation (spectral = 1) ' ...
             'is available in imr.solve_spectral only']);
     end
-    if strcmp(p.solver,'nodal') && (p.stress == 6 || p.stress == 7)
-        error(['INPUT ERROR: stress = 6 (PTT) and stress = 7 (Giesekus) have ' ...
+    if strcmp(p.solver,'nodal') && (p.stress == 10 || p.stress == 11)
+        error(['INPUT ERROR: stress = 10 (PTT) and stress = 11 (Giesekus) have ' ...
             'no closed-form (two-ODE) reduction and are available in ' ...
             'imr.solve_spectral only']);
     end
@@ -113,47 +113,48 @@ function p = validate_case(p)
         error('INPUT ERROR: collapse must have full model with vapor');
     end
     % collapse sets the equilibrium radius and a zero wall velocity, and for
-    % stress 3 and 4 the stress at the maximum radius (imr.physics.initial_stress). Stress
-    % 0-2, 8, 10 carry no stress history, so there is nothing more to set.
-    % For stress 5-7, 9, 11 that stress is not computed, and a zero stress
-    % would be silently wrong
-    if p.collapse == 1 && any(p.stress == [5 6 7 9 11]) && ~p.stress0set
-        error(['INPUT ERROR: collapse = 1 is not available for stress = 5, 6, ' ...
-            '7, 9, 11 (UCM/Oldroyd-B, PTT, Giesekus, 2nd-order Fung Zener, ' ...
-            'Mooney-Rivlin Zener): the stress at the maximum radius is not ' ...
+    % stress 5 and 6 the stress at the maximum radius (imr.physics.initial_stress). Stress
+    % 0-4 carry no stress history (Kelvin-Voigt family), so there is
+    % nothing more to set. For stress 7-11 that stress is not computed,
+    % and a zero stress would be silently wrong
+    if p.collapse == 1 && p.stress >= 7 && ~p.stress0set
+        error(['INPUT ERROR: collapse = 1 is not available for stress = 7, 8, ' ...
+            '9, 10, 11 (2nd-order Fung Zener, Mooney-Rivlin Zener, UCM/Oldroyd-B, ' ...
+            'PTT, Giesekus): the stress at the maximum radius is not ' ...
             'computed for them. Give the initial stress with stress0, or use ' ...
-            'stress 3, 4, 8 or 10']);
+            'stress 1-6']);
     end
     % below De = 1e-4 the relaxation is far faster than the bubble motion:
     % the model is then its De -> 0 limit, which the instantaneous models
     % give directly and without the stiffness of the 1/De relaxation
-    if any(p.stress == [3 4 5 6 7 9 11]) && p.De < 1e-4
+    if p.stress >= 5 && p.De < 1e-4
         error(['INPUT ERROR: De = %g is below 1e-4, where stress = %d is ' ...
             'its De -> 0 limit. Run the simpler model instead: %s'], ...
             p.De, p.stress, f_small_de_model(p.stress));
     end
-    % the medium heating of stress 3-5 needs the local polymer stress. Stress
-    % 3 and 4 carry it as a field next to Z1. The two-state form of stress 5
-    % carries only integrals of the stress, so medium heat transfer needs the
-    % spectral stress field, which only imr.solve_spectral has
-    if p.stress == 5 && p.medtherm == 1 && p.spectral == 0
+    % the medium heating of stress 5-9 needs the local polymer stress.
+    % Stress 5-8 carry it as a field next to Z1. The two-state form of
+    % stress 9 carries only integrals of the stress, so medium heat
+    % transfer needs the spectral stress field, which only
+    % imr.solve_spectral has
+    if p.stress == 9 && p.medtherm == 1 && p.spectral == 0
         if strcmp(p.solver,'nodal')
-            error(['INPUT ERROR: stress = 5 with medium heat transfer ' ...
+            error(['INPUT ERROR: stress = 9 with medium heat transfer ' ...
                 '(medtherm = 1) is not available in imr.solve_nodal: the medium ' ...
                 'heating needs the local polymer stress, which the two-state ' ...
                 'form does not carry. Use imr.solve_spectral, where the stress ' ...
                 'field (spectral = 1) is used, or medtherm = 0']);
         else
-            warning('IMR:parameters', ['stress = 5 with medium heat transfer ' ...
+            warning('IMR:parameters', ['stress = 9 with medium heat transfer ' ...
                 'uses the spectral stress field (spectral = 1), since the ' ...
                 'medium heating needs the local polymer stress, which the ' ...
                 'two-state form does not carry']);
             p.spectral = 1;
         end
     end
-    % stress 6 (PTT) and 7 (Giesekus) have no closed-form reduction, so
+    % stress 10 (PTT) and 11 (Giesekus) have no closed-form reduction, so
     % imr.solve_spectral always runs them with the spectral stress field
-    if (p.stress == 6 || p.stress == 7) && p.spectral == 0
+    if (p.stress == 10 || p.stress == 11) && p.spectral == 0
         warning('IMR:parameters', ['stress = %d (PTT/Giesekus) has no closed-' ...
             'form reduction and requires the spectral stress field; forcing ' ...
             'spectral = 1'], p.stress);
@@ -162,7 +163,7 @@ function p = validate_case(p)
     % the linear, 2nd-order Fung and Mooney-Rivlin Zener models are each a
     % spring 1/Ca in parallel with a Maxwell branch whose dashpot viscosity
     % is (1-LAM)/Re8 - De/Ca
-    if any(p.stress == [3 4 9 11]) && (1 - p.LAM)/p.Re8 < p.De/p.Ca
+    if p.stress >= 5 && p.stress <= 8 && (1 - p.LAM)/p.Re8 < p.De/p.Ca
         warning('IMR:parameters', ['stress = %d with (1-LAM)/Re8 = %g < ' ...
             'De/Ca = %g: the implied dashpot viscosity of the Zener branch, ' ...
             '(1-LAM)/Re8 - De/Ca, is negative'], p.stress, (1 - p.LAM)/p.Re8, ...
@@ -237,7 +238,7 @@ function p = validate_case(p)
     % dimensionless numbers
 
     % Re, We and Ca were checked before calculating initial pressures.
-    if any(p.stress == [3 4 5 6 7 9 11]) && p.LAM > 1
+    if p.stress >= 5 && p.LAM > 1
         warning('IMR:parameters', ['LAM = lambda2/lambda1 = %g exceeds 1; the ' ...
             'retardation time is normally shorter than the relaxation time'], p.LAM);
     end
@@ -255,7 +256,7 @@ function p = validate_case(p)
         if p.DRe == 0
             warning('IMR:parameters', ['nu_model = %d with DRe = 0: the ' ...
                 'non-Newtonian contribution is zero'], p.nu_model);
-        elseif any(p.stress == [3 4 5 6 7 9 11]) && p.LAM == 0
+        elseif p.stress >= 5 && p.LAM == 0
             warning('IMR:parameters', ['nu_model = %d with stress = %d and ' ...
                 'LAM = 0: the non-Newtonian viscosity is the solvent share LAM ' ...
                 'of the Maxwell/Zener/UCM family, so its contribution is zero'], ...
@@ -337,11 +338,11 @@ function p = validate_case(p)
 
     % settings consistent with the stress model
 
-    % the Zener models (stress 3, 4, 9, 11) carry, in imr.solve_spectral with medium heat
+    % the Zener models (stress 5, 6, 7, 8) carry, in imr.solve_spectral with medium heat
     % transfer, their local polymer stress as a field of Nv spectral modes
-    zener_field = any(p.stress == [3 4 9 11]) && p.medtherm == 1;
+    zener_field = p.stress >= 5 && p.stress <= 8 && p.medtherm == 1;
     zener_modes = zener_field && strcmp(p.solver,'spectral');
-    if any(p.stress == [0 1 2 3 4 8 9 10 11])
+    if p.stress <= 8
         % closed-form or single-mode stress models (Kelvin-Voigt and
         % Zener families, neo-Hookean, 2nd-order Fung and Mooney-Rivlin
         % springs alike), no spectral stress representation
@@ -349,14 +350,14 @@ function p = validate_case(p)
         if zener_modes
             % Nv modes of the field (the stress integral Z1 is one state)
             p.Nv = max(p.Nv, 1);
-        elseif any(p.stress == [3 4 9 11])
+        elseif p.stress >= 5
             p.Nv = 1;
         else
             p.Nv = 0;
         end
     else
-        % UCM, Oldroyd-B, PTT and Giesekus (stress 5-7): Nv stress modes for
-        % the spectral representation (always on for stress 6, 7), one
+        % UCM, Oldroyd-B, PTT and Giesekus (stress 9-11): Nv stress modes for
+        % the spectral representation (always on for stress 10, 11), one
         % otherwise, and no elastic contribution
         if p.spectral == 1 && p.Nv < 1
             error('IMR:stressGrid','Nv must be at least 1 for the spectral stress field.');
@@ -369,21 +370,21 @@ end
 
 % helper checks
 
-% the De -> 0 limit of the stress models 3-5: the polymer stress follows
+% the De -> 0 limit of the stress models 5-11: the polymer stress follows
 % the strain rate instantly, so the solvent and polymer viscosities add up
 % to 1/Re8, and the elasticity is that of the same spring (none for stress
-% 5). The non-Newtonian term of stress 3-5 acts on the solvent share LAM
+% 9-11). The non-Newtonian term of stress 5-11 acts on the solvent share LAM
 function msg = f_small_de_model(stress)
-    if stress == 3
+    if stress == 5
         msg = 'stress = 1 (Kelvin-Voigt, neo-Hookean) with the same Re and Ca';
-    elseif stress == 4
+    elseif stress == 6
         msg = ['stress = 2 (Kelvin-Voigt, quadratic neo-Hookean) with the ' ...
             'same Re, Ca and alphax'];
-    elseif stress == 9
-        msg = ['stress = 8 (Kelvin-Voigt, 2nd-order Fung) with the same ' ...
+    elseif stress == 7
+        msg = ['stress = 3 (Kelvin-Voigt, 2nd-order Fung) with the same ' ...
             'Re, Ca and alphax'];
-    elseif stress == 11
-        msg = ['stress = 10 (Kelvin-Voigt, Mooney-Rivlin) with the same ' ...
+    elseif stress == 8
+        msg = ['stress = 4 (Kelvin-Voigt, Mooney-Rivlin) with the same ' ...
             'Re, Ca and C2'];
     else
         msg = 'stress = 1 with the same Re and Ca = Inf (Newtonian)';

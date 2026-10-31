@@ -68,7 +68,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | `medium` | Medium temperature values or coefficients | `medtherm = 1` |
 | `vapor` | Vapor mass fractions | `masstrans = 1`, nodal only |
 | `stress1`, `stress2` | Integrated stresses or spectral stress coefficients | Constitutive-model dependent |
-| `polymer` | Local Zener stress field for heating | Stress 3–4 with medium heat |
+| `polymer` | Local Zener stress field for heating | Stress 5–8 with medium heat |
 
 `imr.solvers.state_layout` owns these indices. Factories use the same blocks for initialization, RHS, Jacobians and reconstruction; disabled fields have empty blocks and no operators. See [internal contracts](internal-contracts.md).
 

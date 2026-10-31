@@ -51,15 +51,15 @@ The inputs are given in SI units and converted with [`imr.nondimensionalize`](..
 | Regression | 70 | 20 | 12 |
 | Permutations | 20 | 12 | 8 (`Nv = 8`) |
 
-Finite differences need finer grids because they are second-order accurate. The Chebyshev and spectral expansions converge spectrally. Except in permutations, the spectral mode sets `Nv = 32` stress modes, for the stress 5–7 field and the Zener field of stress 3, 4, 9, 11 with medium heat transfer. The default is 150.
+Finite differences need finer grids because they are second-order accurate. The Chebyshev and spectral expansions converge spectrally. Except in permutations, the spectral mode sets `Nv = 32` stress modes, for the stress 9–11 field and the Zener field of stress 5–8 with medium heat transfer. The default is 150.
 
 **Historically reported case counts** (`nodal_fd`, `nodal_cheb`, `spectral`):
 
 | Suite | Cases |
 |---|---|
-| Equilibrium | 144, 144, 144 (before stress 6, 7 and 8–11 were added; not rerun here) |
-| Gaussian | 120, 120, 120 (before stress 6, 7 and 8–11 were added; not rerun here) |
-| Regression | 230, 230, 155 (before stress 8–11 were added; stored references need a local MATLAB regeneration) |
+| Equilibrium | 144, 144, 144 (before PTT/Giesekus and the 2nd-order Fung/Mooney-Rivlin springs were added; not rerun here) |
+| Gaussian | 120, 120, 120 (before PTT/Giesekus and the 2nd-order Fung/Mooney-Rivlin springs were added; not rerun here) |
+| Regression | 230, 230, 155 (before the 2nd-order Fung/Mooney-Rivlin springs were added; stored references need a local MATLAB regeneration) |
 
 ## Helpers
 

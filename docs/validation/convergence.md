@@ -8,8 +8,8 @@ The executable assertions live in the [test suite pages](tests.md).
 
 On thermal cases with `Req = 0.5` and `t` in [0, 3]:
 
-- `scheme = 0` gave bit-identical `R(t)` to `f_imr_fd` over 98 cases: radial 1–4, stress 0–5, polytropic, bubble, bubble and medium, and full mass-transfer models, plus a non-Newtonian and a Gaussian-waveform case. This held before the bracketed mass-transfer wall closure; with it, the cases without mass transfer stay bit-identical and the mass-transfer cases differ at the integrator tolerance.
-- `scheme = 1` and `imr.solve_spectral` converge toward each other with resolution over 32 cases (radial 1–4, stress 0/1/3/5, with and without medium heat transfer). The largest relative deviation in `R(t)` over the cases is `2.8e-3`, `4.8e-4` and `2.6e-4` at `Nt = Mt = 12, 20, 30`; the median is `1.4e-4`, `1.0e-5` and `3.4e-6`.
+- `scheme = 0` gave bit-identical `R(t)` to `f_imr_fd` over 98 cases: radial 1–4, stress 0–2, 5, 6 and 9, polytropic, bubble, bubble and medium, and full mass-transfer models, plus a non-Newtonian and a Gaussian-waveform case. This held before the bracketed mass-transfer wall closure; with it, the cases without mass transfer stay bit-identical and the mass-transfer cases differ at the integrator tolerance.
+- `scheme = 1` and `imr.solve_spectral` converge toward each other with resolution over 32 cases (radial 1–4, stress 0, 1, 5 and 9, with and without medium heat transfer). The largest relative deviation in `R(t)` over the cases is `2.8e-3`, `4.8e-4` and `2.6e-4` at `Nt = Mt = 12, 20, 30`; the median is `1.4e-4`, `1.0e-5` and `3.4e-6`.
 - Against Richardson-extrapolated finite differences (`Nt = Mt = 200, 400`) for Keller–Miksis with neo-Hookean Kelvin–Voigt stress, `scheme = 1` at `Nt = Mt = 25` is within `1e-4` with bubble heat transfer only, where finite differences at 200 points are `2.4e-3` away. With medium heat transfer it reaches `2e-4` at 40 points, the same as `imr.solve_spectral`.
 - With mass transfer (Keller–Miksis, neo-Hookean Kelvin–Voigt, bubble and medium heat transfer), `scheme = 1` converges with resolution: against its own solution at 80 points the largest deviation is `1.2e-2`, `3.6e-3`, `2.6e-4` and `5.5e-5` at 20, 30, 40 and 60 points for `Req = 0.5`, and `4.9e-2`, `2.0e-2`, `2.5e-3` and `1.1e-4` for `Req = 0.4`. At 40 points it is within `1e-3` of Richardson-extrapolated finite differences (`Nt = Mt = 200, 400`), the uncertainty of that reference.
 - The analytic Jacobian matches a central-difference Jacobian to a scaled error of `3e-9` for `scheme = 0` and `4e-10` for `scheme = 1`, with and without mass transfer.
@@ -21,11 +21,11 @@ On thermal cases with `Req = 0.5` and `t` in [0, 3]:
 
 ## Reported measurements: `imr.numerics.jacobian_nodal`
 
-Against a central-difference Jacobian of the right-hand side over radial 1–4, stress 0/1/3/5, viscosity models 0/1/5, with and without medium heat and mass transfer, the maximum scaled difference is below `3e-9` for finite differences and `4e-10` for Chebyshev.
+Against a central-difference Jacobian of the right-hand side over radial 1–4, stress 0, 1, 5 and 9, viscosity models 0/1/5, with and without medium heat and mass transfer, the maximum scaled difference is below `3e-9` for finite differences and `4e-10` for Chebyshev.
 
 ## Reported measurements: `imr.numerics.jacobian_spectral`
 
-Against a central-difference Jacobian over radial 1–4, stress 0/1/3/5, Newtonian and Carreau viscosity, polytropic, cold-medium and full thermal models, and the spectral stress representation (102 configurations), the maximum scaled difference is `3e-7`.
+Against a central-difference Jacobian over radial 1–4, stress 0, 1, 5 and 9, Newtonian and Carreau viscosity, polytropic, cold-medium and full thermal models, and the spectral stress representation (102 configurations), the maximum scaled difference is `3e-7`.
 
 ## Reported measurements: `imr.physics.stress_power`
 
@@ -33,8 +33,8 @@ Against a central-difference Jacobian over radial 1–4, stress 0/1/3/5, Newtoni
     - `1e-8`–`5e-5` (relative) with Chebyshev and spectral grids;
     - `5e-4` with finite differences at `Mt = 80` (second-order quadrature error).
 
-    This held for stress 1–5, Newtonian and Carreau.
-- **Kelvin–Voigt limit.** At the same state, the stress 3 (4) heating tends to the stress 1 (2) heating as `De -> 0`: the relative difference is `4e-2`, `4e-3` and `4e-4` for `De = 1e-2`, `1e-3` and `1e-4`.
+    This held for stress 1, 2, 5, 6 and 9, Newtonian and Carreau.
+- **Kelvin–Voigt limit.** At the same state, the stress 5 (6) heating tends to the stress 1 (2) heating as `De -> 0`: the relative difference is `4e-2`, `4e-3` and `4e-4` for `De = 1e-2`, `1e-3` and `1e-4`.
 
 ## Reported measurements: `imr.physics.zener_field`
 
@@ -59,7 +59,7 @@ In the cross-mode report, Chebyshev and the spectral solver agree with finite di
 ## Reported batched-Jacobian measurements
 
 
-- Every column of a batch matches a single-column call to `4e-13` (relative), over 372 model combinations: radial 1–6, stress 0–5, four viscosity models, the thermal and mass-transfer configurations, and both schemes.
+- Every column of a batch matches a single-column call to `4e-13` (relative), over 372 model combinations: radial 1–6, stress 0–2, 5, 6 and 9, four viscosity models, the thermal and mass-transfer configurations, and both schemes.
 - The batched Jacobian matches the analytic one to a scaled error below `1e-5` in every thermal case.
 - Over the 74 regression cases, `jacobian = 3` reproduces the `jacobian = 2` solution to within the integrator tolerance (`R(t)` differs by at most `9e-7`, mostly `1e-8` or less).
 - `benchmarks/integrators/s_compare_integrators.m` compares `ode23tb`, `ode15s` and CVODES with both Jacobians against a tight-tolerance reference, in MATLAB.
@@ -104,4 +104,4 @@ The former nodal page reported that replacing an inverse assuming `beta = 1 - al
 
 ## Reported local Jacobian checks
 
-The former nodal method notes reported agreement of Zener-field rows with central differences to `1e-9`. The spectral method notes reported `5e-10` for stress 1, 3, 4 and 5 in one set of checks. These narrower reports differ in scope from the broader Jacobian comparisons above and are not interchangeable acceptance thresholds.
+The former nodal method notes reported agreement of Zener-field rows with central differences to `1e-9`. The spectral method notes reported `5e-10` for stress 1, 5, 6 and 9 in one set of checks. These narrower reports differ in scope from the broader Jacobian comparisons above and are not interchangeable acceptance thresholds.

@@ -18,7 +18,7 @@ Both solvers return dimensionless arrays and print a model summary through `imr.
 
 Radius, velocity and pressure histories use one row per returned time. Nodal thermal and concentration fields use one row per time and columns for spatial nodes. Spectral temperature fields instead use one row per collocation point and one column per time; this existing output orientation is preserved. The nodal bubble grid runs center to wall; the medium grid runs wall to infinity. `T(:,end)` and `Tm(:,1)` are the wall temperature when medium heat transfer is enabled; the wall closure recovers these values at each output time. The spectral solver reconstructs temperature values from its coefficients before returning them.
 
-`imr.configuration.prepare_case` records inputs before applying all internal checker adjustments to that record. Use [compatibility](../reference/compatibility.md) to understand automatic stress-field selection, mode counts and the `Ca = Inf` stress-5 rule. The [API](../api/index.md) distinguishes input contracts from internal state.
+`imr.configuration.prepare_case` records inputs before applying all internal checker adjustments to that record. Use [compatibility](../reference/compatibility.md) to understand automatic stress-field selection, mode counts and the `Ca = Inf` stress-9 rule. The [API](../api/index.md) distinguishes input contracts from internal state.
 
 ## Wall acceleration, stress integral and its derivative
 
@@ -45,7 +45,7 @@ It has units of meters per second squared. The first eight outputs retain their 
 
 `imr.solvers.describe_case` labels the solver, radial equation, constitutive law, viscosity, thermal/vapor/mass-transfer choices and stress representation. Its complete label rules live in the [display reference](../reference/functions/f_display.md).
 
-`progdisplay = 1` prints on every right-hand-side evaluation and can slow runs. Collapse setup may print a recomputed equilibrium radius and a stress-history note. For stress 3–4 with medium heat transfer, the spectral solver prints the maximum difference between the local field's integral and `Z1/R^3`; this is a consistency diagnostic, not an automatic pass/fail accuracy certificate.
+`progdisplay = 1` prints on every right-hand-side evaluation and can slow runs. Collapse setup may print a recomputed equilibrium radius and a stress-history note. For stress 5–8 with medium heat transfer, the spectral solver prints the maximum difference between the local field's integral and `Z1/R^3`; this is a consistency diagnostic, not an automatic pass/fail accuracy certificate.
 
 ## Save and replay a run
 
