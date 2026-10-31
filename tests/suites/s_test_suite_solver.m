@@ -6,15 +6,16 @@ clear;
 
 % Selection follows ordinary struct/pair precedence; defaults stay neutral.
 assert(~isfield(imr.default_inputs(),'solver'));
-c = imr.configuration.prepare_case('');
+c = imr.configuration.prepare_case('','method',23);
 assert(strcmp(c.solver,'nodal') && strcmp(c.inputs.solver,'nodal'));
 p = imr.default_inputs();
 p.solver = "SPECTRAL";
+p.method = 23;
 c = imr.configuration.prepare_case('',p);
 assert(strcmp(c.solver,'spectral') && strcmp(c.inputs.solver,'spectral'));
 c = imr.configuration.prepare_case('',p,'SOLVER','nodal');
 assert(strcmp(c.solver,'nodal'));
-c = imr.configuration.prepare_case('','solver','nodal','solver','spectral');
+c = imr.configuration.prepare_case('','solver','nodal','solver','spectral','method',23);
 assert(strcmp(c.solver,'spectral'));
 for invalid = {0,[],struct(),{'nodal'},'',"",'unknown',["nodal" "spectral"]}
     f_input_error(@() imr.solve('solver',invalid{1}));
@@ -37,7 +38,7 @@ fprintf('Unified solver selection and compatibility guards PASSED.\n');
 % Explicit material conversion must preserve the new routing option.
 [pairs,ref] = imr.nondimensionalize('fluid',@imr.fluids.water, ...
     'solver','spectral','req',50e-6,'r0',50e-6,'u0',0.1);
-c = imr.configuration.prepare_case('',pairs{:});
+c = imr.configuration.prepare_case('',pairs{:},'method',23);
 assert(strcmp(c.solver,'spectral'));
 assert(abs(c.initial.Rdot*ref.Uc-0.1) < 1e-14);
 assert(abs(ref.Uc^2/ref.R0-ref.R0/ref.t0^2) < 1e-12*ref.Uc^2/ref.R0);
@@ -47,7 +48,7 @@ solvers = {'nodal','nodal','spectral'};
 for mode = 1:3
     scheme = double(mode == 2);
     args = {'Req',1,'radial',2,'rdotzero',0.01,'stress',1,'ca',Inf, ...
-        'tvector',linspace(0,0.03,7),'scheme',scheme};
+        'tvector',linspace(0,0.03,7),'scheme',scheme,'method',23};
     unified = cell(1,9);
     wrapped = cell(1,9);
     previous = cell(1,8);
@@ -111,7 +112,7 @@ for solver = {'nodal','spectral'}
     end
     % Two-time input returns adaptive steps, also aligned with acceleration.
     [t,~,~,~,~,~,~,~,A] = imr.solve('solver',solver{1}, ...
-        'Req',1,'tfin',0.03);
+        'Req',1,'tfin',0.03,'method',23);
     assert(isequal(size(t),size(A)) && t(end) == 0.03);
 end
 fprintf('Independent radial equations, sampled velocity and adaptive times PASSED.\n');
@@ -121,7 +122,7 @@ fprintf('Independent radial equations, sampled velocity and adaptive times PASSE
 for solver = {'nodal','spectral'}
     for radial = 1:6
         [~,~,~,~,~,~,~,~,A] = imr.solve('solver',solver{1}, ...
-            'radial',radial,'Req',1,'tvector',[0 0.01 0.02]);
+            'radial',radial,'Req',1,'tvector',[0 0.01 0.02],'method',23);
         assert(isreal(A) && all(isfinite(A)) && norm(A,Inf) < 1e-9);
     end
 end
@@ -139,7 +140,7 @@ for mode = 1:4
     args = {'solver',solver,'Req',1,'radial',2,'rdotzero',0.01, ...
         'bubtherm',1,'medtherm',1,'vapor',1,'masstrans',mass, ...
         'stress',stress,'spectral',double(mode == 4),'scheme',scheme, ...
-        'Nt',8,'Mt',8,'Nv',6,'tvector',linspace(0,0.02,9)};
+        'Nt',8,'Mt',8,'Nv',6,'tvector',linspace(0,0.02,9),'method',23};
     current = cell(1,9);
     previous = cell(1,8);
     [current{:}] = imr.solve(args{:});

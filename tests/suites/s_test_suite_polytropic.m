@@ -32,7 +32,7 @@ tvec = linspace(0,0.2,41);
 for mode = 1:numel(solvers)
     args = {'radial',2,'stress',0,'vapor',1,'pv',Pv,'req',0.8, ...
         'we',Inf,'tvector',tvec,'reltol',1e-10, ...
-        'abstol',1e-10,'nt',8,'mt',8,'jacobian',2};
+        'abstol',1e-10,'nt',8,'mt',8,'jacobian',2,'method',23};
     [t, radius, ~, pressure] = solvers{mode}(args{:}, extra{mode}{:});
     % An early stop (NaN, event, integration failure) would otherwise show
     % up only as a confusing size mismatch below, not a clear diagnosis.

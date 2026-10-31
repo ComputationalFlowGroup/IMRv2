@@ -16,7 +16,7 @@ assert(isequaln(modern,legacy) && isequaln(modern_ref,legacy_ref));
 assert(isequaln(imr.fluid_properties(@imr.fluids.water,[],300), ...
     f_fluid_properties(@fluids.water,[],300)));
 for wave_type = -3:-1
-    c = imr.configuration.prepare_case('nodal','wave_type',wave_type);
+    c = imr.configuration.prepare_case('nodal','wave_type',wave_type,'method',23);
     forcing = c.forcing;
     assert(~isempty(forcing.wave_poly) && ~isempty(forcing.wave_dpoly));
     args = {[forcing.om forcing.ee forcing.tw forcing.dt forcing.mn wave_type], ...
@@ -29,7 +29,7 @@ modern_solvers = {@imr.solve_nodal,@imr.solve_spectral};
 legacy_solvers = {@f_imr_nodal,@f_imr_spectral};
 args = {'Req',1,'rdotzero',0.01,'stress',1,'ca',Inf, ...
     'bubtherm',0,'medtherm',0,'vapor',0,'masstrans',0, ...
-    'tvector',linspace(0,0.1,6)};
+    'tvector',linspace(0,0.1,6),'method',23};
 for k = 1:numel(modern_solvers)
     modern = cell(1,8);
     legacy = cell(1,8);
@@ -37,8 +37,8 @@ for k = 1:numel(modern_solvers)
     [legacy{:}] = legacy_solvers{k}(args{:});
     assert(isequaln(modern,legacy));
 end
-new_sweep = imr.sweep(@imr.solve_nodal,{},'req',[1 0.99]);
-old_sweep = f_imr_sweep(@f_imr_nodal,{},'req',[1 0.99]);
+new_sweep = imr.sweep(@imr.solve_nodal,{'method',23},'req',[1 0.99]);
+old_sweep = f_imr_sweep(@f_imr_nodal,{'method',23},'req',[1 0.99]);
 assert(isequaln(new_sweep,old_sweep));
 % A namespace resolver must not require package folders on the search path.
 entries = strsplit(path,pathsep);

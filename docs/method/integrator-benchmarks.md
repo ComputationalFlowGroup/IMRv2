@@ -4,9 +4,9 @@
 
 | Integrator | `method` | Notes |
 |------------|----------|-------|
-| `ode23tb` | 23 (default) | MATLAB code |
+| `ode23tb` | 23 | MATLAB code |
 | `ode15s` | 15 | MATLAB code |
-| CVODES | 3 or `'cvodes'` | Compiled SUNDIALS code through the `ode` object (`Solver = 'cvodesstiff'`), MATLAB R2024a or later |
+| CVODES | 3 or `'cvodes'` (default) | Compiled SUNDIALS code through the `ode` object (`Solver = 'cvodesstiff'`), MATLAB R2024a or later |
 
 Each integrator runs with two Jacobians:
 
