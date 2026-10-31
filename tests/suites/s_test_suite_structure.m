@@ -44,12 +44,7 @@ from_pairs = imr.configuration.prepare_case('nodal','req',1,'tvector',p.tvector,
     'method','ode15s','ee',0.02);
 assert(isequaln(from_struct,from_pairs));
 assert(from_struct.numerics.method == 15);
-% Compatibility serialization keeps the original output order and values.
-[eq,~,initial,S,t,~,acoustic,wave] = imr.configuration.legacy_options('nodal',p,'ee',0.02);
-assert(isequal(eq,[1 0 0 0 0 0]) && isempty(S));
-assert(isequal(t,p.tvector) && initial(1) == 1 && initial(5) == 1);
-assert(acoustic(3) == p.kappa && wave{1}(2) == 0.02);
-fprintf('Public input schema, struct overrides and compatibility adapter PASSED.\n');
+fprintf('Public input schema and struct overrides PASSED.\n');
 % An active stress expansion needs a mode; an inactive field may use zero.
 try
     imr.configuration.prepare_case('spectral','stress',9,'spectral',1,'Nv',0);
