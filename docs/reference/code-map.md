@@ -93,7 +93,6 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | `src/+imr/+solvers/state_layout.m` | Enabled state blocks shared by every consumer | [State contract](internal-contracts.md#state-and-shape-contract) |
 | `src/+imr/+solvers/build.m` | Build scheme-specific numerical callbacks | [System contract](internal-contracts.md#numerical-system) |
 | `src/+imr/+solvers/build_nodal.m`, `build_spectral.m` | Local operators, RHS, closures and reconstruction | [Workflow](../method/overview.md) |
-| `src/+imr/+configuration/legacy_options.m` | Compatibility serialization of the named case | [Legacy adapter](functions/f_call_params.md) |
 | `src/+imr/+configuration/validate_case.m` | Validate ranges and feature combinations | [Checks](functions/f_checkers.md) |
 | `src/+imr/+solvers/describe_case.m` | Display the prepared model choices | [Display](functions/f_display.md) |
 

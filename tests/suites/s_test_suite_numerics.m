@@ -120,10 +120,10 @@ fprintf('Nonzero-start maximum time step PASSED.\n');
 
 % The implemented thermal transform needs positive gas slope. Preserve
 % existing kappa=1 limits and allow unused zero vapor conductivity.
-imr.configuration.legacy_options('nodal','bubtherm',0,'kappa',1);
-imr.configuration.legacy_options('nodal','bubtherm',1,'kappa',1);
-f_expect_failure(@() imr.configuration.legacy_options('nodal','bubtherm',1,'alpha_g',0));
-imr.configuration.legacy_options('nodal','bubtherm',1,'alpha_v',0,'beta_v',0);
+imr.configuration.prepare_case('nodal','bubtherm',0,'kappa',1);
+imr.configuration.prepare_case('nodal','bubtherm',1,'kappa',1);
+f_expect_failure(@() imr.configuration.prepare_case('nodal','bubtherm',1,'alpha_g',0));
+imr.configuration.prepare_case('nodal','bubtherm',1,'alpha_v',0,'beta_v',0);
 f_expect_failure(@() f_test_report('Empty',[],false(1,0),{}));
 c = struct('solver',@f_early_return,'args',{{}});
 [R, msg, t] = f_test_run(c);
@@ -134,14 +134,14 @@ fprintf('Thermal guards and test-runner time reporting PASSED.\n');
 % or ODE setup. Real, increasing row and column time vectors remain valid.
 for name = {'Nt','Mt','Nv','divisions'}
     for invalid = {Inf,NaN,1+1i,[1 2],-1,0.5}
-        f_expect_failure(@() imr.configuration.legacy_options('nodal',name{1},invalid{1}));
+        f_expect_failure(@() imr.configuration.prepare_case('nodal',name{1},invalid{1}));
     end
 end
 for invalid = {[0 1 2 3; 1 2 3 4], [0 1+1i], [0 Inf], [0 0], [1 0]}
-    f_expect_failure(@() imr.configuration.legacy_options('nodal','tvector',invalid{1}));
+    f_expect_failure(@() imr.configuration.prepare_case('nodal','tvector',invalid{1}));
 end
-imr.configuration.legacy_options('nodal','tvector',[0 1 2]);
-imr.configuration.legacy_options('nodal','tvector',[0 1 2]');
+imr.configuration.prepare_case('nodal','tvector',[0 1 2]);
+imr.configuration.prepare_case('nodal','tvector',[0 1 2]');
 fprintf('Finite integer and real time-vector validation PASSED.\n');
 
 % Disabled thermal fields allow small/zero grid counts. They must not

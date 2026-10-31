@@ -64,7 +64,7 @@ Use lowercase `snake_case` without an `f_` prefix for new functions. Place publi
 - **Base MATLAB only.** Code in `src/` must not need any toolbox, so do not add calls to toolbox functions.
 - **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `src/+imr/nondimensionalize.m`.
 - **Adding an input.** Follow the [extension guide](../api/extending.md): add the default in `imr.configuration.defaults`, its public/internal mapping and discrete rule in `imr.configuration.schema`, and its named prepared-case field in `imr.configuration.prepare_case`. Keep coupled physical restrictions in `imr.configuration.validate_case`, document the input, and add an independent numerical check.
-- **Named internal contracts.** Both solvers consume `imr.configuration.prepare_case` and `imr.solvers.build`. Use `imr.solvers.state_layout` blocks for initialization, RHS, Jacobians and reconstruction. Do not add new positional unpacking to the solvers. `imr.configuration.legacy_options` is a compatibility serializer; preserve the order of its existing vector outputs for legacy callers.
+- **Named internal contracts.** Both solvers consume `imr.configuration.prepare_case` and `imr.solvers.build`. Use `imr.solvers.state_layout` blocks for initialization, RHS, Jacobians and reconstruction. Do not add new positional unpacking to the solvers.
 - **File headers.** Start every `.m` file with the same header as the existing files: the file name, a one-line summary, the license block, then the description. The license block is a separate comment block, so it stays out of MATLAB's `help` text, which shows only the first block.
 
     ```matlab

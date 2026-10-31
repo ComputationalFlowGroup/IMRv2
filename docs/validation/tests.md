@@ -33,7 +33,7 @@ The generated equilibrium, Gaussian, permutation and regression suites use three
 
 ## `f_test_cases(suite)`
 
-Returns the cases of `'equilibrium'`, `'gaussian'`, `'regression'` or `'permutations'` for all three modes. It builds each case from the model features, then keeps it only if the solver's own input checks (`imr.configuration.legacy_options` and [`imr.configuration.validate_case`](../reference/functions/f_checkers.md)) accept it. The generator enumerates selected combinations and filters them through the rules behind the [compatibility matrix](../reference/compatibility.md). It does not exhaust every possible parameter value or prove that every pairwise-compatible collection of features is valid.
+Returns the cases of `'equilibrium'`, `'gaussian'`, `'regression'` or `'permutations'` for all three modes. It builds each case from the model features, then keeps it only if the solver's own input checks (`imr.configuration.prepare_case` and [`imr.configuration.validate_case`](../reference/functions/f_checkers.md)) accept it. The generator enumerates selected combinations and filters them through the rules behind the [compatibility matrix](../reference/compatibility.md). It does not exhaust every possible parameter value or prove that every pairwise-compatible collection of features is valid.
 
 Each case has these fields:
 
