@@ -120,10 +120,10 @@ fprintf('Nonzero-start maximum time step PASSED.\n');
 
 % The implemented thermal transform needs positive gas slope. Preserve
 % existing kappa=1 limits and allow unused zero vapor conductivity.
-imr.configuration.prepare_case('nodal','bubtherm',0,'kappa',1);
-imr.configuration.prepare_case('nodal','bubtherm',1,'kappa',1);
-f_expect_failure(@() imr.configuration.prepare_case('nodal','bubtherm',1,'alpha_g',0));
-imr.configuration.prepare_case('nodal','bubtherm',1,'alpha_v',0,'beta_v',0);
+imr.configuration.prepare_case('nodal','bubtherm',0,'kappa',1,'method',23);
+imr.configuration.prepare_case('nodal','bubtherm',1,'kappa',1,'method',23);
+f_expect_failure(@() imr.configuration.prepare_case('nodal','bubtherm',1,'alpha_g',0,'method',23));
+imr.configuration.prepare_case('nodal','bubtherm',1,'alpha_v',0,'beta_v',0,'method',23);
 f_expect_failure(@() f_test_report('Empty',[],false(1,0),{}));
 c = struct('solver',@f_early_return,'args',{{}});
 [R, msg, t] = f_test_run(c);
@@ -134,14 +134,14 @@ fprintf('Thermal guards and test-runner time reporting PASSED.\n');
 % or ODE setup. Real, increasing row and column time vectors remain valid.
 for name = {'Nt','Mt','Nv','divisions'}
     for invalid = {Inf,NaN,1+1i,[1 2],-1,0.5}
-        f_expect_failure(@() imr.configuration.prepare_case('nodal',name{1},invalid{1}));
+        f_expect_failure(@() imr.configuration.prepare_case('nodal','method',23,name{1},invalid{1}));
     end
 end
 for invalid = {[0 1 2 3; 1 2 3 4], [0 1+1i], [0 Inf], [0 0], [1 0]}
-    f_expect_failure(@() imr.configuration.prepare_case('nodal','tvector',invalid{1}));
+    f_expect_failure(@() imr.configuration.prepare_case('nodal','method',23,'tvector',invalid{1}));
 end
-imr.configuration.prepare_case('nodal','tvector',[0 1 2]);
-imr.configuration.prepare_case('nodal','tvector',[0 1 2]');
+imr.configuration.prepare_case('nodal','tvector',[0 1 2],'method',23);
+imr.configuration.prepare_case('nodal','tvector',[0 1 2]','method',23);
 fprintf('Finite integer and real time-vector validation PASSED.\n');
 
 % Disabled thermal fields allow small/zero grid counts. They must not
@@ -157,14 +157,14 @@ for k = 1:numel(solvers)
         for unused = 0:2
             [t,R,U,P,T,Tm] = solver('bubtherm',0,'medtherm',0, ...
                 'masstrans',0,'Req',1,'ee',0,'Nt',unused,'Mt',unused, ...
-                'scheme',scheme,'tfin',0.01,'progdisplay',0);
+                'scheme',scheme,'tfin',0.01,'progdisplay',0,'method',23);
             assert(t(end) == 0.01 && all(isfinite(P)) && isempty(T));
             assert(max(abs(R-1)) < 1e-8 && max(abs(U)) < 1e-8);
             assert(all(Tm == 1));
         end
         [t,R] = solver('bubtherm',1,'medtherm',0,'masstrans',0, ...
             'Req',1,'ee',0,'Nt',5,'Mt',0,'scheme',scheme, ...
-            'tfin',0.01,'progdisplay',0);
+            'tfin',0.01,'progdisplay',0,'method',23);
         assert(t(end) == 0.01 && max(abs(R-1)) < 1e-8);
     end
 end

@@ -49,7 +49,7 @@ function cases = f_test_cases(suite)
         grids = {{'Nt', 150, 'Mt', 150}, {'Nt', 20, 'Mt', 20}, ...
             {'Nt', 12, 'Mt', 12, 'Nv', 32}};
         base = {'Req', 100e-6, 'R0', 100e-6, 't8', 298.15, ...
-            'tvector', linspace(0, 10e-6, 100), 'collapse', 0};
+            'tvector', linspace(0, 10e-6, 100), 'collapse', 0, 'method', 23};
         specs = {};
         for radial = 1:6
             for it = 1:3
@@ -74,7 +74,7 @@ function cases = f_test_cases(suite)
             {'Nt', 12, 'Mt', 12, 'Nv', 32}};
         base = {'Req', 10e-6, 'R0', 10e-6, 't8', 298.15, 'mu', 0.5, ...
             'tvector', linspace(0, 2e-3, 1000), 'collapse', 0, ...
-            'wave_type', 1, 'dt', 3e-4, 'tw', 1e-4, 'pA', 1e5};
+            'wave_type', 1, 'dt', 3e-4, 'tw', 1e-4, 'pA', 1e5, 'method', 23};
         specs = {};
         for radial = 1:6
             for it = 1:3
@@ -113,7 +113,7 @@ function cases = f_test_cases(suite)
         mass = {'R0', 2e-4, 'Req', 5e-5, 'tvector', linspace(0, 30e-6, 100)};
         % collapse: the first collapse and rebound only
         coll = {'R0', 2e-4, 'Req', 5e-5, 'tvector', linspace(0, 20e-6, 100)};
-        common = {'lambda2', 0, 'vapor', 1, 'collapse', 0};
+        common = {'lambda2', 0, 'vapor', 1, 'collapse', 0, 'method', 23};
         specs = {};
         for radial = 1:6
             for it = 1:5
@@ -170,7 +170,8 @@ function cases = f_test_cases(suite)
             {'Nt', 8, 'Mt', 8, 'Nv', 8}};
         base = {'R0', 50e-6, 'Req', 25e-6, 'mu', 1e-2, 'G', 1e3, ...
             'lambda1', 1e-7, 'lambda2', 3e-8, 'alphax', 0.25, 'C2', 0.3, ...
-            'tvector', linspace(0, 2e-6, 5), 'collapse', 0, 'vapor', 1};
+            'tvector', linspace(0, 2e-6, 5), 'collapse', 0, 'vapor', 1, ...
+            'method', 23};
         nonnewt = {'mu0', 5e-2, 'v_lambda', 1e-7, 'v_nc', 0.5, 'v_a', 2};
         wave = {'pA', 1e5, 'TW', 2e-7, 'DT', 1e-6, 'omega', 2*pi*1e6, ...
             'mn', 2};

@@ -31,17 +31,18 @@ bad = {
 {'bubtherm',1,'vapor',1,'p0star',0,'alpha_v',0,'beta_v',0}
 };
 for k = 1:numel(bad)
-    f_input_error(@() imr.configuration.prepare_case('nodal',bad{k}{:}));
+    f_input_error(@() imr.configuration.prepare_case('nodal','method',23,bad{k}{:}));
 end
-f_input_error(@() imr.configuration.prepare_case('spectral', ...
+f_input_error(@() imr.configuration.prepare_case('spectral','method',23, ...
     'stress',9,'spectral',1,'Nv',2,'stress0',ones(2)));
 p = imr.default_inputs();
+p.method = 23;
 f_input_error(@() imr.configuration.prepare_case('nodal',[p p]));
 fprintf('Malformed and coupled physical input guards PASSED.\n');
 
 % Integers are valid numeric inputs, but their arithmetic must use double.
 c = imr.configuration.prepare_case('nodal','req',int32(1), ...
-    'we',int32(10),'re',int32(10),'tvector',int32([0 1]));
+    'we',int32(10),'re',int32(10),'tvector',int32([0 1]),'method',23);
 assert(isa(c.initial.Pg,'double') && abs(c.initial.Pg-1.1) < 1e-14);
 assert(isa(c.time,'double') && isa(c.stress.We,'double'));
 
@@ -83,7 +84,8 @@ for mode = 1:3
                     'medtherm',flags(2),'masstrans',0,'vapor',1,'pv',0, ...
                     'rv',0,'ra',0,'Nt',3*flags(1),'Mt',3*flags(2), ...
                     'scheme',scheme,'jacobian',jacobian,'kappa',1, ...
-                    'alpha_g',1e-20,'beta_g',1,'alpha_v',0,'beta_v',0};
+                    'alpha_g',1e-20,'beta_g',1,'alpha_v',0,'beta_v',0, ...
+                    'method',23};
                 c = imr.configuration.prepare_case(solver,args{:});
                 sys = imr.solvers.build(c);
                 f_finite_system(c,sys);
@@ -97,7 +99,7 @@ for mode = 1:3
     % when it has nonzero conductivity, including a constant conductivity.
     c = imr.configuration.prepare_case(solver,'Req',1,'bubtherm',1, ...
         'medtherm',0,'masstrans',0,'vapor',1,'p0star',0,'pv',1, ...
-        'alpha_v',0,'beta_v',1,'Nt',3,'Mt',0,'scheme',scheme);
+        'alpha_v',0,'beta_v',1,'Nt',3,'Mt',0,'scheme',scheme,'method',23);
     sys = imr.solvers.build(c);
     f_finite_system(c,sys);
     assert(c.mass.kv0 == 1);
@@ -111,7 +113,7 @@ for nu = 1:7
         for excess = [0 10]
             c = imr.configuration.prepare_case('nodal','Req',1,'stress',stress, ...
                 'nu_model',nu,'dre',excess,'v_lambda',1,'v_a',2,'v_nc',0.5, ...
-                'bubtherm',0,'medtherm',0,'Nt',0,'Mt',0);
+                'bubtherm',0,'medtherm',0,'Nt',0,'Mt',0,'method',23);
             f_finite_system(c,imr.solvers.build(c));
         end
     end
@@ -124,7 +126,7 @@ for solver = {'nodal','spectral'}
     for stress = [1 5]
         args = {'Req',1,'stress',stress,'rdotzero',0.1,'bubtherm',0, ...
             'medtherm',0,'Nt',0,'Mt',0,'nu_model',1, ...
-            'v_nc',1000,'v_lambda',1000,'dre',0};
+            'v_nc',1000,'v_lambda',1000,'dre',0,'method',23};
         c = imr.configuration.prepare_case(solver{1},args{:});
         disabled = imr.solvers.build(c);
         c0 = imr.configuration.prepare_case(solver{1},args{:},'nu_model',0);
@@ -141,11 +143,11 @@ fprintf('Inactive viscosity avoids overflow PASSED.\n');
 % stress = 10 (PTT) and 11 (Giesekus) have no closed-form reduction: rejected
 % in imr.solve_nodal, and forced to the spectral stress field in
 % imr.solve_spectral (a warning, since spectral is left at its default 0).
-f_input_error(@() imr.configuration.prepare_case('nodal','stress',10));
-f_input_error(@() imr.configuration.prepare_case('nodal','stress',11));
+f_input_error(@() imr.configuration.prepare_case('nodal','method',23,'stress',10));
+f_input_error(@() imr.configuration.prepare_case('nodal','method',23,'stress',11));
 warning('off','IMR:parameters');
 c10 = imr.configuration.prepare_case('spectral','Req',1,'stress',10, ...
-    'Nv',6,'Nt',0,'Mt',0);
+    'Nv',6,'Nt',0,'Mt',0,'method',23);
 warning('on','IMR:parameters');
 assert(c10.numerics.spectral == 1);
 f_finite_system(c10,imr.solvers.build(c10));
@@ -155,10 +157,10 @@ fprintf('PTT/Giesekus nodal rejection and forced spectral field PASSED.\n');
 % (stress 9): the same right-hand side and Jacobian, not just a similar
 % one, since the exponential and quadratic terms both vanish identically.
 c9 = imr.configuration.prepare_case('spectral','Req',1,'stress',9, ...
-    'spectral',1,'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
+    'spectral',1,'Nv',6,'Nt',0,'Mt',0,'jacobian',2,'method',23);
 warning('off','IMR:parameters');
 c11 = imr.configuration.prepare_case('spectral','Req',1,'stress',11, ...
-    'eps3',0,'Nv',6,'Nt',0,'Mt',0,'jacobian',2);
+    'eps3',0,'Nv',6,'Nt',0,'Mt',0,'jacobian',2,'method',23);
 warning('on','IMR:parameters');
 sys9 = imr.solvers.build(c9);
 sys11 = imr.solvers.build(c11);
@@ -177,7 +179,7 @@ fprintf('Giesekus eps3 = 0 reduces exactly to UCM/Oldroyd-B PASSED.\n');
 % one.
 for kind = {'nodal','spectral'}
     solver = kind{1};
-    common = {'Req',1,'ca',Inf,'Nt',0,'Mt',0};
+    common = {'Req',1,'ca',Inf,'Nt',0,'Mt',0,'method',23};
     c1 = imr.configuration.prepare_case(solver,common{:},'stress',1);
     c3 = imr.configuration.prepare_case(solver,common{:},'stress',3);
     c4 = imr.configuration.prepare_case(solver,common{:},'stress',4,'c2',0.4);
@@ -205,7 +207,8 @@ fprintf('2nd-order Fung and Mooney-Rivlin reduce exactly to neo-Hookean/linear Z
 
 % stress 3, 4, 7, 8 with medium heat transfer stay finite.
 for stress = [3 4 7 8]
-    args = {'Req',1,'stress',stress,'bubtherm',1,'medtherm',1,'Nt',5,'Mt',5};
+    args = {'Req',1,'stress',stress,'bubtherm',1,'medtherm',1,'Nt',5,'Mt',5, ...
+        'method',23};
     if any(stress == [7 8])
         args = [args, {'de',1e-3,'lam',0.3}]; %#ok<AGROW>
     end
@@ -220,7 +223,7 @@ fprintf('2nd-order Fung and Mooney-Rivlin medium heat transfer stays finite PASS
 % equation has a real, finite initial derivative. Check both builders.
 for kind = {'nodal','spectral'}
     solver = kind{1};
-    common = {'Req',1,'stress',0,'we',Inf,'Nt',0,'Mt',0};
+    common = {'Req',1,'stress',0,'we',Inf,'Nt',0,'Mt',0,'method',23};
     c = imr.configuration.prepare_case(solver,common{:}, ...
         'radial',2,'cstar',100,'rdotzero',100);
     f_initial_error(@() imr.solvers.build(c));
@@ -238,7 +241,7 @@ fprintf('Initial sonic and EoS-domain guards PASSED.\n');
 for pv = [0.1 1 1.1]
     for we = [10 Inf]
         args = {'collapse',1,'bubtherm',1,'medtherm',1,'masstrans',1, ...
-            'vapor',1,'stress',0,'pv',pv,'we',we};
+            'vapor',1,'stress',0,'pv',pv,'we',we,'method',23};
         target = 0.25;
         pg = (1-pv)*target^3+target^2/we;
         if pv >= 1 && isinf(we)

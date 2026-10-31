@@ -47,7 +47,7 @@ assert(from_struct.numerics.method == 15);
 fprintf('Public input schema and struct overrides PASSED.\n');
 % An active stress expansion needs a mode; an inactive field may use zero.
 try
-    imr.configuration.prepare_case('spectral','stress',9,'spectral',1,'Nv',0);
+    imr.configuration.prepare_case('spectral','stress',9,'spectral',1,'Nv',0,'method',23);
     error('Expected active zero-mode stress to fail.');
 catch err
     assert(strcmp(err.identifier,'IMR:stressGrid'));
@@ -91,7 +91,7 @@ for kind = {'nodal','spectral'}
                     'masstrans',flags(3),'vapor',flags(3), ...
                     'stress',stress,'spectral',double(strcmp(solver,'spectral')), ...
                     'Nv',6,'Nt',7,'Mt',7,gies_args{:}, ...
-                    'scheme',scheme,'jacobian',2,'progdisplay',0);
+                    'scheme',scheme,'jacobian',2,'progdisplay',0,'method',23);
                 sys = imr.solvers.build(c);
                 idx = c.layout;
                 assert(numel(sys.initial) == idx.count);
@@ -157,7 +157,7 @@ fprintf('State layouts, enabled operators, outputs and %d independent Jacobians 
 % when fields are disabled, including every radial closure.
 for radial = 1:6
     options = {'radial',radial,'Req',1,'bubtherm',0,'medtherm',0, ...
-        'masstrans',0,'stress',1,'Nt',0,'Mt',0,'jacobian',0};
+        'masstrans',0,'stress',1,'Nt',0,'Mt',0,'jacobian',0,'method',23};
     nodal = imr.solvers.build(imr.configuration.prepare_case('nodal',options{:}));
     spectral = imr.solvers.build(imr.configuration.prepare_case('spectral',options{:}));
     state = nodal.initial;
@@ -171,7 +171,7 @@ end
 % Different spatial bases should give converged radius and pressure traces.
 time = linspace(0,0.1,20);
 options = {'Req',1,'rdotzero',0.02,'bubtherm',1,'medtherm',0, ...
-    'vapor',0,'masstrans',0,'stress',0,'tvector',time,'jacobian',2};
+    'vapor',0,'masstrans',0,'stress',0,'tvector',time,'jacobian',2,'method',23};
 [tn,Rn,~,Pn] = imr.solve_nodal(options{:},'Nt',40,'Mt',0);
 [ts,Rs,~,Ps] = imr.solve_spectral(options{:},'Nt',12,'Mt',0);
 assert(tn(end) == time(end) && ts(end) == time(end));
