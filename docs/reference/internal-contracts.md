@@ -31,7 +31,7 @@ R = out{2};
 
 `prepare_case('',...)` selects the solver from the routing option, defaulting to nodal. A fixed first argument rejects a conflicting public selector. The selector is parsed separately from the numerical/physical schema, keeping `imr.default_inputs` solver-neutral. The normalized selection is recorded as `inputs.solver` for replay.
 
-For example, `inputs.nv` records the requested count while `numerics.Nv` records the count selected for the active stress model. This distinction preserves the existing [input-record limits](../running/output.md). `imr.configuration.legacy_options` remains a compatibility adapter that serializes the named case into its original twelve outputs; new solver code should use named fields.
+For example, `inputs.nv` records the requested count while `numerics.Nv` records the count selected for the active stress model. This distinction preserves the existing [input-record limits](../running/output.md).
 
 ## State and shape contract
 

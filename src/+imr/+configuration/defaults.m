@@ -62,8 +62,8 @@ function d = defaults()
     d.Nt = 25;
     % number of points outside of bubble, thermal PDE
     d.Mt = 25;
-    % number of stress modes of imr.solve_spectral: the stress 5, 6, 7
-    % field (spectral = 1, always on for 6, 7), and the stress 3, 4 polymer
+    % number of stress modes of imr.solve_spectral: the stress 9, 10, 11
+    % field (spectral = 1, always on for 10, 11), and the stress 5-8 polymer
     % stress field with medium heat transfer
     d.Nv = 150;
     % grid stretching length of the stress field of imr.solve_spectral

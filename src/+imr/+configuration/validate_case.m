@@ -6,7 +6,7 @@
 
 % brief This function checks the compatibility of the model conditions and
 % the ranges of the dimensionless numbers before a run. It is called by
-% imr.configuration.legacy_options with a struct p holding every setting and dimensionless
+% imr.configuration.prepare_case with a struct p holding every setting and dimensionless
 % number. Incompatible or out-of-range inputs raise an error; inputs that
 % are valid but suspicious (e.g. values that look dimensional) raise a
 % warning. Finally, the settings tied to the stress model (spectral, Nv,

@@ -8,7 +8,7 @@
 % modes: imr.solve_nodal with finite differences (nodal_fd), imr.solve_nodal with
 % Chebyshev collocation (nodal_cheb) and imr.solve_spectral (spectral). The
 % cases are built from the model features and kept only when the solver's
-% own input checks (imr.configuration.legacy_options and imr.configuration.validate_case) accept them, so every
+% own input checks (imr.configuration.prepare_case and imr.configuration.validate_case) accept them, so every
 % suite covers exactly the combinations of the compatibility matrix and
 % follows it when it changes. suite is 'equilibrium', 'gaussian',
 % 'regression' or 'permutations'. Each case has the fields
@@ -329,13 +329,13 @@ function pairs = f_gies(stress)
     end
 end
 
-% true when imr.configuration.legacy_options (and so imr.configuration.validate_case) accepts the inputs, with its
+% true when imr.configuration.prepare_case (and so imr.configuration.validate_case) accepts the inputs, with its
 % console output hidden; only input errors reject a case. call and args are
 % used inside the evalc string, which the code analyzer does not read
 function ok = f_accepted(call, args) %#ok<INUSD>
     ok = true;
     try
-        evalc('imr.configuration.legacy_options(call, args{:})');
+        evalc('imr.configuration.prepare_case(call, args{:})');
     catch err
         if strncmp(err.message, 'INPUT ERROR', 11)
             ok = false;

@@ -147,7 +147,6 @@ nav:
       - "People": reference/about.md
       - Internal functions:
           - f_approx_init_stress: reference/functions/f_approx_init_stress.md
-          - f_call_params: reference/functions/f_call_params.md
           - f_checkers: reference/functions/f_checkers.md
           - f_diff_mat: reference/functions/f_diff_mat.md
           - f_display: reference/functions/f_display.md
