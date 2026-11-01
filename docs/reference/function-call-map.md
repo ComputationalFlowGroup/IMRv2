@@ -1,4 +1,6 @@
-# Code map
+# Function call map
+
+This page traces how functions inside `src/` call each other. For the layout of the checkout itself (directories, test tooling, benchmarks, docs), see the [repository map](repository.md).
 
 Start with the workflow, then follow the implementation diagrams for the part you are changing. The function index at the end groups files by responsibility.
 
@@ -14,7 +16,7 @@ flowchart LR
   Histories --> Compare[Restore SI units, plot and compare]
 ```
 
-Run `imr_setup` once per MATLAB session. Use [`imr.nondimensionalize`](../api/f_dim2nondim.md) for SI input, [`imr.default_inputs`](../api/f_imr_inputs.md) for a dimensionless input struct, and [`imr.sweep`](../api/f_imr_sweep.md) to repeat the workflow across parameter combinations. The [quick start](../getting-started/quick-start.md) provides a complete example.
+Run `imr_setup` once per MATLAB session. Use [`imr.nondimensionalize`](../api/nondimensionalize.md) for SI input, [`imr.default_inputs`](../api/default_inputs.md) for a dimensionless input struct, and [`imr.sweep`](../api/sweep.md) to repeat the workflow across parameter combinations. The [quick start](../getting-started/quick-start.md) provides a complete example.
 
 Stress enters the internal equations; a separate stress history is not part of the public solver output tuple. Enabled thermal and vapor fields are reconstructed by the selected solver. See [outputs](../running/output.md) for returned shapes and scalings.
 
@@ -80,12 +82,12 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 |---|---|---|
 | `imr_setup.m` | Session path setup for public source and examples | [Installation](../getting-started/installation.md) |
 | `src/+imr/solve.m` | Common solver selection and optional acceleration | [Unified API](../api/solve.md) |
-| `src/+imr/solve_nodal.m` | FD or Chebyshev nodal solver | [Nodal API](../api/f_imr_nodal.md) |
-| `src/+imr/solve_spectral.m` | Spectral solver | [Spectral API](../api/f_imr_spectral.md) |
-| `src/+imr/sweep.m` | Repeated runs over a full parameter grid | [Sweep API](../api/f_imr_sweep.md) |
-| `src/+imr/default_inputs.m` | Public dimensionless input struct | [Inputs](../api/f_imr_inputs.md) |
+| `src/+imr/solve_nodal.m` | FD or Chebyshev nodal solver | [Nodal API](../api/solve_nodal.md) |
+| `src/+imr/solve_spectral.m` | Spectral solver | [Spectral API](../api/solve_spectral.md) |
+| `src/+imr/sweep.m` | Repeated runs over a full parameter grid | [Sweep API](../api/sweep.md) |
+| `src/+imr/default_inputs.m` | Public dimensionless input struct | [Inputs](../api/default_inputs.md) |
 | `src/+imr/+configuration/defaults.m` | Model/numerical defaults and derived physical groups | [Defaults](defaults.md) |
-| `src/+imr/nondimensionalize.m` | SI conversion and reference scales | [Conversion API](../api/f_dim2nondim.md) |
+| `src/+imr/nondimensionalize.m` | SI conversion and reference scales | [Conversion API](../api/nondimensionalize.md) |
 | `src/+imr/+fluids/water.m` | Water reference material coefficients and transport | [Fluid profiles](../model/fluids.md) |
 | `src/+imr/fluid_properties.m` | Shared bulk and saturation model evaluation | [Property API](../api/f_fluid_properties.md) |
 | `src/+imr/+configuration/prepare_case.m` | Parse, validate and prepare named case fields | [Case contract](internal-contracts.md) |
@@ -93,35 +95,35 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | `src/+imr/+solvers/state_layout.m` | Enabled state blocks shared by every consumer | [State contract](internal-contracts.md#state-and-shape-contract) |
 | `src/+imr/+solvers/build.m` | Build scheme-specific numerical callbacks | [System contract](internal-contracts.md#numerical-system) |
 | `src/+imr/+solvers/build_nodal.m`, `build_spectral.m` | Local operators, RHS, closures and reconstruction | [Workflow](../method/overview.md) |
-| `src/+imr/+configuration/validate_case.m` | Validate ranges and feature combinations | [Checks](functions/f_checkers.md) |
-| `src/+imr/+solvers/describe_case.m` | Display the prepared model choices | [Display](functions/f_display.md) |
+| `src/+imr/+configuration/validate_case.m` | Validate ranges and feature combinations | [Checks](functions/validate_case.md) |
+| `src/+imr/+solvers/describe_case.m` | Display the prepared model choices | [Display](functions/describe_case.md) |
 
 ### Physical equations
 
 | File | Responsibility | Contract |
 |---|---|---|
-| `src/+imr/+physics/radial_acceleration.m` | Six radial models and pressure-integrated liquid enthalpy | [Radial closure](functions/f_radial_eq.md) |
+| `src/+imr/+physics/radial_acceleration.m` | Six radial models and pressure-integrated liquid enthalpy | [Radial closure](functions/radial_acceleration.md) |
 | `src/+imr/+physics/polytropic_pressure.m` | Gas pressure derivative with constant vapor pressure | [Polytropic validation](../validation/polytropic.md) |
-| `src/+imr/+physics/material_stress.m` | Material stress and auxiliary-state evolution | [Stress](functions/f_stress.md) |
-| `src/+imr/+physics/viscosity.m` | Shear-dependent viscosity integrals | [Viscosity](functions/f_viscosity.md) |
-| `src/+imr/+physics/stress_power.m` | Local stress power for medium heating | [Heating](functions/f_stress_dissipation.md) |
-| `src/+imr/+physics/zener_field.m` | Local polymer stress needed by medium heat transfer | [Zener field](functions/f_zener_field.md) |
-| `src/+imr/+physics/wall_mass_balance.m` | Coupled wall residual and its derivatives | [Wall residual](functions/f_wall_mass_bc.md) |
-| `src/+imr/+physics/far_field_pressure.m` | Driving pressure and time derivative | [Waveforms](functions/f_pinfinity.md) |
-| `src/+imr/+physics/initial_stress.m` | Initial stress from growth shooting | [Initialization](functions/f_init_stress.md) |
+| `src/+imr/+physics/material_stress.m` | Material stress and auxiliary-state evolution | [Stress](functions/material_stress.md) |
+| `src/+imr/+physics/viscosity.m` | Shear-dependent viscosity integrals | [Viscosity](functions/viscosity.md) |
+| `src/+imr/+physics/stress_power.m` | Local stress power for medium heating | [Heating](functions/stress_power.md) |
+| `src/+imr/+physics/zener_field.m` | Local polymer stress needed by medium heat transfer | [Zener field](functions/zener_field.md) |
+| `src/+imr/+physics/wall_mass_balance.m` | Coupled wall residual and its derivatives | [Wall residual](functions/wall_mass_balance.md) |
+| `src/+imr/+physics/far_field_pressure.m` | Driving pressure and time derivative | [Waveforms](functions/far_field_pressure.md) |
+| `src/+imr/+physics/initial_stress.m` | Initial stress from growth shooting | [Initialization](functions/initial_stress.md) |
 | `src/+imr/approximate_initial_stress.m` | Standalone approximation, separate from the solver path | [Approximation](functions/f_approx_init_stress.md) |
 
 ### Numerical operators and integration
 
 | File | Responsibility | Contract |
 |---|---|---|
-| `src/+imr/+numerics/differentiation.m` | Nodal differentiation operators | [Operators](functions/f_diff_mat.md) |
-| `src/+imr/+numerics/integrate.m` | Stiff integrator selection and tolerances | [Time integration](functions/f_odesolve.md) |
-| `src/+imr/+numerics/jacobian_pattern.m` | Jacobian sparsity structure | [Pattern](functions/f_jpattern.md) |
-| `src/+imr/+numerics/jacobian_nodal.m` | Nodal state derivatives | [Nodal Jacobian](functions/f_jacobian_nodal.md) |
-| `src/+imr/+numerics/jacobian_spectral.m` | Spectral state derivatives | [Spectral Jacobian](functions/f_jacobian_spectral.md) |
+| `src/+imr/+numerics/differentiation.m` | Nodal differentiation operators | [Operators](functions/differentiation.md) |
+| `src/+imr/+numerics/integrate.m` | Stiff integrator selection and tolerances | [Time integration](functions/integrate.md) |
+| `src/+imr/+numerics/jacobian_pattern.m` | Jacobian sparsity structure | [Pattern](functions/jacobian_pattern.md) |
+| `src/+imr/+numerics/jacobian_nodal.m` | Nodal state derivatives | [Nodal Jacobian](functions/jacobian_nodal.md) |
+| `src/+imr/+numerics/jacobian_spectral.m` | Spectral state derivatives | [Spectral Jacobian](functions/jacobian_spectral.md) |
 | `src/+imr/+physics/thermal_inverse.m`, `saturation_pressure.m` | Pure transforms shared by RHS, Jacobians and property evaluation | [Thermal variables](../method/time-integration.md#thermal-variables) |
-| `src/+imr/+numerics/dual_operations.m` | Shared value/derivative operations | [Dual operations](functions/f_dual_ops.md) |
+| `src/+imr/+numerics/dual_operations.m` | Shared value/derivative operations | [Dual operations](functions/dual_operations.md) |
 
 ### Verification and developer tools
 

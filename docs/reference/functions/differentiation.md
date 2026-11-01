@@ -1,6 +1,6 @@
 # `imr.numerics.differentiation`
 
-`[y, D] = imr.numerics.differentiation(nodes, order, tm_check, scheme)` returns the node positions and the differentiation matrix for either spatial discretization. It is the operator module of the nodal solver [`imr.solve_nodal`](../../api/f_imr_nodal.md), whose `scheme` input is passed straight through: swapping it is the only difference between the finite difference and Chebyshev versions of the solver.
+`[y, D] = imr.numerics.differentiation(nodes, order, tm_check, scheme)` returns the node positions and the differentiation matrix for either spatial discretization. It is the operator module of the nodal solver [`imr.solve_nodal`](../../api/solve_nodal.md), whose `scheme` input is passed straight through: swapping it is the only difference between the finite difference and Chebyshev versions of the solver.
 
 | Argument | Meaning |
 |---|---|

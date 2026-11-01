@@ -27,7 +27,7 @@ The parser and `imr.configuration.validate_case` report invalid inputs before in
 | `no stored result, run s_generate_references` | Regression baseline missing | Obtain approved references; do not silently regenerate them |
 | `output size differs from the stored result` | Changed regression output shape | Compare configuration and reference revision |
 
-Model combinations can also fail the exact [compatibility rules](../reference/compatibility.md). The [checker reference](../reference/functions/f_checkers.md) lists allowed ranges and conditions, including model-specific viscosity exponents, grid sizes and positive transport constants.
+Model combinations can also fail the exact [compatibility rules](../reference/compatibility.md). The [checker reference](../reference/functions/validate_case.md) lists allowed ranges and conditions, including model-specific viscosity exponents, grid sizes and positive transport constants.
 
 ## During integration
 

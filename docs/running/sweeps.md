@@ -1,6 +1,6 @@
 # Parameter sweeps
 
-`imr.sweep` runs a full grid of input combinations and records each result or error. Its [API page](../api/f_imr_sweep.md) defines options and array layout.
+`imr.sweep` runs a full grid of input combinations and records each result or error. Its [API page](../api/sweep.md) defines options and array layout.
 
 ## Small dimensionless grid
 

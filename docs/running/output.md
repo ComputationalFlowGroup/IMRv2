@@ -43,7 +43,7 @@ It has units of meters per second squared. The first eight outputs retain their 
 
 ## Printed diagnostics
 
-`imr.solvers.describe_case` labels the solver, radial equation, constitutive law, viscosity, thermal/vapor/mass-transfer choices and stress representation. Its complete label rules live in the [display reference](../reference/functions/f_display.md).
+`imr.solvers.describe_case` labels the solver, radial equation, constitutive law, viscosity, thermal/vapor/mass-transfer choices and stress representation. Its complete label rules live in the [display reference](../reference/functions/describe_case.md).
 
 `progdisplay = 1` prints on every right-hand-side evaluation and can slow runs. Collapse setup may print a recomputed equilibrium radius and a stress-history note. For stress 5–8 with medium heat transfer, the spectral solver prints the maximum difference between the local field's integral and `Z1/R^3`; this is a consistency diagnostic, not an automatic pass/fail accuracy certificate.
 

@@ -14,7 +14,7 @@ Both solvers turn a configured physical model into a coupled system of ordinary 
 
 ## State layout
 
-The nodal state follows `[R; Rdot; P; theta; Tm; kv; Z]`, with inactive fields omitted. Stress 3–4 with medium heat add the local polymer stress after `Z1`. The spectral solver stores expansion coefficients for its thermal and local stress fields. `theta` is the [Kirchhoff variable](time-integration.md#thermal-variables), not the returned temperature.
+The nodal state follows `[R; Rdot; P; theta; Tm; kv; Z]`, with inactive fields omitted. Stress 5–8 with medium heat add the local polymer stress after `Z1`. The spectral solver stores expansion coefficients for its thermal and local stress fields. `theta` is the [Kirchhoff variable](time-integration.md#thermal-variables), not the returned temperature.
 
 The local polymer field supplies heating, while its stress integral drives radial motion. The [stress-heating theory](../theory/stress-heating.md) states that coupling and the collapse initialization approximation. The [output guide](../running/output.md) describes field reconstruction and wall values.
 
@@ -26,4 +26,4 @@ Constant medium and thermal-map factors are precomputed; constant forcing skips 
 
 The nodal solver was formerly `f_imr_fd`. Historical reproduction and closure changes are recorded in [reported comparisons](../validation/convergence.md), rather than asserted as current numerical validation. Grid resolution needs attention for large relaxation time scales, sharp waveforms and collapse.
 
-See [discretization](discretization.md), [wall boundaries](wall-boundaries.md), [integration](time-integration.md), and [initial stress](initial-stress.md). The [code map](../reference/code-map.md) shows function calls.
+See [discretization](discretization.md), [wall boundaries](wall-boundaries.md), [integration](time-integration.md), and [initial stress](initial-stress.md). The [function call map](../reference/function-call-map.md) shows function calls.

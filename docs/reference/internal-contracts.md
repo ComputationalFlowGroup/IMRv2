@@ -46,7 +46,7 @@ For example, `inputs.nv` records the requested count while `numerics.Nv` records
 | Stored trajectory | One time per row | One time per row |
 | Returned temperature | Time by node | Collocation point by time |
 
-Stress blocks depend on the constitutive model; the [code map](code-map.md#3-integration-one-checked-case-becomes-histories) describes them. Initialization, RHS, Jacobians and output reconstruction all use the same layout object.
+Stress blocks depend on the constitutive model; the [function call map](function-call-map.md#3-integration-one-checked-case-becomes-histories) describes them. Initialization, RHS, Jacobians and output reconstruction all use the same layout object.
 
 ## Numerical system
 

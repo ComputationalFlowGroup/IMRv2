@@ -12,14 +12,14 @@ The test suites live in `tests/suites/`. From `tests/`, call `imr_test_setup` on
 | [`s_test_suite_permutations`](permutations.md) | Every accepted combination of the solver options runs | None |
 | [`s_test_suite_regression`](regression.md) | `R(t)` matches the stored results | `tests/reference/` |
 | [`s_test_suite_diffmat`](operators.md) | The differentiation operators of `imr.numerics.differentiation` | None |
-| `s_test_suite_polytropic` | [Constant-vapor pressure derivative and histories](polytropic.md) | None |
-| `s_test_suite_fluids` | [Water properties, defaults, overrides and custom profiles](../reference/defaults.md) | Frozen old default values |
-| `s_test_suite_namespace` | [Namespace resolution, legacy calls and measured data](../reference/namespaces.md) | None |
-| `s_test_suite_solver` | [Unified selection, replay and optional acceleration](../api/solve.md) | None |
-| `s_test_suite_validation` | [Runner modes, workspace isolation and golden-data safeguards](../../tests/README.md#one-command-for-all-tests) | Temporary synthetic fixtures only |
-| `s_test_suite_structure` | [Prepared cases, states, independent Jacobians and output boundaries](../reference/internal-contracts.md#verification) | None |
-| `s_test_suite_numerics` | [Driven enthalpy, time-step limits and input guards](numerics.md) | None |
-| `s_test_suite_settings` | [Explicit acceptance/rejection, phase limits and initial-state guards](settings.md) | None |
+| [`s_test_suite_polytropic`](polytropic.md) | Constant-vapor pressure derivative and histories | None |
+| [`s_test_suite_numerics`](numerics.md) | Driven enthalpy, time-step limits and input guards | None |
+| [`s_test_suite_settings`](settings.md) | Explicit acceptance/rejection, phase limits and initial-state guards | None |
+| [`s_test_suite_fluids`](../reference/defaults.md) | Water properties, defaults, overrides and custom profiles | Frozen old default values |
+| [`s_test_suite_namespace`](../reference/namespaces.md) | Namespace resolution, legacy calls and measured data | None |
+| [`s_test_suite_solver`](../api/solve.md) | Unified selection, replay and optional acceleration | None |
+| [`s_test_suite_validation`](../../tests/README.md#one-command-for-all-tests) | Runner modes, workspace isolation and golden-data safeguards | Temporary synthetic fixtures only |
+| [`s_test_suite_structure`](../reference/internal-contracts.md#verification) | Prepared cases, states, independent Jacobians and output boundaries | None |
 
 `s_test_suite_solver` checks struct/pair selection precedence, conflicting wrapper selections, existing compatibility errors, wrapper equivalence and replay. Acceleration is compared with independent Rayleigh–Plesset and pressure-form Keller–Miksis equations under Gaussian forcing at nonzero absolute times, and with differences of sampled velocity. The suite also covers available time integrators, adaptive output times, equilibrium for all six radial models, coupled thermal/vapor/stress fields and quiet RHS evaluation. It does not generate or require golden data.
 
@@ -33,7 +33,7 @@ The generated equilibrium, Gaussian, permutation and regression suites use three
 
 ## `f_test_cases(suite)`
 
-Returns the cases of `'equilibrium'`, `'gaussian'`, `'regression'` or `'permutations'` for all three modes. It builds each case from the model features, then keeps it only if the solver's own input checks (`imr.configuration.prepare_case` and [`imr.configuration.validate_case`](../reference/functions/f_checkers.md)) accept it. The generator enumerates selected combinations and filters them through the rules behind the [compatibility matrix](../reference/compatibility.md). It does not exhaust every possible parameter value or prove that every pairwise-compatible collection of features is valid.
+Returns the cases of `'equilibrium'`, `'gaussian'`, `'regression'` or `'permutations'` for all three modes. It builds each case from the model features, then keeps it only if the solver's own input checks (`imr.configuration.prepare_case` and [`imr.configuration.validate_case`](../reference/functions/validate_case.md)) accept it. The generator enumerates selected combinations and filters them through the rules behind the [compatibility matrix](../reference/compatibility.md). It does not exhaust every possible parameter value or prove that every pairwise-compatible collection of features is valid.
 
 Each case has these fields:
 
@@ -42,7 +42,7 @@ Each case has these fields:
 - `solver`: the solver function handle.
 - `args`: the dimensionless name/value pairs, grid included.
 
-The inputs are given in SI units and converted with [`imr.nondimensionalize`](../api/f_dim2nondim.md). The grids are:
+The inputs are given in SI units and converted with [`imr.nondimensionalize`](../api/nondimensionalize.md). The grids are:
 
 | Suite | `nodal_fd` | `nodal_cheb` | `spectral` |
 |---|---|---|---|

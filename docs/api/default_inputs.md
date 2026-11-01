@@ -27,4 +27,4 @@ The optional eighth solver output records requested/default inputs and the time 
 
 ## Sweeps
 
-[`imr.sweep`](f_imr_sweep.md) accepts the struct as its shared `base`: `imr.sweep(@imr.solve_nodal, p, 'ca', [10 100])`.
+[`imr.sweep`](sweep.md) accepts the struct as its shared `base`: `imr.sweep(@imr.solve_nodal, p, 'ca', [10 100])`.

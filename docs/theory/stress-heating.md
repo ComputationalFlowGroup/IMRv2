@@ -36,7 +36,7 @@ Only this normal-stress difference enters; the trace of the stress does not.
 | 2 | the same with the quadratic $s_e$ |
 | 3 | the same with the 2nd-order Fung $s_e$ |
 | 4 | the same with the Mooney-Rivlin $s_e$ |
-| 5, 6, 7, 8 | $12\mu_s a^2-2as_p$, with the Zener polymer field $s_p$ of [`imr.physics.zener_field`](../reference/functions/f_zener_field.md) |
+| 5, 6, 7, 8 | $12\mu_s a^2-2as_p$, with the Zener polymer field $s_p$ of [`imr.physics.zener_field`](../reference/functions/zener_field.md) |
 | 9, 10, 11 | $12\mu_s a^2-2a(\tau_{rr}-\tau_{\theta\theta})$, from the spectral stress field (UCM/Oldroyd-B, PTT or Giesekus) |
 
 **Viscosities**, with $f_\nu$ the non-Newtonian factor at the medium points:
@@ -85,7 +85,7 @@ $$
 s_{KV} = s_e - 6\eta_p a,\qquad a=\frac{\dot R}{R}y^{-3},\qquad \eta_p=\frac{1-\mathrm{LAM}}{\mathrm{Re}_8}.
 $$
 
-- $s_e$ is the neo-Hookean elastic stress difference for stress 5, the quadratic one for stress 6, the 2nd-order Fung one for stress 7, or the Mooney-Rivlin one for stress 8 (see [`imr.physics.stress_power`](../reference/functions/f_stress_dissipation.md)).
+- $s_e$ is the neo-Hookean elastic stress difference for stress 5, the quadratic one for stress 6, the 2nd-order Fung one for stress 7, or the Mooney-Rivlin one for stress 8 (see [`imr.physics.stress_power`](../reference/functions/stress_power.md)).
 - The caller computes the advection $-\dot y\,\partial s_p/\partial y$ on its own grid.
 - **Boundary conditions:** none at the wall, where $\dot y=0$. $s_p$ is 0 at infinity.
 - **Initial condition:** $s_p=0$ from rest.

@@ -6,7 +6,7 @@
 [t, R, Rdot, P, T, Tm, kv, inputs, Rddot, S, Sdot] = imr.solve_nodal(varargin);
 ```
 
-`varargin` accepts dimensionless name/value pairs or a struct from [`imr.default_inputs`](f_imr_inputs.md), optionally followed by overriding pairs. See [configuration](../running/configuration.md) and the canonical [parameter table](../model/parameters.md).
+`varargin` accepts dimensionless name/value pairs or a struct from [`imr.default_inputs`](default_inputs.md), optionally followed by overriding pairs. See [configuration](../running/configuration.md) and the canonical [parameter table](../model/parameters.md).
 
 The first eight outputs retain their positions; optional output 9 is wall acceleration, and optional outputs 10 and 11 are the stress integral and its time derivative. Use [`imr.solve(...,'solver','nodal')`](solve.md) for the common entry point. This wrapper fixes the nodal solver and rejects a conflicting `solver` value.
 

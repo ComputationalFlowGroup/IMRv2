@@ -2,6 +2,8 @@
 
 Material data live in MATLAB's `src/+imr/+fluids/` package. `imr.fluids.water()` returns a struct of SI liquid/vapor coefficients and reference transport values; `imr.fluid_properties` evaluates the selected mathematical model. The simulation call chooses the bubble gas, stress model and forcing.
 
+This distribution supports water as the ambient fluid with all six radial models (Rayleigh–Plesset, Keller–Miksis, Gilmore variants), transport properties, viscoelastic stress models, heat and mass transfer, and both nodal and spectral discretization schemes. All source functions, solvers, Jacobians and tests are generic and do not depend on a specific fluid; the sections below describe how to add another profile.
+
 ```matlab
 imr_setup;
 [args, ref] = imr.nondimensionalize('fluid',@imr.fluids.water, ...

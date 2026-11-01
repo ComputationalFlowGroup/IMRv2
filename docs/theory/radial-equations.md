@@ -50,7 +50,7 @@ $$
 }.
 $$
 
-The terms containing $1/C$ represent finite sound-speed effects; sending $C$ to infinity recovers Rayleigh–Plesset. Moving the acceleration-dependent stress term to the denominator avoids using an unknown acceleration in the numerator. [Fluid preparation](../api/f_dim2nondim.md#fluid-profiles) determines ambient density and sound speed once; this branch does not evaluate a wall EoS during integration.
+The terms containing $1/C$ represent finite sound-speed effects; sending $C$ to infinity recovers Rayleigh–Plesset. Moving the acceleration-dependent stress term to the denominator avoids using an unknown acceleration in the numerator. [Fluid preparation](../api/nondimensionalize.md#fluid-profiles) determines ambient density and sound speed once; this branch does not evaluate a wall EoS during integration.
 
 ## Enthalpy forms
 

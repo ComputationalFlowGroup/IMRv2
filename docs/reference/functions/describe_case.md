@@ -42,7 +42,7 @@ The label depends on the numbers as well as on `stress`:
 ## Stress representation
 
 - **Stress 0–4:** "closed form (no stress history)".
-- **Stress 5–11:** "stress integrals (ODEs)". The exceptions are stress 9–11 with `spectral = 1` (always on for 10, 11), which prints "stress field, spectral modes", and stress 5–8 with `medtherm = 1`, which print "stress integral (ODE), and its local field for the medium heating" (see [`imr.physics.zener_field`](f_zener_field.md)).
+- **Stress 5–11:** "stress integrals (ODEs)". The exceptions are stress 9–11 with `spectral = 1` (always on for 10, 11), which prints "stress field, spectral modes", and stress 5–8 with `medtherm = 1`, which print "stress integral (ODE), and its local field for the medium heating" (see [`imr.physics.zener_field`](zener_field.md)).
 
 ## Viscosity label
 
