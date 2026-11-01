@@ -1,6 +1,6 @@
 # Choose a solver
 
-Use [`imr.solve`](../api/solve.md) with `solver = 'nodal'` (default) or `'spectral'`. IMR has three spatial modes. Select a mode for the fields you need, then verify resolution for your case.
+Use [`imr.solve`](../reference/solve.md) with `solver = 'nodal'` (default) or `'spectral'`. IMR has three spatial modes. Select a mode for the fields you need, then verify resolution for your case.
 
 | Mode | Invocation | Main distinction |
 |---|---|---|
@@ -12,4 +12,4 @@ The existing `imr.solve_nodal` and `imr.solve_spectral` calls remain supported a
 
 Use the [compatibility matrix](../reference/compatibility.md) for physical restrictions. In particular, vapor mass transfer and supported collapse initialization require the nodal solver. Stress 5 with medium heat transfer needs the spectral solver's local stress field. Radial 5–6 support only a polytropic bubble.
 
-See [discretization](../method/discretization.md), [integration and Jacobians](../method/time-integration.md), and [reported convergence](../validation/convergence.md) before treating a grid as resolved. Neither the default grid nor an integrator tolerance alone establishes spatial accuracy.
+See [discretization](../method/discretization.md), [integration and Jacobians](../method/time-integration.md), and [reported convergence](../verification/convergence.md) before treating a grid as resolved. Neither the default grid nor an integrator tolerance alone establishes spatial accuracy.

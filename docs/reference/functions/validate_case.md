@@ -60,4 +60,4 @@ After the checks, `imr.configuration.validate_case` adjusts and returns:
 - `stress = 10, 11` (PTT, Giesekus): `spectral` forced to 1; `Nv` stress modes with the spectral representation, and `Ca = Inf` (no elastic contribution).
 - `stress = 5, 6, 7, 8`: `Nv = 1`, except in `imr.solve_spectral` with `medtherm = 1`, where `Nv` is the number of modes of the local polymer stress field.
 
-The type, finiteness and size of a user `stress0`, and the initial mixture conductivity, are checked in `imr.configuration.prepare_case`. `imr.solvers.build` then checks the assembled initial derivative for real, finite values before integration. See the [settings audit](../../validation/settings.md) and [`compatibility`](../compatibility.md) for coverage and limits.
+The type, finiteness and size of a user `stress0`, and the initial mixture conductivity, are checked in `imr.configuration.prepare_case`. `imr.solvers.build` then checks the assembled initial derivative for real, finite values before integration. See the [settings audit](../../verification/settings.md) and [`compatibility`](../compatibility.md) for coverage and limits.

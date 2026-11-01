@@ -2,7 +2,7 @@
 
 `s_test_suite_permutations.m` checks that its enumerated option combinations run when `imr.configuration.validate_case` accepts them. An input that passes the checks and then fails inside a solver is a bug: either the solver must handle it, or `imr.configuration.validate_case` must reject it with an `INPUT ERROR`. The suite needs no stored results, and it always runs in CI.
 
-MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
+MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local verification.
 
 
 ## Cases

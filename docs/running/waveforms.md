@@ -1,6 +1,6 @@
 # Pressure waveforms
 
-`imr.physics.far_field_pressure(t,{[om,ee,tw,dt,mn,wave_type],poly,dpoly})` returns a pressure **perturbation** $f$ and its time derivative. Absolute far-field pressure is $p_f=1+f$, in units of ambient pressure. Time is in units of $t_0=R_0/U_c$; derivatives are with respect to that dimensionless time. See the [radial equations](../theory/radial-equations.md#pressure-forms) for how $f$ and $\dot f$ drive acceleration.
+`imr.physics.far_field_pressure(t,{[om,ee,tw,dt,mn,wave_type],poly,dpoly})` returns a pressure **perturbation** $f$ and its time derivative. Absolute far-field pressure is $p_f=1+f$, in units of ambient pressure. Time is in units of $t_0=R_0/U_c$; derivatives are with respect to that dimensionless time. See [radial dynamics](../model/radial-dynamics.md#pressure-forms) for how $f$ and $\dot f$ drive acceleration.
 
 | Symbol | Input | Meaning |
 |---|---|---|
@@ -31,7 +31,7 @@ f(t)=A e^{-z^2},\qquad
 \dot f(t)=-\frac{2A(t-d)}{w^2}e^{-z^2}.
 $$
 
-Positive amplitude gives a compression pulse (pressure rise) centered at $d$; its derivative changes sign there. Negative amplitude gives a rarefaction (tensile) pulse. The pulse has infinite mathematical support and decays smoothly. The [Gaussian suite](../validation/gaussian.md) checks return toward equilibrium after forcing.
+Positive amplitude gives a compression pulse (pressure rise) centered at $d$; its derivative changes sign there. Negative amplitude gives a rarefaction (tensile) pulse. The pulse has infinite mathematical support and decays smoothly. The [Gaussian suite](../verification/gaussian.md) checks return toward equilibrium after forcing.
 
 ### Histotripsy pulse: type 2
 
@@ -42,7 +42,7 @@ f(t)=A\cos^{2m}\phi,\qquad
 \dot f(t)=-A m\omega\cos^{2m-1}\phi\sin\phi.
 $$
 
-The function and returned derivative are zero outside the support and at its endpoints. At $m=0$, pressure instead equals $A$ on the **closed** support interval, including both endpoints, and zero elsewhere; the returned derivative is zero. This convention avoids evaluating `0*Inf` and is tested in the [numerical suite](../validation/numerics.md).
+The function and returned derivative are zero outside the support and at its endpoints. At $m=0$, pressure instead equals $A$ on the **closed** support interval, including both endpoints, and zero elsewhere; the returned derivative is zero. This convention avoids evaluating `0*Inf` and is tested in the [numerical suite](../verification/numerics.md).
 
 Endpoint derivatives are a pointwise numerical convention. A rectangular pulse has distributional impulses at its jumps; these are not represented. For $0<m<1/2$ the interior derivative has an unbounded one-sided endpoint limit, while $m=1/2$ gives a derivative jump. Use $m>1/2$ for a continuously differentiable pulse. The half-angle form avoids cancellation near endpoints for fractional exponents.
 

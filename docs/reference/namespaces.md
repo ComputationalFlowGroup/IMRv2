@@ -50,7 +50,7 @@ The bundled `run_water_case` script performs this call. From a terminal at the c
 matlab -batch "imr_setup; run_water_case"
 ```
 
-The small initial velocity starts oscillation about the equilibrium radius. Water properties use the documented legacy reference set; this example does not introduce a new calibrated water EoS. Change the `solver` value to `'spectral'` for the spectral solver. Both existing solver wrappers remain supported. See the [Keller–Miksis example](../getting-started/keller-miksis.md) for SI scaling and the [API](../api/index.md) for output shapes.
+The small initial velocity starts oscillation about the equilibrium radius. Water properties use the documented legacy reference set; this example does not introduce a new calibrated water EoS. Change the `solver` value to `'spectral'` for the spectral solver. Both existing solver wrappers remain supported. See the [Keller–Miksis example](../getting-started/keller-miksis.md) for SI scaling and the [API](api.md) for output shapes.
 
 ## Compatibility and naming
 

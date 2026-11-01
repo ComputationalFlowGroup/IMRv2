@@ -21,4 +21,4 @@
 |------|----------------------------------|---------|
 | `S0` | Initial stress at bubble maximum | –       |
 
-For the algorithm and assumptions, see the [topic guide](../../method/initial-stress.md). Numerical measurements are retained as [historical reports](../../validation/convergence.md).
+For the algorithm and assumptions, see the [topic guide](../../method/initial-stress.md). Numerical measurements are retained as [historical reports](../../verification/convergence.md).

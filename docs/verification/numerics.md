@@ -9,7 +9,7 @@ matlab -batch "imr_test_setup; s_test_suite_numerics"
 
 ## Driven enthalpy equations
 
-The previous radial 3–6 branches computed wall enthalpy but subtracted the external pressure perturbation directly. This mixed enthalpy and pressure when the external pressure moved away from ambient. The corrected [equations](../theory/radial-equations.md#enthalpy-forms) evaluate the wall and far-field terms with the same EoS, including the far-field density factor in the time derivative.
+The previous radial 3–6 branches computed wall enthalpy but subtracted the external pressure perturbation directly. This mixed enthalpy and pressure when the external pressure moved away from ambient. The corrected [equations](../model/radial-dynamics.md#enthalpy-forms) evaluate the wall and far-field terms with the same EoS, including the far-field density factor in the time derivative.
 
 The suite checks zero acceleration when wall and far-field pressures and their derivatives match. It also compares moving, driven states against independent adaptive quadrature of $1/\rho(p)$ for both Tait and Hugoniot-based models. These tests distinguish the correction from the old approximation. Driven enthalpy results can change; no stored reference was regenerated.
 

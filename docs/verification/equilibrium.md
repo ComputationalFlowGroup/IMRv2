@@ -2,7 +2,7 @@
 
 `s_test_suite_equilibrium.m` checks that a bubble started at equilibrium stays there: `R0 = Req`, no driving, `t` from 0 to 10 µs. It needs no stored results, and it always runs in CI.
 
-MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
+MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local verification.
 
 
 ## Cases

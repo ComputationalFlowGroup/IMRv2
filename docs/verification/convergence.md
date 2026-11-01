@@ -70,19 +70,13 @@ Against an adaptive `integral` at `1e-13`, the rule is accurate to `1.3e-11` rel
 
 Compared with the previous version, which called `integral` twice at `1e-8`, the outputs agree to `4e-11`, with one fixed graded Gauss rule in place of two adaptive integrations. A run with a non-Newtonian model takes about half the time.
 
-## Legacy scaling data
-
-`benchmarks/scaling` retains old `.mat` outputs and the scripts that generated related studies. The current generators explicitly say the stored data used radial 3, while the current code uses radial 2 to allow medium heat transfer. Do not describe those datasets as current-model validation or silently overwrite them.
-
-The Slurm templates load MATLAB R2019a, below the documented supported version, and depend on site-specific `module`, `sbatch` and `matlab-threaded` commands. The plotting scripts also use a finite-resolution history named `Rexact`; that name does not make it an analytic solution. Regenerate a complete, consistent study and record its revision before interpreting new convergence numbers.
-
 ## Reported collapse setup comparison
 
 The earlier parser page reported that the recomputed collapse equilibrium radius reproduces the input `Req` over 0.05–0.9 and `Pv` values 0.03 and 0.3. No reproduction driver or run log accompanies that statement here. The initial-pressure and equilibrium consistency should be checked for the chosen case.
 
 ## Reported radial enthalpy comparison
 
-- Mie–Grüneisen enthalpy: with $s=\mathtt{hugoniot\_s}$, $b=\mathtt{nog}$, $\mu=\rho-1$ and $C_*=\mathtt{cstar}$ (the same notation as the [radial theory](../theory/radial-equations.md#existing-hugoniot-based-relation)), $h(p)=\int_1^p dq/(1+\mu)$ is integrated by parts,
+- Mie–Grüneisen enthalpy: with $s=\mathtt{hugoniot\_s}$, $b=\mathtt{nog}$, $\mu=\rho-1$ and $C_*=\mathtt{cstar}$ (the same notation as the [equation-of-state method](../method/equation-of-state.md#existing-hugoniot-based-relation)), $h(p)=\int_1^p dq/(1+\mu)$ is integrated by parts,
 
   $$
   h=\left[\frac{p}{1+\mu}\right] + C_*^2\int \frac{g(\mu)}{(1+\mu)^2}\,d\mu,

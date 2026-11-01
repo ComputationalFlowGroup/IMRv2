@@ -2,30 +2,7 @@
 
 Run `imr_setup; run_water_case` from the checkout root for the small, namespaced water example. See [namespaces and migration](../reference/namespaces.md#run-a-case).
 
-These recipes use the public MATLAB functions from the checkout root. Their interfaces were checked against source; execution and numerical results remain pending local MATLAB validation.
-
-## Configure a run as a struct
-
-```matlab
-% Start from dimensionless defaults and change two model choices.
-imr_setup;
-p = imr.default_inputs();
-p.radial = 2;
-p.stress = 1;
-[t, R, ~, ~, ~, ~, ~, used] = imr.solve_nodal(p);
-```
-
-## Switch spatial discretization
-
-```matlab
-% Run the nodal solver with Chebyshev differentiation.
-imr_setup;
-[t, R] = imr.solve_nodal('radial',2,'stress',1,'bubtherm',1,'scheme',1);
-```
-
-## Sweep inputs and save outputs
-
-Use the complete recipes in [parameter sweeps](../running/sweeps.md) and [outputs](../running/output.md#save-and-replay-a-run). Each fact and recipe lives on its own workflow page.
+For configuring a run (struct vs. name/value pairs) see [configuration](../running/configuration.md); for choosing nodal vs. spectral or finite differences vs. Chebyshev see [choose a solver](../running/solvers.md); for sweeping inputs and saving outputs see [parameter sweeps](../running/sweeps.md) and [outputs](../running/output.md#save-and-replay-a-run). Each fact and recipe lives on its own workflow page.
 
 ## Bundled script inventory
 
@@ -45,4 +22,4 @@ imr_setup;
 s_run_full_model;
 ```
 
-The contour fragment reads `R`, `U`, `f_r`, `max_tau_r`, `lm` and other workspace values. It is retained for provenance, not offered as a complete recipe. The scaling benchmarks also contain legacy data; see [reported comparisons](../validation/convergence.md#legacy-scaling-data).
+The contour fragment reads `R`, `U`, `f_r`, `max_tau_r`, `lm` and other workspace values. It is retained for provenance, not offered as a complete recipe. The scaling benchmarks also contain legacy data; see the [repository map](../reference/repository.md).

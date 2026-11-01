@@ -1,7 +1,7 @@
 # Test suites
 
 
-MATLAB checks were not run in this cloud task. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
+MATLAB checks were not run in this cloud task. The descriptions below are checked against the suite implementation; numerical outcomes remain for local verification.
 
 The test suites live in `tests/suites/`. From `tests/`, call `imr_test_setup` once to expose the suites, helpers, reference functions and source. The [test directory guide](../../tests/README.md) explains the layout and the distinction between frozen references and golden trajectories. The tests workflow `tests.yml` runs each suite in its own MATLAB process on every pull request and fails if any suite fails.
 
@@ -17,8 +17,8 @@ The test suites live in `tests/suites/`. From `tests/`, call `imr_test_setup` on
 | [`s_test_suite_settings`](settings.md) | Explicit acceptance/rejection, phase limits and initial-state guards | None |
 | [`s_test_suite_fluids`](../reference/defaults.md) | Water properties, defaults, overrides and custom profiles | Frozen old default values |
 | [`s_test_suite_namespace`](../reference/namespaces.md) | Namespace resolution, legacy calls and measured data | None |
-| [`s_test_suite_solver`](../api/solve.md) | Unified selection, replay and optional acceleration | None |
-| [`s_test_suite_validation`](../../tests/README.md#one-command-for-all-tests) | Runner modes, workspace isolation and golden-data safeguards | Temporary synthetic fixtures only |
+| [`s_test_suite_solver`](../reference/solve.md) | Unified selection, replay and optional acceleration | None |
+| [`s_test_suite_verification`](../../tests/README.md#one-command-for-all-tests) | Runner modes, workspace isolation and golden-data safeguards | Temporary synthetic fixtures only |
 | [`s_test_suite_structure`](../reference/internal-contracts.md#verification) | Prepared cases, states, independent Jacobians and output boundaries | None |
 
 `s_test_suite_solver` checks struct/pair selection precedence, conflicting wrapper selections, existing compatibility errors, wrapper equivalence and replay. Acceleration is compared with independent Rayleigh–Plesset and pressure-form Keller–Miksis equations under Gaussian forcing at nonzero absolute times, and with differences of sampled velocity. The suite also covers available time integrators, adaptive output times, equilibrium for all six radial models, coupled thermal/vapor/stress fields and quiet RHS evaluation. It does not generate or require golden data.
@@ -42,7 +42,7 @@ Each case has these fields:
 - `solver`: the solver function handle.
 - `args`: the dimensionless name/value pairs, grid included.
 
-The inputs are given in SI units and converted with [`imr.nondimensionalize`](../api/nondimensionalize.md). The grids are:
+The inputs are given in SI units and converted with [`imr.nondimensionalize`](../reference/nondimensionalize.md). The grids are:
 
 | Suite | `nodal_fd` | `nodal_cheb` | `spectral` |
 |---|---|---|---|
@@ -71,10 +71,10 @@ Finite differences need finer grids because they are second-order accurate. The 
 From the checkout root, use a shell with licensed MATLAB on its path. The combined runner discovers all suites, isolates their function workspaces within one MATLAB process, continues after failures and returns a nonzero batch status if any stage fails:
 
 ```bash
-matlab -batch "run('tests/s_run_validation.m')"
+matlab -batch "run('tests/s_run_verification.m')"
 ```
 
-Use `run_validation('tests',{'diffmat','solver'})` from `tests/` for a subset, or `run_validation('generate-and-test')` for independent prechecks followed by explicit generation and regression. See [runner modes, selection and overwrite protection](../../tests/README.md#one-command-for-all-tests).
+Use `run_verification('tests',{'diffmat','solver'})` from `tests/` for a subset, or `run_verification('generate-and-test')` for independent prechecks followed by explicit generation and regression. See [runner modes, selection and overwrite protection](../../tests/README.md#one-command-for-all-tests).
 
 For separate MATLAB processes, the following shell loop also discovers the available suites and preserves failure status:
 

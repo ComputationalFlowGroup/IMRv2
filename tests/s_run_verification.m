@@ -9,4 +9,4 @@ overwrite = false;
 
 % The controller keeps its workspace separate from suites containing clear.
 addpath(fileparts(mfilename('fullpath')));
-validation_report = run_validation(mode,suites,overwrite);
+verification_report = run_verification(mode,suites,overwrite);

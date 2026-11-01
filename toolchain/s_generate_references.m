@@ -3,7 +3,7 @@
 
 % Compatibility script for golden-data generation. Run from toolchain/.
 % Set overwrite = true only to replace existing stored results deliberately.
-% The implementation is shared with tests/run_validation.m.
+% The implementation is shared with tests/run_verification.m.
 overwrite = false;
 rootPath = fileparts(fileparts(mfilename('fullpath')));
 addpath(fullfile(rootPath,'tests'));

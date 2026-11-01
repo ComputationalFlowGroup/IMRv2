@@ -18,8 +18,8 @@
 % was previously private to imr.physics.radial_acceleration, pulled out
 % here so it can be tested and reused on its own.
 %
-% The density/sound-speed relation p/Cstar^2 = g(mu) (docs/theory/
-% radial-equations.md) gives mu = rho - 1 = 0, C = Cstar and hH = 1 at
+% The density/sound-speed relation p/Cstar^2 = g(mu) (docs/model/
+% radial-dynamics.md) gives mu = rho - 1 = 0, C = Cstar and hH = 1 at
 % p = 0 (not p = 1): g(0) = 0 by construction of the quadratic below,
 % for any hugoniot_s and nog. hB's reference is a separate, free choice
 % of integration constant (see its own description below): hB(1) = 0,

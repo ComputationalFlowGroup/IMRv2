@@ -9,15 +9,15 @@ The test suites check the implementation. They do not regenerate expected result
 | `+imrtest/` | Frozen expected values and independent observations, exposed as `imrtest.*` |
 | `reference/` | Approved golden simulation histories, one file per solver mode; currently absent |
 | `imr_test_setup.m` | One-session path setup for tests and source |
-| `s_run_validation.m` | Editable settings for running suites and/or generating golden data |
-| `run_validation.m` | Callable controller used by the script and batch commands |
+| `s_run_verification.m` | Editable settings for running suites and/or generating golden data |
+| `run_verification.m` | Callable controller used by the script and batch commands |
 
 ## One command for all tests
 
 From the checkout root in MATLAB:
 
 ```matlab
-run('tests/s_run_validation.m');
+run('tests/s_run_verification.m');
 ```
 
 The script defaults to `mode = 'tests'`, `suites = 'all'` and `overwrite = false`. It handles test-path setup, discovers the suites present in this distribution and runs them sequentially in separate function workspaces. Their `clear` statements cannot erase the controller. It restores the path, working folder and warning settings between stages, prints a pass/fail/timing summary and raises an error after any failure. Suite workspaces are isolated within one MATLAB process; CI continues to use a separate process for each suite.
@@ -25,11 +25,11 @@ The script defaults to `mode = 'tests'`, `suites = 'all'` and `overwrite = false
 Edit the three settings at the top of the script, or use the callable controller from `tests/`:
 
 ```matlab
-run_validation;                                      % all tests
-run_validation('tests',{'diffmat','solver'});          % selected suites
-run_validation('generate');                          % create missing baselines
-run_validation('generate-and-test');                 % prechecks, generation, regression
-run_validation('generate-and-test','all',true);       % deliberately replace baselines
+run_verification;                                      % all tests
+run_verification('tests',{'diffmat','solver'});          % selected suites
+run_verification('generate');                          % create missing baselines
+run_verification('generate-and-test');                 % prechecks, generation, regression
+run_verification('generate-and-test','all',true);       % deliberately replace baselines
 ```
 
 | Mode | Actions |
@@ -45,8 +45,8 @@ Missing baselines remain failures in ordinary test mode. Existing files cannot b
 For a shell at the checkout root:
 
 ```bash
-matlab -batch "run('tests/s_run_validation.m')"
-matlab -batch "cd tests; run_validation('generate-and-test')"
+matlab -batch "run('tests/s_run_verification.m')"
+matlab -batch "cd tests; run_verification('generate-and-test')"
 ```
 
 An uncaught final error gives `matlab -batch` a nonzero exit status. The same commands discover the available suites on `water` without editing a material-specific list.
@@ -62,7 +62,7 @@ matlab -batch "imr_test_setup; s_test_suite_settings"
 
 In an interactive MATLAB session, open `tests/`, call `imr_test_setup` once, then run suites by name. Setup adds only the required directories, without `genpath`. Suite data and guide paths are resolved from file locations, so they do not depend on the current folder after setup. The normal solver setup, `imr_setup`, leaves test references off the runtime path.
 
-See [all suite commands and coverage](../docs/validation/tests.md). Numerical checks require licensed MATLAB; documentation checks require no MATLAB.
+See [all suite commands and coverage](../docs/verification/tests.md). Numerical checks require licensed MATLAB; documentation checks require no MATLAB.
 
 ## Three sources of expected results
 
@@ -77,4 +77,4 @@ cd toolchain
 matlab -batch "s_generate_references"
 ```
 
-Review the generated results before accepting them as baselines, then run `s_test_suite_regression` after `imr_test_setup`. See [generation safeguards and baseline availability](../docs/validation/regression.md). The independent frozen MATLAB data in `+imrtest/` are retained.
+Review the generated results before accepting them as baselines, then run `s_test_suite_regression` after `imr_test_setup`. See [generation safeguards and baseline availability](../docs/verification/regression.md). The independent frozen MATLAB data in `+imrtest/` are retained.

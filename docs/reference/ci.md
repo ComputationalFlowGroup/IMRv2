@@ -4,7 +4,7 @@ The five workflows below run on pushes and pull requests to `main` and `water`, 
 
 | Workflow | File | What it checks | Local equivalent |
 |---|---|---|---|
-| IMR test suites | `.github/workflows/tests.yml` | Separate MATLAB jobs on R2023a; any failure fails the workflow | [Test commands](../validation/tests.md#run-the-suites) |
+| IMR test suites | `.github/workflows/tests.yml` | Separate MATLAB jobs on R2023a; any failure fails the workflow | [Test commands](../verification/tests.md#run-the-suites) |
 | Neatness Check | `.github/workflows/lint.yml` | `checkcode` on `src/`, `tests/` and `toolchain/`, R2023a | `matlab -batch "addpath('toolchain'); s_lint"` from root |
 | Format check | `.github/workflows/format.yml` | Runs `s_format` and checks for a Git diff; default MATLAB release from setup action | `matlab -batch "cd('toolchain'); s_format"`, then `git diff --exit-code` |
 | Code Spellcheck | `.github/workflows/spellcheck.yml` | Code and documentation spelling | Commands below, from root |
@@ -25,7 +25,7 @@ codespell docs README.md CONTRIBUTING.md benchmarks/integrators/README.md --igno
 
 The existing MATLAB jobs rely on MathWorks GitHub Actions activation for public repositories. A private repository needs its `MLM_LICENSE_TOKEN` GitHub Actions secret; the workflows fail explicitly if it is missing. Enter credentials in GitHub settings, never documentation or chat.
 
-R2023a numerical CI cannot exercise CVODES, which needs R2024a+. The permutation case generator excludes it on older releases. A passing R2023a job is not evidence of CVODES validation. Regression also needs its [approved baseline files](../validation/regression.md#baseline-availability).
+R2023a numerical CI cannot exercise CVODES, which needs R2024a+. The permutation case generator excludes it on older releases. A passing R2023a job is not evidence of CVODES validation. Regression also needs its [approved baseline files](../verification/regression.md#baseline-availability).
 
 Documentation checking does not require MATLAB. No numerical MATLAB or Octave execution is claimed for this documentation cleanup.
 

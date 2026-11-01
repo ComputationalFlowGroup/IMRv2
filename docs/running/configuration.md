@@ -11,9 +11,9 @@
 | Struct | `p = imr.default_inputs(); p.radial = 2; imr.solve(p)` | Passes only fields differing from the defaults |
 | Struct plus pairs | `imr.solve(p,'solver','spectral')` | Explicit pairs override changed struct fields |
 
-Names in the name/value parser are case-insensitive. Use the lowercase fields returned by [`imr.default_inputs`](../api/default_inputs.md) for structs. Optional `p0star` and `stress0` fields have no default and can be added when needed.
+Names in the name/value parser are case-insensitive. Use the lowercase fields returned by [`imr.default_inputs`](../reference/default_inputs.md) for structs. Optional `p0star` and `stress0` fields have no default and can be added when needed.
 
-`imr.solve` defaults to the nodal solver. Select the spectral solver with `'solver','spectral'` or an added `p.solver` field. The default struct is solver-neutral; the selected solver is added to the returned input record for replay. Existing `imr.solve_nodal` and `imr.solve_spectral` wrappers fix the selection and reject conflicting options. The `spectral` stress flag remains independent. See [solver selection](../api/solve.md).
+`imr.solve` defaults to the nodal solver. Select the spectral solver with `'solver','spectral'` or an added `p.solver` field. The default struct is solver-neutral; the selected solver is added to the returned input record for replay. Existing `imr.solve_nodal` and `imr.solve_spectral` wrappers fix the selection and reject conflicting options. The `spectral` stress flag remains independent. See [solver selection](../reference/solve.md).
 
 The full accepted names, meanings and defaults live in [parameters](../model/parameters.md). Internal variables such as `Rzero`, `Pb_star`, `Szero`, `tspan`, `wave_poly` and `wave_dpoly` are not accepted public option names.
 
@@ -28,6 +28,6 @@ The optional eighth solver output records the requested/default inputs, with its
 
 ## Units and case files
 
-Use [`imr.nondimensionalize`](../api/nondimensionalize.md) for physical SI properties. Model flags and unrecognized conversion names pass through that helper to the solver parser.
+Use [`imr.nondimensionalize`](../reference/nondimensionalize.md) for physical SI properties. Model flags and unrecognized conversion names pass through that helper to the solver parser.
 
 There is no case-file loader or config-file format. The old `casefile` option raises `INPUT ERROR: casefile is no longer supported.` Keep cases as cell arrays or structs. [Troubleshooting](troubleshooting.md) explains input errors and warnings.

@@ -16,7 +16,7 @@ flowchart LR
   Histories --> Compare[Restore SI units, plot and compare]
 ```
 
-Run `imr_setup` once per MATLAB session. Use [`imr.nondimensionalize`](../api/nondimensionalize.md) for SI input, [`imr.default_inputs`](../api/default_inputs.md) for a dimensionless input struct, and [`imr.sweep`](../api/sweep.md) to repeat the workflow across parameter combinations. The [quick start](../getting-started/quick-start.md) provides a complete example.
+Run `imr_setup` once per MATLAB session. Use [`imr.nondimensionalize`](nondimensionalize.md) for SI input, [`imr.default_inputs`](default_inputs.md) for a dimensionless input struct, and [`imr.sweep`](sweep.md) to repeat the workflow across parameter combinations. The [quick start](../getting-started/quick-start.md) provides a complete example.
 
 Stress enters the internal equations; a separate stress history is not part of the public solver output tuple. Enabled thermal and vapor fields are reconstructed by the selected solver. See [outputs](../running/output.md) for returned shapes and scalings.
 
@@ -61,7 +61,7 @@ flowchart TD
   ODE --> Output[System outputs callback reconstructs histories]
 ```
 
-Material profiles are not loaded in this loop. Pressure-form Keller–Miksis uses prepared ambient density and sound speed; enthalpy branches evaluate their own pressure-based liquid relation in `imr.physics.radial_acceleration`. See [radial equations](../theory/radial-equations.md), [wall boundaries](../method/wall-boundaries.md) and [Jacobians](../method/time-integration.md) for those details.
+Material profiles are not loaded in this loop. Pressure-form Keller–Miksis uses prepared ambient density and sound speed; enthalpy branches evaluate their own pressure-based liquid relation in `imr.physics.radial_acceleration`. See [radial dynamics](../model/radial-dynamics.md), [wall boundaries](../method/wall-boundaries.md) and [Jacobians](../method/time-integration.md) for those details.
 
 | State block | Meaning | Active when |
 |---|---|---|
@@ -81,15 +81,15 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | File | Responsibility | Contract |
 |---|---|---|
 | `imr_setup.m` | Session path setup for public source and examples | [Installation](../getting-started/installation.md) |
-| `src/+imr/solve.m` | Common solver selection and optional acceleration | [Unified API](../api/solve.md) |
-| `src/+imr/solve_nodal.m` | FD or Chebyshev nodal solver | [Nodal API](../api/solve_nodal.md) |
-| `src/+imr/solve_spectral.m` | Spectral solver | [Spectral API](../api/solve_spectral.md) |
-| `src/+imr/sweep.m` | Repeated runs over a full parameter grid | [Sweep API](../api/sweep.md) |
-| `src/+imr/default_inputs.m` | Public dimensionless input struct | [Inputs](../api/default_inputs.md) |
+| `src/+imr/solve.m` | Common solver selection and optional acceleration | [Unified API](solve.md) |
+| `src/+imr/solve_nodal.m` | FD or Chebyshev nodal solver | [Nodal API](solve_nodal.md) |
+| `src/+imr/solve_spectral.m` | Spectral solver | [Spectral API](solve_spectral.md) |
+| `src/+imr/sweep.m` | Repeated runs over a full parameter grid | [Sweep API](sweep.md) |
+| `src/+imr/default_inputs.m` | Public dimensionless input struct | [Inputs](default_inputs.md) |
 | `src/+imr/+configuration/defaults.m` | Model/numerical defaults and derived physical groups | [Defaults](defaults.md) |
-| `src/+imr/nondimensionalize.m` | SI conversion and reference scales | [Conversion API](../api/nondimensionalize.md) |
+| `src/+imr/nondimensionalize.m` | SI conversion and reference scales | [Conversion API](nondimensionalize.md) |
 | `src/+imr/+fluids/water.m` | Water reference material coefficients and transport | [Fluid profiles](../model/fluids.md) |
-| `src/+imr/fluid_properties.m` | Shared bulk and saturation model evaluation | [Property API](../api/f_fluid_properties.md) |
+| `src/+imr/fluid_properties.m` | Shared bulk and saturation model evaluation | [Property API](fluid_properties.md) |
 | `src/+imr/+configuration/prepare_case.m` | Parse, validate and prepare named case fields | [Case contract](internal-contracts.md) |
 | `src/+imr/+configuration/schema.m` | Public/internal names and discrete validation rules | [Parameters](../model/parameters.md) |
 | `src/+imr/+solvers/state_layout.m` | Enabled state blocks shared by every consumer | [State contract](internal-contracts.md#state-and-shape-contract) |
@@ -103,7 +103,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | File | Responsibility | Contract |
 |---|---|---|
 | `src/+imr/+physics/radial_acceleration.m` | Six radial models and pressure-integrated liquid enthalpy | [Radial closure](functions/radial_acceleration.md) |
-| `src/+imr/+physics/polytropic_pressure.m` | Gas pressure derivative with constant vapor pressure | [Polytropic validation](../validation/polytropic.md) |
+| `src/+imr/+physics/polytropic_pressure.m` | Gas pressure derivative with constant vapor pressure | [Polytropic validation](../verification/polytropic.md) |
 | `src/+imr/+physics/material_stress.m` | Material stress and auxiliary-state evolution | [Stress](functions/material_stress.md) |
 | `src/+imr/+physics/viscosity.m` | Shear-dependent viscosity integrals | [Viscosity](functions/viscosity.md) |
 | `src/+imr/+physics/stress_power.m` | Local stress power for medium heating | [Heating](functions/stress_power.md) |
@@ -129,7 +129,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 
 | Location | Responsibility |
 |---|---|
-| `tests/suites/s_test_suite_*.m` | Executable numerical suites; [test index](../validation/tests.md) |
+| `tests/suites/s_test_suite_*.m` | Executable numerical suites; [test index](../verification/tests.md) |
 | `tests/+imrtest/` | Frozen reference data, outside the runtime source path |
 | `tests/helpers/f_test_cases.m` | Generate accepted cases |
 | `tests/helpers/f_test_run.m` | Capture one run, errors and actual times |
@@ -143,4 +143,4 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 
 There is no `private/` folder. Each nodal/spectral implementation exists once, in its solver builder. The two public entry points delegate to `imr.solvers.run`, which shares preparation, integration and reconstruction outside the numerical callbacks. Legacy public names are small adapters in `src`; the numerical kernels call the namespace implementations directly. See [organization and migration](namespaces.md).
 
-Local functions retain tightly coupled wall operations in their owning builder. Shared physical/numerical kernels stay accessible to both solvers and tests. Moving a file into a package changes its qualified name; it does not require an additional runtime dispatcher inside the RHS. The [extension guide](../api/extending.md) describes keeping state, equations, Jacobians and outputs consistent.
+Local functions retain tightly coupled wall operations in their owning builder. Shared physical/numerical kernels stay accessible to both solvers and tests. Moving a file into a package changes its qualified name; it does not require an additional runtime dispatcher inside the RHS. The [extension guide](extending.md) describes keeping state, equations, Jacobians and outputs consistent.

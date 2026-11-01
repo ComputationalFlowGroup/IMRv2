@@ -73,7 +73,7 @@ Node order matters. Medium values run outward from the wall; bubble temperature 
 | Polish | Three analytic Newton steps constrained to the final interval |
 | No endpoint sign change | Raise a state/time error; do not bypass it |
 
-The bracketed path costs two vectorized residual grids, three Newton evaluations and one final evaluation. It has fixed iteration counts. It is also used on the first call, or if warm-start iterates leave the bracket, become nonfinite or fail to converge. Batched columns can fall back independently. [Historical measurements](../validation/convergence.md#reported-wall-closure-comparisons) record earlier accuracy and cost comparisons.
+The bracketed path costs two vectorized residual grids, three Newton evaluations and one final evaluation. It has fixed iteration counts. It is also used on the first call, or if warm-start iterates leave the bracket, become nonfinite or fail to converge. Batched columns can fall back independently. [Historical measurements](../verification/convergence.md#reported-wall-closure-comparisons) record earlier accuracy and cost comparisons.
 
 ## Mixture-coefficient limitation
 

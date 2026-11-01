@@ -53,7 +53,7 @@ If you are planning a large change, such as a new physical model, a new solver o
 | `src/` | Everything a user calls: the solvers (`imr.solve_nodal`, `imr.solve_spectral`), their inputs (`imr.default_inputs`), sweeps (`imr.sweep`), unit conversion (`imr.nondimensionalize`), and the physics functions the solvers call |
 | `toolchain/` | Formatter, linter, profiling aids and the guarded golden-history generator |
 | `tests/` | Suites, helpers, independent frozen references and setup; see the [test guide](../../tests/README.md). Approved regression histories belong in `tests/reference/` |
-| `docs/api/`, `docs/reference/functions/`, `docs/validation/` | One Markdown page per function or script |
+| `docs/reference/`, `docs/reference/functions/`, `docs/verification/` | One Markdown page per public function, internal function or test suite |
 | `docs/reference/compatibility.md` | Which features run together in each solver |
 | `examples/`, `benchmarks/` | Example scripts (including the `f_multirun` study and its cluster job), scaling benchmarks, and the integrator comparison (`benchmarks/integrators`) |
 
@@ -63,7 +63,7 @@ Use lowercase `snake_case` without an `f_` prefix for new functions. Place publi
 
 - **Base MATLAB only.** Code in `src/` must not need any toolbox, so do not add calls to toolbox functions.
 - **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `src/+imr/nondimensionalize.m`.
-- **Adding an input.** Follow the [extension guide](../api/extending.md): add the default in `imr.configuration.defaults`, its public/internal mapping and discrete rule in `imr.configuration.schema`, and its named prepared-case field in `imr.configuration.prepare_case`. Keep coupled physical restrictions in `imr.configuration.validate_case`, document the input, and add an independent numerical check.
+- **Adding an input.** Follow the [extension guide](extending.md): add the default in `imr.configuration.defaults`, its public/internal mapping and discrete rule in `imr.configuration.schema`, and its named prepared-case field in `imr.configuration.prepare_case`. Keep coupled physical restrictions in `imr.configuration.validate_case`, document the input, and add an independent numerical check.
 - **Named internal contracts.** Both solvers consume `imr.configuration.prepare_case` and `imr.solvers.build`. Use `imr.solvers.state_layout` blocks for initialization, RHS, Jacobians and reconstruction. Do not add new positional unpacking to the solvers.
 - **File headers.** Start every `.m` file with the same header as the existing files: the file name, a one-line summary, the license block, then the description. The license block is a separate comment block, so it stays out of MATLAB's `help` text, which shows only the first block.
 
@@ -108,7 +108,7 @@ Source-checking and spelling commands live in [CI](ci.md). Read and review the M
 The files in `tests/reference/` are the stored results that `s_test_suite_regression` compares against, one file per solver mode with each result under its case key (such as `r2_bubble+medium_s3_mat1`). Do not edit or regenerate them as part of an ordinary change. If your change deliberately changes the results, for example by fixing a physics bug:
 
 1. Explain in the pull request which results change, why, and by how much.
-2. Regenerate them only after the maintainers agree. From `tests/`, `run_validation('generate-and-test','all',true)` runs independent prechecks, explicitly replaces baselines only if those checks pass, then runs regression. The existing `toolchain/s_generate_references.m` script remains available with `overwrite = true`. Both use one helper, which publishes nothing unless every case succeeds and reaches the requested times.
+2. Regenerate them only after the maintainers agree. From `tests/`, `run_verification('generate-and-test','all',true)` runs independent prechecks, explicitly replaces baselines only if those checks pass, then runs regression. The existing `toolchain/s_generate_references.m` script remains available with `overwrite = true`. Both use one helper, which publishes nothing unless every case succeeds and reaches the requested times.
 
 A new case added to `tests/helpers/f_test_cases.m` fails the regression suite until its result is stored.
 
@@ -116,9 +116,9 @@ Reviewed regression baselines under `tests/reference/` are distinct from ordinar
 
 ## 3. Run the checks
 
-Follow [CI and local equivalents](ci.md) for spelling, MATLAB lint, formatting and source-documentation checks. Run the [numerical suites](../validation/tests.md#run-the-suites) from `tests/` after `imr_test_setup`, in separate MATLAB processes, and preserve failure status.
+Follow [CI and local equivalents](ci.md) for spelling, MATLAB lint, formatting and source-documentation checks. Run the [numerical suites](../verification/tests.md#run-the-suites) from `tests/` after `imr_test_setup`, in separate MATLAB processes, and preserve failure status.
 
-The regression suite requires approved references that are absent from the audited checkout. See [baseline availability](../validation/regression.md#baseline-availability). Do not fabricate or silently replace them.
+The regression suite requires approved references that are absent from the audited checkout. See [baseline availability](../verification/regression.md#baseline-availability). Do not fabricate or silently replace them.
 
 `s_format` rewrites MATLAB files, including files under `docs/` and `benchmarks/`, and skips itself. Inspect every resulting diff before committing. It does not format `examples/`. `s_lint` calls `exit`, so run it in a separate MATLAB process.
 

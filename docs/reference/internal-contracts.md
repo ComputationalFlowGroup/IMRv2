@@ -1,6 +1,6 @@
 # Prepared cases and numerical systems
 
-The common public entry point is [`imr.solve`](../api/solve.md); `imr.solve_nodal` and `imr.solve_spectral` remain supported wrappers. Internally they prepare a named case, construct a numerical system, integrate it, then reconstruct the original eight outputs and optional wall acceleration. These developer contracts replace positional option vectors inside the solvers; they are not additional simulation options.
+The common public entry point is [`imr.solve`](solve.md); `imr.solve_nodal` and `imr.solve_spectral` remain supported wrappers. Internally they prepare a named case, construct a numerical system, integrate it, then reconstruct the original eight outputs and optional wall acceleration. These developer contracts replace positional option vectors inside the solvers; they are not additional simulation options.
 
 ```matlab
 c = imr.configuration.prepare_case('nodal','radial',2,'Req',1,'Nt',12);
@@ -73,4 +73,4 @@ When output 9, 10 or 11 is requested, the shared runner resets the nodal wall ca
 
 The suite also rejects a zero-mode active spectral stress field before construction; otherwise its collocation matrix would divide by zero. Disabled fields may still have zero grid counts.
 
-These checks require MATLAB and are not a claim of an executed numerical pass in the cloud environment. The existing [test workflow](../validation/tests.md) includes this suite. No trajectory reference is regenerated. `toolchain/s_benchmark_structure.m` reports local construction, RHS and Jacobian timings for profiling; compare runs on the same MATLAB release and machine before drawing performance conclusions.
+These checks require MATLAB and are not a claim of an executed numerical pass in the cloud environment. The existing [test workflow](../verification/tests.md) includes this suite. No trajectory reference is regenerated. `toolchain/s_benchmark_structure.m` reports local construction, RHS and Jacobian timings for profiling; compare runs on the same MATLAB release and machine before drawing performance conclusions.

@@ -21,7 +21,7 @@ Explicit SI transport inputs override reference values in `profile.transport`. P
 
 Required active-model inputs and supported radial/phase-change choices come from the profile's `required_*` and `capabilities` fields. Gas conductivity, stress and forcing are simulation choices, independent of liquid/vapor material data. The converter uses internal neutral scales only for inactive terms that have no transport data. Those scales are not physical properties and cannot satisfy an active model's explicit input requirements.
 
-Profile errors use `IMR:fluidMissingInput`, `IMR:fluidOverride`, `IMR:fluidRadial`, `IMR:fluidMassTransfer`, `IMR:fluidThermal` or `IMR:fluidBoiling`. Invalid numeric inputs can also raise MATLAB validation errors. See [property errors](f_fluid_properties.md#errors), [fluid profiles](../model/fluids.md) and [defaults and units](../reference/defaults.md).
+Profile errors use `IMR:fluidMissingInput`, `IMR:fluidOverride`, `IMR:fluidRadial`, `IMR:fluidMassTransfer`, `IMR:fluidThermal` or `IMR:fluidBoiling`. Invalid numeric inputs can also raise MATLAB validation errors. See [property errors](fluid_properties.md#errors), [fluid profiles](../model/fluids.md) and [defaults and units](defaults.md).
 
 ## Inputs (SI)
 
@@ -72,7 +72,7 @@ Without a profile, other names (model flags, grid sizes, `kappa`, `alphax`, `nst
 - `varin`: dimensionless name/value pairs (see [`imr.configuration.defaults`](../model/parameters.md) for their definitions).
 - `ref`: reference scales `R0`, `Uc`, `t0`, `P8`, `T8`, `rho8`.
 
-Saturation is evaluated by [`imr.fluid_properties`](f_fluid_properties.md#saturation). For the exponential model, `thetav = -c2/T8`; a saturation table sets `thetav = 0` and cannot enable the exponential wall closure.
+Saturation is evaluated by [`imr.fluid_properties`](fluid_properties.md#saturation). For the exponential model, `thetav = -c2/T8`; a saturation table sets `thetav = 0` and cannot enable the exponential wall closure.
 
 With an explicit profile, `ref.fluid` records the resolved `profile`, unmodified evaluated `properties`, effective SI settings in `SI`, selected ambient `Pv`, original `input_pairs` with the profile snapshot, and the pressure-form KM assumption. For constant-property profiles, an SI override can differ from the original `properties`; `SI` and the top-level reference scales record the values actually used. Preserve `ref` alongside solver outputs. Replay with:
 

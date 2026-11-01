@@ -25,8 +25,8 @@ for row = 1:numel(param_sets)
     nog = p(3);
     eos = @(pval) imr.physics.mie_gruneisen_eos(pval, Cstar, hugoniot_s, nog);
 
-    % The density/sound-speed relation p/Cstar^2 = g(mu) (docs/theory/
-    % radial-equations.md) has mu = rho - 1 = 0 at p = 0, not p = 1: g(0)
+    % The density/sound-speed relation p/Cstar^2 = g(mu) (docs/model/
+    % radial-dynamics.md) has mu = rho - 1 = 0 at p = 0, not p = 1: g(0)
     % = 0 by construction of the quadratic, for any hugoniot_s/nog. At
     % that state the EoS must reduce to the far-field sound speed and
     % unit specific volume.

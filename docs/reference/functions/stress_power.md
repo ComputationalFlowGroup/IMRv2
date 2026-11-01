@@ -37,4 +37,4 @@ With the local strain rate $a=\dfrac{R^2\dot R}{r^3}=\dfrac{\dot R}{R}y^{-3}$ an
 - **Far-field point:** at `yT = Inf` the elastic term is undefined. The solvers hold the temperature there fixed (`Tmdot(end) = 0`).
 - **Batched states:** `R`, `Rdot` and `sp` may hold one state per column, for the batched right-hand side of [`imr.solve_nodal`](../../method/time-integration.md#batched-right-hand-side).
 
-For the algorithm and assumptions, see the [topic guide](../../theory/stress-heating.md). Numerical measurements are retained as [historical reports](../../validation/convergence.md).
+For the algorithm and assumptions, see the [topic guide](../../model/stress-viscosity.md#medium-heating). Numerical measurements are retained as [historical reports](../../verification/convergence.md).
