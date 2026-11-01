@@ -13,7 +13,7 @@ sat.pressure                          % Pa
 sat.dpressure_dT                      % Pa/K
 ```
 
-Pass a profile struct or a zero-argument function handle such as `@imr.fluids.water`. The evaluator dispatches on model identifiers in that data, rather than material names. See [fluid profiles](../model/fluids.md) for the schema and [unit conversion](f_dim2nondim.md#fluid-profiles) for solver preparation.
+Pass a profile struct or a zero-argument function handle such as `@imr.fluids.water`. The evaluator dispatches on model identifiers in that data, rather than material names. See [fluid profiles](../model/fluids.md) for the schema and [unit conversion](nondimensionalize.md#fluid-profiles) for solver preparation.
 
 ## Bulk properties
 

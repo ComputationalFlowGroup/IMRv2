@@ -1,10 +1,10 @@
 # `imr.physics.stress_power`
 
-`imr.physics.stress_power` computes the medium heating by the stress, `taugradu = Br*Phi`, when `medtherm = 1`. The medium temperature equation adds it: `Tmdot = advection + diffusion + taugradu`. Both solvers call it.
+`imr.physics.stress_power` computes the medium heating by the stress, $\mathtt{taugradu}=\mathrm{Br}\,\Phi$, when `medtherm = 1`. The medium temperature equation adds it: $\dot T_m = \text{advection}+\text{diffusion}+\mathtt{taugradu}$. Both solvers call it.
 
-The heating is the full stress power, `Phi = tau:D`. This is the entropy-elastic (rubber-like) convention: elastic work is released as heat under loading and absorbed under unloading.
+The heating is the full stress power, $\Phi=\boldsymbol\tau:\mathbf D$. This is the entropy-elastic (rubber-like) convention: elastic work is released as heat under loading and absorbed under unloading.
 
-With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr - tau_thetatheta`, the stress power is `tau:D = -2*a*s`. Only this normal-stress difference enters; the trace of the stress does not.
+With the local strain rate $a=\dfrac{R^2\dot R}{r^3}=\dfrac{\dot R}{R}y^{-3}$ and $s=\tau_{rr}-\tau_{\theta\theta}$, the stress power is $\boldsymbol\tau:\mathbf D=-2as$. Only this normal-stress difference enters; the trace of the stress does not.
 
 ## Inputs
 
@@ -24,14 +24,14 @@ With the local strain rate `a = R^2*Rdot/r^3 = (Rdot/R)*yT^-3` and `s = tau_rr -
 
 | Name | Description |
 |---|---|
-| `taugradu` | Medium heating `Br*tau:D` at the medium points |
+| `taugradu` | Medium heating $\mathrm{Br}\,\boldsymbol\tau:\mathbf D$ at the medium points |
 
 ## Notes
 
 - **Where `sp` comes from:**
     - `imr.solve_spectral` evaluates the Zener field or the stress 9–11 field at the medium points with `ZZT`.
     - `imr.solve_nodal` stores the Zener field at the medium nodes.
-- **Stress 9 two-state form:** it carries only integrals of the stress, not a local field. So stress 9 with medium heat transfer uses the stress field in `imr.solve_spectral`, and is rejected in `imr.solve_nodal` (see [`imr.configuration.validate_case`](f_checkers.md)). Stress 10 and 11 always run as that stress field, so this does not arise for them.
+- **Stress 9 two-state form:** it carries only integrals of the stress, not a local field. So stress 9 with medium heat transfer uses the stress field in `imr.solve_spectral`, and is rejected in `imr.solve_nodal` (see [`imr.configuration.validate_case`](validate_case.md)). Stress 10 and 11 always run as that stress field, so this does not arise for them.
 - **Stress 3, 4 (Kelvin-Voigt):** the elastic stress difference `se` is the 2nd-order Fung or Mooney-Rivlin field in place of the neo-Hookean or quadratic one; the instantaneous viscosity and non-Newtonian terms are unchanged.
 - **Stress 7, 8 (Zener):** carry the corresponding spring's local field exactly as stress 5, 6 do, via `imr.physics.zener_field`.
 - **Far-field point:** at `yT = Inf` the elastic term is undefined. The solvers hold the temperature there fixed (`Tmdot(end) = 0`).

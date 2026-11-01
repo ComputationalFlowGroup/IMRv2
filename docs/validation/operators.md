@@ -1,6 +1,6 @@
 # Differentiation operators
 
-`s_test_suite_diffmat.m` checks the differentiation operators returned by [`imr.numerics.differentiation`](../reference/functions/f_diff_mat.md). The test suites workflow `tests.yml` runs it.
+`s_test_suite_diffmat.m` checks the differentiation operators returned by [`imr.numerics.differentiation`](../reference/functions/differentiation.md). The test suites workflow `tests.yml` runs it.
 
 MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
 

@@ -1,6 +1,6 @@
 # Repository map
 
-The checkout separates solver functions, examples, developer tooling and documentation. Generated run outputs are not source files and should not be committed.
+The checkout separates solver functions, examples, developer tooling and documentation. Generated run outputs are not source files and should not be committed. For how functions inside `src/` call each other, see the [function call map](function-call-map.md).
 
 | Path | Purpose |
 |---|---|
@@ -13,7 +13,7 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `tests/helpers/` | Shared case generation, output checking and reports |
 | `tests/s_run_validation.m`, `run_validation.m` | Editable script and callable controller for suites and explicit golden-data generation |
 | `tests/+imrtest/` | Independent frozen data functions; not part of the solver runtime |
-| `src/` | MATLAB solver, parser, conversion and physics modules; [code map](code-map.md) |
+| `src/` | MATLAB solver, parser, conversion and physics modules; [function call map](function-call-map.md) |
 | `src/+imr/` | Public namespace and implementation packages; [organization](namespaces.md) |
 | `src/+imr/+solvers/` | Shared runner and scheme-specific builders |
 | `src/data/d_hn.mat`, `d_mn.mat`, `d_ml.mat` | Runtime measured-waveform spline data |

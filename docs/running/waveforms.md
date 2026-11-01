@@ -67,6 +67,8 @@ Please cite this paper if you use these waveforms.
 
 ## Files
 
+The raw data and the MATLAB rebuild script stay together in `docs/waveform/`.
+
 | File | Contents |
 |---|---|
 | `patterson_waveform_data.mat` | The three waveforms, stored as dimensionless time and pressure columns: mostly linear (ML), moderately nonlinear (MN) and highly nonlinear (HN) |
@@ -80,6 +82,6 @@ Preparation loads the spline fits from `src/`, through `imr.configuration.prepar
 | -2 | `src/data/d_mn.mat` | Moderately nonlinear |
 | -3 | `src/data/d_ml.mat` | Mostly linear |
 
-Each file holds the spline `poly` of the dimensionless pressure and its derivative `dpoly`, over dimensionless times up to 15. [`imr.physics.far_field_pressure`](../reference/functions/f_pinfinity.md) evaluates them.
+Each file holds the spline `poly` of the dimensionless pressure and its derivative `dpoly`, over dimensionless times up to 15. [`imr.physics.far_field_pressure`](../reference/functions/far_field_pressure.md) evaluates them.
 
 Measured choices use the stored spline directly: `ee`, `dt` and `om` do not rescale or shift it. Outside its stored breakpoints, `ppval` extrapolates; preparation warns if the requested time interval extends outside the data. This is not additional measured evidence beyond that interval.

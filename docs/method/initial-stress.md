@@ -13,7 +13,11 @@ The [collapse guide](../running/collapse.md) explains when it runs and when `str
 ### Internal Functions
 
 - `f_maxwell_growth_iter`: returns the maximum radius for a trial initial wall velocity.
-- `f_RP_bub_collapse_comp`: Nondimensional Keller–Miksis ODE for the growth with the stress evolution. For the Maxwell branch the stress relaxes toward the elastic stress `Se` of the (quadratic) neo-Hookean model, the same `Ze/R^3` as stress 5 and 6 in [`imr.physics.material_stress`](../reference/functions/f_stress.md): `Sdot = -4*Rdot/(Re*R*De) + dSe/dt - (S - Se)/De`.
+- `f_RP_bub_collapse_comp`: Nondimensional Keller–Miksis ODE for the growth with the stress evolution. For the Maxwell branch the stress relaxes toward the elastic stress $S_e$ of the (quadratic) neo-Hookean model, the same $Z_e/R^3$ as stress 5 and 6 in [`imr.physics.material_stress`](../reference/functions/material_stress.md):
+
+$$
+\dot S = -\frac{4\dot R}{\mathrm{Re}\,R\,\mathrm{De}} + \frac{dS_e}{dt} - \frac{S-S_e}{\mathrm{De}}.
+$$
 
 ## Standalone approximation
 

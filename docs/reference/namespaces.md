@@ -66,7 +66,7 @@ The small initial velocity starts oscillation about the equilibrium radius. Wate
 | `default_case` | `imr.configuration.defaults` |
 | `fluids.water` | `imr.fluids.water` |
 
-These old public names remain small forwarding adapters with unchanged inputs/output order and no repeated implementation. Internal helpers have moved to their responsibility package; code that called an internal helper directly must use its qualified name from the [code map](code-map.md). Do not `import imr.*` in library code; explicit names avoid ambiguity and make dependencies visible.
+These old public names remain small forwarding adapters with unchanged inputs/output order and no repeated implementation. Internal helpers have moved to their responsibility package; code that called an internal helper directly must use its qualified name from the [function call map](function-call-map.md). Do not `import imr.*` in library code; explicit names avoid ambiguity and make dependencies visible.
 
 Use lowercase `snake_case`, descriptive quantities or verbs, and a primary function matching the filename. For example, `imr.physics.radial_acceleration` is defined as `radial_acceleration` in `src/+imr/+physics/radial_acceleration.m`. Do not put dots in its function declaration or add `+imr` to the search path itself.
 
@@ -74,6 +74,6 @@ Use lowercase `snake_case`, descriptive quantities or verbs, and a primary funct
 
 The organization adds no path setup, file reads or validation inside numerical callbacks. Existing kernels retain their equations and call counts; their names become qualified. The shared runner executes once per simulation. Legacy adapters are not used by the namespaced RHS or Jacobians.
 
-MATLAB name resolution and dispatch performance can vary by release. Source consistency and static checks cannot establish that runtime is unchanged. The [layout benchmark](../method/namespace-benchmark.md) compares all seven original numerical outputs and the original input fields, validates the newly added solver label separately, then times four representative workloads against the pre-namespace checkout. It alternates timing order, isolates source paths and flags a configured slowdown threshold. MATLAB was unavailable in the cloud environment; this timing gate remains for local execution before merging.
+MATLAB name resolution and dispatch performance can vary by release. Source consistency and static checks cannot establish that runtime is unchanged. The [namespace benchmark procedure](../../benchmarks/namespaces/README.md) compares all seven original numerical outputs and the original input fields, validates the newly added solver label separately, then times four representative workloads against the pre-namespace checkout. It alternates timing order, isolates source paths and flags a configured slowdown threshold. Run it in MATLAB to compare layouts on the same machine; no timing result is claimed by the documentation cleanup, and this timing gate remains for local execution before merging.
 
 `s_test_suite_namespace` checks public namespace calls, legacy adapters and measured waveform loading. The existing numerical suites now call the namespaced implementations directly. No trajectory baselines are regenerated. Markdown and LaTeX source checks remain separate from MATLAB numerical validation.

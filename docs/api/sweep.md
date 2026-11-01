@@ -11,7 +11,7 @@
 | Name | Description |
 |------|-------------|
 | `solver` | Function handle, `@imr.solve`, `@imr.solve_nodal` or `@imr.solve_spectral` |
-| `base` | Inputs shared by every run: a cell array of name/value pairs (`{}` for the defaults) or a struct from [`imr.default_inputs`](f_imr_inputs.md). A transform needs the cell array form. |
+| `base` | Inputs shared by every run: a cell array of name/value pairs (`{}` for the defaults) or a struct from [`imr.default_inputs`](default_inputs.md). A transform needs the cell array form. |
 | `name_k`, `values_k` | A solver input and the values it takes, a numeric vector or a cell array. Every combination is run. |
 
 Options, given after the swept inputs:

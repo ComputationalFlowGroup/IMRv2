@@ -36,7 +36,7 @@ All gradients use the moving, dimensionless coordinates and the flux scales in t
 - If no admissible root remains, try `fzero` on the residual.
 - If that fails at an unphysical trial state, return the least-residual point in the conductivity formulation so the integrator can reject the step.
 
-The Jacobian differentiates the same flux balance, giving `d(theta_w)/dK = -u/(c2*u + c1)` on the selected branch. `imr.physics.thermal_inverse` supplies the common inverse transform and derivatives:
+The Jacobian differentiates the same flux balance, giving $\dfrac{d\theta_w}{dK}=-\dfrac{u}{c_2u+c_1}$ on the selected branch. `imr.physics.thermal_inverse` supplies the common inverse transform and derivatives:
 
 $$
 T=1+\frac{2\theta}{\sqrt{(a+b)^2+2a\theta}+a+b}.
@@ -46,7 +46,7 @@ This rationalized expression includes the constant-conductivity limit $a=0$, $b>
 
 ## Mass-transfer residual
 
-The saturation law is `Pv(Tw) = C1_pv*exp(C2_pv/Tw)` with negative `C2_pv`. The coupled balance is transcendental, so the solver uses the bounded wall vapor mass fraction `kv_w`, not an unbounded temperature variable.
+The saturation law is $P_v(T_w)=C_{1,pv}\exp(C_{2,pv}/T_w)$ with negative $C_{2,pv}$. The coupled balance is transcendental, so the solver uses the bounded wall vapor mass fraction `kv_w`, not an unbounded temperature variable.
 
 For a trial fraction, `f_wall_mass_residual` computes:
 
@@ -79,10 +79,10 @@ The bracketed path costs two vectorized residual grids, three Newton evaluations
 
 The closure uses mixture coefficients from stored `kv(end)`, not trial `kv_w`. Because `kvdot(end) = 0`, that stored value remains the initial `kv0` during integration. This is an existing modeling limitation, not a lag updated each step; it requires separate scientific review.
 
-Conductivity is `K = alpha_m*T + beta_m`; the transform and inverse use both coefficients as supplied. In the default case their pure-component sums are `alpha_g + beta_g = 1.0024` and `alpha_v + beta_v = 0.9976`, not exactly 1.
+Conductivity is $K=\alpha_m T+\beta_m$; the transform and inverse use both coefficients as supplied. In the default case their pure-component sums are `alpha_g + beta_g = 1.0024` and `alpha_v + beta_v = 0.9976`, not exactly 1.
 
 After convergence, the solver assigns `theta(end)`, reconstructs temperature with the stored mixture, then sets the local wall `kv(end)` to `kv_w`. Pressure, velocity, conductivity and vapor equations see the converged local wall value. Output assembly recovers wall values with the same closure.
 
 ## Implicit derivative
 
-[`imr.physics.wall_mass_balance`](../reference/functions/f_wall_mass_bc.md) expresses the same balance in `theta_w` and returns its gradient. `imr.numerics.jacobian_nodal` uses `d(theta_w)/dx = -(dr/dx)/(dr/d(theta_w))` at the root. Positive residual scaling cancels in that ratio at a root, so the closure and derivative describe the same balance.
+[`imr.physics.wall_mass_balance`](../reference/functions/wall_mass_balance.md) expresses the same balance in `theta_w` and returns its gradient. `imr.numerics.jacobian_nodal` uses $\dfrac{d\theta_w}{dx}=-\dfrac{dr/dx}{dr/d\theta_w}$ at the root. Positive residual scaling cancels in that ratio at a root, so the closure and derivative describe the same balance.
