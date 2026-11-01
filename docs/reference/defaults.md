@@ -20,11 +20,11 @@ That group mixed SI transport values and conversion defaults, including artifici
 
 The converter still needs finite scales for some inactive terms because the solver input interface contains thermal and transport groups even in polytropic runs. It supplies neutral numerical scales internally when material data are absent. They are documented implementation scales, not measured transport properties. They never satisfy a required active-model input.
 
-Material enthalpy coefficients live under `liquid` and `vapor`. A caloric slice such as $h_l=C_{p,l}T+q_l$ is distinct from the pressure integral used by an enthalpy radial equation. See [radial theory](../theory/radial-equations.md#enthalpy-forms).
+Material enthalpy coefficients live under `liquid` and `vapor`. A caloric slice such as $h_l=C_{p,l}T+q_l$ is distinct from the pressure integral used by an enthalpy radial equation. See [radial dynamics](../model/radial-dynamics.md#enthalpy-forms).
 
 ## Units and provenance
 
-The unused `p.units` string has been removed. SI is the fixed contract of the property and conversion APIs, with units documented beside material fields and in the [API tables](../api/f_fluid_properties.md). The solver interface remains dimensionless; reference scales restore SI outputs.
+The unused `p.units` string has been removed. SI is the fixed contract of the property and conversion APIs, with units documented beside material fields and in the [API tables](fluid_properties.md). The solver interface remains dimensionless; reference scales restore SI outputs.
 
 `name`, `source` and `commit` remain useful provenance metadata: they are preserved in `ref.fluid.profile` when a material is selected. They do not affect numerical equations and are not a unit-conversion system.
 

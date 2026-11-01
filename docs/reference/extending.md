@@ -18,6 +18,6 @@ For a new fluid using an existing EoS family, start with a [MATLAB fluid profile
 
 Follow that trace for a new input. Add the parameter to `imr.configuration.defaults` and `imr.configuration.schema`, then to its named group in `imr.configuration.prepare_case`. If the input affects a physical model, update its state layout, right-hand side, Jacobian and output reconstruction together; a parser change alone is insufficient.
 
-A new stress or viscosity law also needs checker ranges, labels in `imr.solvers.describe_case`, compatibility decisions and tests of limiting behavior. Keep solver paths compatible with base MATLAB. Discuss intended numerical-result changes before updating stored references; see [contributing](../reference/contributing.md).
+A new stress or viscosity law also needs checker ranges, labels in `imr.solvers.describe_case`, compatibility decisions and tests of limiting behavior. Keep solver paths compatible with base MATLAB. Discuss intended numerical-result changes before updating stored references; see [contributing](contributing.md).
 
 This worked example explains existing code. It does not add an input or modify solver behavior.

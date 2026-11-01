@@ -24,8 +24,8 @@ The exterior operators are the standard Chebyshev matrix and its square on `cos(
 
 `imr.solve_spectral` uses an even Chebyshev expansion for bubble temperature and a mapped Chebyshev expansion for the medium. Operators `gDA`, `gDDA`, `mDA` and `mDDA` map coefficients to derivative values and are formed once.
 
-The thermal boundary system has a single time-dependent row. The solver factors the constant matrix once and applies a Sherman–Morrison rank-one correction. Stress fields use the mapped basis described in [stress heating theory](../theory/stress-heating.md#spectral-stress-field).
+The thermal boundary system has a single time-dependent row. The solver factors the constant matrix once and applies a Sherman–Morrison rank-one correction. Stress fields use the mapped basis described in [spectral stress field](../model/stress-viscosity.md#spectral-stress-field).
 
 Both solvers precompute constant medium-equation and thermal-map factors. For `wave_type = 0` they use the constant forcing directly instead of calling `imr.physics.far_field_pressure` at every right-hand-side evaluation.
 
-The [operator suite](../validation/operators.md) checks analytic derivatives and stencil definitions. [Reported convergence](../validation/convergence.md) distinguishes historical observed errors from those executable thresholds. Strong collapse, sharp forcing and high relaxation time scales can require finer grids.
+The [operator suite](../verification/operators.md) checks analytic derivatives and stencil definitions. [Reported convergence](../verification/convergence.md) distinguishes historical observed errors from those executable thresholds. Strong collapse, sharp forcing and high relaxation time scales can require finer grids.

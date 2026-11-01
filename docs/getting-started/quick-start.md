@@ -30,4 +30,4 @@ ylabel('Bubble radius (m)');
 
 This is the existing README example, checked against `src/+imr/nondimensionalize.m` and the solver interface. MATLAB was not run for this documentation change. There is no captured transcript or verified numerical output to display yet; the user will test locally. No sample numbers or plots have been invented.
 
-After a successful run, inspect that the returned histories cover the requested output times and contain finite values. Use [outputs](../running/output.md) to interpret the arrays, and run the [test suites](../validation/tests.md) for stronger checks. See [examples](examples.md) for other workflows.
+After a successful run, inspect that the returned histories cover the requested output times and contain finite values. Use [outputs](../running/output.md) to interpret the arrays, and run the [test suites](../verification/tests.md) for stronger checks. See [examples](examples.md) for other workflows.

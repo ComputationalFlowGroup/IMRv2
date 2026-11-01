@@ -2,7 +2,7 @@
 
 `s_test_suite_gaussian.m` drives a bubble at equilibrium with a Gaussian pressure pulse and checks that it returns to its equilibrium radius. It needs no stored results.
 
-MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
+MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local verification.
 
 
 ## Cases

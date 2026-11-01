@@ -12,6 +12,6 @@ The forward solvers compute radial motion coupled to selected heat, vapor and st
 | Forcing | Constant, Gaussian, histotripsy, Heaviside and measured waveforms | [Waveforms](../running/waveforms.md) |
 | Discretization | Nodal finite differences, nodal Chebyshev or spectral expansions | [Methods](../method/discretization.md) |
 
-The spherical formulation does not resolve nonspherical shapes or jets. Model selection, admissible pressure/temperature ranges, spatial resolution and time tolerances limit interpretation of results. A successful integration is not evidence that the chosen physics is appropriate. Use [compatibility](../reference/compatibility.md) before combining features and [validation](../validation/tests.md) to distinguish executable checks from reported measurements.
+The spherical formulation does not resolve nonspherical shapes or jets. Model selection, admissible pressure/temperature ranges, spatial resolution and time tolerances limit interpretation of results. A successful integration is not evidence that the chosen physics is appropriate. Use [compatibility](../reference/compatibility.md) before combining features and [validation](../verification/tests.md) to distinguish executable checks from reported measurements.
 
 The original methods are described by Estrada et al. (2017) and Warnez and Johnsen (2015); see [references](../reference/references.md). Original project attribution and contacts remain in [about](../reference/about.md).

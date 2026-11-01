@@ -28,6 +28,6 @@ This provides a lower-fidelity but faster estimate compared to the numerical sho
 - Throws an error if the aggregated stress correction (`fsum`) exceeds 1.
 - Analytical method is faster but less accurate than `imr.physics.initial_stress` numerical shooting.
 
-For the algorithm and assumptions, see the [topic guide](../../method/initial-stress.md). Numerical measurements are retained as [historical reports](../../validation/convergence.md).
+For the algorithm and assumptions, see the [topic guide](../../method/initial-stress.md). Numerical measurements are retained as [historical reports](../../verification/convergence.md).
 
 This standalone helper calls `hypergeom`; verify its toolbox availability. Neither solver calls it.

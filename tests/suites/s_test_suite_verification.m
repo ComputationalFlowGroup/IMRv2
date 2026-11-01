@@ -30,42 +30,42 @@ generation = @() f_write(marker,'generated');
 previous_path = path;
 previous_folder = pwd;
 previous_warning = warning('query','IMR:fixtureWarning');
-report = execute_validation('tests',{passing,failing,after},generation,regression);
+report = execute_verification('tests',{passing,failing,after},generation,regression);
 assert(isequal({report.status},{'passed','failed','passed'}));
 assert(strcmp(report(2).identifier,'IMR:fixtureFailure'));
 assert(isfile(fullfile(fixture_root,'continued.marker')) && ~isfile(marker));
 assert(strcmp(path,previous_path) && strcmp(pwd,previous_folder));
 assert(isequal(warning('query','IMR:fixtureWarning'),previous_warning));
 assert(all([report.seconds] >= 0));
-report = execute_validation('tests',{regression,passing},generation,regression);
+report = execute_verification('tests',{regression,passing},generation,regression);
 assert(isequal({report.status},{'failed','passed'}) && ~isfile(marker));
 
 % All prechecks continue, but generation and regression are blocked if one
 % fails. A generation failure also blocks regression, never marking a pass.
-report = execute_validation('generate-and-test',{failing,passing},generation,regression);
+report = execute_verification('generate-and-test',{failing,passing},generation,regression);
 assert(isequal({report.status},{'failed','passed','skipped','skipped'}));
 assert(~isfile(marker));
-report = execute_validation('generate-and-test',{passing},@f_fail_generation,regression);
+report = execute_verification('generate-and-test',{passing},@f_fail_generation,regression);
 assert(isequal({report.status},{'passed','failed','skipped'}));
 assert(~isfile(marker));
-report = execute_validation('generate-and-test',{passing},generation,regression);
+report = execute_verification('generate-and-test',{passing},generation,regression);
 assert(isequal({report.status},{'passed','passed','passed'}));
 assert(isfile(marker));
 delete(marker);
-report = execute_validation('generate',{failing},generation,regression);
+report = execute_verification('generate',{failing},generation,regression);
 assert(numel(report) == 1 && strcmp(report.status,'passed') && isfile(marker));
-fprintf('Validation mode sequencing, workspace isolation and failure reports PASSED.\n');
+fprintf('Verification mode sequencing, workspace isolation and failure reports PASSED.\n');
 
 % Public selection guards run before simulations or any generation.
-f_error(@() run_validation('unknown'), 'IMR:validationOptions');
-f_error(@() run_validation('tests',{}), 'IMR:validationOptions');
-f_error(@() run_validation('tests',{'not_a_suite'}), 'IMR:validationOptions');
-f_error(@() run_validation('tests','all',true), 'IMR:validationOptions');
-f_error(@() run_validation('generate',{'solver'}), 'IMR:validationOptions');
-f_error(@() run_validation('generate-and-test',{'regression'}), 'IMR:validationOptions');
+f_error(@() run_verification('unknown'), 'IMR:verificationOptions');
+f_error(@() run_verification('tests',{}), 'IMR:verificationOptions');
+f_error(@() run_verification('tests',{'not_a_suite'}), 'IMR:verificationOptions');
+f_error(@() run_verification('tests','all',true), 'IMR:verificationOptions');
+f_error(@() run_verification('generate',{'solver'}), 'IMR:verificationOptions');
+f_error(@() run_verification('generate-and-test',{'regression'}), 'IMR:verificationOptions');
 % Exercise the actual controller on a small independent suite, avoiding
 % recursion into this suite and dependence on local golden data availability.
-report = run_validation('tests',{'diffmat','diffmat'});
+report = run_verification('tests',{'diffmat','diffmat'});
 assert(numel(report) == 1 && strcmp(report.name,'s_test_suite_diffmat'));
 assert(strcmp(report.status,'passed') && strcmp(path,previous_path));
 assert(strcmp(pwd,previous_folder));

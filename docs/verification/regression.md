@@ -1,7 +1,7 @@
 # Regression
 
 
-MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local validation.
+MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local verification.
 
 `s_test_suite_regression.m` runs the regression cases in the three solver modes and compares `R(t)` with the stored results in `tests/reference/<mode>.mat`. It catches unintended changes of the results.
 
@@ -56,10 +56,10 @@ Regenerate them only when a change of results is intended and agreed (see Contri
 The maintainers will recreate the missing baselines locally in MATLAB. From the checkout root, run independent prechecks, generate the baselines only if they pass, and then run regression:
 
 ```bash
-matlab -batch "cd tests; run_validation('generate-and-test')"
+matlab -batch "cd tests; run_verification('generate-and-test')"
 ```
 
-For generation only, use `run_validation('generate')` from `tests/`. To replace existing files deliberately, pass `true` as the third argument, for example `run_validation('generate-and-test','all',true)`. See [all runner modes and suite selection](../../tests/README.md#one-command-for-all-tests). Ordinary test mode never invokes the generator.
+For generation only, use `run_verification('generate')` from `tests/`. To replace existing files deliberately, pass `true` as the third argument, for example `run_verification('generate-and-test','all',true)`. See [all runner modes and suite selection](../../tests/README.md#one-command-for-all-tests). Ordinary test mode never invokes the generator.
 
 The existing script remains available from the checkout root:
 

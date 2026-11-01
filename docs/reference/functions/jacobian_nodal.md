@@ -7,4 +7,4 @@
 - `t`, `X`: time and state `[R; Rdot; P; theta; Tm; kv; Z]`.
 - `jp`: struct set up by `imr.solve_nodal` with the state indices, differentiation matrices, grids, dimensionless constants, the wall-balance constants, and handles to the closure, the medium dissipation and the wall solve.
 
-For the algorithm and assumptions, see the [topic guide](../../method/time-integration.md). Numerical measurements are retained as [historical reports](../../validation/convergence.md).
+For the algorithm and assumptions, see the [topic guide](../../method/time-integration.md). Numerical measurements are retained as [historical reports](../../verification/convergence.md).

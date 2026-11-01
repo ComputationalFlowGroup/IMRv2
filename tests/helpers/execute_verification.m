@@ -3,7 +3,7 @@
 
 % Execute a checked plan; return failures for the controller's final report.
 % Paths and the generation callback are explicit for isolated fixture tests.
-function report = execute_validation(mode,suite_files,generator,regression_file)
+function report = execute_verification(mode,suite_files,generator,regression_file)
     generation_index = 0;
     if strcmp(mode,'generate')
         suite_files = {''};

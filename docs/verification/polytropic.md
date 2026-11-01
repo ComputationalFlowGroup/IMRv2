@@ -1,4 +1,4 @@
-# Constant-vapor polytropic validation
+# Constant-vapor polytropic verification
 
 `tests/suites/s_test_suite_polytropic.m` checks the common gas/vapor pressure law in both solvers. From `toolchain/`, run `matlab -batch "imr_test_setup; s_test_suite_polytropic"`.
 

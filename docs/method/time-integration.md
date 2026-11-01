@@ -44,7 +44,7 @@ It forms `F = f_rhs(t, [X, X + diag(del)])` and
 `J = (F(:,2:end) - F(:,1))./del.'`.
 The perturbation is `sqrt(eps)*max(abs(X),1)`, rounded to an exactly representable state increment. It zeros entries outside `imr.numerics.jacobian_pattern` and returns a dense Jacobian for dense LU.
 
-Batching amortizes interpreted operations across columns. The earlier implementation description counted 55 sparse dual-number operations for the hybrid analytic path; actual timing depends on configuration and MATLAB. [Reported measurements](../validation/convergence.md#reported-batched-jacobian-measurements) preserve historical comparisons without claiming a new speedup.
+Batching amortizes interpreted operations across columns. The earlier implementation description counted 55 sparse dual-number operations for the hybrid analytic path; actual timing depends on configuration and MATLAB. [Reported measurements](../verification/convergence.md#reported-batched-jacobian-measurements) preserve historical comparisons without claiming a new speedup.
 
 ## Thermal variables
 
@@ -59,4 +59,4 @@ Temperature $T$ is scaled by its far-field value, so $\theta=0$ corresponds to $
 
 `imr.physics.thermal_inverse` supplies the same temperature, conductivity and coefficient derivatives to RHS, reconstruction, wall residuals and Jacobians. `imr.physics.saturation_pressure` shares the exponential law and derivative between profile evaluation and wall physics.
 
-The spectral solver uses gas coefficients. The nodal solver uses the initial mixture without mass transfer and local vapor-dependent mixture with mass transfer. Both use the supplied `alpha` and `beta`; their sum need not equal 1. The wall-condition derivative must use the same transform. See [wall boundaries](wall-boundaries.md) and the [reported correction](../validation/convergence.md#reported-kirchhoff-transform-correction).
+The spectral solver uses gas coefficients. The nodal solver uses the initial mixture without mass transfer and local vapor-dependent mixture with mass transfer. Both use the supplied `alpha` and `beta`; their sum need not equal 1. The wall-condition derivative must use the same transform. See [wall boundaries](wall-boundaries.md) and the [reported correction](../verification/convergence.md#reported-kirchhoff-transform-correction).

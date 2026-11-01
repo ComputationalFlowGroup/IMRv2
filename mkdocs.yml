@@ -90,16 +90,6 @@ nav:
       - "Waveforms": running/waveforms.md
       - "Collapse": running/collapse.md
       - "Troubleshooting": running/troubleshooting.md
-  - MATLAB API:
-      - "Overview": api/index.md
-      - "Unified solver": api/solve.md
-      - "Nodal solver": api/solve_nodal.md
-      - "Spectral solver": api/solve_spectral.md
-      - "Inputs": api/default_inputs.md
-      - "Unit conversion": api/nondimensionalize.md
-      - "Fluid properties": api/f_fluid_properties.md
-      - "Sweep API": api/sweep.md
-      - "Extending": api/extending.md
   - Model:
       - "Assumptions": model/overview.md
       - "Fluid profiles": model/fluids.md
@@ -113,23 +103,30 @@ nav:
       - "Integration and Jacobians": method/time-integration.md
       - "Wall boundaries": method/wall-boundaries.md
       - "Initial stress": method/initial-stress.md
+      - "Equation-of-state evaluation": method/equation-of-state.md
       - "Benchmarks": method/integrator-benchmarks.md
-  - Theory:
-      - "Radial equations": theory/radial-equations.md
-      - "Stress heating": theory/stress-heating.md
-      - "Viscosity integrals": theory/viscosity-integrals.md
-  - Validation:
-      - "Tests": validation/tests.md
-      - "Equilibrium": validation/equilibrium.md
-      - "Gaussian pulse": validation/gaussian.md
-      - "Permutations": validation/permutations.md
-      - "Regression": validation/regression.md
-      - "Operators": validation/operators.md
-      - "Polytropic pressure": validation/polytropic.md
-      - "Numerical bug regressions": validation/numerics.md
-      - "Settings and initialization audit": validation/settings.md
-      - "Reported comparisons": validation/convergence.md
+  - Verification:
+      - "Tests": verification/tests.md
+      - "Equilibrium": verification/equilibrium.md
+      - "Gaussian pulse": verification/gaussian.md
+      - "Permutations": verification/permutations.md
+      - "Regression": verification/regression.md
+      - "Operators": verification/operators.md
+      - "Polytropic pressure": verification/polytropic.md
+      - "Numerical bug regressions": verification/numerics.md
+      - "Settings and initialization audit": verification/settings.md
+      - "Reported comparisons": verification/convergence.md
   - Reference:
+      - Public API:
+          - "Overview": reference/api.md
+          - "Unified solver": reference/solve.md
+          - "Nodal solver": reference/solve_nodal.md
+          - "Spectral solver": reference/solve_spectral.md
+          - "Inputs": reference/default_inputs.md
+          - "Unit conversion": reference/nondimensionalize.md
+          - "Fluid properties": reference/fluid_properties.md
+          - "Sweep API": reference/sweep.md
+          - "Extending": reference/extending.md
       - "Compatibility": reference/compatibility.md
       - "Function call map": reference/function-call-map.md
       - "Internal contracts": reference/internal-contracts.md
