@@ -33,6 +33,22 @@
 %   varin   cell array of dimensionless name/value pairs for the solvers
 %   ref     reference scales: R0 (m), Uc (m/s), t0 (s), P8 (Pa), T8 (K),
 %           rho8 (kg/m^3), to restore dimensions of the solver outputs
+%
+% STRUCTURE (roughly in order):
+%  1. Fluid profile resolution (f_prepare_fluid): if a 'fluid' input is
+%     given, resolve its material data and capabilities first, before any
+%     nondimensionalization, so later steps see only SI name/value pairs.
+%  2. Dimensional defaults (SI), mostly water at room temperature.
+%  3. Read the dimensional inputs; anything unrecognized is passed through
+%     unchanged (model flags, grid sizes, and other already-dimensionless
+%     inputs).
+%  4. Dependent defaults (Req, muo, Dmu, Dm, saturation pressure) that need
+%     another input's value, resolved only after every input is read.
+%  5. Reference scales (Uc, t0, Rnondim, K8) and dimensionless groups (DRe,
+%     LAM) derived from the SI values.
+%  6. Assembly of varin: the fixed dimensionless name/value pairs, plus
+%     p0star/tvector/tfin only if their dimensional input was given, plus
+%     the passthrough pairs.
 function [varin, ref] = nondimensionalize(varargin)
 
     if mod(nargin,2) == 1

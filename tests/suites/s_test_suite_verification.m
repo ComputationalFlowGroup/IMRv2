@@ -30,29 +30,29 @@ generation = @() f_write(marker,'generated');
 previous_path = path;
 previous_folder = pwd;
 previous_warning = warning('query','IMR:fixtureWarning');
-report = execute_verification('tests',{passing,failing,after},generation,regression);
+report = execute_verification(build_verification_plan('tests',{passing,failing,after},generation,regression));
 assert(isequal({report.status},{'passed','failed','passed'}));
 assert(strcmp(report(2).identifier,'IMR:fixtureFailure'));
 assert(isfile(fullfile(fixture_root,'continued.marker')) && ~isfile(marker));
 assert(strcmp(path,previous_path) && strcmp(pwd,previous_folder));
 assert(isequal(warning('query','IMR:fixtureWarning'),previous_warning));
 assert(all([report.seconds] >= 0));
-report = execute_verification('tests',{regression,passing},generation,regression);
+report = execute_verification(build_verification_plan('tests',{regression,passing},generation,regression));
 assert(isequal({report.status},{'failed','passed'}) && ~isfile(marker));
 
 % All prechecks continue, but generation and regression are blocked if one
 % fails. A generation failure also blocks regression, never marking a pass.
-report = execute_verification('generate-and-test',{failing,passing},generation,regression);
+report = execute_verification(build_verification_plan('generate-and-test',{failing,passing},generation,regression));
 assert(isequal({report.status},{'failed','passed','skipped','skipped'}));
 assert(~isfile(marker));
-report = execute_verification('generate-and-test',{passing},@f_fail_generation,regression);
+report = execute_verification(build_verification_plan('generate-and-test',{passing},@f_fail_generation,regression));
 assert(isequal({report.status},{'passed','failed','skipped'}));
 assert(~isfile(marker));
-report = execute_verification('generate-and-test',{passing},generation,regression);
+report = execute_verification(build_verification_plan('generate-and-test',{passing},generation,regression));
 assert(isequal({report.status},{'passed','passed','passed'}));
 assert(isfile(marker));
 delete(marker);
-report = execute_verification('generate',{failing},generation,regression);
+report = execute_verification(build_verification_plan('generate',{failing},generation,regression));
 assert(numel(report) == 1 && strcmp(report.status,'passed') && isfile(marker));
 fprintf('Verification mode sequencing, workspace isolation and failure reports PASSED.\n');
 
