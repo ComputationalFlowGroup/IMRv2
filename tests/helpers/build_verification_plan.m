@@ -12,7 +12,7 @@ function stages = build_verification_plan(mode,files,generator,regression_file)
         return
     end
     for k = 1:numel(files)
-        stages(k) = struct('name',f_stage_name(files{k}),'run',files{k},'dependent',false); %#ok<AGROW>
+        stages(k) = struct('name',f_stage_name(files{k}),'run',files{k},'dependent',false);
     end
     if strcmp(mode,'generate-and-test')
         stages(end+1) = struct('name','generate_references','run',generator,'dependent',true);
