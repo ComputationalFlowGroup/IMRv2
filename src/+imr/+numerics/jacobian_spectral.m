@@ -28,6 +28,17 @@
 % histories directly from Chebyshev modes (A*a) at output times, avoiding
 % wall resolution loops. Frozen-mixture conductivity is precomputed in
 % build_spectral and passed as jp.alpha_m0, jp.beta_m0.
+%
+% STRUCTURE (roughly in order):
+%  1. State unpacking (R, Rdot) and setup.
+%  2. Thermal fields and the boundary condition solve, differentiated
+%     through the Sherman-Morrison factorization (bubtherm).
+%  3. Stress and radial closure, by central differences of the closure.
+%  4. Spectral stress fields (spectral_stress).
+%  5. Zener field rows: linear in the coefficients e; R/Rdot partials by
+%     central differences.
+%  6. Local helper f_closure_fd: central-difference closure Jacobian,
+%     shared by the radial/stress and Zener sections above.
 function J = jacobian_spectral(t, X, jp)
 
     n = numel(X);
