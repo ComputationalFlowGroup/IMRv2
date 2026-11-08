@@ -103,7 +103,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | File | Responsibility | Contract |
 |---|---|---|
 | `src/+imr/+physics/radial_acceleration.m` | Six radial models and pressure-integrated liquid enthalpy | [Radial closure](functions/radial_acceleration.md) |
-| `src/+imr/+physics/polytropic_pressure.m` | Gas pressure derivative with constant vapor pressure | [Polytropic validation](../verification/polytropic.md) |
+| `src/+imr/+physics/polytropic_pressure.m` | Gas pressure derivative with constant vapor pressure | [Polytropic verification](../verification/polytropic.md) |
 | `src/+imr/+physics/material_stress.m` | Material stress and auxiliary-state evolution | [Stress](functions/material_stress.md) |
 | `src/+imr/+physics/viscosity.m` | Shear-dependent viscosity integrals | [Viscosity](functions/viscosity.md) |
 | `src/+imr/+physics/stress_power.m` | Local stress power for medium heating | [Heating](functions/stress_power.md) |

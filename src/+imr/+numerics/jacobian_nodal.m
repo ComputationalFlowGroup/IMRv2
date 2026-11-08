@@ -28,6 +28,22 @@
 % Frozen-mixture conductivity (am0, bm0) is computed once at the top
 % (lines 29-33) and reused throughout, rather than recomputed at each
 % site, to reduce allocation and maintain consistency.
+%
+% STRUCTURE (roughly in order):
+%  1. State unpacking and the frozen-mixture conductivity (shared below).
+%  2. Wall boundary condition: medium/bubble wall balance (masstrans
+%     and/or medtherm), differentiated through the implicit wall solve.
+%  3. Bubble temperature from theta via the mixture coefficients.
+%  4. Vapor concentration at the wall (masstrans).
+%  5. Bubble temperature gradients, bubble pressure, bubble velocity
+%     field, each with and without masstrans.
+%  6. Thermal conductivity, bubble temperature equation, vapor
+%     concentration equation (masstrans).
+%  7. Material (medium) temperature equation (medtherm).
+%  8. Zener field rows: linear in the field itself; R/Rdot partials by
+%     central differences.
+%  9. Radial and stress closure rows, by central differences of the
+%     closure, chained through Pdot.
 function J = jacobian_nodal(t, X, jp)
 
     n = numel(X);
