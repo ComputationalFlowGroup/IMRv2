@@ -23,6 +23,9 @@
 %   Functions: closure, closure_s, taugradu, zener_rhs.
 %   Wall data: A0, UA0, PA0, QA0, LA0 (Sherman-Morrison factorization
 %     matrices), e1, v (rank-one update vectors).
+%   d: the dual-number operations (imr.numerics.dual_operations), built
+%     once in build_spectral since it depends only on the fixed state
+%     size n, not recreated on every Jacobian evaluation.
 %
 % Unlike the nodal solver, the spectral solver computes thermal field
 % histories directly from Chebyshev modes (A*a) at output times, avoiding
@@ -31,7 +34,7 @@
 function J = jacobian_spectral(t, X, jp)
 
     n = numel(X);
-    d = imr.numerics.dual_operations(n);
+    d = jp.d;
     iz = jp.iz;
 
     R = d.var(X, 1);
