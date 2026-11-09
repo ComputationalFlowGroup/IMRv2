@@ -7,6 +7,26 @@
 % states after compatibility adjustments (for example stress mode counts).
 % An empty solver selects from the public 'solver' option, default nodal.
 % A fixed solver (the existing wrappers) rejects a conflicting selection.
+%
+% STRUCTURE (roughly in order):
+%  1. Solver name resolution and input normalization: accept a struct of
+%     name/value pairs (f_struct_pairs) ahead of explicit overrides.
+%  2. Name/value parsing into p (imr.configuration.defaults), tracking which
+%     of p0star/stress0/tfin/tvector were explicitly specified and any
+%     unknown input names.
+%  3. Solver conflict check (a fixed-solver wrapper disagreeing with a
+%     'solver' input) and integrator name/code resolution (f_method_code).
+%  4. tfin-only inputs expanded to a two-point tvector; waveform data
+%     loaded from file for a measured wave_type.
+%  5. imr.configuration.validate_case: every compatibility check and the
+%     checked initial pressures (P0_star, Pb_star).
+%  6. Derived quantities that only validate_case's checked fields allow:
+%     iota, iDRe, initial vapor/gas mixture fractions, JdotA.
+%  7. Collapse equilibrium radius (fzero on the pressure balance), only
+%     when collapse = 1.
+%  8. Initial stress state Szero, sized to the active stress model.
+%  9. Assembly of c (model/numerics/acoustic/forcing/stress/thermal/mass/
+%     initial/time/output groups) and c.inputs/c.layout.
 function c = prepare_case(solver,varargin)
     select_solver = ischar(solver) && isempty(solver);
     if select_solver

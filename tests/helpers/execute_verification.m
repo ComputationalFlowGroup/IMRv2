@@ -1,35 +1,30 @@
 % Copyright (C) The IMR developers (see README.md)
 % SPDX-License-Identifier: GPL-3.0-or-later
 
-% Execute a checked plan; return failures for the controller's final report.
-% Paths and the generation callback are explicit for isolated fixture tests.
-function report = execute_verification(mode,suite_files,generator,regression_file)
-    generation_index = 0;
-    if strcmp(mode,'generate')
-        suite_files = {''};
-        generation_index = 1;
-    elseif strcmp(mode,'generate-and-test')
-        generation_index = numel(suite_files)+1;
-        suite_files = [suite_files,{''},{regression_file}];
-    end
+% Execute a checked plan (see build_verification_plan); return failures for
+% the controller's final report. Each stage names a suite script path or
+% carries the generation callback directly, and marks whether it is
+% dependent on every earlier stage having passed.
+function report = execute_verification(plan)
     empty = struct('name','','status','skipped','seconds',0,'message','','identifier','');
-    report = repmat(empty,1,numel(suite_files));
-    for k = 1:numel(suite_files)
-        if k == generation_index
-            name = 'generate_references';
-            action = generator;
-        else
-            [~,name] = fileparts(suite_files{k});
-            action = @() f_run_script(suite_files{k});
-        end
-        dependent = strcmp(mode,'generate-and-test') && k >= generation_index;
-        blocked = dependent && any(~strcmp({report(1:k-1).status},'passed'));
+    report = repmat(empty,1,numel(plan));
+    for k = 1:numel(plan)
+        stage = plan(k);
+        blocked = stage.dependent && any(~strcmp({report(1:k-1).status},'passed'));
         if blocked
-            report(k).name = name;
+            report(k).name = stage.name;
             report(k).message = 'Blocked by an earlier failed stage. No dependent action was run.';
         else
-            report(k) = f_run_stage(name,action);
+            report(k) = f_run_stage(stage.name,f_stage_action(stage.run));
         end
+    end
+end
+
+function action = f_stage_action(run)
+    if ischar(run) || isstring(run)
+        action = @() f_run_script(char(run));
+    else
+        action = run;
     end
 end
 

@@ -51,13 +51,14 @@ function report = run_verification(mode,suites,overwrite)
         end
     end
     files = cellfun(@(name) fullfile(suite_root,[name '.m']),selected,'UniformOutput',false);
+    plan = build_verification_plan(mode,files,@() generate_references(overwrite),regression_file);
 
     previous_path = path;
     previous_folder = pwd;
     cleanup = onCleanup(@() f_restore(previous_path,previous_folder));
     imr_test_setup;
     fprintf('IMR verification: %s, MATLAB %s\n',mode,version);
-    report = execute_verification(mode,files,@() generate_references(overwrite),regression_file);
+    report = execute_verification(plan);
     fprintf('\nIMR verification summary (%s)\n',mode);
     for k = 1:numel(report)
         fprintf('%-32s %-7s %9.2f s\n',report(k).name, ...
@@ -84,6 +85,10 @@ function selected = f_select(suites,available)
     if ~iscell(suites) || ~isvector(suites) || isempty(suites)
         error('IMR:verificationOptions','suites must be ''all'' or a nonempty list of suite names.');
     end
+    if isscalar(suites) && (ischar(suites{1}) || isstring(suites{1})) && strcmpi(suites{1},'all')
+        selected = available;
+        return
+    end
     selected = cell(1,numel(suites));
     for k = 1:numel(suites)
         name = suites{k};
@@ -92,10 +97,6 @@ function selected = f_select(suites,available)
             error('IMR:verificationOptions','Each suite name must be a text scalar.');
         end
         name = lower(char(name));
-        if strcmp(name,'all') && numel(suites) == 1
-            selected = available;
-            return
-        end
         if ~startsWith(name,'s_test_suite_')
             name = ['s_test_suite_' name]; %#ok<AGROW>
         end
