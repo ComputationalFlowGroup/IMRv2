@@ -24,6 +24,9 @@
 %   Functions: closure, taugradu, theta_bw (wall temperature from state).
 %   Wall struct: iwall_m, iwall_b (medium and bubble wall node indices),
 %     grad_Tm, grad_Tr (wall thermal gradients).
+%   d: the dual-number operations (imr.numerics.dual_operations), built
+%     once in build_nodal since it depends only on the fixed state size n,
+%     not recreated on every Jacobian evaluation.
 %
 % Frozen-mixture conductivity (am0, bm0) is computed once at the top
 % (lines 29-33) and reused throughout, rather than recomputed at each
@@ -52,7 +55,7 @@ function J = jacobian_nodal(t, X, jp)
     ikv = jp.ikv;
     iz = jp.iz;
     nth = numel(ith);
-    d = imr.numerics.dual_operations(n);
+    d = jp.d;
     % frozen gas-vapor mixture conductivity at kv0, shared by the bulk
     % temperature inversion and the thermal-only wall balance (masstrans
     % = 0); kv0 = 0 without vapor, so this is alpha_g, beta_g unchanged
