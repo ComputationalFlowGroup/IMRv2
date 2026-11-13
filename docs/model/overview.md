@@ -1,8 +1,8 @@
 # Problem and assumptions
 
-IMR models a spherical cavitation bubble in a surrounding material. Researchers use its radius history to study material response at high strain rates and compare simulations with high-speed bubble measurements.
+IMR models a spherical cavitation bubble in a surrounding material. Researchers use the bubble radius history to study material response at high strain rates. Researchers can compare the simulation results with high-speed bubble measurements.
 
-The forward solvers compute radial motion coupled to selected heat, vapor and stress models. Parameter fitting and video analysis are separate workflows; this repository's documented entry points are forward solvers and parameter sweeps.
+The forward solvers compute radial motion. The radial motion is coupled to selected heat, vapor and stress models. Parameter fitting and video analysis are separate workflows. This repository's documented entry points are forward solvers and parameter sweeps.
 
 | Part | Choices | Canonical detail |
 |---|---|---|
@@ -12,6 +12,6 @@ The forward solvers compute radial motion coupled to selected heat, vapor and st
 | Forcing | Constant, Gaussian, histotripsy, Heaviside and measured waveforms | [Waveforms](../running/waveforms.md) |
 | Discretization | Nodal finite differences, nodal Chebyshev or spectral expansions | [Methods](../method/discretization.md) |
 
-The spherical formulation does not resolve nonspherical shapes or jets. Model selection, admissible pressure/temperature ranges, spatial resolution and time tolerances limit interpretation of results. A successful integration is not evidence that the chosen physics is appropriate. Use [compatibility](../reference/compatibility.md) before combining features and [verification](../verification/tests.md) to distinguish executable checks from reported measurements.
+The spherical formulation does not resolve nonspherical shapes or jets. Model selection, pressure/temperature ranges, spatial resolution and time tolerances all limit how you can interpret the results. A successful integration run is not proof that the chosen physics model is correct for the case. Check [compatibility](../reference/compatibility.md) before you combine features. Check [verification](../verification/tests.md) to see which checks the code runs and which results are only reported measurements.
 
-The original methods are described by Estrada et al. (2017) and Warnez and Johnsen (2015); see [references](../reference/references.md). Original project attribution and contacts remain in [about](../reference/about.md).
+Estrada et al. (2017) and Warnez and Johnsen (2015) describe the original methods; see [references](../reference/references.md). The [about](../reference/about.md) page keeps the original project attribution and contacts.

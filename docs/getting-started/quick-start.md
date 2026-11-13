@@ -1,6 +1,6 @@
 # Quick start
 
-This example converts physical inputs to IMR's dimensionless variables, solves a Kelvin–Voigt bubble case, and plots dimensional radius against time. Run it in MATLAB from the checkout root.
+This example does three things. It converts physical inputs to IMR's dimensionless variables. It solves a Kelvin–Voigt bubble case. It plots the dimensional radius against time. Run this example in MATLAB from the checkout root.
 
 ```matlab
 % Make the solver functions available.
@@ -28,6 +28,6 @@ ylabel('Bubble radius (m)');
 
 ## Execution status
 
-This is the existing README example, checked against `src/+imr/nondimensionalize.m` and the solver interface. MATLAB was not run for this documentation change. There is no captured transcript or verified numerical output to display yet; the user will test locally. No sample numbers or plots have been invented.
+This example is the same example from the README. The authors checked it against `src/+imr/nondimensionalize.m` and the solver interface. Nobody ran MATLAB for this documentation change. This page does not show a captured transcript or a verified numerical output yet. You must run and check the example yourself. This page does not invent any sample numbers or plots.
 
-After a successful run, inspect that the returned histories cover the requested output times and contain finite values. Use [outputs](../running/output.md) to interpret the arrays, and run the [test suites](../verification/tests.md) for stronger checks. See [examples](examples.md) for other workflows.
+After a successful run, check two things. Check that the returned histories cover the requested output times. Check that the histories contain only finite values. Use [outputs](../running/output.md) to interpret the arrays. Run the [test suites](../verification/tests.md) for stronger checks. See [examples](examples.md) for other workflows.

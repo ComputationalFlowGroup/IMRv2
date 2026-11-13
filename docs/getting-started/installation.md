@@ -1,6 +1,6 @@
 # Installation
 
-IMRv2 runs in MATLAB R2021a or newer. The forward solvers use base MATLAB. Read documentation directly on GitHub; no website build is needed.
+IMRv2 runs in MATLAB R2021a or a later release. The forward solvers need only base MATLAB. You can read this documentation directly on GitHub. You do not need to build a website.
 
 | Component | Requirement | Scope |
 |---|---|---|
@@ -31,14 +31,16 @@ which imr.solve_nodal
 which imr.solve_spectral
 ```
 
-`which` must resolve both functions inside this checkout's `src/`. `imr_setup` also exposes the example scripts and the root setup function, so these remain callable after changing folders. It does not use `genpath`, add test fixtures or save paths permanently. Run it once per session, or persist the resulting paths with MATLAB's `savepath` if desired. The [quick start](quick-start.md) exercises the solver; resolving a function alone does not validate a simulation.
+Each `which` command must resolve to a path inside this checkout's `src/` folder. `imr_setup` also adds the example scripts and the root setup function to the path. These stay callable after you change folders. `imr_setup` does not use `genpath`. It does not add test fixtures. It does not save the path permanently. Run `imr_setup` once in each MATLAB session. You can also save the path with MATLAB's `savepath` command.
+
+Resolving a function name is not a full check. Run the [quick start](quick-start.md) to check that the solver runs.
 
 ## Documentation tools
 
-Reading the [documentation index](../index.md) requires no installation. For source-documentation checks, install the tools listed in [CI](../reference/ci.md#source-documentation-checks), then run from the checkout root:
+You do not need to install anything to read the [documentation index](../index.md). To check the source documentation, first install the tools listed in [CI](../reference/ci.md#source-documentation-checks). Then run this command from the checkout root:
 
 ```bash
 bash toolchain/docs/check.sh
 ```
 
-Website configuration is retained but inactive. See [reactivating MkDocs](../reference/ci.md#reactivating-mkdocs) when a website is wanted, and [troubleshooting](../running/troubleshooting.md) for solver setup errors.
+The website configuration stays in the repository, but it is not active. See [reactivating MkDocs](../reference/ci.md#reactivating-mkdocs) if you want to build the website. See [troubleshooting](../running/troubleshooting.md) for solver setup errors.
