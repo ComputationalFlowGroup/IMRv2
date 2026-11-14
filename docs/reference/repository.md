@@ -1,6 +1,6 @@
 # Repository map
 
-The checkout separates solver functions, examples, developer tooling and documentation. Generated run outputs are not source files and should not be committed. For how functions inside `src/` call each other, see the [function call map](function-call-map.md).
+The checkout separates solver functions, examples, developer tooling and documentation. Generated run outputs are not source files. Do not commit generated run outputs. For how functions inside `src/` call each other, see the [function call map](function-call-map.md).
 
 | Path | Purpose |
 |---|---|
@@ -34,4 +34,4 @@ The checkout separates solver functions, examples, developer tooling and documen
 | `.gitignore` | Generated/local-file patterns |
 | `site/` | Ignored local documentation build output |
 
-For local development commands, see [CI](ci.md). Some historical benchmark scripts write into their own directory; preserve supplied data and use a separate output location when rerunning them.
+For local development commands, see [CI](ci.md). Some historical benchmark scripts write into their own directory. Preserve the supplied data. Use a separate output location when you rerun them.

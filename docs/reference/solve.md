@@ -12,9 +12,9 @@ p.rdotzero = 0.01;
 [ts,Rs] = imr.solve(p,'solver','spectral');
 ```
 
-`solver` accepts `'nodal'` or `'spectral'`, as a character vector or string scalar, case-insensitively. Later pairs override earlier values and a struct's `solver` field. `imr.default_inputs` stays solver-neutral so it can be passed to either existing wrapper. The returned `inputs.solver` records the selected solver, allowing replay through `imr.solve(inputs)`.
+`solver` accepts `'nodal'` or `'spectral'`, as a character vector or string scalar, case-insensitively. Later pairs override earlier values and a struct's `solver` field. `imr.default_inputs` stays solver-neutral. You can pass it to either existing wrapper. The returned `inputs.solver` records the selected solver. This lets you replay through `imr.solve(inputs)`.
 
-The solver is selected once before constructing operators and integrating. Both implementations retain their own field representations and [compatibility restrictions](compatibility.md). Unsupported options raise input errors; selection does not enable spectral mass transfer or automatically change to another solver. The existing `spectral` option continues to select a stress representation and does not choose the solver.
+The code selects the solver once, before it constructs operators and integrates. Both implementations retain their own field representations and [compatibility restrictions](compatibility.md). Unsupported options raise input errors. Selecting a solver does not enable spectral mass transfer. Selecting a solver does not automatically change to another solver. The existing `spectral` option continues to select a stress representation. It does not choose the solver.
 
 ## Outputs
 
