@@ -30,4 +30,4 @@ Options, given after the swept inputs:
 | `res` | Struct array of size `[numel(values1), numel(values2), ...]`; the first swept input varies fastest. Fields: `inputs` (the run's swept name/value pairs), `out` (cell of the kept solver outputs), `error` (the error message of a failed run, `''` otherwise) |
 | `grid` | Struct with the swept `names` and their `values` |
 
-A failed run records its error message and the sweep continues.
+A failed run records its error message. The sweep continues.

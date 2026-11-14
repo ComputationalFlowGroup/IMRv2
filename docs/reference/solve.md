@@ -22,8 +22,8 @@ The code selects the solver once, before it constructs operators and integrates.
 [t,R,Rdot,P,T,Tm,kv,inputs,Rddot,S,Sdot] = imr.solve(p,'solver','nodal');
 ```
 
-The first eight output positions are preserved. Optional output 9, `Rddot`, is the dimensionless wall acceleration at each returned time, evaluated from the governing equations. Optional outputs 10 and 11, `S` and `Sdot`, are the dimensionless stress integral and its time derivative, evaluated from the same right-hand-side call as `Rddot` at no added cost. No extra postprocessing runs when only the first eight outputs are requested. See [output shapes, SI scaling and acceleration cost](../running/output.md).
+The code preserves the first eight output positions. Optional output 9, `Rddot`, is the dimensionless wall acceleration at each returned time, evaluated from the governing equations. Optional outputs 10 and 11, `S` and `Sdot`, are the dimensionless stress integral and its time derivative, evaluated from the same right-hand-side call as `Rddot` at no added cost. If you request only the first eight outputs, no extra postprocessing runs. See [output shapes, SI scaling and acceleration cost](../running/output.md).
 
-`imr.solve_nodal` and `imr.solve_spectral` remain supported and accept the same optional outputs 9-11. They fix the solver choice and reject a conflicting `solver` option. All calls share preparation, integration and optional reconstruction of `Rddot`, `S` and `Sdot` through `imr.solvers.run`; the numerical equations are implemented once per solver.
+`imr.solve_nodal` and `imr.solve_spectral` remain supported and accept the same optional outputs 9-11. They fix the solver choice and reject a conflicting `solver` option. All calls share preparation, integration and optional reconstruction of `Rddot`, `S` and `Sdot`, through `imr.solvers.run`. Each solver implements its numerical equations once.
 
-See [configuration](../running/configuration.md), [parameters](../model/parameters.md) and [solver modes](../running/solvers.md). These examples require local MATLAB validation; no numerical execution is claimed here.
+See [configuration](../running/configuration.md), [parameters](../model/parameters.md) and [solver modes](../running/solvers.md). These examples require local MATLAB validation. This page claims no numerical execution.

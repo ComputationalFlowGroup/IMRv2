@@ -8,7 +8,7 @@
 
 Inputs follow the same dimensionless [configuration forms](../running/configuration.md) as the nodal solver. The [parameter table](../model/parameters.md) owns accepted names and defaults. `kv`, output 7, is always empty; other arrays follow the [shared output contract](../running/output.md).
 
-The first eight outputs retain their positions; optional output 9 is wall acceleration, and optional outputs 10 and 11 are the stress integral and its time derivative. Use [`imr.solve(...,'solver','spectral')`](solve.md) for the common entry point. This wrapper fixes the spectral solver and rejects a conflicting `solver` value.
+The first eight outputs retain their positions. Optional output 9 is wall acceleration. Optional outputs 10 and 11 are the stress integral and its time derivative. Use [`imr.solve(...,'solver','spectral')`](solve.md) for the common entry point. This wrapper fixes the spectral solver and rejects a conflicting `solver` value.
 
 | Input | Spectral-specific behavior |
 |---|---|
@@ -20,6 +20,6 @@ The first eight outputs retain their positions; optional output 9 is wall accele
 | `jacobian = 3` | Rejected; nodal solver only |
 | `scheme` | Leave at zero; nonzero value is rejected |
 
-Vapor mass transfer and currently supported collapse are unavailable. With stress 9 and medium heat, the checker selects the local stress field and warns. Stress 10 and 11 (PTT, Giesekus; see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-10-11)) always use it, forcing `spectral = 1` with a warning if it was 0. See [compatibility](compatibility.md).
+Vapor mass transfer is unavailable. Currently supported collapse is also unavailable. With stress 9 and medium heat, the checker selects the local stress field and warns. Stress 10 and 11 (PTT, Giesekus; see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-10-11)) always use it. If `spectral` was 0, the code forces `spectral = 1` and warns. See [compatibility](compatibility.md).
 
 Implementation: `imr.configuration.prepare_case` → `imr.solvers.build` → `imr.numerics.integrate` → output reconstruction. Spectral operators and closures live in `src/+imr/+solvers/build_spectral.m`. See [discretization](../method/discretization.md), [stress and viscosity](../model/stress-viscosity.md) and [reported comparisons](../verification/convergence.md).
