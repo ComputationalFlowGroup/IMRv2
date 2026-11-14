@@ -11,9 +11,9 @@
 | 5 | Keller–Miksis, enthalpy form | Mie–Grüneisen EoS |
 | 6 | Gilmore | Mie–Grüneisen EoS, local sound speed |
 
-An equation of state (EoS) relates pressure to the liquid density and acoustic quantities. The enthalpy forms use a pressure-only relation at the far-field temperature; they cannot be combined with medium heat transfer in this implementation. Radial 5–6 are further limited to the polytropic bubble. See [compatibility](../reference/compatibility.md) for complete requirements.
+An equation of state (EoS) relates pressure to the liquid density and acoustic quantities. The enthalpy forms use a pressure-only relation at the far-field temperature. This implementation does not combine the enthalpy forms with medium heat transfer. Radial 5–6 support only the polytropic bubble. See [compatibility](../reference/compatibility.md) for the complete requirements.
 
-`cstar`, `gama`, `nstate` and `hugoniot_s` are defined in [parameters](parameters.md#acoustic-options). Choosing radial 5 or 6 does not supply a validated material parameter set. Material profiles and radial EoS coefficients have distinct roles; see [fluid profiles](fluids.md).
+`cstar`, `gama`, `nstate` and `hugoniot_s` are defined in [parameters](parameters.md#acoustic-options). Choosing radial 5 or 6 does not supply a validated material parameter set. Material profiles and radial EoS coefficients have distinct roles. See [fluid profiles](fluids.md).
 
 All quantities below are dimensionless: radius is scaled by $R_0$, pressure by $P_\infty$, density by $\rho_\infty$, velocity by $U_c=\sqrt{P_\infty/\rho_\infty}$, time by $R_0/U_c$, and liquid enthalpy by $U_c^2$. A dot denotes a derivative with respect to that dimensionless time. See [parameters](parameters.md) for SI conversion. The implementation notes for the Tait and Mie–Grüneisen EoS evaluation live in the [equation-of-state method](../method/equation-of-state.md).
 
@@ -28,7 +28,7 @@ All quantities below are dimensionless: radius is scaled by $R_0$, pressure by $
 | *W*, *A_S* | Surface-tension factor and acceleration-dependent stress coefficient | `iWe`, expression below |
 | *C*, *ρ*, *h*, *H* | Sound speed, liquid density, reference enthalpy and wall/far-field difference | Radial closure |
 
-Radius must remain positive and the acceleration denominator must be nonsingular. Pressure-form Keller–Miksis keeps the ambient sound speed fixed and retains first-order wall-Mach effects. Enthalpy models additionally require admissible pressures and positive density/sound speed on their barotrope. See [compatibility](../reference/compatibility.md) for thermal restrictions.
+Radius must remain positive. The acceleration denominator must be nonsingular. Pressure-form Keller–Miksis keeps the ambient sound speed fixed. Pressure-form Keller–Miksis also keeps first-order wall-Mach effects. Enthalpy models also require admissible pressures. Enthalpy models also require positive density and sound speed on their barotrope. See [compatibility](../reference/compatibility.md) for the thermal restrictions.
 
 Let $U=\dot R$, let $P$ be total bubble pressure (gas plus enabled vapor), and let $f(t)$ be the imposed pressure above ambient (`Pf8`). Then the far-field absolute pressure is $p_f=1+f$. Define the liquid pressure at the wall and the driving difference by
 
@@ -42,7 +42,7 @@ $$
 \ddot R=\frac{Q-\tfrac32 U^2}{R}.
 $$
 
-The stress derivative contains terms proportional to acceleration. The code's `Sdot` is the remaining term, denoted $\dot S_0$ here; the coefficient of $-\ddot R$ is collected in $A_S$:
+The stress derivative contains terms proportional to acceleration. The code's `Sdot` is the remaining term. This page denotes that term $\dot S_0$. The coefficient of $-\ddot R$ is collected in $A_S$:
 
 $$
 \frac{dS}{dt}=\dot S_0-A_S\ddot R,\qquad
@@ -50,7 +50,7 @@ A_S=\frac{\mathtt{JdotA}}{R}
 +6\,\mathtt{ddintfnu}\,\mathtt{iDRe}.
 $$
 
-`JdotA` accounts for instantaneous Newtonian/solvent stress, while `ddintfnu` is the acceleration coefficient of the non-Newtonian viscosity integral's derivative. Their definitions and the solvent share in `iDRe` are described in [stress and viscosity](stress-viscosity.md).
+`JdotA` accounts for instantaneous Newtonian/solvent stress. `ddintfnu` is the acceleration coefficient of the non-Newtonian viscosity integral's derivative. [Stress and viscosity](stress-viscosity.md) describes their definitions and the solvent share in `iDRe`.
 
 Pressure-form Keller–Miksis (`radial = 2`) uses the fixed ambient sound speed $C=\mathtt{cstar}$:
 
@@ -65,7 +65,7 @@ $$
 }.
 $$
 
-The terms containing $1/C$ represent finite sound-speed effects; sending $C$ to infinity recovers Rayleigh–Plesset. Moving the acceleration-dependent stress term to the denominator avoids using an unknown acceleration in the numerator. [Fluid preparation](../reference/nondimensionalize.md#fluid-profiles) determines ambient density and sound speed once; this branch does not evaluate a wall EoS during integration.
+The terms containing $1/C$ represent finite sound-speed effects. Sending $C$ to infinity recovers Rayleigh–Plesset. Moving the acceleration-dependent stress term to the denominator avoids using an unknown acceleration in the numerator. [Fluid preparation](../reference/nondimensionalize.md#fluid-profiles) determines ambient density and sound speed once. This branch does not evaluate a wall EoS during integration.
 
 ## Enthalpy forms
 
@@ -93,8 +93,8 @@ $$
 {(1-U/C)R+R A_S/(C\rho(p_w))}.
 $$
 
-Keller–Miksis enthalpy (`radial = 3, 5`) uses `cstar`; Gilmore (`radial = 4, 6`) uses the local wall sound speed. Matching wall and far-field pressures and derivatives gives zero acceleration at rest. The previous implementation subtracted $f$ and $\dot f$ directly, approximating the far-field density by one. The corrected code evaluates both enthalpy terms with the selected EoS; driven enthalpy histories can change. Unforced calculations retain the same reference state.
+Keller–Miksis enthalpy (`radial = 3, 5`) uses `cstar`. Gilmore (`radial = 4, 6`) uses the local wall sound speed. Matching wall and far-field pressures and derivatives gives zero acceleration at rest. The previous implementation subtracted $f$ and $\dot f$ directly. The previous implementation approximated the far-field density by one. The corrected code evaluates both enthalpy terms with the selected EoS. As a result, driven enthalpy histories can change. Unforced calculations keep the same reference state.
 
 The Tait relation (radial 3–4) and the existing Hugoniot-based Mie–Grüneisen relation (radial 5–6) that supply $\rho(p)$, $h(p)$ and $C(p)$ above are stated in the [equation-of-state method](../method/equation-of-state.md), along with their numerically robust evaluation.
 
-See [compatibility](../reference/compatibility.md) for thermal restrictions, [numerical checks](../verification/numerics.md) for forcing regressions, and [reported comparisons](../verification/convergence.md#reported-radial-enthalpy-comparison) for historical unforced measurements.
+See [compatibility](../reference/compatibility.md) for the thermal restrictions. See [numerical checks](../verification/numerics.md) for the forcing regressions. See [reported comparisons](../verification/convergence.md#reported-radial-enthalpy-comparison) for the historical unforced measurements.

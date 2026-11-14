@@ -1,6 +1,6 @@
 # Parameter sweeps
 
-`imr.sweep` runs a full grid of input combinations and records each result or error. Its [API page](../reference/sweep.md) defines options and array layout.
+`imr.sweep` runs a full grid of input combinations. It records each result or error. Its [API page](../reference/sweep.md) defines the options and the array layout.
 
 ## Small dimensionless grid
 
@@ -28,10 +28,10 @@ res = imr.sweep(@imr.solve_nodal, base, 'mu', logspace(-3, -1, 8), ...
 failed = arrayfun(@(r) ~isempty(r.error), res);
 ```
 
-A transform requires a cell array for `base`; a struct cannot be combined with a transform. Parallel execution requires Parallel Computing Toolbox. Omit `parallel` or use `false` for serial execution. These examples are source-checked and await local MATLAB execution.
+A transform requires a cell array for `base`. You cannot combine a struct with a transform. Parallel execution requires the Parallel Computing Toolbox. Omit `parallel`, or set it to `false`, for serial execution. The authors checked these examples against the source. Nobody has run these examples on local MATLAB yet.
 
 ## Large bundled studies
 
-`examples/f_multirun.m` returns five studies: Newtonian, neo-Hookean, Kelvin–Voigt, UCM and Oldroyd-B. Most contain 4096 combinations; the UCM study has `ceil(4096^(1/3))^3 = 4913`. The relaxation times are built as factors of `mu/G`, then converted to dimensionless inputs. These large grids are not installation smoke tests.
+`examples/f_multirun.m` returns five studies: Newtonian, neo-Hookean, Kelvin–Voigt, UCM and Oldroyd-B. Most studies contain 4096 combinations. The UCM study has `ceil(4096^(1/3))^3 = 4913` combinations. The script builds the relaxation times as factors of `mu/G`. The script then converts them to dimensionless inputs. These large grids are not installation smoke tests.
 
-`examples/matlab-submitjob.sh` is a site-specific Slurm template that calls `matlab-threaded` and saves `multirun.mat`. Adapt scheduler resources and MATLAB invocation to your cluster before using it. No cluster execution was validated here.
+`examples/matlab-submitjob.sh` is a site-specific Slurm template. It calls `matlab-threaded`. It saves `multirun.mat`. Before you use it, adapt the scheduler resources and the MATLAB invocation to your cluster. Nobody validated a cluster execution here.

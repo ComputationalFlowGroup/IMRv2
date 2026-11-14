@@ -19,7 +19,7 @@
 
 The numbering groups by family and complexity: 1–4 the Kelvin-Voigt family (no stress history), 5–8 the matching Maxwell/Jeffreys/Zener family (one stress integral), 9 UCM/Oldroyd-B (two integrals), 10–11 PTT/Giesekus (spectral field only, no closed form). Within each spring-bearing family the spring itself goes neo-Hookean, quadratic, 2nd-order Fung, Mooney-Rivlin.
 
-Actual labels depend on `Ca`, `Re8` and `LAM`; see the canonical [display-label table](../reference/functions/describe_case.md#constitutive-model-label). Stress 9–11 force `Ca = Inf`. Stress 5–11 require `De >= 1e-4`; use the small-De limit named by the checker below that threshold. `eps3` is accepted and displayed, and enters only the Giesekus model (stress 11); it is otherwise unused.
+Actual labels depend on `Ca`, `Re8` and `LAM`. See the canonical [display-label table](../reference/functions/describe_case.md#constitutive-model-label). Stress 9–11 force `Ca = Inf`. Stress 5–11 require `De >= 1e-4`. Below that threshold, use the small-De limit that the checker names. `eps3` is accepted and displayed. `eps3` enters only the Giesekus model (stress 11). Every other model ignores `eps3`.
 
 ## Neo-Hookean and quadratic (stress 1, 2, 5, 6)
 
@@ -45,7 +45,7 @@ $$
 
 reusing $\alpha_x$: no new input is needed. $\alpha_x=0$ reduces stress 3 to stress 1 and stress 7 to stress 5 exactly, the same reduction stress 2 and 6 already have at $\alpha_x=0$.
 
-The wall (radial-equation) stress integral $S$ was cross-checked against `funIMRsolver.m`'s `fung2` branch ([`InertialMicrocavitationRheometry/IMR_v1`](https://github.com/InertialMicrocavitationRheometry/IMR_v1)), after correcting that source's reversed stretch convention ($R/R_{eq}$ there, $R_{eq}/R$ here). The local field $s_e$ above was derived independently, as the next term of the same series stress 2 already truncates, then checked two ways before being trusted: its integral $S=2\int_1^\infty s_e/y\,dy$ reproduces the cross-checked wall formula exactly (not just approximately) over a range of $R$, $R_{eq}$, $\mathrm{Ca}$ and $\alpha_x$, and its $R_{eq}/R$-derivative matches the wall formula's own `Sdot` by construction (`imr.physics.material_stress`). This local field is exact, not an approximation, so the medium heating of stress 3/7 is on the same footing as stress 1, 2, 5, 6's.
+This documentation cross-checked the wall (radial-equation) stress integral $S$ against `funIMRsolver.m`'s `fung2` branch ([`InertialMicrocavitationRheometry/IMR_v1`](https://github.com/InertialMicrocavitationRheometry/IMR_v1)). This cross-check first corrected that source's reversed stretch convention ($R/R_{eq}$ there, $R_{eq}/R$ here). The local field $s_e$ above comes from an independent derivation, as the next term of the same series that stress 2 already truncates. This documentation checked that derivation two ways before trusting it. First: its integral $S=2\int_1^\infty s_e/y\,dy$ reproduces the cross-checked wall formula exactly, not just approximately, over a range of $R$, $R_{eq}$, $\mathrm{Ca}$ and $\alpha_x$. Second: its $R_{eq}/R$-derivative matches the wall formula's own `Sdot` by construction (`imr.physics.material_stress`). This local field is exact, not an approximation. So the medium heating of stress 3/7 stands on the same footing as stress 1, 2, 5, 6's.
 
 ## Mooney-Rivlin (stress 4, 8)
 
@@ -57,7 +57,7 @@ $$
 
 with $C_2$ the new, dimensionless second-modulus ratio ($C_2=0$ reduces exactly to neo-Hookean). Stress 4 (Kelvin-Voigt) and 8 (the same spring in the linear Maxwell/Jeffreys/Zener family) use it.
 
-Neither source codebase implements Mooney-Rivlin, so both the local field and its wall (radial-equation) integral are derived here from scratch, not ported. The new $C_2$ term's integral collapses, under the substitution $v=\lambda$ already used for the existing terms, to the elementary
+Neither source codebase implements Mooney-Rivlin. This documentation derives both the local field and its wall (radial-equation) integral from scratch. It does not port them from another source. The new $C_2$ term's integral uses the same substitution $v=\lambda$ as the existing terms. Under that substitution, the integral collapses to the elementary
 
 $$
 2\int_1^\infty \frac{\lambda^4-\lambda^{-2}}{y}\,dy = \frac{2}{R_{st}}-R_{st}^2-1,\qquad R_{st}=\frac{R_{eq}}{R},

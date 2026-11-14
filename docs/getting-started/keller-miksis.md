@@ -1,6 +1,6 @@
 # Worked Keller–Miksis pressure case
 
-This example follows water properties from SI input to the pressure-form radial equation. It uses a constant ambient density and sound speed, a polytropic gas and a Newtonian liquid. It does not evaluate a changing wall-temperature EoS.
+This example follows water properties from SI input to the pressure-form radial equation. It uses a constant ambient density, a constant sound speed, a polytropic gas and a Newtonian liquid. It does not evaluate a changing wall-temperature equation of state (EoS).
 
 ```matlab
 imr_setup
@@ -15,7 +15,7 @@ xlabel('Time (microseconds)')
 ylabel('Radius (micrometers)')
 ```
 
-The explicit `rho8` and `c8` override the legacy water reference values for this example; they are not a new water fit. The zero shear modulus gives `ca = Inf`. `stress = 1` then supplies Newtonian viscosity without elasticity. `Req = R0` sets the initial mechanical equilibrium pressure; the nonzero initial velocity perturbs that equilibrium and starts the oscillation.
+The explicit `rho8` and `c8` override the legacy water reference values for this example. They are not a new water fit. The zero shear modulus gives `ca = Inf`. `stress = 1` then supplies Newtonian viscosity without elasticity. `Req = R0` sets the initial mechanical equilibrium pressure. The nonzero initial velocity perturbs that equilibrium and starts the oscillation.
 
 ## Conversion and interpretation
 
@@ -29,7 +29,7 @@ C=C_\infty/U_c,\qquad
 \mathrm{We}=\frac{P_\infty R_0}{2\sigma}.
 $$
 
-Here $\mu$ is dynamic viscosity in Pa s and $\sigma$ is surface tension in N/m. All solver arguments and returned quantities are dimensionless; physical time, radius, velocity and pressure are `t*ref.t0`, `R*ref.R0`, `U*ref.Uc` and `P*ref.P8`.
+Here $\mu$ is dynamic viscosity in Pa s and $\sigma$ is surface tension in N/m. All solver arguments and returned quantities are dimensionless. Physical time, radius, velocity and pressure are `t*ref.t0`, `R*ref.R0`, `U*ref.Uc` and `P*ref.P8`.
 
 | Converted quantity | Approximate value | Where it enters |
 |---|---|---|
@@ -43,4 +43,4 @@ Here $\mu$ is dynamic viscosity in Pa s and $\sigma$ is surface tension in N/m. 
 
 `imr.nondimensionalize` computes these groups once. `imr.configuration.prepare_case` derives initial pressure and acceleration-dependent stress coefficients. The nodal factory passes them by name into the RHS, which calls `imr.physics.material_stress` and `imr.physics.radial_acceleration`. The [pressure-form equation](../model/radial-dynamics.md#pressure-forms) defines every term and its sign.
 
-The equation requires positive radius and a nonsingular acceleration denominator. The Keller–Miksis approximation describes finite sound-speed effects through first-order wall-Mach terms; it is not a model for arbitrary supersonic wall motion. Increasing `cstar` should approach the [Rayleigh–Plesset limit](../model/radial-dynamics.md#pressure-forms). See [numerical checks](../verification/numerics.md) and [system checks](../reference/internal-contracts.md#verification) for executable consistency tests rather than a claimed experimental accuracy.
+The equation requires a positive radius and a nonsingular acceleration denominator. The Keller–Miksis approximation describes finite sound-speed effects through first-order wall-Mach terms. It is not a model for arbitrary supersonic wall motion. Increasing `cstar` should approach the [Rayleigh–Plesset limit](../model/radial-dynamics.md#pressure-forms). See [numerical checks](../verification/numerics.md) and [system checks](../reference/internal-contracts.md#verification) for the executable consistency tests. These tests are not a claim of experimental accuracy.

@@ -1,10 +1,10 @@
 # Contributing to IMR
 
-This guide walks you through a contribution from start to finish: fork the repository, make your change, run the same checks that the continuous integration (CI) runs, and open a pull request.
+This guide walks you through a contribution from start to finish. You fork the repository. You make your change. You run the same checks that continuous integration (CI) runs. You open a pull request.
 
-IMR is released under the [GNU General Public License](https://github.com/mrodrig6/imrv2/blob/main/LICENSE), version 3 or (at your option) any later version (`GPL-3.0-or-later`). By submitting a contribution, you agree that it is licensed under the same terms, and you confirm that you have the right to contribute it. For example, do not copy code from sources whose license is incompatible with the GPL.
+IMR is released under the [GNU General Public License](https://github.com/mrodrig6/imrv2/blob/main/LICENSE), version 3 or (at your option) any later version (`GPL-3.0-or-later`). By submitting a contribution, you agree that the same license covers it. You also confirm that you have the right to contribute it. For example, do not copy code from a source whose license is incompatible with the GPL.
 
-If you are planning a large change, such as a new physical model, a new solver option or a change to stored results, open an issue first or ask on the IMR Slack workspace. Agreeing on the approach early saves rework later.
+Are you planning a large change, such as a new physical model, a new solver option or a change to stored results? Open an issue first, or ask on the IMR Slack workspace. Agreeing on the approach early saves rework later.
 
 ## Contents
 
@@ -34,7 +34,7 @@ If you are planning a large change, such as a new physical model, a new solver o
     git checkout -b my-change upstream/main
     ```
 
-    Use one branch per change, and give it a descriptive name, such as `fix-wall-temperature` or `add-cross-viscosity`.
+    Use one branch per change. Give each branch a descriptive name, such as `fix-wall-temperature` or `add-cross-viscosity`.
 
 ### Tools you need
 
@@ -59,13 +59,13 @@ If you are planning a large change, such as a new physical model, a new solver o
 
 ### Code conventions
 
-Use lowercase `snake_case` without an `f_` prefix for new functions. Place public calls in `+imr` and implementations in their responsibility package. The [namespace guide](namespaces.md) covers file/function naming, compatibility and runtime checks.
+Use lowercase `snake_case` without an `f_` prefix for new functions. Place public calls in `+imr`. Place implementations in their responsibility package. The [namespace guide](namespaces.md) covers file/function naming, compatibility and runtime checks.
 
-- **Base MATLAB only.** Code in `src/` must not need any toolbox, so do not add calls to toolbox functions.
-- **Dimensionless inputs.** The solvers take and return dimensionless quantities only. Dimensional values are converted beforehand with `src/+imr/nondimensionalize.m`.
-- **Adding an input.** Follow the [extension guide](extending.md): add the default in `imr.configuration.defaults`, its public/internal mapping and discrete rule in `imr.configuration.schema`, and its named prepared-case field in `imr.configuration.prepare_case`. Keep coupled physical restrictions in `imr.configuration.validate_case`, document the input, and add an independent numerical check.
+- **Base MATLAB only.** Code in `src/` must not need any toolbox. Do not add calls to toolbox functions.
+- **Dimensionless inputs.** The solvers take and return only dimensionless quantities. Convert dimensional values beforehand with `src/+imr/nondimensionalize.m`.
+- **Adding an input.** Follow the [extension guide](extending.md). Add the default in `imr.configuration.defaults`. Add its public/internal mapping and discrete rule in `imr.configuration.schema`. Add its named prepared-case field in `imr.configuration.prepare_case`. Keep coupled physical restrictions in `imr.configuration.validate_case`. Document the input. Add an independent numerical check.
 - **Named internal contracts.** Both solvers consume `imr.configuration.prepare_case` and `imr.solvers.build`. Use `imr.solvers.state_layout` blocks for initialization, RHS, Jacobians and reconstruction. Do not add new positional unpacking to the solvers.
-- **File headers.** Start every `.m` file with the same header as the existing files: the file name, a one-line summary, the license block, then the description. The license block is a separate comment block, so it stays out of MATLAB's `help` text, which shows only the first block.
+- **File headers.** Start every `.m` file with the same header as the existing files: the file name, a one-line summary, the license block, then the description. The license block is a separate comment block, so it stays out of MATLAB's `help` text. The `help` text shows only the first block.
 
     ```matlab
     % file example_quantity.m
@@ -80,7 +80,7 @@ Use lowercase `snake_case` without an `f_` prefix for new functions. Place publi
 
     Shell scripts carry the same two license lines as `#` comments after the `#!` line.
 
-- **Avoid semicolons inside strings and comments.** To keep one statement per line, `s_format` splits every line that contains more than one `;` at the first one. It does not know about strings or comments, so a line such as `error(['... not available; use radial = 1']);` is split inside the string, which breaks the code. Use a comma or a full stop instead.
+- **Avoid semicolons inside strings and comments.** To keep one statement per line, `s_format` splits every line that contains more than one `;` at the first one. It does not know about strings or comments. So a line such as `error(['... not available; use radial = 1']);` is split inside the string, and this breaks the code. Use a comma or a full stop instead.
 
 - **Comments.** Explain why the code does something, especially for numerical choices such as tolerances, brackets and quadrature rules.
 - **Keep changes focused.** One topic per pull request. Unrelated clean-ups go in their own pull request.
@@ -96,23 +96,23 @@ Use lowercase `snake_case` without an `f_` prefix for new functions. Place publi
 Source-checking and spelling commands live in [CI](ci.md). Read and review the Markdown on GitHub. The Material site configuration in `mkdocs.yml` is dormant; CI does not build or deploy a website.
 
 - Add new pages to the matching section folder and navigation.
-- Keep `docs/index.md` as a normal Markdown topic index and link to the README for setup. Do not add custom Python source or duplicate README prose in other pages.
-- Use relative links between Markdown pages so they also work on GitHub. Link repository code files explicitly when useful.
-- Start a page with a short scope statement. Keep tables for parameters and contracts; link canonical facts rather than repeating them.
-- Give figures descriptive alt text and keep their source/rebuild instructions beside them.
-- Lists need a blank line before them. Indent nested content by four spaces for the Markdown engine.
+- Keep `docs/index.md` as a normal Markdown topic index. Link to the README for setup. Do not add custom Python source. Do not duplicate README prose in other pages.
+- Use relative links between Markdown pages, so they also work on GitHub. Link repository code files explicitly when useful.
+- Start a page with a short scope statement. Keep tables for parameters and contracts. Link canonical facts instead of repeating them.
+- Give figures descriptive alt text. Keep their source/rebuild instructions beside them.
+- Put a blank line before a list. Indent nested content by four spaces for the Markdown engine.
 - Use `$...$` and `$$...$$` for equations.
 
 ### Stored test results
 
-The files in `tests/reference/` are the stored results that `s_test_suite_regression` compares against, one file per solver mode with each result under its case key (such as `r2_bubble+medium_s3_mat1`). Do not edit or regenerate them as part of an ordinary change. If your change deliberately changes the results, for example by fixing a physics bug:
+The files in `tests/reference/` are the stored results that `s_test_suite_regression` compares against. There is one file per solver mode, with each result under its case key (such as `r2_bubble+medium_s3_mat1`). Do not edit or regenerate these files as part of an ordinary change. Does your change deliberately change the results, for example by fixing a physics bug? Then do this:
 
 1. Explain in the pull request which results change, why, and by how much.
-2. Regenerate them only after the maintainers agree. From `tests/`, `run_verification('generate-and-test','all',true)` runs independent prechecks, explicitly replaces baselines only if those checks pass, then runs regression. The existing `toolchain/s_generate_references.m` script remains available with `overwrite = true`. Both use one helper, which publishes nothing unless every case succeeds and reaches the requested times.
+2. Regenerate the files only after the maintainers agree. From `tests/`, run `run_verification('generate-and-test','all',true)`. This command runs independent prechecks. It replaces baselines only if those checks pass. Then it runs regression. The existing `toolchain/s_generate_references.m` script remains available with `overwrite = true`. Both commands use one helper. This helper publishes nothing unless every case succeeds and reaches the requested times.
 
-A new case added to `tests/helpers/f_test_cases.m` fails the regression suite until its result is stored.
+A new case added to `tests/helpers/f_test_cases.m` fails the regression suite until you store its result.
 
-Reviewed regression baselines under `tests/reference/` are distinct from ordinary generated run outputs. Keep their changes explicit in the pull request and retain the generation metadata.
+Reviewed regression baselines under `tests/reference/` are distinct from ordinary generated run outputs. Keep their changes explicit in the pull request. Keep the generation metadata.
 
 ## 3. Run the checks
 

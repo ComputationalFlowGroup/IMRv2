@@ -1,6 +1,6 @@
 # `imr.configuration.validate_case`
 
-`imr.configuration.validate_case` validates a run before it starts. `imr.configuration.prepare_case` calls it with a struct holding every model setting and dimensionless number. `imr.configuration.schema` supplies public/internal names and discrete choice/count rules; physical ranges and coupled restrictions remain here. Incompatible or out-of-range inputs raise an error; valid but suspicious inputs raise a warning. It returns the struct with the settings tied to the stress model made consistent (see below).
+`imr.configuration.validate_case` validates a run before it starts. `imr.configuration.prepare_case` calls it with a struct holding every model setting and dimensionless number. `imr.configuration.schema` supplies public/internal names and discrete choice/count rules. Physical ranges and coupled restrictions stay in this function. Incompatible or out-of-range inputs raise an error. Valid but suspicious inputs raise a warning. The function returns the struct, with the settings tied to the stress model made consistent (see below).
 
 ## Checks
 
@@ -42,7 +42,7 @@
 - `De`, `LAM`, `alphax`, `C2`, `kappa - 1` nonnegative; `LAM > 1` for stress models warns.
 - `Cstar`, `GAMa`, `nstate`, `hugoniot_s`, `Req`, `Lv`, `Lt`, tolerances positive.
 - The equilibrium gas pressure `P0_star = (1 + 1/(We*Req) - Pv)*Req^n` must be nonnegative.
-- Scalar parameter types/shapes are checked before derived arithmetic; values must be real and finite except the permitted infinities above. Effective numeric settings use `double`, including integer-valued inputs. Thermal bubbles require positive initial total pressure; mass transfer also requires positive initial gas pressure and a representable nonzero gas fraction.
+- Scalar parameter types and shapes are checked before derived arithmetic. Values must be real and finite, except the permitted infinities above. Effective numeric settings use `double`, including integer-valued inputs. Thermal bubbles require positive initial total pressure. Mass transfer also requires positive initial gas pressure and a representable nonzero gas fraction.
 - Thermal (`chi`, `Foh`, `kmstar`, conductivity coefficients) and mass-transfer (`Fom`, `lheat`, `rv`, `ra`, `pv`, `thetav`) numbers are checked when the corresponding model is on; `rv` and `ra` also with `collapse = 1`.
 - Waveform: `tw > 0` for Gaussian, `om > 0` and `mn >= 0` for histotripsy, `tw >= 0` for Heaviside, and a warning when `tvector` extends past the measured waveform data.
 - Non-Newtonian: `DRe`, `v_lambda`, `v_nc` nonnegative; `v_a > 0` for Carreau–Yasuda and modified Cross; `v_nc > 0` for Cross and modified Cross; `v_nc <= 1` and `v_lambda > 0` for modified Powell–Eyring; warning when `DRe = 0`, or with the Maxwell/Zener/UCM family (stress 5–11) when `LAM = 0` (the non-Newtonian viscosity is the solvent share `LAM`, so it vanishes).

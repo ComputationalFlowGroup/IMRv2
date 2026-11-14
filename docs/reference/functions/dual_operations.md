@@ -1,6 +1,6 @@
 # `imr.numerics.dual_operations`
 
-`d = imr.numerics.dual_operations(n)` returns the operations used by the analytic Jacobians [`imr.numerics.jacobian_nodal`](jacobian_nodal.md) and [`imr.numerics.jacobian_spectral`](jacobian_spectral.md). A quantity is carried as a struct with its value `v` and its sparse derivative `J = dv/dX` with respect to the `n`-dimensional state `X`, so composing the operations applies the chain rule exactly.
+`d = imr.numerics.dual_operations(n)` returns the operations used by the analytic Jacobians [`imr.numerics.jacobian_nodal`](jacobian_nodal.md) and [`imr.numerics.jacobian_spectral`](jacobian_spectral.md). Each quantity is a struct with its value `v` and its sparse derivative `J = dv/dX` with respect to the `n`-dimensional state `X`. Composing the operations therefore applies the chain rule exactly.
 
 ## Operations
 
@@ -15,4 +15,4 @@
 | `add`, `sub`, `mul`, `div` | elementwise arithmetic of two quantities |
 | `diag(v)` | a sparse diagonal matrix |
 
-Scalars and vectors may be mixed; a scalar is broadcast where needed.
+You can mix scalars and vectors. The operations broadcast a scalar where needed.

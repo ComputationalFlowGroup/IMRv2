@@ -1,8 +1,8 @@
 # Gaussian pulse
 
-`s_test_suite_gaussian.m` drives a bubble at equilibrium with a Gaussian pressure pulse and checks that it returns to its equilibrium radius. It needs no stored results.
+`s_test_suite_gaussian.m` drives a bubble at equilibrium with a Gaussian pressure pulse. The suite checks that the bubble returns to its equilibrium radius. This suite needs no stored results.
 
-MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local verification.
+Nobody ran MATLAB for this documentation change. The author checked the descriptions below against the suite implementation. You must verify the numerical outcomes on your own MATLAB installation.
 
 
 ## Cases
@@ -14,7 +14,7 @@ From [`f_test_cases('gaussian')`](tests.md), in the three solver modes. The case
 - With and without vapor.
 - The viscous stress models 1–11 (10 and 11, PTT and Giesekus, with a nonzero `eps3` for 11, run only in `imr.solve_spectral`; see [stress and viscosity](../model/stress-viscosity.md#ptt-and-giesekus-stress-10-11); 3, 7 are 2nd-order Fung, 4, 8 are Mooney-Rivlin).
 
-Only the combinations the compatibility matrix allows are kept. This was 120 cases per mode before PTT/Giesekus and the 2nd-order Fung/Mooney-Rivlin springs were added (see the disclaimer above).
+The generator keeps only the combinations the compatibility matrix allows. Before the generator added PTT/Giesekus and the 2nd-order Fung/Mooney-Rivlin springs, this suite had 120 cases per mode (see the disclaimer above).
 
 The physical inputs are:
 

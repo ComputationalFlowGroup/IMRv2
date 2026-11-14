@@ -1,6 +1,6 @@
 # Settings and initialization audit
 
-`tests/suites/s_test_suite_settings.m` declares cases that must be accepted or rejected. Unlike the generated permutation suite, it does not filter cases through the checker first. A regression that rejects a supported boundary therefore fails this suite.
+`tests/suites/s_test_suite_settings.m` declares cases that must be accepted or rejected. Unlike the generated permutation suite, this suite does not filter cases through the checker first. So a regression that rejects a supported boundary fails this suite.
 
 ```bash
 cd tests
@@ -25,22 +25,22 @@ matlab -batch "imr_test_setup; s_test_suite_settings"
 | Collapse initialization without a positive stable equilibrium | Scalar-start root finding could probe negative vapor mass or retry without a bound | Bracket the positive equilibrium radius and reject cases without a stable root |
 | Finite radius with nonfinite pressure, velocity or temperature | Shared test runner inspected only radius | Inspect all seven physical outputs for real, finite values |
 
-`eps3` enters only the Giesekus model (`stress = 11`); for every other stress it remains reserved, with no implemented equation term. A nonzero value raises `IMR:unusedParameter` unless `stress = 11`, and `stress = 11` with `eps3 = 0` (identical to stress 9) raises `IMR:parameters`, so both are visible during setup.
+`eps3` enters only the Giesekus model (`stress = 11`). For every other stress, `eps3` remains reserved, with no implemented equation term. A nonzero value raises `IMR:unusedParameter`, unless `stress = 11`. `stress = 11` with `eps3 = 0` is identical to stress 9, and raises `IMR:parameters`. So you can see both conditions during setup.
 
 ## Boundaries preserved
 
-The suite explicitly checks all three discretizations, compatible radial/thermal families, supported Jacobian options, minimum active thermal grids, inactive grids of size zero, `kappa = 1`, and zero vapor pressure. An inactive vapor component does not enter the mixture fraction. A frozen pure-vapor mixture without mass transfer remains accepted when its conductivity is positive, including constant vapor conductivity. The gas wall-closure implementation still requires `alpha_g > 0` for thermal models.
+The suite explicitly checks all three discretizations, compatible radial/thermal families, supported Jacobian options, minimum active thermal grids, inactive grids of size zero, `kappa = 1`, and zero vapor pressure. An inactive vapor component does not enter the mixture fraction. A frozen pure-vapor mixture without mass transfer remains accepted when its conductivity is positive; this includes constant vapor conductivity. The gas wall-closure implementation still requires `alpha_g > 0` for thermal models.
 
-`stress = 10` (PTT) and `11` (Giesekus) are rejected in `imr.solve_nodal` and forced to the spectral stress field in `imr.solve_spectral`. Giesekus at `eps3 = 0` is checked to give the exact same right-hand side, Jacobian and initial state as `stress = 9` (UCM/Oldroyd-B), not only a close one.
+`imr.solve_nodal` rejects `stress = 10` (PTT) and `11` (Giesekus). `imr.solve_spectral` forces these stress models to the spectral stress field. The suite checks that Giesekus at `eps3 = 0` gives the exact same right-hand side, Jacobian and initial state as `stress = 9` (UCM/Oldroyd-B). The suite does not accept only a close result; it must be exact.
 
-The 2nd-order Fung (`stress = 3, 7`) and Mooney-Rivlin (`stress = 4, 8`) springs, at `Ca = Inf`, are checked to give the exact same right-hand side and initial state as `stress = 1` (3, 4) or `stress = 5` (7, 8), in both solvers: every elastic term of these springs divides by `Ca`, so it vanishes exactly whatever `alphax` or `C2` is, regardless of value, leaving only the textually identical viscous/solvent terms. Separate cases ensure stress 3, 4, 7, 8 with medium heat transfer stay finite.
+At `Ca = Inf`, the 2nd-order Fung (`stress = 3, 7`) and Mooney-Rivlin (`stress = 4, 8`) springs must give the exact same right-hand side and initial state as `stress = 1` (3, 4) or `stress = 5` (7, 8), in both solvers. The suite checks this exact match, because every elastic term of these springs divides by `Ca`. So this elastic term vanishes exactly, whatever value `alphax` or `C2` has. Only the textually identical viscous/solvent terms remain. Separate cases ensure stress 3, 4, 7, 8 with medium heat transfer stay finite.
 
-All seven non-Newtonian laws are checked at zero wall shear with each viscous stress family, including the 2nd-order Fung and Mooney-Rivlin springs. Separate cases ensure a disabled viscosity law cannot contaminate the solution through overflow. Known temperatures are mapped forward and inverted to check the conductivity limit independently.
+The suite checks all seven non-Newtonian laws at zero wall shear, with each viscous stress family, including the 2nd-order Fung and Mooney-Rivlin springs. Separate cases ensure that a disabled viscosity law cannot contaminate the solution through overflow. The suite maps known temperatures forward, then inverts them, to check the conductivity limit independently.
 
 ## Scope and execution status
 
-The assembled-state check performs one RHS evaluation during setup, outside the time integration loop. Scalar compatibility checks alone cannot determine every liquid-domain or wall-boundary failure. This check reports `IMR:initialState` for nonfinite or complex initial derivatives; programming exceptions propagate normally.
+The assembled-state check performs one RHS evaluation during setup, outside the time integration loop. Scalar compatibility checks alone cannot find every liquid-domain or wall-boundary failure. This check reports `IMR:initialState` for nonfinite or complex initial derivatives. Programming exceptions still propagate normally.
 
-An admissible initial state does not guarantee completion for arbitrary forcing. A later collapse can approach zero radius, cross a sonic denominator or leave the EoS/temperature domain. Grid convergence, tolerances and physical validity still require case-specific assessment. The [permutation suite](permutations.md) checks final-time completion for its selected cases; this audit does not establish exhaustive coverage of continuous parameter ranges.
+An admissible initial state does not guarantee completion for arbitrary forcing. A later collapse can approach zero radius, cross a sonic denominator, or leave the EoS/temperature domain. Grid convergence, tolerances and physical validity still need case-specific assessment. The [permutation suite](permutations.md) checks final-time completion for its selected cases. This audit does not prove exhaustive coverage of continuous parameter ranges.
 
-MATLAB is unavailable in this cloud environment. The MATLAB assertions and CI job are prepared but have not been executed here. Static syntax/lint checks and independent arithmetic checks do not substitute for running the suites in MATLAB.
+MATLAB is unavailable in this cloud environment. The MATLAB assertions and the CI job are ready, but nobody has run them here. Static syntax/lint checks and independent arithmetic checks are not a substitute for running the suites in MATLAB.
