@@ -77,12 +77,12 @@ The bracketed path costs two vectorized residual grids, three Newton evaluations
 
 ## Mixture-coefficient limitation
 
-The closure uses mixture coefficients from stored `kv(end)`, not trial `kv_w`. Because `kvdot(end) = 0`, that stored value remains the initial `kv0` during integration. This is an existing modeling limitation, not a lag updated each step; it requires separate scientific review.
+The closure uses mixture coefficients from stored `kv(end)`, not trial `kv_w`. Because `kvdot(end) = 0`, that stored value remains the initial `kv0` during integration. This is an existing modeling limitation, not a lag updated each step. It requires separate scientific review.
 
-Conductivity is $K=\alpha_m T+\beta_m$; the transform and inverse use both coefficients as supplied. In the default case their pure-component sums are `alpha_g + beta_g = 1.0024` and `alpha_v + beta_v = 0.9976`, not exactly 1.
+Conductivity is $K=\alpha_m T+\beta_m$. The transform and inverse use both coefficients as supplied. In the default case their pure-component sums are `alpha_g + beta_g = 1.0024` and `alpha_v + beta_v = 0.9976`, not exactly 1.
 
-After convergence, the solver assigns `theta(end)`, reconstructs temperature with the stored mixture, then sets the local wall `kv(end)` to `kv_w`. Pressure, velocity, conductivity and vapor equations see the converged local wall value. Output assembly recovers wall values with the same closure.
+After convergence, the solver assigns `theta(end)` and reconstructs temperature with the stored mixture. It then sets the local wall `kv(end)` to `kv_w`. Pressure, velocity, conductivity and vapor equations see the converged local wall value. Output assembly recovers wall values with the same closure.
 
 ## Implicit derivative
 
-[`imr.physics.wall_mass_balance`](../reference/functions/wall_mass_balance.md) expresses the same balance in `theta_w` and returns its gradient. `imr.numerics.jacobian_nodal` uses $\dfrac{d\theta_w}{dx}=-\dfrac{dr/dx}{dr/d\theta_w}$ at the root. Positive residual scaling cancels in that ratio at a root, so the closure and derivative describe the same balance.
+[`imr.physics.wall_mass_balance`](../reference/functions/wall_mass_balance.md) expresses the same balance in `theta_w`. It also returns the balance's gradient. `imr.numerics.jacobian_nodal` uses $\dfrac{d\theta_w}{dx}=-\dfrac{dr/dx}{dr/d\theta_w}$ at the root. Positive residual scaling cancels in that ratio at a root. The closure and derivative therefore describe the same balance.
