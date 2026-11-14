@@ -22,7 +22,7 @@ The full accepted names, meanings and defaults live in [parameters](../model/par
 - Give `tvector` or `tfin`, not both in explicit pairs.
 - `tvector` must contain at least two finite, strictly increasing values and start at a nonnegative time.
 - `tfin` alone constructs `[0, tfin]`, returning the integrator's own output steps.
-- A struct whose changed `tvector` ends at its changed `tfin` passes only `tvector`; the parser removes that redundant `tfin`.
+- A struct whose changed `tvector` ends at its changed `tfin` passes only `tvector`. The parser removes that redundant `tfin`.
 
 The optional eighth solver output records the requested or default inputs, with the final time vector. `imr.configuration.validate_case` can adjust internal settings such as `Nv`, `Ca` and `spectral`. The recorded struct is not a complete dump of those internal adjustments. See [outputs](output.md).
 

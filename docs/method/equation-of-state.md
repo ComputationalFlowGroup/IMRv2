@@ -12,7 +12,7 @@ h(p)=\frac{a}{m}\left[\left(\frac{p+B}{a}\right)^m-1\right],\qquad
 C(p)^2=\frac{n(p+B)}{\rho(p)}.
 $$
 
-The pressure shift must satisfy $p+B>0$. At $n=1$, the finite limit is $h(p)=a\ln((p+B)/a)$. The code uses this logarithmic limit exactly and evaluates the other exponents with `log1p` and `expm1` to preserve small pressure changes and exponents near one. In the source, `sam = a`, `no = m`, `hB = h(p_w)`, `hF = h(p_f)` and `hH = 1/rho(p_w)`.
+The pressure shift must satisfy $p+B>0$. At $n=1$, the finite limit is $h(p)=a\ln((p+B)/a)$. The code uses this logarithmic limit exactly. It evaluates the other exponents with `log1p` and `expm1`. This preserves small pressure changes and exponents near one. In the source, `sam = a`, `no = m`, `hB = h(p_w)`, `hF = h(p_f)` and `hH = 1/rho(p_w)`.
 
 ### Existing Hugoniot-based relation
 
@@ -30,6 +30,6 @@ h(p)=\left[\frac{q}{1+\mu(q)}\right]_1^p
 +C_*^2\int_{\mu(1)}^{\mu(p)}\frac{g(\mu)}{(1+\mu)^2}\,d\mu.
 $$
 
-Partial fractions at $\mu=-1$ and $\mu=1/s$ give the closed form in the nested `f_mie_gruneisen_eos_scalar`; `log1p` differences reduce cancellation near the reference state. These branches implement a pressure-based liquid model, rather than a complete arbitrary-temperature thermodynamic EoS. They are distinct from the Murnaghan property family.
+Partial fractions at $\mu=-1$ and $\mu=1/s$ give the closed form in the nested `f_mie_gruneisen_eos_scalar`. `log1p` differences reduce cancellation near the reference state. These branches implement a pressure-based liquid model, rather than a complete arbitrary-temperature thermodynamic EoS. They are distinct from the Murnaghan property family.
 
 See [compatibility](../reference/compatibility.md) for thermal restrictions, [numerical checks](../verification/numerics.md) for forcing regressions, and [reported comparisons](../verification/convergence.md#reported-radial-enthalpy-comparison) for historical unforced measurements.

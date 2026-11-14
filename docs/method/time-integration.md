@@ -1,10 +1,10 @@
 # Time integration and Jacobians
 
-`imr.numerics.integrate` integrates the coupled state with a stiff solver. `jacobian` chooses derivative evaluation, while `scheme` chooses nodal spatial operators.
+`imr.numerics.integrate` integrates the coupled state with a stiff solver. `jacobian` chooses derivative evaluation. `scheme` chooses nodal spatial operators.
 
 ## Time stepping
 
-The supported integrators, codes and MATLAB requirements live in the [parameter table](../model/parameters.md#solver-options). Thermal, vapor and stress fields can make the state stiff, so the wrapper does not offer a nonstiff integrator.
+The supported integrators, codes and MATLAB requirements live in the [parameter table](../model/parameters.md#solver-options). Thermal, vapor and stress fields can make the state stiff. The wrapper therefore does not offer a nonstiff integrator.
 
 | Setting | Implementation |
 |---|---|
@@ -14,7 +14,7 @@ The supported integrators, codes and MATLAB requirements live in the [parameter 
 | Two-element time span | Return the integrator's output steps |
 | Longer time vector | Return values at requested times |
 
-CVODES uses MATLAB's `ode` object with `Solver = 'cvodesstiff'`. `imr.numerics.integrate` assigns object properties separately so older MATLAB releases can parse the file even when that object is absent. It constructs `odeJacobian` from a derivative function or sparsity pattern. CVODES compiles the integrator's step control and Newton iterations, while the right-hand side and Jacobian still execute MATLAB code. The [benchmark](integrator-benchmarks.md) measures the combination.
+CVODES uses MATLAB's `ode` object with `Solver = 'cvodesstiff'`. `imr.numerics.integrate` assigns object properties separately. This lets older MATLAB releases parse the file, even when the `ode` object is absent. It constructs `odeJacobian` from a derivative function or sparsity pattern. CVODES compiles the integrator's step control and Newton iterations. The right-hand side and Jacobian still execute MATLAB code. The [benchmark](integrator-benchmarks.md) measures the combination.
 
 ## Derivative choices
 
@@ -25,16 +25,16 @@ CVODES uses MATLAB's `ode` object with `Solver = 'cvodesstiff'`. `imr.numerics.i
 | 2 | Hybrid analytic with bubble heat; sparsity fallback otherwise | Hybrid analytic |
 | 3 | Batched finite differences | Rejected |
 
-The hybrid Jacobians use `imr.numerics.dual_operations` to carry each field quantity as its value and sparse state derivative. The chain rule through transport and thermal transforms is exact in those operations. Radial, constitutive and other low-dimensional closure partials use central differences; “analytic” does not mean every operation is differentiated symbolically.
+The hybrid Jacobians use `imr.numerics.dual_operations` to carry each field quantity as its value and sparse state derivative. The chain rule through transport and thermal transforms is exact in those operations. Radial, constitutive and other low-dimensional closure partials use central differences. The word "analytic" does not mean every operation is differentiated symbolically.
 
-`imr.numerics.jacobian_nodal` differentiates wall temperature implicitly through `imr.physics.wall_mass_balance`, or through the exact quadratic thermal root. Its derivative includes every node used by the wall row. Zener-field rows are linear in their own field values; those entries are exact, while their radius and velocity partials use central differences. The heating's field derivative is `-2*Br*a` on the diagonal.
+`imr.numerics.jacobian_nodal` differentiates wall temperature implicitly through `imr.physics.wall_mass_balance`, or through the exact quadratic thermal root. Its derivative includes every node used by the wall row. Zener-field rows are linear in their own field values. Those entries are exact. Their radius and velocity partials use central differences. The heating's field derivative is `-2*Br*a` on the diagonal.
 
 `imr.numerics.jacobian_spectral` differentiates the boundary solve
 `A(s)*q = rhs`, with `A(s) = A0 - (s-1)*e1*v'`, as
 `dq = A(s)\(d(rhs) + e1*(v'*q)*ds)`.
 It reuses the prefactored `A0` and Sherman–Morrison correction. The local polymer heating contributes `-2*Br*a*ZZT` in field coefficients. Radius and velocity partials of heating and Zener transport use central differences at fixed field.
 
-`imr.numerics.jacobian_pattern` builds a conservative coupling superset. With finite differences, interior operators are tridiagonal but pressure and wall stencils couple fields to radius, velocity and pressure. Chebyshev operators couple all nodes of each field, so their pattern is dense.
+`imr.numerics.jacobian_pattern` builds a conservative coupling superset. With finite differences, interior operators are tridiagonal. Pressure and wall stencils couple fields to radius, velocity and pressure. Chebyshev operators couple all nodes of each field. Their pattern is therefore dense.
 
 ## Batched right-hand side
 

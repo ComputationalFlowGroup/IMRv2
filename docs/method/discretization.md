@@ -18,7 +18,7 @@
 
 The bubble operators start with a doubled Chebyshev grid of `2*nodes - 1` points on `[-1,1]`. Folding even functions onto `y >= 0` orders them from center to wall. The first-derivative center row is exactly zero. The Laplacian is `d2/dy2 + (2/y)d/dy` away from the center and `3*d2/dy2` at the center, formed before folding.
 
-The exterior operators are the standard Chebyshev matrix and its square on `cos(pi*j/N)`, ordered from 1 to -1. Global operators couple all nodes. Wall heat and vapor balances therefore use every field node; finite-difference wall rows use three points. The physics and time integration are shared between nodal schemes.
+The exterior operators are the standard Chebyshev matrix and its square on `cos(pi*j/N)`, ordered from 1 to -1. Global operators couple all nodes. Wall heat and vapor balances therefore use every field node. Finite-difference wall rows use three points. The physics and time integration are shared between nodal schemes.
 
 ## Spectral expansions
 

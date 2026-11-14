@@ -55,7 +55,7 @@ f(t)=\begin{cases}A,&t<w,\\0,&t\geq w,\end{cases}
 \qquad \dot f(t)=0.
 $$
 
-Positive amplitude $A$ (positive `ee`) gives a constant compressive pressure rise before the step at $t=w$; negative amplitude gives a constant tensile pressure drop (rarefaction). The derivative omits the distributional impulse at $w$. With `tw = 0` the perturbation is zero for every allowed nonnegative simulation time. For a discontinuous drive, choose the requested time span and step resolution deliberately; a zero returned derivative does not make the waveform smooth.
+Positive amplitude $A$ (positive `ee`) gives a constant compressive pressure rise before the step at $t=w$. Negative amplitude gives a constant tensile pressure drop (rarefaction) instead. The derivative omits the distributional impulse at $w$. With `tw = 0`, the perturbation is zero for every allowed nonnegative simulation time. For a discontinuous drive, choose the requested time span and step resolution deliberately. A zero returned derivative does not make the waveform smooth.
 
 ## Measured waveforms
 
@@ -72,9 +72,9 @@ The raw data and the MATLAB rebuild script stay together in `docs/waveform/`.
 | File | Contents |
 |---|---|
 | `patterson_waveform_data.mat` | The three waveforms, stored as dimensionless time and pressure columns: mostly linear (ML), moderately nonlinear (MN) and highly nonlinear (HN) |
-| `r_patterson_data.m` | Fits a cubic spline to each waveform and its derivative, plots them, and saves them as `ml.mat`, `mn.mat` and `hn.mat`. It uses `fnder` from the Curve Fitting Toolbox. |
+| `r_patterson_data.m` | Fits a cubic spline to each waveform and its derivative. Plots the fits. Saves them as `ml.mat`, `mn.mat` and `hn.mat`. Uses `fnder` from the Curve Fitting Toolbox. |
 
-Preparation loads the spline fits from `src/`, through `imr.configuration.prepare_case`:
+`imr.configuration.prepare_case` loads the spline fits from `src/` during preparation:
 
 | `wave_type` | File | Waveform |
 |---|---|---|
@@ -84,4 +84,4 @@ Preparation loads the spline fits from `src/`, through `imr.configuration.prepar
 
 Each file holds the spline `poly` of the dimensionless pressure and its derivative `dpoly`, over dimensionless times up to 15. [`imr.physics.far_field_pressure`](../reference/functions/far_field_pressure.md) evaluates them.
 
-Measured choices use the stored spline directly: `ee`, `dt` and `om` do not rescale or shift it. Outside its stored breakpoints, `ppval` extrapolates; preparation warns if the requested time interval extends outside the data. This is not additional measured evidence beyond that interval.
+Measured choices use the stored spline directly. `ee`, `dt` and `om` do not rescale or shift it. Outside its stored breakpoints, `ppval` extrapolates. Preparation warns if the requested time interval extends outside the data. This extrapolation is not additional measured evidence beyond that interval.

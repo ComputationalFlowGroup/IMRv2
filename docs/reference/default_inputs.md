@@ -13,17 +13,17 @@ p.re = 300;
 
 ## Using a struct
 
-- **Same meaning as name/value pairs.** Only the fields that differ from the defaults are passed on, so `imr.solve_nodal(p)` runs exactly like the name/value call with those inputs.
+- **Same meaning as name/value pairs.** The function passes on only the fields that differ from the defaults. `imr.solve_nodal(p)` then runs exactly like the matching name/value call.
 - **Struct, then pairs.** Name/value pairs after the struct override its fields: `imr.solve_nodal(p, 're', 1000)`.
-- **Optional inputs.** `p0star` and `stress0` have no default; add them as fields when needed (`p.stress0 = ...`).
-- **Time.** Set either `p.tvector` or `p.tfin`, as with name/value pairs; a `tvector` that ends at `tfin` is taken as the time vector.
+- **Optional inputs.** `p0star` and `stress0` have no default. Add them as fields when you need them (`p.stress0 = ...`).
+- **Time.** Set either `p.tvector` or `p.tfin`, the same as with name/value pairs. If `tvector` ends at `tfin`, the solver uses `tvector` as the time vector.
 - **Unknown fields** raise the same `INPUT ERROR` as an unknown name/value pair.
 
 ## The inputs of a run
 
-The optional eighth solver output records requested/default inputs and the time vector. See [save and replay](../running/output.md#save-and-replay-a-run) for a complete example and the distinction between recorded inputs and internal checker adjustments.
+The optional eighth solver output records requested/default inputs and the time vector. See [save and replay](../running/output.md#save-and-replay-a-run) for a complete example. That page also explains the difference between recorded inputs and internal checker adjustments.
 
-`imr.default_inputs` stays solver-neutral. Add `p.solver = 'spectral'` or pass `'solver','spectral'` to [`imr.solve`](solve.md) when needed. The returned record includes the selected solver so `imr.solve(used)` replays either implementation.
+`imr.default_inputs` stays solver-neutral. Add `p.solver = 'spectral'` or pass `'solver','spectral'` to [`imr.solve`](solve.md) when needed. The returned record includes the selected solver. This lets `imr.solve(used)` replay either implementation.
 
 ## Sweeps
 

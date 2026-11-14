@@ -89,9 +89,9 @@ with $\eta_p=(1-\mathrm{LAM})/\mathrm{Re}_8$. Stress 9 is the $\epsilon_2=0$, $\
 
 ## Medium heating
 
-`imr.physics.stress_power` computes the medium heating by the stress, $\mathtt{taugradu}=\mathrm{Br}\,\Phi$, when `medtherm = 1`. The medium temperature equation adds it: $\dot T_m = \text{advection}+\text{diffusion}+\mathtt{taugradu}$. Both solvers call it. The heating is the full stress power, $\Phi=\boldsymbol\tau:\mathbf D$ — the entropy-elastic (rubber-like) convention: elastic work is released as heat under loading and absorbed under unloading.
+`imr.physics.stress_power` computes the medium heating by the stress, $\mathtt{taugradu}=\mathrm{Br}\,\Phi$, when `medtherm = 1`. The medium temperature equation adds this term: $\dot T_m = \text{advection}+\text{diffusion}+\mathtt{taugradu}$. Both solvers call this function. The heating is the full stress power, $\Phi=\boldsymbol\tau:\mathbf D$. This is the entropy-elastic (rubber-like) convention. Under this convention, elastic work releases as heat under loading. Elastic work absorbs as heat under unloading.
 
-With the local strain rate $a=\dfrac{R^2\dot R}{r^3}=\dfrac{\dot R}{R}y^{-3}$ ($y=r/R$) and $s=\tau_{rr}-\tau_{\theta\theta}$, the stress power is $\boldsymbol\tau:\mathbf D=-2as$. Only this normal-stress difference enters; the trace of the stress does not.
+With the local strain rate $a=\dfrac{R^2\dot R}{r^3}=\dfrac{\dot R}{R}y^{-3}$ ($y=r/R$) and $s=\tau_{rr}-\tau_{\theta\theta}$, the stress power is $\boldsymbol\tau:\mathbf D=-2as$. Only this normal-stress difference enters. The trace of the stress does not enter.
 
 | `stress` | $\mathtt{taugradu}/\mathrm{Br}$ |
 |---|---|
@@ -103,12 +103,12 @@ With the local strain rate $a=\dfrac{R^2\dot R}{r^3}=\dfrac{\dot R}{R}y^{-3}$ ($
 | 5, 6, 7, 8 | $12\mu_s a^2-2as_p$, with the Zener polymer field $s_p$ of [`imr.physics.zener_field`](../reference/functions/zener_field.md) |
 | 9, 10, 11 | $12\mu_s a^2-2a(\tau_{rr}-\tau_{\theta\theta})$, from the spectral stress field (UCM/Oldroyd-B, PTT or Giesekus) |
 
-Each $s_e$ above is the spring formula of the matching stress 1–4 model, stated in the sections above. **Viscosities**, with $f_\nu$ the non-Newtonian factor at the medium points:
+Each $s_e$ above is the spring formula of the matching stress 1–4 model. The sections above state each one. **Viscosities** below use $f_\nu$, the non-Newtonian factor at the medium points:
 
 - $\mu_{KV}=1/\mathrm{Re}_8+f_\nu\,\mathtt{iDRe}$: stress 1–4, where the whole viscosity acts instantly.
 - $\mu_s=\mathrm{LAM}/\mathrm{Re}_8+f_\nu\,\mathtt{iDRe}$: stress 5–11, where only the solvent part acts instantly.
 
-`iDRe` is $1/\mathtt{DRe}$ for stress 1–4 and $\mathrm{LAM}/\mathtt{DRe}$ for stress 5–11, the same factor as in the radial equation (set in `imr.configuration.prepare_case`).
+`iDRe` is $1/\mathtt{DRe}$ for stress 1–4. `iDRe` is $\mathrm{LAM}/\mathtt{DRe}$ for stress 5–11. This is the same factor as in the radial equation. `imr.configuration.prepare_case` sets it.
 
 ### Zener local field
 
@@ -155,13 +155,13 @@ $$
 \mathrm{De}\,\dot Z_1 + Z_1 = Z_e - 4\eta_p R^2\dot R
 $$
 
-with $Z_e = R^3 S_e$. Written for the weighted field $w=y^{-3}s_p$, the law reads $\dfrac{Dw}{Dt} = -\dfrac{w-y^{-3}s_{KV}}{\mathrm{De}}$ along a material point. From rest its solution is
+with $Z_e = R^3 S_e$. Write the law for the weighted field $w=y^{-3}s_p$. Then the law reads $\dfrac{Dw}{Dt} = -\dfrac{w-y^{-3}s_{KV}}{\mathrm{De}}$ along a material point. From rest, its solution is
 
 $$
 y^{-3}s_p(t) = \int_0^t K(t-t')\,y'^{-3}s_{KV}(t')\,dt',\qquad K(t)=\frac{e^{-t/\mathrm{De}}}{\mathrm{De}},
 $$
 
-where primes denote the same material point at time $t'$. Incompressibility gives $r^3-r'^3=R^3-R'^3$, so $dr/r = r'^2\,dr'/r^3$. Hence
+where primes denote the same material point at time $t'$. Incompressibility gives $r^3-r'^3=R^3-R'^3$. So $dr/r = r'^2\,dr'/r^3$. Hence
 
 $$
 2\int_R^\infty \frac{s_p}{r}\,dr = \frac{1}{R^3}\int_0^t K\,R'^3\left[2\int_{R'}^\infty \frac{s_{KV}}{r'}\,dr'\right]dt' = \frac{1}{R^3}\int_0^t K\,R'^3\,S_{KV}(t')\,dt',
@@ -169,13 +169,13 @@ $$
 
 with $S_{KV}=S_e-4\eta_p\dot R/R$, the stress integral of $s_{KV}$. This is $Z_1/R^3$, the solution of the $Z_1$ equation from rest.
 
-The $Z_1$ equation fixes only this weighted integral. The law above is the simplest local field consistent with it, not the only one. It sets the radial distribution of the heating, but neither $R(t)$ nor the total heating. So: $Z_1$ still drives $R(t)$, unchanged; the field only distributes the heating in $r$; the total heating is fixed by $Z_1$.
+The $Z_1$ equation fixes only this weighted integral. The law above is one possible local field consistent with it, not the only one. It sets the radial distribution of the heating. It does not set $R(t)$ or the total heating. So: $Z_1$ still drives $R(t)$, unchanged. The field only distributes the heating in $r$. $Z_1$ fixes the total heating.
 
 **In the solvers.**
 
-- `imr.solve_spectral`: $s_p$ is expanded in the stress 9 basis $T_n(z)-1$ with `Nv` modes, stored after $Z_1$, and evaluated at the medium points with `ZZT`. After a run, the solver prints the largest mismatch of $2\,\mathtt{cdd}'e$ against $Z_1/R^3$ as a check.
-- `imr.solve_nodal`: $s_p$ is stored at the medium nodes `yT` after $Z_1$: the first node is the wall, and the last, at infinity, is held at 0. The advection reuses the $\dot R$ part of the medium temperature advection, `xi1_sq./(Lt*R).*(Rdot./yT2.*om_yT3/2).*(dmatrix_Tm*sp)`, which equals $-\dot y\,\partial s_p/\partial y$.
-- Collapse (nodal only): the history of the field before $t=0$ is not computed. As a stopgap, the initial field takes the shape of the elastic stress difference of the initial radius, scaled so that the integral identity holds for the initial $Z_1$ from `imr.physics.initial_stress`. Without elasticity ($\mathrm{Ca}=\infty$), it takes the viscous shape $y^{-3}$ instead.
+- `imr.solve_spectral`: this solver expands $s_p$ in the stress 9 basis $T_n(z)-1$ with `Nv` modes. It stores $s_p$ after $Z_1$. It evaluates $s_p$ at the medium points with `ZZT`. After a run, the solver prints the largest mismatch of $2\,\mathtt{cdd}'e$ against $Z_1/R^3$ as a check.
+- `imr.solve_nodal`: this solver stores $s_p$ at the medium nodes `yT` after $Z_1$. The first node is the wall. The last node, at infinity, is held at 0. The advection term reuses the $\dot R$ part of the medium temperature advection, `xi1_sq./(Lt*R).*(Rdot./yT2.*om_yT3/2).*(dmatrix_Tm*sp)`. This term equals $-\dot y\,\partial s_p/\partial y$.
+- Collapse (nodal only): the code does not compute the history of the field before $t=0$. As a stopgap, the initial field takes the shape of the elastic stress difference of the initial radius. The code scales this shape so that the integral identity holds for the initial $Z_1$ from `imr.physics.initial_stress`. Without elasticity ($\mathrm{Ca}=\infty$), the field takes the viscous shape $y^{-3}$ instead.
 
 ### Spectral stress field
 
@@ -191,7 +191,7 @@ $$
 S = 2\,\mathtt{cdd}'(c-d) - 4\frac{\mathrm{LAM}}{\mathrm{Re}_8}\frac{\dot R}{R} - 6\,\mathtt{intfnu}\,\mathtt{iDRe},
 $$
 
-the same for all three models: only the local evolution of $c$ and $d$ differs (the PTT and Giesekus terms added to the UCM/Oldroyd-B closure above, from [Warnez and Johnsen (2015)](../reference/references.md)).
+This formula is the same for all three models. Only the local evolution of $c$ and $d$ differs: PTT and Giesekus add their terms to the UCM/Oldroyd-B closure above, from [Warnez and Johnsen (2015)](../reference/references.md).
 
 The weights are
 
@@ -201,7 +201,7 @@ $$
 
 One Gauss–Legendre rule with $N_v+64$ points in $\theta=\arccos(x)$ evaluates them, where the integrands are smooth. The local field supplies the polymer part of medium stress power. See [reported comparisons](../verification/convergence.md#reported-spectral-stress-comparisons) for historical quadrature, timing and resolution measurements.
 
-Stress 5, 6, 7 and 8 keep their integral $Z_1$ and use the same basis for the local field when medium heat is on. For stress 9 without that field, only $Z_1$ and $Z_2$ are available; the [compatibility rules](../reference/compatibility.md) explain why these cannot supply local heating. Stress 10 and 11 always run with the field (`spectral = 1` is forced), so this restriction does not apply to them.
+Stress 5, 6, 7 and 8 keep their integral $Z_1$. They use the same basis for the local field when medium heat is on. For stress 9 without that field, only $Z_1$ and $Z_2$ are available. The [compatibility rules](../reference/compatibility.md) explain why these two integrals cannot supply local heating. Stress 10 and 11 always run with the field (`spectral = 1` is forced). So this restriction does not apply to stress 10 and 11.
 
 ## Non-Newtonian viscosity
 
@@ -222,11 +222,11 @@ where $x=\lambda|\dot\gamma|$ and $\lambda$ is the dimensionless `v_lambda` inpu
 | 6 | Simplified Cross | $1/(1+x)$ | No exponent |
 | 7 | Modified Cross | $(1+x^n)^{-a}$ | `v_a > 0`, `v_nc > 0` |
 
-The modified Powell–Eyring model has zero added viscosity at zero shear for `n < 1`, and factor 1 for `n = 1`; do not assume every exponent yields zero-shear viscosity `mu0`. The other laws approach factor 1 as `v_lambda` tends to zero.
+The modified Powell–Eyring model has zero added viscosity at zero shear for `n < 1`. It has factor 1 for `n = 1`. Do not assume every exponent gives zero-shear viscosity `mu0`. The other laws approach factor 1 as `v_lambda` tends to zero.
 
-The contribution vanishes at `DRe = 0`. For the Maxwell/Zener/UCM family (stress 5–11) it acts on the solvent share and also vanishes at `LAM = 0`. Its common factor is `iDRe = 1/DRe` for the Kelvin-Voigt family (stress 1–4), `LAM/DRe` for stress 5–11, and zero when inactive.
+The contribution vanishes at `DRe = 0`. For the Maxwell/Zener/UCM family (stress 5–11), the contribution acts on the solvent share. It also vanishes at `LAM = 0`. Its common factor, `iDRe`, equals `1/DRe` for the Kelvin-Voigt family (stress 1–4). This factor equals `LAM/DRe` for stress 5–11. This factor is zero when the contribution is inactive.
 
-`imr.physics.viscosity` reduces this radial non-Newtonian stress to two integrals. One has a closed form; the other uses a fixed graded Gauss–Legendre rule. With $\dot\gamma=\dot\gamma_R(R/r)^3$, $\dot\gamma_R=-2\dot R/R$, and the substitution $u=R/r$, the integrals over $r$ in $[R,\infty)$ become integrals over $u$ in $[0,1]$, with $x_R=\lambda|\dot\gamma_R|$:
+`imr.physics.viscosity` reduces this radial non-Newtonian stress to two integrals. One integral has a closed form. The other integral uses a fixed graded Gauss–Legendre rule. With $\dot\gamma=\dot\gamma_R(R/r)^3$, $\dot\gamma_R=-2\dot R/R$, and the substitution $u=R/r$, the integrals over $r$ in $[R,\infty)$ become integrals over $u$ in $[0,1]$, with $x_R=\lambda|\dot\gamma_R|$:
 
 $$
 I_1=\int_R^\infty \frac{\dot\gamma}{r}f\,dr=\dot\gamma_R\int_0^1 u^2 f(x_R u^3)\,du,

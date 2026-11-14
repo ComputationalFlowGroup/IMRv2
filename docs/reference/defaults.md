@@ -1,6 +1,6 @@
 # Defaults, material data and units
 
-`imr.configuration.defaults` is still used. Both `imr.configuration.prepare_case` and `imr.default_inputs` call it; removing it would break the default solver API. Its physical groups are now derived through `imr.nondimensionalize` instead of repeating a second list of physical numbers.
+`imr.configuration.defaults` is still used. Both `imr.configuration.prepare_case` and `imr.default_inputs` call it. Removing it would break the default solver API. `imr.nondimensionalize` now derives its physical groups, instead of a second list of physical numbers.
 
 ## One source per kind of value
 
@@ -16,7 +16,7 @@ The snapshot in `tests/+imrtest` is intentionally independent of the current imp
 
 ## Why the old `p.defaults` group was confusing
 
-That group mixed SI transport values and conversion defaults, including artificial scales for inactive terms. It was not a set of enthalpy coefficients. It has been removed. Profiles now name reference transport fields individually under `p.transport`, with a unit and meaning beside each assignment. Missing data remain absent; an active model must obtain required inputs from the caller.
+That group mixed SI transport values and conversion defaults. It included artificial scales for inactive terms. It was not a set of enthalpy coefficients. It has been removed. Profiles now name reference transport fields individually under `p.transport`, with a unit and meaning beside each assignment. Missing data remain absent. An active model must obtain required inputs from the caller.
 
 The converter still needs finite scales for some inactive terms because the solver input interface contains thermal and transport groups even in polytropic runs. It supplies neutral numerical scales internally when material data are absent. They are documented implementation scales, not measured transport properties. They never satisfy a required active-model input.
 
@@ -24,9 +24,9 @@ Material enthalpy coefficients live under `liquid` and `vapor`. A caloric slice 
 
 ## Units and provenance
 
-The unused `p.units` string has been removed. SI is the fixed contract of the property and conversion APIs, with units documented beside material fields and in the [API tables](fluid_properties.md). The solver interface remains dimensionless; reference scales restore SI outputs.
+The unused `p.units` string has been removed. SI is the fixed contract of the property and conversion APIs. Units appear beside each material field, and in the [API tables](fluid_properties.md). The solver interface remains dimensionless. Reference scales restore SI outputs.
 
-`name`, `source` and `commit` remain useful provenance metadata: they are preserved in `ref.fluid.profile` when a material is selected. They do not affect numerical equations and are not a unit-conversion system.
+`name`, `source` and `commit` remain useful provenance metadata. `ref.fluid.profile` keeps them when you select a material. They do not affect numerical equations. They are not a unit-conversion system.
 
 ## Three ways to keep the code streamlined
 

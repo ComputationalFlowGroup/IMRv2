@@ -6,7 +6,7 @@ Start with the workflow, then follow the implementation diagrams for the part yo
 
 ## 1. User workflow
 
-This is a flow of information, rather than a function-call graph. A user may start with SI properties or directly with dimensionless inputs.
+This is a flow of information, rather than a function-call graph. You can start with SI properties, or directly with dimensionless inputs.
 
 ```mermaid
 flowchart LR
@@ -18,7 +18,7 @@ flowchart LR
 
 Run `imr_setup` once per MATLAB session. Use [`imr.nondimensionalize`](nondimensionalize.md) for SI input, [`imr.default_inputs`](default_inputs.md) for a dimensionless input struct, and [`imr.sweep`](sweep.md) to repeat the workflow across parameter combinations. The [quick start](../getting-started/quick-start.md) provides a complete example.
 
-Stress enters the internal equations; a separate stress history is not part of the public solver output tuple. Enabled thermal and vapor fields are reconstructed by the selected solver. See [outputs](../running/output.md) for returned shapes and scalings.
+Stress enters the internal equations. A separate stress history is not part of the public solver output tuple. The selected solver reconstructs enabled thermal and vapor fields. See [outputs](../running/output.md) for returned shapes and scalings.
 
 ## 2. Setup: inputs become one checked case
 
@@ -42,11 +42,11 @@ flowchart TD
   SI --> Properties[imr.fluid_properties]
 ```
 
-`imr.configuration.defaults` is active code: it provides numerical/model defaults and obtains physical groups from the SI converter. The converter reads the water reference profile for legacy defaults and never calls `imr.configuration.defaults`, so this is not a recursive dependency. Explicit profiles supply material properties; gas, stress and forcing choices remain simulation inputs. See [defaults and units](defaults.md).
+`imr.configuration.defaults` is active code. It provides numerical/model defaults and obtains physical groups from the SI converter. The converter reads the water reference profile for legacy defaults. The converter never calls `imr.configuration.defaults`, so this is not a recursive dependency. Explicit profiles supply material properties. Gas, stress and forcing choices remain simulation inputs. See [defaults and units](defaults.md).
 
 ## 3. Integration: one checked case becomes histories
 
-The ODE wrapper repeatedly evaluates solver callbacks. Most thermal and wall operations are local functions inside the solver factories; they are not separate top-level entry points.
+The ODE wrapper repeatedly evaluates solver callbacks. Most thermal and wall operations are local functions inside the solver factories. They are not separate top-level entry points.
 
 ```mermaid
 flowchart TD
@@ -61,7 +61,7 @@ flowchart TD
   ODE --> Output[System outputs callback reconstructs histories]
 ```
 
-Material profiles are not loaded in this loop. Pressure-form Keller–Miksis uses prepared ambient density and sound speed; enthalpy branches evaluate their own pressure-based liquid relation in `imr.physics.radial_acceleration`. See [radial dynamics](../model/radial-dynamics.md), [wall boundaries](../method/wall-boundaries.md) and [Jacobians](../method/time-integration.md) for those details.
+Material profiles are not loaded in this loop. Pressure-form Keller–Miksis uses prepared ambient density and sound speed. Enthalpy branches evaluate their own pressure-based liquid relation in `imr.physics.radial_acceleration`. See [radial dynamics](../model/radial-dynamics.md), [wall boundaries](../method/wall-boundaries.md) and [Jacobians](../method/time-integration.md) for those details.
 
 | State block | Meaning | Active when |
 |---|---|---|
@@ -72,7 +72,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | `stress1`, `stress2` | Integrated stresses or spectral stress coefficients | Constitutive-model dependent |
 | `polymer` | Local Zener stress field for heating | Stress 5–8 with medium heat |
 
-`imr.solvers.state_layout` owns these indices. Factories use the same blocks for initialization, RHS, Jacobians and reconstruction; disabled fields have empty blocks and no operators. See [internal contracts](internal-contracts.md).
+`imr.solvers.state_layout` owns these indices. Factories use the same blocks for initialization, RHS, Jacobians and reconstruction. Disabled fields have empty blocks and no operators. See [internal contracts](internal-contracts.md).
 
 ## 4. Function index by responsibility
 
