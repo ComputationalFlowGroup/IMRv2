@@ -139,8 +139,8 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 
 ## Source layout and file boundaries
 
-`imr_setup` adds the root, `src` and examples once. Public calls use the `imr` namespace. MATLAB resolves `imr.solve_nodal` from `src/+imr/solve_nodal.m`, and the nested packages group configuration, solvers, physics, numerical methods and fluids. Do not add `+` folders individually or use `genpath`.
+`imr_setup` adds the root, `src` and examples once. Public calls use the `imr` namespace. MATLAB resolves `imr.solve_nodal` from `src/+imr/solve_nodal.m`. The nested packages group configuration, solvers, physics, numerical methods and fluids. Do not add `+` folders individually. Do not use `genpath`.
 
-There is no `private/` folder. Each nodal/spectral implementation exists once, in its solver builder. The two public entry points delegate to `imr.solvers.run`, which shares preparation, integration and reconstruction outside the numerical callbacks. Legacy public names are small adapters in `src`; the numerical kernels call the namespace implementations directly. See [organization and migration](namespaces.md).
+There is no `private/` folder. Each nodal/spectral implementation exists once, in its solver builder. The two public entry points delegate to `imr.solvers.run`. `imr.solvers.run` shares preparation, integration and reconstruction outside the numerical callbacks. Legacy public names are small adapters in `src`. The numerical kernels call the namespace implementations directly. See [organization and migration](namespaces.md).
 
-Local functions retain tightly coupled wall operations in their owning builder. Shared physical/numerical kernels stay accessible to both solvers and tests. Moving a file into a package changes its qualified name; it does not require an additional runtime dispatcher inside the RHS. The [extension guide](extending.md) describes keeping state, equations, Jacobians and outputs consistent.
+Local functions retain tightly coupled wall operations in their owning builder. Shared physical/numerical kernels stay accessible to both solvers and tests. Moving a file into a package changes its qualified name. It does not require an additional runtime dispatcher inside the RHS. The [extension guide](extending.md) describes keeping state, equations, Jacobians and outputs consistent.
