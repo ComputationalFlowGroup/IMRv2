@@ -1,8 +1,13 @@
 # IMR documentation
 
-Read these Markdown pages directly on GitHub. Equations and Mermaid diagrams use GitHub's renderer; no local documentation tools are needed. For installation and a first run, start with the [repository README](../README.md).
+Read these Markdown pages directly on GitHub. GitHub's own renderer shows the equations and Mermaid diagrams. You do not need any local documentation tool. For installation and a first run, start with the [repository README](../README.md).
 
-**New here?** Read, in order: the [quick start](getting-started/quick-start.md) for a complete runnable example, [assumptions](model/overview.md) for what IMR models and does not, then [running a simulation](running/configuration.md) for your own case. Come back to the table below for everything else, by topic rather than by reading order.
+**New here?** Read these pages in order:
+1. [Quick start](getting-started/quick-start.md): a complete runnable example.
+2. [Assumptions](model/overview.md): what IMR models, and what it does not model.
+3. [Running a simulation](running/configuration.md): how to run your own case.
+
+Come back to the table below for all other topics. The table does not follow reading order.
 
 | Topic | Start here |
 |---|---|
@@ -22,6 +27,6 @@ Read these Markdown pages directly on GitHub. Equations and Mermaid diagrams use
 | `stress` 9–11: UCM/Oldroyd-B, PTT, Giesekus | [Spectral stress field](model/stress-viscosity.md#spectral-stress-field) |
 | `nu_model` 1–7: non-Newtonian viscosity integral | [Non-Newtonian viscosity](model/stress-viscosity.md#non-newtonian-viscosity) |
 
-The [stress and viscosity](model/stress-viscosity.md) page states every model's equation by its `stress` number; the [radial dynamics](model/radial-dynamics.md) page does the same for `radial`. Implementation-only details (EoS evaluation tricks, spectral/nodal storage) are kept in [Method](method/overview.md) instead, linked from the relevant section.
+The [stress and viscosity](model/stress-viscosity.md) page gives every model's equation by its `stress` number. The [radial dynamics](model/radial-dynamics.md) page gives every model's equation by its `radial` number. The [Method](method/overview.md) pages keep implementation details, such as equation-of-state evaluation and spectral/nodal storage. Each relevant section links to its Method page.
 
-The MkDocs website is deferred. Its configuration is retained for [future activation](reference/ci.md#reactivating-mkdocs).
+The MkDocs website is deferred. The [reactivation instructions](reference/ci.md#reactivating-mkdocs) keep the MkDocs configuration ready for future use.
