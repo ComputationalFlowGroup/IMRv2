@@ -75,7 +75,7 @@ In the code, `lam^2 = yT2./x2` and `lam^-4 = x2.^2.*iyT4`, with `x2 = (yT3 - 1 +
 
 ## PTT and Giesekus (stress 10, 11)
 
-Stress 10 and 11 generalize the UCM/Oldroyd-B closure (stress 9) with the nonlinear terms of Warnez and Johnsen (2015) (their Eq. 13; see [references](../reference/references.md)), available only as the spectral stress field of `imr.solve_spectral` (`imr.configuration.validate_case` forces `spectral = 1`; neither model has a closed-form, two-ODE reduction, so `imr.solve_nodal` rejects them). Along a material point with $a=R^2\dot R/r^3$, the field obeys
+Stress 10 and 11 generalize the UCM/Oldroyd-B closure (stress 9). They add the nonlinear terms of Warnez and Johnsen (2015) (their Eq. 13; see [references](../reference/references.md)). These two models run only as the spectral stress field of `imr.solve_spectral`. `imr.configuration.validate_case` forces `spectral = 1` for them. Neither model has a closed-form, two-ODE reduction, so `imr.solve_nodal` rejects them. Along a material point with $a=R^2\dot R/r^3$, the field obeys
 
 $$
 \frac{D\tau_{rr}}{Dt} = -\frac{\tau_{rr}}{\mathrm{De}}\exp\!\big(\epsilon_2\mathrm{Re}_8\mathrm{De}(\tau_{rr}+2\tau_{\theta\theta})\big) - 4a\tau_{rr} - \epsilon_3\mathrm{Re}_8\tau_{rr}^2 - \frac{4\eta_p a}{\mathrm{De}},
@@ -85,7 +85,7 @@ $$
 \frac{D\tau_{\theta\theta}}{Dt} = -\frac{\tau_{\theta\theta}}{\mathrm{De}}\exp\!\big(\epsilon_2\mathrm{Re}_8\mathrm{De}(\tau_{rr}+2\tau_{\theta\theta})\big) + 2a\tau_{\theta\theta} - \epsilon_3\mathrm{Re}_8\tau_{\theta\theta}^2 + \frac{2\eta_p a}{\mathrm{De}},
 $$
 
-with $\eta_p=(1-\mathrm{LAM})/\mathrm{Re}_8$. Stress 9 is the $\epsilon_2=0$, $\epsilon_3=0$ case, recovered exactly. Stress 10 (PTT) fixes their linear closure $\epsilon_2=1$ and takes $\epsilon_3=0$. Stress 11 (Giesekus) keeps $\epsilon_2=0$ and takes the input `eps3` in $(0,0.5]$ as their mobility factor; `eps3 = 0` makes stress 11 identical to stress 9 (a warning says so). `imr.solvers.build_spectral` (`f_spectral_stress`) implements the field, and `imr.numerics.jacobian_spectral` differentiates both new terms analytically for `jacobian = 2`.
+with $\eta_p=(1-\mathrm{LAM})/\mathrm{Re}_8$. Stress 9 is the $\epsilon_2=0$, $\epsilon_3=0$ case. The solver recovers stress 9 exactly in that case. Stress 10 (PTT) fixes their linear closure $\epsilon_2=1$ and takes $\epsilon_3=0$. Stress 11 (Giesekus) keeps $\epsilon_2=0$. Stress 11 takes the input `eps3` in $(0,0.5]$ as their mobility factor. `eps3 = 0` makes stress 11 identical to stress 9. A warning reports this case. `imr.solvers.build_spectral` (`f_spectral_stress`) implements the field. `imr.numerics.jacobian_spectral` differentiates both new terms analytically for `jacobian = 2`.
 
 ## Medium heating
 

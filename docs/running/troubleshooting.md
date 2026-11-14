@@ -35,4 +35,4 @@ If the mass-transfer wall residual has no sign change, `imr.solve_nodal` stops. 
 
 If initial-stress shooting cannot reach maximum radius with a subsonic start, provide a physically justified `stress0`, or change the case. See [initial stress](../method/initial-stress.md). Grid refinement and model validity both matter here. A tighter time tolerance alone cannot repair an invalid state.
 
-For an unlisted error, report the exact solver call, full message, MATLAB version and platform through the [contribution guide](../reference/contributing.md#reporting-bugs).
+For an unlisted error, use the [contribution guide](../reference/contributing.md#reporting-bugs) to report it. Give the exact solver call, the full message, the MATLAB version and the platform.

@@ -1,6 +1,6 @@
 # Pressure waveforms
 
-`imr.physics.far_field_pressure(t,{[om,ee,tw,dt,mn,wave_type],poly,dpoly})` returns a pressure **perturbation** $f$ and its time derivative. Absolute far-field pressure is $p_f=1+f$, in units of ambient pressure. Time is in units of $t_0=R_0/U_c$; derivatives are with respect to that dimensionless time. See [radial dynamics](../model/radial-dynamics.md#pressure-forms) for how $f$ and $\dot f$ drive acceleration.
+`imr.physics.far_field_pressure(t,{[om,ee,tw,dt,mn,wave_type],poly,dpoly})` returns a pressure **perturbation** $f$ and its time derivative. Absolute far-field pressure is $p_f=1+f$, in units of ambient pressure. Time is in units of $t_0=R_0/U_c$. Every derivative is with respect to that dimensionless time. See [radial dynamics](../model/radial-dynamics.md#pressure-forms) for how $f$ and $\dot f$ drive acceleration.
 
 | Symbol | Input | Meaning |
 |---|---|---|
@@ -10,7 +10,7 @@
 | *d* | `dt` | Gaussian/histotripsy center time |
 | *m* | `mn` | Histotripsy exponent |
 
-**Sign convention:** Positive `ee` always drives compressive waves (positive far-field pressure rise); negative `ee` drives tensile (rarefaction) waves. Physically: tension pulls material apart (negative stress), and compression pushes it together (positive stress). This convention is consistent across all waveform types. `imr.nondimensionalize` scales SI `pa`, `omega`, `tw` and `dt` before preparation. Scalar and array times preserve their input shape.
+**Sign convention:** Positive `ee` always drives compressive waves (a positive far-field pressure rise). Negative `ee` drives tensile (rarefaction) waves. Physically, tension pulls material apart (negative stress). Compression pushes material together (positive stress). This convention holds for every waveform type. `imr.nondimensionalize` scales SI `pa`, `omega`, `tw` and `dt` before preparation. A scalar input time gives a scalar output; an array input time gives an array output of the same shape.
 
 ## Analytic choices
 
@@ -31,7 +31,7 @@ f(t)=A e^{-z^2},\qquad
 \dot f(t)=-\frac{2A(t-d)}{w^2}e^{-z^2}.
 $$
 
-Positive amplitude gives a compression pulse (pressure rise) centered at $d$; its derivative changes sign there. Negative amplitude gives a rarefaction (tensile) pulse. The pulse has infinite mathematical support and decays smoothly. The [Gaussian suite](../verification/gaussian.md) checks return toward equilibrium after forcing.
+Positive amplitude gives a compression pulse (pressure rise) centered at $d$. Its derivative changes sign at $d$. Negative amplitude gives a rarefaction (tensile) pulse. The pulse has infinite mathematical support. It decays smoothly. The [Gaussian suite](../verification/gaussian.md) checks return toward equilibrium after forcing.
 
 ### Histotripsy pulse: type 2
 
@@ -42,9 +42,9 @@ f(t)=A\cos^{2m}\phi,\qquad
 \dot f(t)=-A m\omega\cos^{2m-1}\phi\sin\phi.
 $$
 
-The function and returned derivative are zero outside the support and at its endpoints. At $m=0$, pressure instead equals $A$ on the **closed** support interval, including both endpoints, and zero elsewhere; the returned derivative is zero. This convention avoids evaluating `0*Inf` and is tested in the [numerical suite](../verification/numerics.md).
+The function and its returned derivative are zero outside the support. They are also zero at the endpoints of the support. At $m=0$, pressure instead equals $A$ on the **closed** support interval, including both endpoints. Pressure is zero elsewhere. The returned derivative is zero at $m=0$. This convention avoids evaluating `0*Inf`. The [numerical suite](../verification/numerics.md) tests this convention.
 
-Endpoint derivatives are a pointwise numerical convention. A rectangular pulse has distributional impulses at its jumps; these are not represented. For $0<m<1/2$ the interior derivative has an unbounded one-sided endpoint limit, while $m=1/2$ gives a derivative jump. Use $m>1/2$ for a continuously differentiable pulse. The half-angle form avoids cancellation near endpoints for fractional exponents.
+Endpoint derivatives are a pointwise numerical convention. A rectangular pulse has distributional impulses at its jumps. These impulses are not represented here. For $0<m<1/2$, the interior derivative has an unbounded one-sided endpoint limit. For $m=1/2$, the derivative has a jump instead. Use $m>1/2$ for a continuously differentiable pulse. The half-angle form avoids cancellation near the endpoints for fractional exponents.
 
 ### Finite step: type 3
 

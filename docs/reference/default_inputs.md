@@ -1,6 +1,6 @@
 # `imr.default_inputs`
 
-`imr.default_inputs` returns every solver input with its default value, as a struct whose field names are the input names used in name/value pairs: `p.re` is the input `'re'`, `p.nt` is `'nt'`. It is the struct form of [`imr.configuration.defaults`](../model/parameters.md), which keeps the internal names (`Re8`, `Nt`, ...).
+`imr.default_inputs` returns every solver input with its default value, as a struct. Each field name is the input name used in a name/value pair: `p.re` is the input `'re'`, and `p.nt` is `'nt'`. This struct is the struct form of [`imr.configuration.defaults`](../model/parameters.md). `imr.configuration.defaults` keeps the internal names (`Re8`, `Nt`, ...).
 
 ```matlab
 imr_setup;

@@ -1,13 +1,13 @@
 # Regression
 
 
-MATLAB checks were not run for this documentation change. The descriptions below are checked against the suite implementation; numerical outcomes remain for local verification.
+Nobody ran MATLAB for this documentation change. The author checked the descriptions below against the suite implementation. You must verify the numerical outcomes locally.
 
-`s_test_suite_regression.m` runs the regression cases in the three solver modes and compares `R(t)` with the stored results in `tests/reference/<mode>.mat`. It catches unintended changes of the results.
+`s_test_suite_regression.m` runs the regression cases in the three solver modes. It compares `R(t)` with the stored results in `tests/reference/<mode>.mat`. It catches unintended changes in the results.
 
 ## Cases
 
-From [`f_test_cases('regression')`](tests.md). Only the combinations the compatibility matrix allows are kept: this was 230 cases each for `nodal_fd` and `nodal_cheb`, and 155 for `spectral`, before the 2nd-order Fung and Mooney-Rivlin springs (stress 3, 4, 7, 8) were added to this generator; the stored references in `tests/reference/` and the new count have not been regenerated here (see the disclaimer above) and need a local MATLAB run to refresh.
+From [`f_test_cases('regression')`](tests.md). The generator keeps only the combinations the compatibility matrix allows. Before the generator added the 2nd-order Fung and Mooney-Rivlin springs (stress 3, 4, 7, 8), this count was 230 cases each for `nodal_fd` and `nodal_cheb`, and 155 for `spectral`. The stored references in `tests/reference/` do not reflect the new count yet. Nobody has regenerated them (see the disclaimer above). A local MATLAB run must refresh them.
 
 - **Radial, thermal and stress models, for two materials.** The cases are:
 
@@ -23,7 +23,7 @@ From [`f_test_cases('regression')`](tests.md). Only the combinations the compati
     - The polytropic bubble: released from twice its equilibrium radius. It loses no heat, so its collapse is far sharper.
     - With mass transfer: a 200 µm bubble released from four times its equilibrium radius and followed for 30 µs.
 
-    These runs exercise every term without being so violent that the result mostly tests the integrator. From ten times the equilibrium radius, as the earlier suites used, about half of the cases stop at the first collapse.
+    These runs exercise every term. They are not so violent that the result mostly tests the integrator instead of the physics. The earlier suites released bubbles from ten times the equilibrium radius. At that radius, about half of the cases stop at the first collapse.
 
 - **Other features**, on Keller–Miksis with bubble and medium heat transfer:
 
@@ -51,9 +51,9 @@ The shared `tests/helpers/generate_references.m` runs every regression case and 
 - `R`: the results.
 - `info`: the date and program version.
 
-Regenerate them only when a change of results is intended and agreed (see Contributing).
+Regenerate them only when the team intends a change to the results and agrees to it (see Contributing).
 
-The maintainers will recreate the missing baselines locally in MATLAB. From the checkout root, run independent prechecks, generate the baselines only if they pass, and then run regression:
+The maintainers will recreate the missing baselines locally in MATLAB. From the checkout root, run the independent prechecks first. Generate the baselines only if the prechecks pass. Then run the regression suite:
 
 ```bash
 matlab -batch "cd tests; run_verification('generate-and-test')"
@@ -68,7 +68,7 @@ cd toolchain
 matlab -batch "s_generate_references"
 ```
 
-The default `overwrite = false` allows creating absent files. Set `overwrite = true` only when intentionally replacing existing baselines. Review the cross-mode report and record the code revision alongside the generated files; `info` records the generation time and MATLAB version. Then, from the checkout root, run the comparison:
+The default `overwrite = false` allows creating absent files. Set `overwrite = true` only when you intend to replace existing baselines. Review the cross-mode report. Record the code revision alongside the generated files. The `info` field records the generation time and the MATLAB version. Then, from the checkout root, run the comparison:
 
 ```bash
 cd tests
@@ -77,13 +77,13 @@ matlab -batch "imr_test_setup; s_test_suite_regression"
 
 - **Overwrite guard.** It refuses to overwrite existing files unless `overwrite = true` is set in the script.
 - **Parallel runs.** It runs the cases with `parfor`, which uses the default parallel pool when the Parallel Computing Toolbox is available and runs in series otherwise.
-- **Completed simulations.** If any case fails, stops early or returns mismatched output times, it lists the failures and publishes nothing. Otherwise it stages all files in a temporary folder and then moves them into place. Temporary staging files are cleaned up on failure, and overwrite protection is checked again before publishing.
-- **Cross-mode report.** For the cases the modes share, it reports the largest relative difference between them, and lists any case above `1e-2`. This is a sanity check on the new results, not a test: the grids differ, and violent runs may differ more.
+- **Completed simulations.** If any case fails, stops early, or returns mismatched output times, the script lists the failures and publishes nothing. Otherwise, it stages all files in a temporary folder and then moves them into place. If it fails, it cleans up the temporary staging files. It checks overwrite protection again before it publishes the files.
+- **Cross-mode report.** For the cases the modes share, it reports the largest relative difference between them. It lists any case above `1e-2`. This is a sanity check on the new results, not a test. The grids differ between modes. Violent runs can differ more.
 
 A new case added to `f_test_cases` fails the suite until its result is stored.
 
 ## Baseline availability
 
-The current checkout does not contain `tests/reference/nodal_fd.mat`, `nodal_cheb.mat` or `spectral.mat`. The regression suite therefore reports missing stored results; it has not passed here. The unused older `.mat` histories have been removed, and no legacy archive is retained.
+The current checkout does not contain `tests/reference/nodal_fd.mat`, `nodal_cheb.mat`, or `spectral.mat`. The regression suite therefore reports missing stored results. It has not passed here. The project has removed the unused older `.mat` histories. No legacy archive remains.
 
-Generating new results from the current code creates a new reference; it cannot establish agreement with an independently approved prior version. Review the generated results using the analytic suites and cross-mode comparisons before accepting them as baselines. A regression run against freshly generated files checks storage and repeatability, not independent numerical accuracy.
+Generating new results from the current code creates a new reference. This process cannot establish agreement with an independently approved prior version. Review the generated results with the analytic suites and the cross-mode comparisons before you accept them as baselines. A regression run against freshly generated files checks storage and repeatability. It does not check independent numerical accuracy.
