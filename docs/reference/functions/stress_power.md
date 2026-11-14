@@ -4,7 +4,7 @@
 
 The heating is the full stress power, $\Phi=\boldsymbol\tau:\mathbf D$. This is the entropy-elastic (rubber-like) convention: elastic work is released as heat under loading and absorbed under unloading.
 
-With the local strain rate $a=\dfrac{R^2\dot R}{r^3}=\dfrac{\dot R}{R}y^{-3}$ and $s=\tau_{rr}-\tau_{\theta\theta}$, the stress power is $\boldsymbol\tau:\mathbf D=-2as$. Only this normal-stress difference enters; the trace of the stress does not.
+With the local strain rate $a=\dfrac{R^2\dot R}{r^3}=\dfrac{\dot R}{R}y^{-3}$ and $s=\tau_{rr}-\tau_{\theta\theta}$, the stress power is $\boldsymbol\tau:\mathbf D=-2as$. Only this normal-stress difference enters. The trace of the stress does not enter.
 
 ## Inputs
 

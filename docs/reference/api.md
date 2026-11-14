@@ -1,6 +1,6 @@
 # MATLAB API
 
-Use the public functions below from MATLAB with `src/` on the path. All solver inputs and outputs are dimensionless; convert physical properties before calling a solver.
+Use the public functions below from MATLAB with `src/` on the path. All solver inputs and outputs are dimensionless. Convert physical properties before you call a solver.
 
 | Function | Purpose |
 |---|---|
@@ -13,6 +13,6 @@ Use the public functions below from MATLAB with `src/` on the path. All solver i
 | [`imr.nondimensionalize`](nondimensionalize.md) | SI-to-dimensionless conversion and reference scales |
 | [`imr.sweep`](sweep.md) | Full-grid parameter study |
 
-Start with the [complete worked call](../getting-started/quick-start.md). Read [configuration](../running/configuration.md) for precedence and [outputs](../running/output.md) for saving and replaying a run. The [function call map](function-call-map.md) links internal helpers; they are not additional solver options.
+Start with the [complete worked call](../getting-started/quick-start.md). Read [configuration](../running/configuration.md) for input precedence. Read [outputs](../running/output.md) to save and replay a run. The [function call map](function-call-map.md) links internal helpers. These helpers are not additional solver options.
 
 IMR has no plugin registry. [Extending IMR](extending.md) describes direct changes to defaults, parsing, checks and equations.

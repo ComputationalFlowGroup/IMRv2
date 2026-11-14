@@ -1,6 +1,6 @@
 # Parameters and units
 
-`imr.configuration.defaults` is a function that returns the default value of every solver input as a struct. `imr.configuration.prepare_case` starts from these values, and any of them can be changed with a name/value pair, for example `imr.solve_nodal('radial', 2, 'stress', 1)`. **Every quantity is dimensionless.** The solvers take no dimensional inputs and return no dimensional outputs; convert physical values beforehand, for example with [`imr.nondimensionalize`](../reference/nondimensionalize.md).
+`imr.configuration.defaults` is a function. It returns the default value of every solver input as a struct. `imr.configuration.prepare_case` starts from these values. You can change any value with a name/value pair, for example `imr.solve_nodal('radial', 2, 'stress', 1)`. **Every quantity is dimensionless.** The solvers accept no dimensional input. The solvers return no dimensional output. Convert physical values before you call a solver, for example with [`imr.nondimensionalize`](../reference/nondimensionalize.md).
 
 ### Scalings
 
@@ -17,7 +17,7 @@ The default values use the legacy water reference set for a 50 µm bubble at 1 a
 
 ## Parameters
 
-The *input* column is the accepted name in a name/value call (case-insensitive). All public solver inputs are dimensionless, including time and temperature. Values in the tables are rounded for readability; Model and numerical defaults come from `src/+imr/+configuration/defaults.m`; physical groups are derived from the shared SI converter and water profile. See [defaults and units](../reference/defaults.md). SI names, defaults and units are listed in the [conversion API](../reference/nondimensionalize.md#inputs-si).
+The *input* column gives the accepted name in a name/value call. The name is case-insensitive. All public solver inputs are dimensionless, including time and temperature. The tables round the values for readability. Model and numerical defaults come from `src/+imr/+configuration/defaults.m`. Physical groups come from the shared SI converter and the water profile. See [defaults and units](../reference/defaults.md). The [conversion API](../reference/nondimensionalize.md#inputs-si) lists the SI names, defaults and units.
 
 ### Equation options
 
@@ -119,6 +119,6 @@ The *input* column is the accepted name in a name/value call (case-insensitive).
 
 ## Input validation
 
-- Numerical and physical inputs are validated by [`imr.configuration.validate_case`](../reference/functions/validate_case.md); the routing option `solver` is validated during case preparation. Inputs that look dimensional raise the `IMR:dimensional` warning.
-- [Configuration](../running/configuration.md) explains structs, cell arrays and precedence. There are no case files: a case is the list of inputs that differ from these defaults, kept as a struct from [`imr.default_inputs`](../reference/default_inputs.md) or as a cell array `varin` passed as `imr.solve_nodal(varin{:})`. The former `casefile` input now raises an error that says so. To run many cases, see [`imr.sweep`](../reference/sweep.md).
+- [`imr.configuration.validate_case`](../reference/functions/validate_case.md) validates numerical and physical inputs. Case preparation validates the routing option `solver`. An input that looks dimensional raises the `IMR:dimensional` warning.
+- [Configuration](../running/configuration.md) explains structs, cell arrays and precedence. This repository has no case files. A case is the list of inputs that differ from these defaults. Keep a case as a struct from [`imr.default_inputs`](../reference/default_inputs.md), or as a cell array `varin` passed as `imr.solve_nodal(varin{:})`. The old `casefile` input now raises an error that explains this. To run many cases, see [`imr.sweep`](../reference/sweep.md).
 - See [`compatibility`](../reference/compatibility.md) for which features run together in each solver.

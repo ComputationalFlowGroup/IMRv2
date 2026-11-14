@@ -1,6 +1,6 @@
 # Namespaces, organization and migration
 
-Public MATLAB functions live in the `imr` namespace. Add only the parent `src` directory through `imr_setup`; MATLAB resolves the `+` package hierarchy automatically. There is no `private` folder and no package loader or registry.
+Public MATLAB functions live in the `imr` namespace. Add only the parent `src` directory, through `imr_setup`. MATLAB resolves the `+` package hierarchy automatically. There is no `private` folder. There is no package loader or registry.
 
 ```text
 imr_setup.m
@@ -26,7 +26,7 @@ examples/
   run_water_case.m
 ```
 
-Each solver implementation exists once, in `imr.solvers.build_nodal` or `imr.solvers.build_spectral`. The public functions delegate to `imr.solvers.run`, which shares case preparation, integration and reconstruction. Tightly coupled wall helpers remain local functions in their builder. Package functions are callable for developer tests; a namespace organizes names rather than restricting access.
+Each solver implementation exists once, in `imr.solvers.build_nodal` or `imr.solvers.build_spectral`. The public functions delegate to `imr.solvers.run`. `imr.solvers.run` shares case preparation, integration and reconstruction. Tightly coupled wall helpers remain local functions in their builder. Package functions are callable for developer tests. A namespace organizes names. A namespace does not restrict access.
 
 ## Run a case
 
@@ -50,7 +50,7 @@ The bundled `run_water_case` script performs this call. From a terminal at the c
 matlab -batch "imr_setup; run_water_case"
 ```
 
-The small initial velocity starts oscillation about the equilibrium radius. Water properties use the documented legacy reference set; this example does not introduce a new calibrated water EoS. Change the `solver` value to `'spectral'` for the spectral solver. Both existing solver wrappers remain supported. See the [Keller–Miksis example](../getting-started/keller-miksis.md) for SI scaling and the [API](api.md) for output shapes.
+The small initial velocity starts oscillation about the equilibrium radius. Water properties use the documented legacy reference set. This example does not introduce a new calibrated water EoS. Change the `solver` value to `'spectral'` for the spectral solver. Both existing solver wrappers remain supported. See the [Keller–Miksis example](../getting-started/keller-miksis.md) for SI scaling. See the [API](api.md) for output shapes.
 
 ## Compatibility and naming
 
@@ -66,14 +66,14 @@ The small initial velocity starts oscillation about the equilibrium radius. Wate
 | `default_case` | `imr.configuration.defaults` |
 | `fluids.water` | `imr.fluids.water` |
 
-These old public names remain small forwarding adapters with unchanged inputs/output order and no repeated implementation. Internal helpers have moved to their responsibility package; code that called an internal helper directly must use its qualified name from the [function call map](function-call-map.md). Do not `import imr.*` in library code; explicit names avoid ambiguity and make dependencies visible.
+These old public names remain small forwarding adapters. They keep the same inputs and output order. They have no repeated implementation. Internal helpers have moved to their responsibility package. Code that calls an internal helper directly must use its qualified name from the [function call map](function-call-map.md). Do not `import imr.*` in library code. Explicit names avoid ambiguity and make dependencies visible.
 
-Use lowercase `snake_case`, descriptive quantities or verbs, and a primary function matching the filename. For example, `imr.physics.radial_acceleration` is defined as `radial_acceleration` in `src/+imr/+physics/radial_acceleration.m`. Do not put dots in its function declaration or add `+imr` to the search path itself.
+Use lowercase `snake_case`, descriptive quantities or verbs, and a primary function matching the filename. For example, `imr.physics.radial_acceleration` is defined as `radial_acceleration` in `src/+imr/+physics/radial_acceleration.m`. Do not put dots in its function declaration. Do not add `+imr` to the search path itself.
 
 ## Runtime cost and validation
 
-The organization adds no path setup, file reads or validation inside numerical callbacks. Existing kernels retain their equations and call counts; their names become qualified. The shared runner executes once per simulation. Legacy adapters are not used by the namespaced RHS or Jacobians.
+The organization adds no path setup, file reads or validation inside numerical callbacks. Existing kernels retain their equations and call counts; only their names become qualified. The shared runner executes once per simulation. The namespaced RHS and Jacobians do not use legacy adapters.
 
-MATLAB name resolution and dispatch performance can vary by release. Source consistency and static checks cannot establish that runtime is unchanged. The [namespace benchmark procedure](../../benchmarks/namespaces/README.md) compares all seven original numerical outputs and the original input fields, validates the newly added solver label separately, then times four representative workloads against the pre-namespace checkout. It alternates timing order, isolates source paths and flags a configured slowdown threshold. Run it in MATLAB to compare layouts on the same machine; no timing result is claimed by the documentation cleanup, and this timing gate remains for local execution before merging.
+MATLAB name resolution and dispatch performance can vary by release. Source consistency and static checks cannot establish that runtime is unchanged. The [namespace benchmark procedure](../../benchmarks/namespaces/README.md) does four things. It compares all seven original numerical outputs and the original input fields. It validates the newly added solver label separately. It times four representative workloads against the pre-namespace checkout. It alternates timing order, isolates source paths, and flags a configured slowdown threshold. Run it in MATLAB to compare layouts on the same machine. This documentation cleanup claims no timing result. This timing gate remains for local execution before merging.
 
-`s_test_suite_namespace` checks public namespace calls, legacy adapters and measured waveform loading. The existing numerical suites now call the namespaced implementations directly. No trajectory baselines are regenerated. Markdown and LaTeX source checks remain separate from MATLAB numerical validation.
+`s_test_suite_namespace` checks public namespace calls, legacy adapters and measured waveform loading. The existing numerical suites now call the namespaced implementations directly. The suite regenerates no trajectory baseline. Markdown and LaTeX source checks remain separate from MATLAB numerical validation.

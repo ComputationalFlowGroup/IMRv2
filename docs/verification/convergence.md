@@ -1,7 +1,7 @@
 # Convergence and reported comparisons
 
 This page preserves numerical measurements reported in the previous function documentation.
-They were not rerun for this documentation change. Many lack a bundled reproduction driver or captured log; treat their digits and timings as historical reports, not current acceptance criteria.
+Nobody reran them for this documentation change. Many lack a bundled reproduction driver or captured log. Treat their digits and timings as historical reports, not current acceptance criteria.
 The executable assertions live in the [test suite pages](tests.md).
 
 ## Reported measurements: `imr.solve_nodal`
@@ -16,7 +16,7 @@ On thermal cases with `Req = 0.5` and `t` in [0, 3]:
 
 ## Reported measurements: `imr.physics.initial_stress`
 
-- Against the previous `fminsearch` shooting, over the default collapse parameters with `Req` 0.1–0.5 and `De` 0.01–1, the stress agrees to `3e-8` relative. At `Req = 0.05` no subsonic start reaches `R = 1` (the maximum radius stays at 0.93); the previous version returned the stress at that non-root without notice.
+- Against the previous `fminsearch` shooting, over the default collapse parameters with `Req` 0.1–0.5 and `De` 0.01–1, the stress agrees to `3e-8` relative. At `Req = 0.05`, no subsonic start reaches `R = 1` (the maximum radius stays at 0.93). The previous version returned the stress at that non-root without notice.
 - Integrates with `ode23tb`.
 
 ## Reported measurements: `imr.numerics.jacobian_nodal`
@@ -34,7 +34,7 @@ Against a central-difference Jacobian over radial 1–4, stress 0, 1, 5 and 9, N
     - `5e-4` with finite differences at `Mt = 80` (second-order quadrature error).
 
     This held for stress 1, 2, 5, 6 and 9, Newtonian and Carreau.
-- **Kelvin–Voigt limit.** At the same state, the stress 5 (6) heating tends to the stress 1 (2) heating as `De -> 0`: the relative difference is `4e-2`, `4e-3` and `4e-4` for `De = 1e-2`, `1e-3` and `1e-4`.
+- **Kelvin–Voigt limit.** At the same state, the stress 5 (6) heating tends to the stress 1 (2) heating as `De -> 0`. The relative difference is `4e-2`, `4e-3` and `4e-4` for `De = 1e-2`, `1e-3` and `1e-4`.
 
 ## Reported measurements: `imr.physics.zener_field`
 
@@ -50,11 +50,11 @@ That is second-order convergence for finite differences and spectral convergence
 
 ## Reported measurements: `imr.numerics.differentiation`
 
-`scheme = 0` reproduces the solver's operator bitwise for `nodes` in {10, 100, 200}, both orders and both grids. The Chebyshev interior operators differentiate `cos(pi*y/2)` and `y^2` to 1e-11 or better for 8–32 nodes and annihilate constants to 1e-13; the exterior operators converge spectrally (`exp(xi)`: 6e-6 at 8 nodes, 4e-14 at 16 nodes).
+`scheme = 0` reproduces the solver's operator bitwise for `nodes` in {10, 100, 200}, both orders and both grids. The Chebyshev interior operators differentiate `cos(pi*y/2)` and `y^2` to 1e-11 or better for 8–32 nodes and annihilate constants to 1e-13. The exterior operators converge spectrally (`exp(xi)`: 6e-6 at 8 nodes, 4e-14 at 16 nodes).
 
 ## Reported cross-mode regression agreement
 
-In the cross-mode report, Chebyshev and the spectral solver agree with finite differences to about 2% on the cases without mass transfer. The mass-transfer cases differ by up to 11% between the two nodal schemes. At `Nt = Mt = 20` (Chebyshev) and 70 (finite differences), neither nodal scheme is resolved for mass transfer: the convergence study in the `imr.solve_nodal` documentation needs about 40 Chebyshev points. The suite checks that results are reproduced, not that they are accurate, so these grids are adequate.
+In the cross-mode report, Chebyshev and the spectral solver agree with finite differences to about 2% on the cases without mass transfer. The mass-transfer cases differ by up to 11% between the two nodal schemes. At `Nt = Mt = 20` (Chebyshev) and 70 (finite differences), neither nodal scheme is resolved for mass transfer. The convergence study in the `imr.solve_nodal` documentation needs about 40 Chebyshev points. The suite checks that results are reproduced, not that they are accurate, so these grids are adequate.
 
 ## Reported batched-Jacobian measurements
 
@@ -72,7 +72,7 @@ Compared with the previous version, which called `integral` twice at `1e-8`, the
 
 ## Reported collapse setup comparison
 
-The earlier parser page reported that the recomputed collapse equilibrium radius reproduces the input `Req` over 0.05–0.9 and `Pv` values 0.03 and 0.3. No reproduction driver or run log accompanies that statement here. The initial-pressure and equilibrium consistency should be checked for the chosen case.
+The earlier parser page reported that the recomputed collapse equilibrium radius reproduces the input `Req` over 0.05–0.9 and `Pv` values 0.03 and 0.3. No reproduction driver or run log accompanies that statement here. You should check the initial-pressure and equilibrium consistency for the chosen case.
 
 ## Reported radial enthalpy comparison
 
@@ -82,11 +82,11 @@ The earlier parser page reported that the recomputed collapse equilibrium radius
   h=\left[\frac{p}{1+\mu}\right] + C_*^2\int \frac{g(\mu)}{(1+\mu)^2}\,d\mu,
   $$
 
-  and the partial fractions of $g(\mu)/(1+\mu)^2$ (poles at $\mu=-1$ and $\mu=1/s$) give it in closed form. The differences are written so that they hold for $s=0$ and near $P=1$. Against an adaptive `integral` at `1e-12` the closed form agrees to `2.4e-13` relative to `|P - 1|` over 396 states (`Cstar` 5–1000, `nog` 0.5–2.5, `s` 0–2, `P` from -0.5 to `1e4`). It replaces an adaptive `integral` on every right-hand-side call, and radial 5 and 6 runs take about half the time, with `R(t)` unchanged to `1e-13`.
+  and the partial fractions of $g(\mu)/(1+\mu)^2$ (poles at $\mu=-1$ and $\mu=1/s$) give it in closed form. The differences are written so that they hold for $s=0$ and near $P=1$. Against an adaptive `integral` at `1e-12` the closed form agrees to `2.4e-13` relative to `|P - 1|` over 396 states (`Cstar` 5–1000, `nog` 0.5–2.5, `s` 0–2, `P` from -0.5 to `1e4`). It replaces an adaptive `integral` on every right-hand-side call. Radial 5 and 6 runs take about half the time, with `R(t)` unchanged to `1e-13`.
 
 ## Reported wall-closure comparisons
 
-**Warm start.** Consecutive calls come from nearby states, so each call first runs Newton with the analytic derivative from the previous root. The result is accepted once a Newton step falls below `1e-10` with every iterate inside the bracket, within 6 steps. The first call of a run, and any call where Newton leaves the bracket, meets a non-finite value or does not converge, uses the bracketed solve below instead. Over 360 trajectory states the warm start was accepted in 16382 of 16392 calls, after 2.75 Newton steps on average, and its roots agree with the reference to `5e-16` in `theta_w`. The residual has exactly one sign change in `(0, 1)` at every one of those states (checked on 20001 points), so the warm start and the bracketed solve find the same root. The wall value now depends on the previous call only through round-off: in the regression cases with mass transfer, `R(t)` moves by at most `9e-7` (median `3e-8`), at the level of the integrator tolerance.
+**Warm start.** Consecutive calls come from nearby states, so each call first runs Newton with the analytic derivative from the previous root. The result is accepted once a Newton step falls below `1e-10` with every iterate inside the bracket, within 6 steps. The first call of a run, and any call where Newton leaves the bracket, meets a non-finite value or does not converge, uses the bracketed solve below instead. Over 360 trajectory states, the warm start was accepted in 16382 of 16392 calls, after 2.75 Newton steps on average. Its roots agree with the reference to `5e-16` in `theta_w`. The residual has exactly one sign change in `(0, 1)` at every one of those states (checked on 20001 points), so the warm start and the bracketed solve find the same root. The wall value now depends on the previous call only through round-off: in the regression cases with mass transfer, `R(t)` moves by at most `9e-7` (median `3e-8`), at the level of the integrator tolerance.
 
 **Solve.** The bracket is fixed at `kv_w` in `[1e-13, 1 - 1e-13]`; no initial guess is used. The residual is evaluated on 64 equally spaced points of the bracket, including both ends, in one vectorized call. If the ends have the same sign, the solver stops with an error that reports the time and state, since that indicates a physical or indexing problem rather than a solver problem. Otherwise the grid interval with the first sign change becomes the new bracket. Two such rounds narrow it by a factor of about `63^2 = 4e3`, about as much as 12 bisection steps. Three Newton steps with the analytic derivative `dr/d(kv_w)` follow, each kept inside the final interval. The bracketed solve has no adaptive termination, so it always costs the same: 2 vectorized evaluations of 64 points, 3 Newton evaluations and 1 final evaluation. Against 3 rounds of 32 points, this layout gives the same roots (round-off, 360 trajectory states) at 1.0 to 1.4 times less cost per call.
 

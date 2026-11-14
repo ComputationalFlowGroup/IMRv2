@@ -31,11 +31,11 @@ For each case and integrator it prints:
 
 The reference `R_ref` is `ode15s` at tolerance `1e-12` (with `ode23tb` as the fallback). The compared runs use `1e-8`, the default. A summary gives each integrator's geometric-mean speedup and worst error. The results go to `integrators.mat` and `integrators.csv`.
 
-Without the `ode` object, the CVODES runs are skipped with a message.
+Without the `ode` object, the script skips the CVODES runs and prints a message.
 
 ## What to expect
 
-CVODES is compiled, but it still calls the model's right-hand side and Jacobian, which are MATLAB code. It saves the integrator's own work: step control, error estimates and the Newton iterations.
+CVODES is compiled. It still calls the model's right-hand side and Jacobian. These are MATLAB code. CVODES saves only the integrator's own work: step control, error estimates and the Newton iterations.
 
 The batched Jacobian costs about 3 right-hand-side calls. The analytic one costs 25–40. See the batched right-hand side section of the `imr.solve_nodal` documentation for the measurements.
 

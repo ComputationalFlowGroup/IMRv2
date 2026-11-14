@@ -1,8 +1,8 @@
 # MATLAB and batch commands
 
-IMR exposes MATLAB functions, not an application command-line interface. Use MATLAB interactively or its `-batch` option from a shell.
+IMR gives you MATLAB functions. It does not give you an application command-line interface. Use MATLAB interactively, or use its `-batch` option from a shell.
 
-All commands below start from the checkout root unless a directory is stated. MATLAB commands have not been executed for this documentation change.
+All commands below start from the checkout root, unless a directory is stated. Nobody ran these MATLAB commands for this documentation change.
 
 | Task | Command | Working directory |
 |---|---|---|
@@ -21,8 +21,8 @@ All commands below start from the checkout root unless a directory is stated. MA
 
 | Option | Consumer | Meaning |
 |---|---|---|
-| `-batch` | MATLAB executable | Evaluates MATLAB code noninteractively and returns a failure status for an uncaught error |
+| `-batch` | MATLAB executable | Evaluates MATLAB code noninteractively. Returns a failure status for an uncaught error |
 
 Model choices such as `radial` and `scheme` are MATLAB name/value inputs, not shell flags. See [configuration](configuration.md) and [parameters](../model/parameters.md).
 
-The website is dormant. Future website commands are described under [reactivating MkDocs](../reference/ci.md#reactivating-mkdocs).
+The website is dormant. See [reactivating MkDocs](../reference/ci.md#reactivating-mkdocs) for the future website commands.

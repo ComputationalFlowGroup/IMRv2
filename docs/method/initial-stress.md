@@ -5,7 +5,7 @@ The [collapse guide](../running/collapse.md) explains when it runs and when `str
 
 ## Shooting algorithm
 
-1. **Bracket**: the maximum radius grows with the initial wall velocity and equals `Req` at rest. Starting from `[0, 1]`, the upper end doubles until the maximum radius exceeds 1. The growth equation is singular at `Rdot = CL`, so the bracket stays below the sound speed; if even a nearly sonic start stays below `R = 1`, the function stops with an error that asks for `stress0`.
+1. **Bracket**: the maximum radius grows with the initial wall velocity and equals `Req` at rest. Starting from `[0, 1]`, the upper end doubles until the maximum radius exceeds 1. The growth equation is singular at `Rdot = CL`. The bracket therefore stays below the sound speed. If even a nearly sonic start stays below `R = 1`, the function stops with an error that asks for `stress0`.
 2. **Shooting**: `fzero` on the bracket finds the initial wall velocity for which `f_maxwell_growth_iter` reaches a maximum radius of 1.
 3. **Time Integration**: `ode23tb` on `f_RP_bub_collapse_comp`, with an event at `Rdot = 0` to locate the maximum radius.
 4. **Stress Extraction**: the stress state at the maximum radius.
@@ -31,4 +31,4 @@ $$
 8. **Time Constant Calculation** (`tg`): Computes relaxation time for stress growth.
 9. **Stress Prediction** (`Smaxpred`): Final predicted maximum stress.
 
-The standalone `imr.approximate_initial_stress` is not called by either solver. It calls `hypergeom`, which is not bundled and normally requires Symbolic Math Toolbox. Confirm availability with `which hypergeom` in your MATLAB installation. Its approximate result is not a substitute for an approved collapse stress history.
+Neither solver calls the standalone `imr.approximate_initial_stress`. It calls `hypergeom`. MATLAB does not bundle this function. It normally needs the Symbolic Math Toolbox. Confirm availability with `which hypergeom` in your MATLAB installation. Its approximate result is not a substitute for an approved collapse stress history.

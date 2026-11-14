@@ -1,7 +1,7 @@
 # `imr.approximate_initial_stress`
 
-`imr.approximate_initial_stress` computes an approximate initial Cauchy stress at the bubble maximum radius using analytical corrections for viscoelastic, compressibility, and compressive effects.
-This provides a lower-fidelity but faster estimate compared to the numerical shooting method. The solvers do not call it; it is kept as a standalone estimate.
+`imr.approximate_initial_stress` computes an approximate initial Cauchy stress at the bubble maximum radius. It uses analytical corrections for viscoelastic, compressibility, and compressive effects.
+This estimate is faster than the numerical shooting method, but it is less accurate. The solvers do not call this function. The repository keeps it as a standalone estimate.
 
 ## Inputs
 
@@ -25,9 +25,9 @@ This provides a lower-fidelity but faster estimate compared to the numerical sho
 
 ## Notes
 
-- Throws an error if the aggregated stress correction (`fsum`) exceeds 1.
-- Analytical method is faster but less accurate than `imr.physics.initial_stress` numerical shooting.
+- This function throws an error if the aggregated stress correction (`fsum`) exceeds 1.
+- This analytical method is faster than `imr.physics.initial_stress`'s numerical shooting method, but it is less accurate.
 
-For the algorithm and assumptions, see the [topic guide](../../method/initial-stress.md). Numerical measurements are retained as [historical reports](../../verification/convergence.md).
+For the algorithm and assumptions, see the [topic guide](../../method/initial-stress.md). See [historical reports](../../verification/convergence.md) for the numerical measurements.
 
-This standalone helper calls `hypergeom`; verify its toolbox availability. Neither solver calls it.
+This standalone helper calls `hypergeom`. Check that your MATLAB license includes the needed toolbox. Neither solver calls this helper.

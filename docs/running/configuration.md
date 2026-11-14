@@ -1,6 +1,6 @@
 # Configuration
 
-`imr.configuration.prepare_case` builds a named, checked case from `imr.configuration.defaults`, optional input-struct changes and explicit name/value pairs. Both solvers accept dimensionless values only.
+`imr.configuration.prepare_case` builds a named, checked case. It builds the case from `imr.configuration.defaults`, optional input-struct changes and explicit name/value pairs. Both solvers accept only dimensionless values.
 
 ## Forms and precedence
 
@@ -11,9 +11,9 @@
 | Struct | `p = imr.default_inputs(); p.radial = 2; imr.solve(p)` | Passes only fields differing from the defaults |
 | Struct plus pairs | `imr.solve(p,'solver','spectral')` | Explicit pairs override changed struct fields |
 
-Names in the name/value parser are case-insensitive. Use the lowercase fields returned by [`imr.default_inputs`](../reference/default_inputs.md) for structs. Optional `p0star` and `stress0` fields have no default and can be added when needed.
+Names in the name/value parser are case-insensitive. Use the lowercase fields returned by [`imr.default_inputs`](../reference/default_inputs.md) for structs. The optional `p0star` and `stress0` fields have no default. Add them when you need them.
 
-`imr.solve` defaults to the nodal solver. Select the spectral solver with `'solver','spectral'` or an added `p.solver` field. The default struct is solver-neutral; the selected solver is added to the returned input record for replay. Existing `imr.solve_nodal` and `imr.solve_spectral` wrappers fix the selection and reject conflicting options. The `spectral` stress flag remains independent. See [solver selection](../reference/solve.md).
+`imr.solve` defaults to the nodal solver. Select the spectral solver with `'solver','spectral'`, or add a `p.solver` field. The default struct is solver-neutral. `imr.solve` adds the selected solver to the returned input record, for replay. The existing `imr.solve_nodal` and `imr.solve_spectral` wrappers fix the solver selection. These wrappers reject a conflicting option. The `spectral` stress flag stays independent of the solver selection. See [solver selection](../reference/solve.md).
 
 The full accepted names, meanings and defaults live in [parameters](../model/parameters.md). Internal variables such as `Rzero`, `Pb_star`, `Szero`, `tspan`, `wave_poly` and `wave_dpoly` are not accepted public option names.
 
@@ -22,9 +22,9 @@ The full accepted names, meanings and defaults live in [parameters](../model/par
 - Give `tvector` or `tfin`, not both in explicit pairs.
 - `tvector` must contain at least two finite, strictly increasing values and start at a nonnegative time.
 - `tfin` alone constructs `[0, tfin]`, returning the integrator's own output steps.
-- A struct whose changed `tvector` ends at its changed `tfin` passes only `tvector`; the parser removes that redundant `tfin`.
+- A struct whose changed `tvector` ends at its changed `tfin` passes only `tvector`. The parser removes that redundant `tfin`.
 
-The optional eighth solver output records the requested/default inputs, with its final time vector. `imr.configuration.validate_case` can adjust internal settings such as `Nv`, `Ca` and `spectral`; the recorded struct is not a complete dump of those internal adjustments. See [outputs](output.md).
+The optional eighth solver output records the requested or default inputs, with the final time vector. `imr.configuration.validate_case` can adjust internal settings such as `Nv`, `Ca` and `spectral`. The recorded struct is not a complete dump of those internal adjustments. See [outputs](output.md).
 
 ## Units and case files
 

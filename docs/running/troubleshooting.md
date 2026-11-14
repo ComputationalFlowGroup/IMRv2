@@ -1,6 +1,6 @@
 # Troubleshooting
 
-The parser and `imr.configuration.validate_case` report invalid inputs before integration. Errors below are quoted from the implementation; placeholders such as `%d` depend on the case.
+The parser and `imr.configuration.validate_case` report invalid inputs before integration. The errors below are direct quotes from the implementation. A placeholder such as `%d` depends on the case.
 
 | Message or identifier | Meaning | Fix |
 |---|---|---|
@@ -31,8 +31,8 @@ Model combinations can also fail the exact [compatibility rules](../reference/co
 
 ## During integration
 
-If the mass-transfer wall residual has no sign change, `imr.solve_nodal` stops with a message beginning `imr.solve_nodal: the mass-transfer wall balance does not change sign on kv_w`. Inspect the reported time, state and saturation range. A violent Rayleigh–Plesset collapse can leave the saturation model's admissible range; the compatibility page records this limitation. Do not bypass the bracket check to force a run.
+If the mass-transfer wall residual has no sign change, `imr.solve_nodal` stops. The message begins `imr.solve_nodal: the mass-transfer wall balance does not change sign on kv_w`. Inspect the reported time, state and saturation range. A violent Rayleigh–Plesset collapse can push the state outside the saturation model's admissible range. The [compatibility page](../reference/compatibility.md) records this limitation. Do not bypass the bracket check to force a run.
 
-If initial-stress shooting cannot reach maximum radius with a subsonic start, provide a physically justified `stress0` or change the case. See [initial stress](../method/initial-stress.md). Grid refinement and model validity both matter; a tighter time tolerance alone cannot repair an invalid state.
+If initial-stress shooting cannot reach maximum radius with a subsonic start, provide a physically justified `stress0`, or change the case. See [initial stress](../method/initial-stress.md). Grid refinement and model validity both matter here. A tighter time tolerance alone cannot repair an invalid state.
 
-For an unlisted error, report the exact solver call, full message, MATLAB version and platform through the [contribution guide](../reference/contributing.md#reporting-bugs).
+For an unlisted error, use the [contribution guide](../reference/contributing.md#reporting-bugs) to report it. Give the exact solver call, the full message, the MATLAB version and the platform.

@@ -14,6 +14,6 @@
 
 ## Notes
 
-- `R` and `Rdot` may be row vectors (the batched right-hand side of [`imr.solve_nodal`](../../method/time-integration.md#batched-right-hand-side)), giving one output column per state. With one state the result is the evaluated in the same elementwise order.
+- `R` and `Rdot` can be row vectors (the batched right-hand side of [`imr.solve_nodal`](../../method/time-integration.md#batched-right-hand-side)). This gives one output column per state. With one state, the function evaluates the result in the same elementwise order.
 
 For the algorithm and assumptions, see the [topic guide](../../model/stress-viscosity.md#non-newtonian-viscosity). Numerical measurements are retained as [historical reports](../../verification/convergence.md).
