@@ -111,7 +111,7 @@ Material profiles are not loaded in this loop. Pressure-form Keller–Miksis use
 | `src/+imr/+physics/wall_mass_balance.m` | Coupled wall residual and its derivatives | [Wall residual](functions/wall_mass_balance.md) |
 | `src/+imr/+physics/far_field_pressure.m` | Driving pressure and time derivative | [Waveforms](functions/far_field_pressure.md) |
 | `src/+imr/+physics/initial_stress.m` | Initial stress from growth shooting | [Initialization](functions/initial_stress.md) |
-| `src/+imr/approximate_initial_stress.m` | Standalone approximation, separate from the solver path | [Approximation](functions/f_approx_init_stress.md) |
+| `src/+imr/approximate_initial_stress.m` | Standalone approximation, separate from the solver path | [Approximation](functions/approximate_initial_stress.md) |
 
 ### Numerical operators and integration
 

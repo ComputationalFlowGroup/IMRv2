@@ -139,7 +139,7 @@ nav:
       - "Citation": reference/references.md
       - "People": reference/about.md
       - Internal functions:
-          - approximate_initial_stress: reference/functions/f_approx_init_stress.md
+          - approximate_initial_stress: reference/functions/approximate_initial_stress.md
           - describe_case: reference/functions/describe_case.md
           - differentiation: reference/functions/differentiation.md
           - dual_operations: reference/functions/dual_operations.md

@@ -3,6 +3,6 @@
 
 % Compatibility adapter for existing scripts. Prefer imr.default_inputs.
 % The implementation lives only in the imr namespace.
-function varargout = f_imr_inputs(varargin)
+function varargout = f_default_inputs(varargin)
     [varargout{1:nargout}] = imr.default_inputs(varargin{:});
 end
