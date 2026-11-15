@@ -3,6 +3,6 @@
 
 % Compatibility adapter for existing scripts. Prefer imr.solve_spectral.
 % The implementation lives only in the imr namespace.
-function varargout = f_imr_spectral(varargin)
+function varargout = f_solve_spectral(varargin)
     [varargout{1:nargout}] = imr.solve_spectral(varargin{:});
 end

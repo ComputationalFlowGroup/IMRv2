@@ -3,6 +3,6 @@
 
 % Compatibility adapter for existing scripts. Prefer imr.nondimensionalize.
 % The implementation lives only in the imr namespace.
-function varargout = f_dim2nondim(varargin)
+function varargout = f_nondimensionalize(varargin)
     [varargout{1:nargout}] = imr.nondimensionalize(varargin{:});
 end

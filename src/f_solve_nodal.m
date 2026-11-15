@@ -3,6 +3,6 @@
 
 % Compatibility adapter for existing scripts. Prefer imr.solve_nodal.
 % The implementation lives only in the imr namespace.
-function varargout = f_imr_nodal(varargin)
+function varargout = f_solve_nodal(varargin)
     [varargout{1:nargout}] = imr.solve_nodal(varargin{:});
 end

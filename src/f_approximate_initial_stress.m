@@ -3,6 +3,6 @@
 
 % Compatibility adapter for existing scripts. Prefer imr.approximate_initial_stress.
 % The implementation lives only in the imr namespace.
-function varargout = f_approx_init_stress(varargin)
+function varargout = f_approximate_initial_stress(varargin)
     [varargout{1:nargout}] = imr.approximate_initial_stress(varargin{:});
 end

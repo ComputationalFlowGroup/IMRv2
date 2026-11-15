@@ -3,6 +3,6 @@
 
 % Compatibility adapter for existing scripts. Prefer imr.configuration.defaults.
 % The implementation lives only in the imr namespace.
-function varargout = default_case(varargin)
+function varargout = f_defaults(varargin)
     [varargout{1:nargout}] = imr.configuration.defaults(varargin{:});
 end

@@ -20,7 +20,7 @@ src/
     +numerics/        integration, operators and Jacobians
     +fluids/          material profiles
   data/              measured pressure splines
-  f_imr_nodal.m      compatibility adapters, no numerical implementation
+  f_solve_nodal.m    compatibility adapters, no numerical implementation
   ...
 examples/
   run_water_case.m
@@ -54,19 +54,19 @@ The small initial velocity starts oscillation about the equilibrium radius. Wate
 
 ## Compatibility and naming
 
-| Existing public name | Preferred name |
+| Adapter name | Preferred name |
 |---|---|
-| `f_imr_nodal` | `imr.solve_nodal` |
-| `f_imr_spectral` | `imr.solve_spectral` |
-| `f_imr_inputs` | `imr.default_inputs` |
-| `f_dim2nondim` | `imr.nondimensionalize` |
-| `f_imr_sweep` | `imr.sweep` |
+| `f_solve_nodal` | `imr.solve_nodal` |
+| `f_solve_spectral` | `imr.solve_spectral` |
+| `f_default_inputs` | `imr.default_inputs` |
+| `f_nondimensionalize` | `imr.nondimensionalize` |
+| `f_sweep` | `imr.sweep` |
 | `f_fluid_properties` | `imr.fluid_properties` |
-| `f_approx_init_stress` | `imr.approximate_initial_stress` |
-| `default_case` | `imr.configuration.defaults` |
+| `f_approximate_initial_stress` | `imr.approximate_initial_stress` |
+| `f_defaults` | `imr.configuration.defaults` |
 | `fluids.water` | `imr.fluids.water` |
 
-These old public names remain small forwarding adapters. They keep the same inputs and output order. They have no repeated implementation. Internal helpers have moved to their responsibility package. Code that calls an internal helper directly must use its qualified name from the [function call map](function-call-map.md). Do not `import imr.*` in library code. Explicit names avoid ambiguity and make dependencies visible.
+These adapter names replaced an earlier set of public names (`f_imr_nodal`, `f_imr_spectral`, `f_imr_inputs`, `f_dim2nondim`, `f_imr_sweep`, `default_case`) that predated this renaming and no longer exist. The current adapters are small forwarding functions. They keep the same inputs and output order as the preferred name. They have no repeated implementation. Internal helpers have moved to their responsibility package. Code that calls an internal helper directly must use its qualified name from the [function call map](function-call-map.md). Do not `import imr.*` in library code. Explicit names avoid ambiguity and make dependencies visible.
 
 Use lowercase `snake_case`, descriptive quantities or verbs, and a primary function matching the filename. For example, `imr.physics.radial_acceleration` is defined as `radial_acceleration` in `src/+imr/+physics/radial_acceleration.m`. Do not put dots in its function declaration. Do not add `+imr` to the search path itself.
 
@@ -76,4 +76,4 @@ The organization adds no path setup, file reads or validation inside numerical c
 
 MATLAB name resolution and dispatch performance can vary by release. Source consistency and static checks cannot establish that runtime is unchanged. The [namespace benchmark procedure](../../benchmarks/namespaces/README.md) does four things. It compares all seven original numerical outputs and the original input fields. It validates the newly added solver label separately. It times four representative workloads against the pre-namespace checkout. It alternates timing order, isolates source paths, and flags a configured slowdown threshold. Run it in MATLAB to compare layouts on the same machine. This documentation cleanup claims no timing result. This timing gate remains for local execution before merging.
 
-`s_test_suite_namespace` checks public namespace calls, legacy adapters and measured waveform loading. The existing numerical suites now call the namespaced implementations directly. The suite regenerates no trajectory baseline. Markdown and LaTeX source checks remain separate from MATLAB numerical validation.
+`s_test_suite_namespace` checks public namespace calls, the compatibility adapters and measured waveform loading. The existing numerical suites now call the namespaced implementations directly. The suite regenerates no trajectory baseline. Markdown and LaTeX source checks remain separate from MATLAB numerical validation.

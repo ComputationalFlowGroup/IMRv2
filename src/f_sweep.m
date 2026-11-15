@@ -3,6 +3,6 @@
 
 % Compatibility adapter for existing scripts. Prefer imr.sweep.
 % The implementation lives only in the imr namespace.
-function varargout = f_imr_sweep(varargin)
+function varargout = f_sweep(varargin)
     [varargout{1:nargout}] = imr.sweep(varargin{:});
 end
